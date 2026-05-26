@@ -1277,6 +1277,7 @@ def build():
         <div class="ops-toolbar">
           <button class="add-btn" id="add-event-btn">+ Add event</button>
           <button class="add-btn" id="paste-email-btn">Paste email</button>
+          <button class="add-btn" id="vet-dust-btn">Vet with Dust</button>
           <button class="add-btn" id="csv-btn">CSV import/export</button>
           <button class="add-btn" id="ical-btn">Download saved .ics</button>
           <button class="add-btn" id="ical-subscribe-btn">Subscribe in calendar app</button>
@@ -2630,6 +2631,153 @@ def build():
       }});
     }}
 
+    // ── Vet with Dust ────────────────────────────────────────────────
+    // Sends the candidate text through the ArcticBlueEventSpeaking Dust
+    // agent (via the /api/vet Vercel function which holds the API key)
+    // and renders the agent's structured recommendation + lets the user
+    // promote it into the + Add Event form with one click.
+    function openVetPanel(email) {{
+      var existing = document.getElementById('vet-panel');
+      if (existing) {{ existing.remove(); return; }}
+
+      var panel = document.createElement('div');
+      panel.id = 'vet-panel';
+      panel.className = 'add-event-card';
+      panel.innerHTML =
+        '<h3>Vet a candidate with Dust</h3>' +
+        '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
+          'Paste the email, web copy, or a description of the event. ' +
+          'The <strong>ArcticBlueEventSpeaking</strong> agent will extract the details, ' +
+          'rate the fit, and let you promote it into a manual event with one click.' +
+        '</p>' +
+        '<label><span class="key">Candidate</span>' +
+          '<textarea id="vet-text" placeholder="Paste here\\u2026" style="min-height:140px;"></textarea>' +
+        '</label>' +
+        '<div class="add-actions" style="margin-top:10px;">' +
+          '<button type="button" class="primary" id="vet-run-btn">Run vetting</button>' +
+          '<button type="button" class="secondary" id="vet-cancel-btn">Close</button>' +
+        '</div>' +
+        '<p class="ops-meta" id="vet-meta" style="margin-top:10px;">Dust replies usually take 5\\u201340 seconds.</p>' +
+        '<div id="vet-result" style="margin-top:12px;"></div>';
+
+      $opsGrid.insertBefore(panel, $opsGrid.firstChild);
+      panel.querySelector('#vet-text').focus();
+
+      panel.querySelector('#vet-cancel-btn').addEventListener('click', function () {{ panel.remove(); }});
+
+      panel.querySelector('#vet-run-btn').addEventListener('click', function () {{
+        var text = panel.querySelector('#vet-text').value || '';
+        if (text.trim().length < 10) {{
+          panel.querySelector('#vet-meta').textContent = 'Need at least 10 characters of context.';
+          return;
+        }}
+        var runBtn = panel.querySelector('#vet-run-btn');
+        var meta   = panel.querySelector('#vet-meta');
+        runBtn.disabled = true; runBtn.textContent = 'Asking Dust\\u2026';
+        meta.textContent = 'Sending to ArcticBlueEventSpeaking. This can take 30\\u201360 seconds.';
+
+        sb.auth.getSession().then(function (r) {{
+          var token = r && r.data && r.data.session && r.data.session.access_token;
+          if (!token) {{
+            runBtn.disabled = false; runBtn.textContent = 'Run vetting';
+            meta.textContent = 'Couldn\\u2019t read your Supabase session. Try signing out and back in.';
+            return;
+          }}
+          var t0 = Date.now();
+          fetch('/api/vet', {{
+            method:  'POST',
+            headers: {{ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }},
+            body:    JSON.stringify({{ text: text }})
+          }}).then(function (res) {{
+            return res.json().then(function (j) {{ return [res.status, j]; }});
+          }}).then(function (pair) {{
+            var status = pair[0], data = pair[1];
+            var dur = Math.round((Date.now() - t0) / 1000);
+            runBtn.disabled = false; runBtn.textContent = 'Re-run vetting';
+            if (status !== 200) {{
+              meta.textContent = 'Vetting failed (' + status + '): ' + (data && data.error || 'unknown error');
+              return;
+            }}
+            meta.textContent = 'Done in ' + dur + 's.';
+            renderVetResult(panel, data, email);
+          }}).catch(function (err) {{
+            runBtn.disabled = false; runBtn.textContent = 'Re-run vetting';
+            meta.textContent = 'Network error: ' + err.message;
+          }});
+        }});
+      }});
+    }}
+
+    function renderVetResult(panel, data, email) {{
+      var fields = data.fields || {{}};
+      var rec    = (fields.recommend || '').toLowerCase();
+      var recPill =
+        rec === 'yes'   ? '<span class="ops-tag" style="background:#dcfce7;color:#166534;">Recommend</span>' :
+        rec === 'maybe' ? '<span class="ops-tag" style="background:#fef3c7;color:#92400e;">Maybe</span>' :
+        rec === 'no'    ? '<span class="ops-tag" style="background:#fee2e2;color:#991b1b;">Skip</span>' :
+                          '';
+
+      function row(k, v) {{
+        if (v === null || v === undefined || v === '') return '';
+        var safe = escapeHtml(String(v));
+        if (k === 'url') {{
+          safe = '<a href="' + safe + '" target="_blank" rel="noopener" style="color:var(--ab-blue);text-decoration:none;">' + safe + ' \\u2197</a>';
+        }}
+        return '<tr><td style="padding:4px 12px 4px 0;font-family:var(--ab-mono);font-size:0.72rem;letter-spacing:0.06em;color:var(--ab-fg-3);text-transform:uppercase;vertical-align:top;">' +
+                 escapeHtml(k) +
+               '</td><td style="padding:4px 0;color:var(--ab-fg);">' + safe + '</td></tr>';
+      }}
+
+      var rows = ['name', 'date_str', 'location', 'region', 'type', 'priority', 'why', 'url'].map(function (k) {{
+        return row(k, fields[k]);
+      }}).join('');
+
+      var html =
+        '<div class="alert" style="margin:0 0 12px;">' +
+          (recPill ? recPill + ' ' : '') +
+          (fields.reasoning ? escapeHtml(fields.reasoning) : 'No reasoning returned.') +
+        '</div>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:0.9rem;">' + rows + '</table>' +
+        '<div class="add-actions" style="margin-top:14px;">' +
+          '<button type="button" class="primary" id="vet-promote-btn">' +
+            (rec === 'no' ? 'Add anyway' : 'Promote to event') +
+          '</button>' +
+          '<button type="button" class="secondary" id="vet-rawreply-btn">Show raw reply</button>' +
+        '</div>' +
+        '<pre id="vet-raw" style="display:none;margin-top:10px;padding:12px;background:var(--ab-bg-3);border-radius:6px;font-size:0.78rem;line-height:1.5;color:var(--ab-fg-2);max-height:280px;overflow:auto;white-space:pre-wrap;"></pre>';
+
+      var $r = panel.querySelector('#vet-result');
+      $r.innerHTML = html;
+
+      $r.querySelector('#vet-rawreply-btn').addEventListener('click', function () {{
+        var pre = $r.querySelector('#vet-raw');
+        if (pre.style.display === 'none') {{
+          pre.textContent = data.raw || '(no raw reply)';
+          pre.style.display = 'block';
+        }} else {{
+          pre.style.display = 'none';
+        }}
+      }});
+
+      $r.querySelector('#vet-promote-btn').addEventListener('click', function () {{
+        // Open the add-event form, then fill it with the Dust fields (overwriting any draft)
+        panel.remove();
+        var form = (function ensureOpen() {{
+          var existing = document.getElementById('add-event-card');
+          if (existing) return existing;
+          // wireAddEvent hooks the button → trigger it programmatically
+          var $addBtn = document.getElementById('add-event-btn');
+          if ($addBtn) $addBtn.click();
+          return document.getElementById('add-event-card');
+        }})();
+        if (form) {{
+          applyExtractToForm(form, fields, {{ overwrite: true }});
+          var nameInp = form.querySelector('input[name="name"]');
+          if (nameInp) nameInp.focus();
+        }}
+      }});
+    }}
+
     // ── + Add event / Paste email orchestration ─────────────────────
     // Opens an inline panel that surfaces the public feed URL + a 1-click
     // copy button + paste-instructions for the three common calendar apps.
@@ -2694,6 +2842,7 @@ def build():
     function wireAddEvent(email) {{
       var $addBtn   = document.getElementById('add-event-btn');
       var $pasteBtn = document.getElementById('paste-email-btn');
+      var $vetBtn   = document.getElementById('vet-dust-btn');
       var $csvBtn   = document.getElementById('csv-btn');
       var $icalBtn  = document.getElementById('ical-btn');
       var $subBtn   = document.getElementById('ical-subscribe-btn');
@@ -2701,6 +2850,7 @@ def build():
       // Clone-replace to clear listeners from any prior route() call
       var freshAdd = $addBtn.cloneNode(true); $addBtn.parentNode.replaceChild(freshAdd, $addBtn); $addBtn = freshAdd;
       if ($pasteBtn) {{ var fp = $pasteBtn.cloneNode(true); $pasteBtn.parentNode.replaceChild(fp, $pasteBtn); $pasteBtn = fp; }}
+      if ($vetBtn)   {{ var fv = $vetBtn.cloneNode(true); $vetBtn.parentNode.replaceChild(fv, $vetBtn); $vetBtn = fv; }}
       if ($csvBtn)   {{ var fc = $csvBtn.cloneNode(true); $csvBtn.parentNode.replaceChild(fc, $csvBtn); $csvBtn = fc; }}
       if ($icalBtn)  {{ var fi = $icalBtn.cloneNode(true); $icalBtn.parentNode.replaceChild(fi, $icalBtn); $icalBtn = fi; }}
       if ($subBtn)   {{ var fs = $subBtn.cloneNode(true); $subBtn.parentNode.replaceChild(fs, $subBtn); $subBtn = fs; }}
@@ -2736,6 +2886,9 @@ def build():
       }});
       if ($pasteBtn) {{
         $pasteBtn.addEventListener('click', function () {{ openAddForm({{ expandPaste: true }}); }});
+      }}
+      if ($vetBtn) {{
+        $vetBtn.addEventListener('click', function () {{ openVetPanel(email); }});
       }}
       if ($csvBtn) {{
         $csvBtn.addEventListener('click', function () {{ openCsvPanel(email); }});
