@@ -44,6 +44,8 @@ DUST_WORKSPACE   = _env('DUST_WORKSPACE_ID', 'G5QCSmfJhK')
 DUST_AGENT       = _env('DUST_AGENT_ID', 'Dir04hvKfi')
 DUST_DOMAIN      = _env('DUST_DOMAIN', 'https://dust.tt').rstrip('/')
 
+EXA_API_KEY      = _env('EXA_API_KEY')
+
 MAX_POLL_SECONDS = 90
 POLL_INTERVAL    = 3.0
 
@@ -161,6 +163,39 @@ def _dust_poll(conv_id):
     raise TimeoutError(f'dust agent did not finish in {MAX_POLL_SECONDS}s')
 
 
+URL_RE = re.compile(r'^https?://\S+$', re.IGNORECASE)
+
+
+def _fetch_via_exa(url):
+    """Use Exa.ai's /contents endpoint to fetch the page text. JS-rendered
+    event sites are handled server-side by Exa so we don't have to.
+    Returns (title, text, published_date) on success; raises on failure."""
+    if not EXA_API_KEY:
+        raise RuntimeError('EXA_API_KEY not configured')
+    api = 'https://api.exa.ai/contents'
+    body = {
+        'urls': [url],
+        'text': {'maxCharacters': 12000, 'includeHtmlTags': False},
+        'livecrawl': 'preferred',
+    }
+    status, payload = _http_json('POST', api, headers={
+        'x-api-key':    EXA_API_KEY,
+        'Content-Type': 'application/json',
+    }, body=body, timeout=45)
+    if status != 200 or not isinstance(payload, dict):
+        raise RuntimeError(f'exa contents returned {status}: {str(payload)[:300]}')
+    results = payload.get('results') or []
+    if not results:
+        raise RuntimeError('exa returned no results — URL unreachable?')
+    r = results[0]
+    title = (r.get('title') or '').strip()
+    text  = (r.get('text') or '').strip()
+    pub   = r.get('publishedDate') or ''
+    if not text:
+        raise RuntimeError('exa returned empty text — page may be JS-only or 404')
+    return title, text, pub
+
+
 def _extract_json(text):
     """Pull a JSON object out of the agent's reply. Tries fenced blocks first."""
     if not text:
@@ -275,9 +310,19 @@ class handler(BaseHTTPRequestHandler):
         except (ValueError, json.JSONDecodeError):
             return _send(self, 400, {'error': 'invalid JSON body'})
 
+        url  = (body.get('url')  or '').strip()
         text = (body.get('text') or '').strip()
-        if len(text) < 10:
-            return _send(self, 400, {'error': 'need at least 10 chars of candidate text'})
+
+        # Allow "url:" prefix in text or a bare URL as text → treat as url input.
+        if not url and text and URL_RE.match(text):
+            url = text
+            text = ''
+
+        # Need at least one of url, text
+        if not url and len(text) < 10:
+            return _send(self, 400, {'error': 'need a url or at least 10 chars of text'})
+        if url and not URL_RE.match(url):
+            return _send(self, 400, {'error': 'url must start with http:// or https://'})
 
         # Auth — must be an allow-listed editor
         auth_header = self.headers.get('Authorization', '')
@@ -286,6 +331,22 @@ class handler(BaseHTTPRequestHandler):
         if not ok:
             return _send(self, 403, {'error': f'forbidden: {who}'})
         caller_email = who
+
+        # If we have a URL, scrape it via Exa first
+        exa_meta = None
+        if url:
+            try:
+                title, scraped, pub_date = _fetch_via_exa(url)
+                exa_meta = {'title': title, 'published_date': pub_date, 'chars': len(scraped)}
+                # Build a combined prompt: include the source URL so the agent
+                # uses it directly (and so the "no invented URL" rule has a
+                # verified URL to fall back on).
+                prefix = f"Source URL (verified, use this for the `url` field): {url}\n"
+                if title: prefix += f"Page title: {title}\n"
+                if pub_date: prefix += f"Published: {pub_date}\n"
+                text = prefix + "\n" + scraped
+            except Exception as e:
+                return _send(self, 502, {'error': f'scrape failed: {e}'})
 
         # Call Dust
         try:
@@ -298,9 +359,15 @@ class handler(BaseHTTPRequestHandler):
 
         agent_text = _agent_text(reply)
         fields     = _extract_json(agent_text) or {}
+
+        # If the agent didn't return a URL but we scraped one, use it.
+        if url and not fields.get('url'):
+            fields['url'] = url
+
         return _send(self, 200, {
             'fields': fields,
             'raw':    agent_text[:8000],     # cap reply size
             'status': reply.get('status'),
             'caller': caller_email,
+            'source': {'url': url or None, 'exa': exa_meta},
         })

@@ -1412,6 +1412,20 @@ def build():
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }}
 
+    // "hurley@arcticblue.ai" → "Hurley". Used in any user-facing label;
+    // the full email is preserved as the `title` attribute so it's still
+    // visible on hover for audit purposes.
+    function firstNameFromEmail(email) {{
+      if (!email) return '';
+      var local = String(email).split('@')[0] || '';
+      // Split on common separators (dot, underscore, dash); first segment wins
+      var parts = local.replace(/[._-]+/g, ' ').split(/\\s+/).filter(Boolean);
+      if (parts.length === 0) return email;
+      var first = parts[0].replace(/[0-9]+$/, '');
+      if (!first) return parts[0];
+      return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+    }}
+
     function formatStamp(iso) {{
       if (!iso) return '';
       var d = new Date(iso);
@@ -1480,7 +1494,7 @@ def build():
       if (st.urgent) card.classList.add('is-urgent');
 
       var metaLine = (st.updated_by && st.updated_at)
-        ? '<p class="ops-meta">Last edit · ' + escapeHtml(st.updated_by) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
+        ? '<p class="ops-meta" title="' + escapeHtml(st.updated_by) + '">Last edit · ' + escapeHtml(firstNameFromEmail(st.updated_by)) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
         : '';
 
       card.innerHTML =
@@ -1530,7 +1544,9 @@ def build():
       card.dataset.kind = 'manual';
       card.dataset.region = mev.region || '';
       card.dataset.hasSpeaker = '';
-      var who = mev.created_by ? ('Added by ' + escapeHtml(mev.created_by) + ' · ' + escapeHtml(formatStamp(mev.created_at))) : '';
+      var whoText  = mev.created_by ? ('Added by ' + escapeHtml(firstNameFromEmail(mev.created_by)) + ' · ' + escapeHtml(formatStamp(mev.created_at))) : '';
+      var whoTitle = mev.created_by ? (' title="' + escapeHtml(mev.created_by) + '"') : '';
+      var who      = whoText;
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<div class="ops-chips">' +
@@ -1572,7 +1588,7 @@ def build():
             '</div>' +
           '</form>' +
         '</details>' +
-        (who ? '<p class="ops-meta">' + who + '</p>' : '');
+        (who ? '<p class="ops-meta"' + whoTitle + '>' + who + '</p>' : '');
       return card;
     }}
 
@@ -1912,11 +1928,18 @@ def build():
             '<p class="ops-meta" id="paste-extract-meta"></p>' +
           '</div>' +
         '</details>' +
+        '<label><span class="key">URL — paste here to auto-fill ↓</span>' +
+          '<div style="display:flex;gap:6px;align-items:stretch;">' +
+            '<input type="text" name="url" placeholder="https://event-site.com" style="flex:1;">' +
+            '<button type="button" class="primary" id="fill-from-url-btn" style="white-space:nowrap;padding:0 14px;font-size:0.85rem;">Fill from URL</button>' +
+          '</div>' +
+          '<p class="ops-meta" id="fill-from-url-meta" style="margin:6px 0 0;"></p>' +
+        '</label>' +
         '<label><span class="key">Name *</span>' +
           '<input type="text" name="name" required placeholder="e.g. AI Summit San Francisco">' +
         '</label>' +
-        '<label><span class="key">Date *</span>' +
-          '<input type="text" name="date_str" required placeholder="e.g. September 12, 2026 or September 10–12, 2026">' +
+        '<label><span class="key">Date</span>' +
+          '<input type="text" name="date_str" placeholder="Optional · e.g. September 12, 2026 or September 10–12, 2026">' +
         '</label>' +
         '<div class="row">' +
           '<label><span class="key">Location</span>' +
@@ -1941,9 +1964,6 @@ def build():
         '<label><span class="key">Why it fits</span>' +
           '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
         '</label>' +
-        '<label><span class="key">URL</span>' +
-          '<input type="text" name="url" placeholder="https://…">' +
-        '</label>' +
         '<div class="add-actions">' +
           '<button type="submit" class="primary">Add event</button>' +
           '<button type="button" class="secondary" data-cancel>Cancel</button>' +
@@ -1951,7 +1971,78 @@ def build():
       return form;
     }}
 
+    // Lower-cased trimmed name → list of existing events. Used by the
+    // duplicate-name guard at insert time.
+    var _knownNames = null;
+    function loadKnownNames() {{
+      var p1 = fetch('events.json').then(function (r) {{ return r.json(); }}).then(function (d) {{
+        return ((d && d.events) || []).map(function (e) {{ return (e.name || '').toLowerCase().trim(); }});
+      }}).catch(function () {{ return []; }});
+      var p2 = sb.from('manual_events').select('name').then(function (r) {{
+        return ((r && r.data) || []).map(function (e) {{ return (e.name || '').toLowerCase().trim(); }});
+      }});
+      return Promise.all([p1, p2]).then(function (a) {{
+        _knownNames = a[0].concat(a[1]).filter(Boolean);
+        return _knownNames;
+      }});
+    }}
+    function isDuplicateName(name) {{
+      var n = (name || '').toLowerCase().trim();
+      return !!_knownNames && _knownNames.indexOf(n) !== -1;
+    }}
+
     function attachAddEventHandlers(form, email) {{
+      // Warm the duplicate-name cache so the submit handler can synchronously
+      // check without an extra round-trip.
+      loadKnownNames();
+      // Fill from URL — scrape via Exa.ai + extract via Dust, in /api/vet
+      var fillBtn  = form.querySelector('#fill-from-url-btn');
+      var fillMeta = form.querySelector('#fill-from-url-meta');
+      if (fillBtn) {{
+        fillBtn.addEventListener('click', function () {{
+          var urlInp = form.querySelector('input[name="url"]');
+          var url = (urlInp.value || '').trim();
+          if (!/^https?:\\/\\//i.test(url)) {{
+            fillMeta.textContent = 'Paste an http:// or https:// URL first.';
+            return;
+          }}
+          fillBtn.disabled = true; fillBtn.textContent = 'Scraping…';
+          fillMeta.textContent = 'Fetching page via Exa.ai, then asking the Dust agent to structure it. Usually 10\\u201340 seconds.';
+          sb.auth.getSession().then(function (r) {{
+            var token = r && r.data && r.data.session && r.data.session.access_token;
+            if (!token) {{
+              fillBtn.disabled = false; fillBtn.textContent = 'Fill from URL';
+              fillMeta.textContent = 'Sign-in expired. Refresh and try again.';
+              return;
+            }}
+            var t0 = Date.now();
+            fetch('/api/vet', {{
+              method:  'POST',
+              headers: {{ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }},
+              body:    JSON.stringify({{ url: url }})
+            }}).then(function (res) {{
+              return res.json().then(function (j) {{ return [res.status, j]; }});
+            }}).then(function (pair) {{
+              fillBtn.disabled = false; fillBtn.textContent = 'Fill from URL';
+              var st = pair[0], data = pair[1];
+              if (st !== 200) {{
+                fillMeta.textContent = 'Couldn\\u2019t scrape (' + st + '): ' + (data && data.error || 'unknown');
+                return;
+              }}
+              var f = data.fields || {{}};
+              // Only fill empty inputs by default — never clobber what user typed
+              var report = applyExtractToForm(form, f, {{ overwrite: false }});
+              var dur = Math.round((Date.now() - t0) / 1000);
+              fillMeta.textContent = 'Filled ' + report.filled + ' of ' + report.total + ' fields in ' + dur + 's' +
+                (report.skipped ? ' (' + report.skipped + ' skipped — already had values).' : '.');
+            }}).catch(function (err) {{
+              fillBtn.disabled = false; fillBtn.textContent = 'Fill from URL';
+              fillMeta.textContent = 'Network error: ' + err.message;
+            }});
+          }});
+        }});
+      }}
+
       // Extract from pasted email
       var extractBtn = form.querySelector('#paste-extract-btn');
       var clearBtn   = form.querySelector('#paste-clear-btn');
@@ -1988,12 +2079,20 @@ def build():
           url:        (fd.get('url') || '').toString().trim() || null,
           created_by: email
         }};
-        if (!row.name || !row.date_str) {{ alert('Name and date are required'); return; }}
+        if (!row.name) {{ alert('Name is required (it shows on the calendar)'); return; }}
+        // Date is optional — fall back to "Date TBD" since the schema column
+        // is NOT NULL. start_date / end_date stay null and the iCal feed will
+        // skip the event until a real date is filled in.
+        if (!row.date_str) row.date_str = 'Date TBD';
         // Derive start_date + end_date from date_str so the row is calendar-ready
         // (used by both the in-app calendar view and the public iCal feed).
         var derived = deriveDatesFromText(row.date_str);
         if (derived.start_date) row.start_date = derived.start_date;
         if (derived.end_date)   row.end_date   = derived.end_date;
+        // Duplicate-name guard — case-insensitive across catalog + manual_events
+        if (isDuplicateName(row.name)) {{
+          if (!confirm('"' + row.name + '" already exists in the tracker. Add another copy anyway?')) return;
+        }}
         var submitBtn = form.querySelector('button.primary[type="submit"]');
         submitBtn.disabled = true; submitBtn.textContent = 'Saving…';
         sb.from('manual_events').insert(row).select().then(function (resp) {{
@@ -2300,29 +2399,97 @@ def build():
       var capDate = new Date(2027, 11, 1);
       if (latest > capDate) latest = capDate;
 
+      // Enumerate every month in the range so the dropdown shows the full menu.
+      var months = [];
       var y = earliest.getFullYear(), m = earliest.getMonth();
       var endY = latest.getFullYear(), endM = latest.getMonth();
-      var guard = 0; // safety
-      while ((y < endY || (y === endY && m <= endM)) && guard++ < 36) {{
-        cal.appendChild(buildCalendarMonth(y, m, combined, stateMap, function (num) {{
-          // Click chip → switch to Grid, scroll to + highlight the card
-          setView('grid');
-          var selector = String(num).charAt(0) === 'm'
-            ? '.ops-card[data-manual-id="' + String(num).slice(1) + '"]'
-            : '.ops-card[data-event-num="' + num + '"]';
-          var card = $opsGrid.querySelector(selector);
-          if (card) {{
-            card.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
-            card.classList.remove('is-highlight');
-            // Re-trigger animation
-            void card.offsetWidth;
-            card.classList.add('is-highlight');
-            setTimeout(function () {{ card.classList.remove('is-highlight'); }}, 1700);
-          }}
-        }}));
+      var guard = 0;
+      while ((y < endY || (y === endY && m <= endM)) && guard++ < 48) {{
+        months.push({{ y: y, m: m, key: y + '-' + String(m + 1).padStart(2, '0') }});
         m++;
         if (m > 11) {{ m = 0; y++; }}
       }}
+      if (months.length === 0) {{
+        cal.innerHTML = '<p class="alert">No events with dates to display on the calendar yet.</p>';
+        return;
+      }}
+
+      // Default: current month if it's in range, else first month with events
+      var todayKey = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+      var savedKey = null;
+      try {{ savedKey = localStorage.getItem('ab.calendar.month'); }} catch (e) {{}}
+      var defaultKey = savedKey && months.some(function (x) {{ return x.key === savedKey; }})
+        ? savedKey
+        : (months.some(function (x) {{ return x.key === todayKey; }}) ? todayKey : months[0].key);
+
+      // Count events per month for the dropdown label
+      var byMonth = {{}};
+      combined.forEach(function (ev) {{
+        var sd = ev.start_date; if (!sd) return;
+        var k = sd.slice(0, 7);
+        byMonth[k] = (byMonth[k] || 0) + 1;
+      }});
+
+      // Build dropdown
+      var headerWrap = document.createElement('div');
+      headerWrap.style.cssText = 'display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;';
+      headerWrap.innerHTML =
+        '<label style="display:flex;align-items:center;gap:8px;font-family:var(--ab-mono);font-size:0.74rem;color:var(--ab-fg-3);letter-spacing:0.06em;text-transform:uppercase;">' +
+          'Month' +
+          '<select id="cal-month-select" style="font-family:var(--ab-sans);font-size:0.95rem;padding:8px 12px;border:1px solid var(--ab-rule-strong);border-radius:6px;background:var(--ab-bg);color:var(--ab-fg);">' +
+            months.map(function (m) {{
+              var label = new Date(m.y, m.m, 1).toLocaleString('en-US', {{ month: 'long', year: 'numeric' }});
+              var n = byMonth[m.key] || 0;
+              var suffix = n ? '  (' + n + ' event' + (n === 1 ? '' : 's') + ')' : '  (0)';
+              return '<option value="' + m.key + '"' + (m.key === defaultKey ? ' selected' : '') + '>' + escapeHtml(label) + escapeHtml(suffix) + '</option>';
+            }}).join('') +
+          '</select>' +
+        '</label>' +
+        '<button type="button" id="cal-prev" class="add-btn">‹ Prev</button>' +
+        '<button type="button" id="cal-next" class="add-btn">Next ›</button>';
+      cal.appendChild(headerWrap);
+
+      var monthHost = document.createElement('div');
+      monthHost.id = 'cal-month-host';
+      cal.appendChild(monthHost);
+
+      function onChipClick(num) {{
+        setView('grid');
+        var selector = String(num).charAt(0) === 'm'
+          ? '.ops-card[data-manual-id="' + String(num).slice(1) + '"]'
+          : '.ops-card[data-event-num="' + num + '"]';
+        var card = $opsGrid.querySelector(selector);
+        if (card) {{
+          card.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+          card.classList.remove('is-highlight');
+          void card.offsetWidth;
+          card.classList.add('is-highlight');
+          setTimeout(function () {{ card.classList.remove('is-highlight'); }}, 1700);
+        }}
+      }}
+
+      function renderMonthByKey(key) {{
+        var match = months.filter(function (x) {{ return x.key === key; }})[0];
+        if (!match) match = months[0];
+        monthHost.innerHTML = '';
+        monthHost.appendChild(buildCalendarMonth(match.y, match.m, combined, stateMap, onChipClick));
+        try {{ localStorage.setItem('ab.calendar.month', match.key); }} catch (e) {{}}
+        var sel = document.getElementById('cal-month-select');
+        if (sel) sel.value = match.key;
+      }}
+
+      var sel = headerWrap.querySelector('#cal-month-select');
+      sel.addEventListener('change', function () {{ renderMonthByKey(sel.value); }});
+
+      function step(delta) {{
+        var idx = months.findIndex(function (x) {{ return x.key === sel.value; }});
+        var next = Math.max(0, Math.min(months.length - 1, idx + delta));
+        renderMonthByKey(months[next].key);
+      }}
+      headerWrap.querySelector('#cal-prev').addEventListener('click', function () {{ step(-1); }});
+      headerWrap.querySelector('#cal-next').addEventListener('click', function () {{ step(1); }});
+
+      renderMonthByKey(defaultKey);
     }}
 
     // Parses a free-form event date_str into ISO start_date + end_date.
@@ -2919,7 +3086,8 @@ def build():
           showOnly($unauth);
           return;
         }}
-        $opsEmail.textContent = email;
+        $opsEmail.textContent = firstNameFromEmail(email);
+        $opsEmail.setAttribute('title', email);
         showOnly($ops);
         wireViewToggle();
         wireFilters();
