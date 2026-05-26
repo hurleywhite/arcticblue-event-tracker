@@ -242,6 +242,18 @@ class handler(BaseHTTPRequestHandler):
         _send(self, 204, {})
 
     def do_POST(self):
+        try:
+            self._handle_post()
+        except Exception as e:
+            import traceback
+            _send(self, 500, {
+                'error': 'unhandled exception in handler',
+                'type':  type(e).__name__,
+                'msg':   str(e),
+                'trace': traceback.format_exc()[-2000:],
+            })
+
+    def _handle_post(self):
         # Config sanity
         if not DUST_API_KEY:
             return _send(self, 500, {'error': 'server not configured: DUST_API_KEY missing'})
