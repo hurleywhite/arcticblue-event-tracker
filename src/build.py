@@ -7,7 +7,10 @@ ARCHIVED relative to today (2026-05-21), and renders a single file ready to
 upload to Vercel."""
 import sys
 sys.path.insert(0, '/Users/hurleywhite/Library/Python/3.11/lib/python/site-packages')
-from docx import Document
+# `from docx import Document` is now lazy inside _parse_events_docx() — the
+# canonical source is data/events.json. The .docx parser is only the legacy
+# bootstrap fallback. Keeping the import at top-level used to break the whole
+# build when lxml was in a broken state on the host.
 import re
 from datetime import date, datetime
 from html import escape as e
@@ -24,6 +27,13 @@ OUT_SHIP      = HERE / 'public' / 'index.html'
 # Date the build "thinks" today is. Set to date.today() once the build is on
 # a daily cron. Hardcoded for reproducible local builds.
 TODAY = date(2026, 5, 21)
+
+# ── Supabase (For Angela ops tab) ────────────────────────────────────────────
+# Project: AB Event Tracker [Hurley's Org] (ref efkvhlmfdwlobvdmvqiq)
+# The publishable key is safe to embed in the HTML — RLS protects the data.
+# Writes to event_state and manual_events require auth.email() in allowed_editors.
+SUPABASE_URL              = 'https://efkvhlmfdwlobvdmvqiq.supabase.co'
+SUPABASE_PUBLISHABLE_KEY  = 'sb_publishable_Lu7bLEA1jdsJXFDrKqC1OA_LYAjWYEj'
 
 # NEVER hallucinate URLs — only use what's in the doc OR what's manually
 # vouched for in event-urls-manual.json. See AGENT-CONTEXT.md, Rule 2.
@@ -79,6 +89,7 @@ def _load_events_json():
 
 
 def _parse_events_docx():
+    from docx import Document  # lazy: only loaded on legacy fallback path
     doc = Document(DOC_PATH)
     events = []
     current = {}
@@ -267,6 +278,10 @@ def build():
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
+
+  <!-- Supabase JS client — used only by the "For Angela" ops tab -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+
   <style>
     :root {{
       /* Internal-tool palette — white-primary, monochromatic, sharp */
@@ -616,6 +631,126 @@ def build():
       text-transform: uppercase; margin-top: 24px;
     }}
 
+    /* ───────────── For Angela — auth + ops UI ───────────── */
+    .angela-card {{
+      max-width: 480px; margin: 96px auto;
+      padding: 40px 36px; text-align: left;
+      border: 1px solid var(--ab-rule-strong); border-radius: 12px;
+      background: var(--ab-bg);
+    }}
+    .angela-card h2 {{
+      font-family: var(--ab-sans); font-weight: 700;
+      font-size: 1.35rem; letter-spacing: -0.02em;
+      margin: 0 0 8px;
+    }}
+    .angela-card .lede {{
+      color: var(--ab-fg-2); font-size: 0.98rem; line-height: 1.55;
+      margin: 0 0 24px;
+    }}
+    .angela-card form {{ display: flex; flex-direction: column; gap: 12px; }}
+    .angela-card label {{
+      font-family: var(--ab-mono); font-size: 0.72rem;
+      color: var(--ab-fg-3); letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }}
+    .angela-card input[type="email"] {{
+      font-family: var(--ab-sans); font-size: 1rem;
+      padding: 12px 14px; border: 1px solid var(--ab-rule-strong);
+      border-radius: 8px; background: var(--ab-bg);
+      color: var(--ab-fg); outline: none;
+    }}
+    .angela-card input[type="email"]:focus {{
+      border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.15);
+    }}
+    .angela-card button.primary {{
+      font-family: var(--ab-sans); font-weight: 600; font-size: 0.95rem;
+      padding: 12px 18px; border-radius: 8px; border: 0;
+      background: var(--ab-fg); color: var(--ab-bg);
+      cursor: pointer; transition: background 120ms ease;
+    }}
+    .angela-card button.primary:hover {{ background: #262626; }}
+    .angela-card button.primary:disabled {{
+      background: var(--ab-mute); cursor: not-allowed;
+    }}
+    .angela-card .mono-foot {{
+      font-family: var(--ab-mono); font-size: 0.72rem;
+      color: var(--ab-fg-3); letter-spacing: 0.06em;
+      text-transform: uppercase; margin-top: 24px;
+    }}
+
+    .angela-header {{
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 16px; padding: 16px 0;
+      border-bottom: 1px solid var(--ab-rule);
+      margin-bottom: 32px;
+    }}
+    .angela-header .who {{
+      font-family: var(--ab-mono); font-size: 0.78rem;
+      color: var(--ab-fg-2); letter-spacing: 0.04em;
+    }}
+    .angela-header .who strong {{ color: var(--ab-fg); font-weight: 600; }}
+    .angela-header button {{
+      font-family: var(--ab-mono); font-size: 0.72rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 8px 14px; border-radius: 6px;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
+      color: var(--ab-fg-2); cursor: pointer;
+    }}
+    .angela-header button:hover {{ color: var(--ab-fg); border-color: var(--ab-fg-3); }}
+
+    .alert {{
+      max-width: 560px; margin: 32px auto;
+      padding: 16px 20px; border-radius: 8px;
+      font-size: 0.95rem; line-height: 1.5;
+      background: var(--ab-bg-3); color: var(--ab-fg-2);
+    }}
+    .alert.warn {{ background: #fff4e5; color: #7c2d12; }}
+    .alert.error {{ background: #fee2e2; color: #991b1b; }}
+    .alert button.inline {{
+      font: inherit; color: inherit;
+      background: transparent; border: 0; padding: 0;
+      text-decoration: underline; cursor: pointer; margin-left: 6px;
+    }}
+
+    /* Ops grid — same skeleton as .event-grid but with edit controls */
+    .ops-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }}
+    .ops-card {{
+      position: relative;
+      padding: 22px;
+      border: 1px solid var(--ab-rule); border-radius: 10px;
+      background: var(--ab-bg);
+      transition: border-color 120ms ease;
+    }}
+    .ops-card:hover {{ border-color: var(--ab-rule-strong); }}
+    .ops-card.is-saved {{ border-color: var(--ab-blue); }}
+    .ops-card-head {{
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+      margin-bottom: 8px;
+    }}
+    .ops-card .event-date {{
+      font-family: var(--ab-mono); font-size: 0.74rem;
+      color: var(--ab-fg-3); letter-spacing: 0.06em;
+      text-transform: uppercase; margin: 0;
+    }}
+    .ops-card .event-name {{
+      font-family: var(--ab-sans); font-weight: 700;
+      font-size: 1.05rem; line-height: 1.3; letter-spacing: -0.01em;
+      margin: 0 0 4px; color: var(--ab-fg);
+    }}
+    .ops-card .event-loc {{
+      font-size: 0.85rem; color: var(--ab-fg-2); margin: 0 0 12px;
+    }}
+    .saved-star {{
+      font: inherit; background: transparent; border: 0;
+      padding: 4px 6px; cursor: pointer; line-height: 1;
+      color: var(--ab-mute); font-size: 1.25rem;
+      transition: color 120ms ease, transform 120ms ease;
+    }}
+    .saved-star:hover {{ color: var(--ab-fg-3); }}
+    .saved-star.is-on {{ color: var(--ab-blue); }}
+    .saved-star.is-on:hover {{ color: var(--ab-blue-light); }}
+    .saved-star[aria-busy="true"] {{ opacity: 0.4; cursor: wait; }}
+
     /* ───────────── responsive ───────────── */
     @media (max-width: 800px) {{
       .kpi-row {{ grid-template-columns: repeat(2, 1fr); }}
@@ -773,12 +908,46 @@ def build():
     </div><!-- /panel-everyone -->
 
     <div class="panel" id="panel-angela" role="tabpanel" data-tab="angela" hidden aria-labelledby="tab-angela">
-      <div class="angela-placeholder">
-        <h2>For Angela — coming next</h2>
-        <p>This tab will be the working ops view: status tracking, speaker assignments, calendar &amp; map layouts, iCal export, and add-event.</p>
-        <p>Phase 1 (tab shell) is shipped. Phase 2 (Supabase backend &amp; magic-link auth) is next.</p>
-        <p class="mono">Tabs persist via localStorage · re-open this URL to come back here</p>
+
+      <!-- State 1 · loading session -->
+      <div id="angela-loading" class="alert">Loading your session…</div>
+
+      <!-- State 2 · not signed in -->
+      <div id="angela-signin" class="angela-card" hidden>
+        <h2>Sign in to edit</h2>
+        <p class="lede">Editing is restricted to ArcticBlue team members. Enter your work email and we'll send a one-time sign-in link.</p>
+        <form id="signin-form" novalidate>
+          <label for="signin-email">Work email</label>
+          <input type="email" id="signin-email" placeholder="you@arcticblue.ai" required autocomplete="email">
+          <button type="submit" class="primary" id="signin-submit">Send magic link</button>
+        </form>
+        <p class="mono-foot">Read access stays open to everyone · Only allow-listed emails can edit</p>
       </div>
+
+      <!-- State 3 · magic-link sent -->
+      <div id="angela-signin-sent" class="alert" hidden>
+        Check your inbox — we sent a sign-in link to <strong id="signin-sent-to"></strong>. Click it on this device to come back here signed in.
+      </div>
+
+      <!-- State 4 · signed in but not on allow-list -->
+      <div id="angela-unauth" class="alert warn" hidden>
+        You're signed in as <strong id="unauth-email"></strong>, but this email isn't on the editor list. Read access is fine; ask Hurley to add you to <code>allowed_editors</code> if you need to edit.
+        <button class="inline" id="signout-unauth">Sign out</button>
+      </div>
+
+      <!-- State 5 · signed in and authorized — the ops UI -->
+      <div id="angela-ops" hidden>
+        <div class="angela-header">
+          <span class="who">Signed in as <strong id="ops-email"></strong></span>
+          <button id="signout-ops">Sign out</button>
+        </div>
+        <div id="ops-status" class="alert" hidden></div>
+        <p style="margin: 0 0 16px; color: var(--ab-fg-3); font-size: 0.9rem;">
+          Click the star on any event to save it for Angela's shortlist. Other ops fields (status, speaker, notes, etc.) ship in the next phase.
+        </p>
+        <div class="ops-grid" id="ops-grid"></div>
+      </div>
+
     </div><!-- /panel-angela -->
 
     <footer class="foot">
@@ -847,6 +1016,174 @@ def build():
     if (el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', apply);
   }});
   apply();
+}})();
+
+// ── Supabase wiring for "For Angela" tab ──────────────────────────────
+// Auth: magic-link via Supabase Auth. Allow-list lives in the
+// allowed_editors table; RLS gates writes server-side.
+(function () {{
+  var SUPABASE_URL = '{SUPABASE_URL}';
+  var SUPABASE_KEY = '{SUPABASE_PUBLISHABLE_KEY}';
+
+  // Wait for the deferred Supabase UMD script to attach window.supabase
+  function ready(cb) {{
+    if (window.supabase && window.supabase.createClient) return cb();
+    setTimeout(function () {{ ready(cb); }}, 50);
+  }}
+
+  ready(function () {{
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {{
+      auth: {{ persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }}
+    }});
+    window._ab = sb; // exposed for in-browser debugging
+
+    var $loading  = document.getElementById('angela-loading');
+    var $signin   = document.getElementById('angela-signin');
+    var $sent     = document.getElementById('angela-signin-sent');
+    var $unauth   = document.getElementById('angela-unauth');
+    var $ops      = document.getElementById('angela-ops');
+    var $signinForm   = document.getElementById('signin-form');
+    var $signinEmail  = document.getElementById('signin-email');
+    var $signinSubmit = document.getElementById('signin-submit');
+    var $sentTo       = document.getElementById('signin-sent-to');
+    var $unauthEmail  = document.getElementById('unauth-email');
+    var $opsEmail     = document.getElementById('ops-email');
+    var $signoutUnauth = document.getElementById('signout-unauth');
+    var $signoutOps    = document.getElementById('signout-ops');
+    var $opsGrid   = document.getElementById('ops-grid');
+    var $opsStatus = document.getElementById('ops-status');
+
+    function showOnly(el) {{
+      [$loading, $signin, $sent, $unauth, $ops].forEach(function (n) {{
+        if (n) n.setAttribute('hidden', '');
+      }});
+      if (el) el.removeAttribute('hidden');
+    }}
+
+    function status(msg, kind) {{
+      if (!msg) {{ $opsStatus.setAttribute('hidden', ''); return; }}
+      $opsStatus.removeAttribute('hidden');
+      $opsStatus.textContent = msg;
+      $opsStatus.className = 'alert' + (kind ? ' ' + kind : '');
+    }}
+
+    function escapeHtml(s) {{
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }}
+
+    function renderOps(email, stateMap) {{
+      fetch('events.json').then(function (r) {{ return r.json(); }}).then(function (data) {{
+        var evs = (data.events || []).filter(function (e) {{ return e.status !== 'archived'; }});
+        $opsGrid.innerHTML = '';
+        evs.forEach(function (ev) {{
+          var st = stateMap[ev.num] || {{}};
+          var card = document.createElement('article');
+          card.className = 'ops-card' + (st.saved ? ' is-saved' : '');
+          card.dataset.eventNum = ev.num;
+          card.innerHTML =
+            '<div class="ops-card-head">' +
+              '<p class="event-date">' + escapeHtml(ev.date_str) + '</p>' +
+              '<button class="saved-star' + (st.saved ? ' is-on' : '') +
+                '" aria-label="Toggle saved" data-on="' + (st.saved ? '1' : '0') + '">' +
+                (st.saved ? '★' : '☆') +
+              '</button>' +
+            '</div>' +
+            '<h3 class="event-name">' + escapeHtml(ev.name) + '</h3>' +
+            '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>';
+          $opsGrid.appendChild(card);
+        }});
+        wireStars(email);
+      }});
+    }}
+
+    function wireStars(email) {{
+      $opsGrid.querySelectorAll('.saved-star').forEach(function (btn) {{
+        btn.addEventListener('click', function () {{
+          var card = btn.closest('.ops-card');
+          var num = parseInt(card.dataset.eventNum, 10);
+          var on = btn.dataset.on === '1';
+          var nextOn = !on;
+          btn.setAttribute('aria-busy', 'true');
+          sb.from('event_state').upsert({{
+            event_num: num,
+            saved: nextOn,
+            updated_by: email
+          }}, {{ onConflict: 'event_num' }}).then(function (resp) {{
+            btn.removeAttribute('aria-busy');
+            if (resp.error) {{
+              status('Save failed: ' + resp.error.message, 'error');
+              return;
+            }}
+            btn.dataset.on = nextOn ? '1' : '0';
+            btn.textContent = nextOn ? '★' : '☆';
+            btn.classList.toggle('is-on', nextOn);
+            card.classList.toggle('is-saved', nextOn);
+            status('');
+          }});
+        }});
+      }});
+    }}
+
+    function route(session) {{
+      if (!session || !session.user || !session.user.email) {{
+        showOnly($signin);
+        return;
+      }}
+      var email = session.user.email.toLowerCase();
+      sb.from('allowed_editors').select('email').then(function (r) {{
+        var allow = (r.data || []).map(function (x) {{ return (x.email || '').toLowerCase(); }});
+        if (allow.indexOf(email) === -1) {{
+          $unauthEmail.textContent = email;
+          showOnly($unauth);
+          return;
+        }}
+        $opsEmail.textContent = email;
+        showOnly($ops);
+        sb.from('event_state').select('event_num,saved').then(function (r2) {{
+          var map = {{}};
+          (r2.data || []).forEach(function (row) {{ map[row.event_num] = row; }});
+          renderOps(email, map);
+        }});
+      }});
+    }}
+
+    $signinForm.addEventListener('submit', function (ev) {{
+      ev.preventDefault();
+      var email = ($signinEmail.value || '').trim().toLowerCase();
+      if (!email) return;
+      $signinSubmit.disabled = true;
+      $signinSubmit.textContent = 'Sending…';
+      sb.auth.signInWithOtp({{
+        email: email,
+        options: {{ emailRedirectTo: window.location.origin + window.location.pathname }}
+      }}).then(function (r) {{
+        $signinSubmit.disabled = false;
+        $signinSubmit.textContent = 'Send magic link';
+        if (r.error) {{
+          alert('Sign-in failed: ' + r.error.message);
+          return;
+        }}
+        $sentTo.textContent = email;
+        showOnly($sent);
+      }});
+    }});
+
+    function signOut() {{
+      sb.auth.signOut().then(function () {{ route(null); }});
+    }}
+    if ($signoutUnauth) $signoutUnauth.addEventListener('click', signOut);
+    if ($signoutOps)    $signoutOps.addEventListener('click', signOut);
+
+    // Initial routing + react to auth-state changes (magic-link callback fires this)
+    sb.auth.getSession().then(function (r) {{
+      route(r.data ? r.data.session : null);
+    }});
+    sb.auth.onAuthStateChange(function (event, session) {{
+      route(session);
+    }});
+  }});
 }})();
 </script>
 </body>
