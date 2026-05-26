@@ -1595,8 +1595,9 @@ def build():
         }};
         if (!patch.name || !patch.date_str) {{ alert('Name and date are required'); return; }}
         // Re-derive start_date from date_str (best effort)
-        var derived = deriveStartDateFromText(patch.date_str);
-        if (derived) patch.start_date = derived;
+        var derived = deriveDatesFromText(patch.date_str);
+        if (derived.start_date) patch.start_date = derived.start_date;
+        if (derived.end_date)   patch.end_date   = derived.end_date;
         var btn = form.querySelector('button.primary[type="submit"]');
         btn.disabled = true; btn.textContent = 'Saving…';
         sb.from('manual_events').update(patch).eq('id', id).then(function (resp) {{
@@ -1987,6 +1988,11 @@ def build():
           created_by: email
         }};
         if (!row.name || !row.date_str) {{ alert('Name and date are required'); return; }}
+        // Derive start_date + end_date from date_str so the row is calendar-ready
+        // (used by both the in-app calendar view and the public iCal feed).
+        var derived = deriveDatesFromText(row.date_str);
+        if (derived.start_date) row.start_date = derived.start_date;
+        if (derived.end_date)   row.end_date   = derived.end_date;
         var submitBtn = form.querySelector('button.primary[type="submit"]');
         submitBtn.disabled = true; submitBtn.textContent = 'Saving…';
         sb.from('manual_events').insert(row).select().then(function (resp) {{
@@ -2318,19 +2324,61 @@ def build():
       }}
     }}
 
-    function deriveStartDateFromText(text) {{
-      if (!text) return null;
+    // Parses a free-form event date_str into ISO start_date + end_date.
+    // Handles three common shapes:
+    //   "Month D, YYYY"             → start == end (single all-day)
+    //   "Month D1–D2, YYYY"         → same-month range
+    //   "Month1 D1 – Month2 D2, YYYY" → cross-month range
+    // Returns {{ start_date, end_date }}; either may be null if the parse fails.
+    function deriveDatesFromText(text) {{
+      var out = {{ start_date: null, end_date: null }};
+      if (!text) return out;
       var months = {{january:1,february:2,march:3,april:4,may:5,june:6,
                     july:7,august:8,september:9,october:10,november:11,december:12,
                     jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12}};
-      // Handle: "Month D, YYYY" · "Month D–D, YYYY" · "Month D-D, YYYY" (with or without parentheticals after)
-      var m = String(text).match(/([A-Za-z]+)\\s+(\\d{{1,2}})(?:\\s*[–—-]\\s*\\d{{1,2}})?[,\\s]+(\\d{{4}})/);
-      if (!m) return null;
-      var mn = months[m[1].toLowerCase()];
-      if (!mn) return null;
-      var d = parseInt(m[2], 10);
-      var y = parseInt(m[3], 10);
-      return y + '-' + String(mn).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      function pad(n) {{ return String(n).padStart(2, '0'); }}
+      function iso(y, m, d) {{ return y + '-' + pad(m) + '-' + pad(d); }}
+      var s = String(text);
+
+      // 1. Cross-month range — "Month D – Month D, YYYY"
+      var m1 = s.match(/([A-Za-z]+)\\s+(\\d{{1,2}})\\s*[–—-]\\s*([A-Za-z]+)\\s+(\\d{{1,2}}),?\\s+(\\d{{4}})/);
+      if (m1) {{
+        var ma = months[m1[1].toLowerCase()], mb = months[m1[3].toLowerCase()];
+        if (ma && mb) {{
+          var y1 = parseInt(m1[5], 10);
+          out.start_date = iso(y1, ma, parseInt(m1[2], 10));
+          out.end_date   = iso(y1, mb, parseInt(m1[4], 10));
+          return out;
+        }}
+      }}
+      // 2. Same-month range — "Month D1–D2, YYYY"
+      var m2 = s.match(/([A-Za-z]+)\\s+(\\d{{1,2}})\\s*[–—-]\\s*(\\d{{1,2}}),?\\s+(\\d{{4}})/);
+      if (m2) {{
+        var mn2 = months[m2[1].toLowerCase()];
+        if (mn2) {{
+          var y2 = parseInt(m2[4], 10);
+          out.start_date = iso(y2, mn2, parseInt(m2[2], 10));
+          out.end_date   = iso(y2, mn2, parseInt(m2[3], 10));
+          return out;
+        }}
+      }}
+      // 3. Single date — "Month D, YYYY"
+      var m3 = s.match(/([A-Za-z]+)\\s+(\\d{{1,2}}),?\\s+(\\d{{4}})/);
+      if (m3) {{
+        var mn3 = months[m3[1].toLowerCase()];
+        if (mn3) {{
+          var d3 = iso(parseInt(m3[3], 10), mn3, parseInt(m3[2], 10));
+          out.start_date = d3;
+          out.end_date   = d3;
+          return out;
+        }}
+      }}
+      return out;
+    }}
+
+    // Back-compat shim — older callers want just the start date.
+    function deriveStartDateFromText(text) {{
+      return deriveDatesFromText(text).start_date;
     }}
 
     // ── Realtime subscription ───────────────────────────────────────
@@ -2959,9 +3007,22 @@ def write_calendar_ics(today_evs, upcoming):
         )
 
     # Every manual event (Angela added these deliberately, they're always in)
+    skipped_manual = 0
     for m in manual_rows:
         sd = m.get('start_date')
         ed = m.get('end_date') or sd
+        # Back-compat: older rows pre-date the JS-side date derivation and
+        # have NULL start/end. Reuse the existing Python parse_date() so
+        # they still appear in the feed with the right multi-day range.
+        if not sd and m.get('date_str'):
+            ps, pe = parse_date(m['date_str'])
+            if ps:
+                sd = ps
+                if not ed:
+                    ed = pe or ps
+        if not sd:
+            skipped_manual += 1
+            continue
         desc_parts = []
         if m.get('why'):  desc_parts.append(m['why'])
         if m.get('priority'): desc_parts.append('Priority: ' + m['priority'])
@@ -2969,7 +3030,7 @@ def write_calendar_ics(today_evs, upcoming):
         push_event(
             uid         = 'manual-{}@arcticblue-event-tracker'.format(m.get('id')),
             name        = m.get('name', ''),
-            start       = ymd(sd) if sd else None,
+            start       = ymd(sd),
             end         = ymd_plus1(ed) if ed else None,
             location    = m.get('location'),
             description = '\n'.join(desc_parts),
@@ -2980,7 +3041,10 @@ def write_calendar_ics(today_evs, upcoming):
     lines.append('END:VCALENDAR')
     text = '\r\n'.join(lines) + '\r\n'
     OUT_ICS.write_text(text, encoding='utf-8')
-    print(f'WROTE {OUT_ICS}  ({OUT_ICS.stat().st_size:,} bytes, {saved_count} saved + {len(manual_rows)} manual)')
+    msg = f'WROTE {OUT_ICS}  ({OUT_ICS.stat().st_size:,} bytes, {saved_count} saved + {len(manual_rows) - skipped_manual} manual'
+    if skipped_manual:
+        msg += f', {skipped_manual} manual skipped — unparseable date_str'
+    print(msg + ')')
 
 
 if __name__ == '__main__':
