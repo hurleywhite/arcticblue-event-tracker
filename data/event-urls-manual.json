@@ -1,0 +1,9 @@
+{
+  "_comment": "Manual URL overrides for events that don't have a hyperlink in the source doc. The build merges this with data/event-urls-from-doc.json \u2014 anything here is treated as 'human-verified, intentional'. NEVER add an unverified URL. Each value must be a real URL someone visited in a browser and confirmed.",
+  "_format": "Keys are event numbers from the source doc (e.g. '31', '47'). Values are full URLs starting with https://.",
+  "_example": {
+    "31": "https://www.ai-bigdataexpo.com/north-america/",
+    "32": "https://superai.com/"
+  },
+  "97": "https://example.com/test-event-2026/"
+}

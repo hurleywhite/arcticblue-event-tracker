@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ArcticBlue · Event Tracker</title>
+  <meta name="description" content="ArcticBlue's live tracker of in-person AI events, May–December 2026. Today, upcoming, and archived. 82 enterprise + halo events.">
+
+  <link rel="canonical" href="https://arcticblue.ai/labs/event-tracker/">
+
+  <meta property="og:title" content="ArcticBlue · Event Tracker">
+  <meta property="og:description" content="82 in-person AI events tracked live. Today, upcoming, and archived — sorted by priority and region.">
+  <meta property="og:image" content="https://arcticblue.ai/og-default.png">
+  <meta property="og:url" content="https://arcticblue.ai/labs/event-tracker/">
+  <meta property="og:type" content="website">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ArcticBlue · Event Tracker">
+  <meta name="twitter:description" content="82 in-person AI events tracked live.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Internal-tool palette — white-primary, monochromatic, sharp */
+      --ab-bg: #ffffff;
+      --ab-bg-2: #fafafa;
+      --ab-bg-3: #f4f4f5;
+      --ab-rule: #e7e7e8;
+      --ab-rule-strong: #d4d4d6;
+      --ab-fg: #0a0a0a;
+      --ab-fg-2: #404040;
+      --ab-fg-3: #737373;
+      --ab-mute: #a3a3a3;
+      /* Brand accents — used sparingly */
+      --ab-blue: #2773c2;        /* primary accent (from the logo's middle blue) */
+      --ab-blue-light: #4ea3d4;  /* lighter accent */
+      --ab-amber: #ca8a04;        /* medium-priority */
+      --ab-green: #15803d;        /* available / success */
+      --ab-red: #b91c1c;          /* archived / fail */
+      --ab-sans: "Hanken Grotesk", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --ab-mono: "Fragment Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      --ab-max: 1240px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { background: var(--ab-bg); }
+    body {
+      margin: 0;
+      font-family: var(--ab-sans);
+      color: var(--ab-fg);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.005em;
+      min-height: 100vh;
+    }
+
+    /* Reset margins on definition lists so KPI labels sit cleanly under numbers */
+    dl, dt, dd { margin: 0; }
+
+    .wrap { max-width: var(--ab-max); margin: 0 auto; padding: 0 24px; position: relative; }
+
+    /* ───────────── nav strip ───────────── */
+    .nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--ab-rule);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .nav-inner { max-width: var(--ab-max); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 16px; }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--ab-fg); text-decoration: none;
+    }
+    .brand img {
+      height: 32px; width: auto; display: block;
+    }
+    .brand-text {
+      font-family: var(--ab-sans); font-weight: 800;
+      letter-spacing: -0.02em; font-size: 1.05rem; color: var(--ab-fg);
+    }
+    .nav-meta {
+      font-family: var(--ab-mono); font-size: 0.74rem;
+      color: var(--ab-fg-3); letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ───────────── hero ───────────── */
+    .hero { padding: 72px 0 48px; border-bottom: 1px solid var(--ab-rule); }
+    .eyebrow {
+      font-family: var(--ab-mono); font-size: 0.74rem;
+      color: var(--ab-fg-3); letter-spacing: 0.14em;
+      text-transform: uppercase; margin: 0 0 24px;
+    }
+    h1 {
+      font-family: var(--ab-sans); font-weight: 800;
+      font-size: clamp(2.4rem, 5.5vw, 4.5rem);
+      line-height: 1.02; letter-spacing: -0.025em;
+      margin: 0 0 24px; color: var(--ab-fg);
+      max-width: 18ch;
+    }
+    h1 em { font-style: normal; color: var(--ab-blue); }
+    .lede {
+      font-size: 1.15rem; color: var(--ab-fg-2);
+      max-width: 60ch; margin: 0; line-height: 1.55;
+    }
+
+    /* KPI strip — uniform columns, labels sit directly under numbers */
+    .kpi-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+      border-top: 1px solid var(--ab-rule);
+      border-bottom: 1px solid var(--ab-rule);
+      margin: 48px 0 0;
+    }
+    .kpi {
+      padding: 24px;
+      border-right: 1px solid var(--ab-rule);
+      display: flex; flex-direction: column; align-items: flex-start;
+    }
+    .kpi:last-child { border-right: 0; }
+    .kpi-num {
+      font-family: var(--ab-mono); font-size: 2.4rem;
+      color: var(--ab-fg); font-weight: 400;
+      letter-spacing: -0.02em; line-height: 1; margin: 0 0 8px;
+    }
+    .kpi-num .plus { color: var(--ab-blue); }
+    .kpi-label {
+      font-family: var(--ab-mono); font-size: 0.7rem;
+      color: var(--ab-fg-3); letter-spacing: 0.1em;
+      text-transform: uppercase; margin: 0;
+    }
+
+    /* ───────────── today/up-next callout ───────────── */
+    .today-block { padding: 48px 0 0; }
+    .today-card {
+      border: 1px solid var(--ab-rule);
+      background: var(--ab-bg-2);
+      padding: 28px 32px;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    .today-card::before {
+      content: "";
+      position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+      background: var(--ab-blue);
+    }
+    .today-card-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin: 0 0 12px; gap: 12px; flex-wrap: wrap;
+    }
+    .today-label {
+      font-family: var(--ab-mono); font-size: 0.74rem;
+      color: var(--ab-blue); letter-spacing: 0.14em; text-transform: uppercase;
+      font-weight: 600;
+    }
+    .today-date {
+      font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg-3);
+    }
+    .today-name {
+      font-family: var(--ab-sans); font-weight: 800;
+      font-size: 1.6rem; line-height: 1.15; margin: 0 0 8px;
+      color: var(--ab-fg); letter-spacing: -0.015em;
+    }
+    .today-meta { color: var(--ab-fg-2); font-size: 0.95rem; margin: 0 0 4px; }
+    .today-why { color: var(--ab-fg-3); font-size: 0.92rem; margin: 12px 0 0; max-width: 70ch; }
+
+    /* ───────────── filters ───────────── */
+    section.events { padding: 56px 0 32px; }
+    .section-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 16px; flex-wrap: wrap; margin: 0 0 24px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--ab-rule);
+    }
+    .section-title {
+      font-family: var(--ab-sans); font-weight: 800;
+      font-size: 1.6rem; letter-spacing: -0.015em; margin: 0; color: var(--ab-fg);
+    }
+    .section-count {
+      font-family: var(--ab-mono); font-size: 0.74rem;
+      color: var(--ab-fg-3); letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .filter-bar {
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: end;
+      margin: 0 0 16px;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
+    .filter-group label {
+      font-family: var(--ab-mono); font-size: 0.68rem;
+      color: var(--ab-fg-3); letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .filter-group select, .filter-group input {
+      background: #fff;
+      color: var(--ab-fg); border: 1px solid var(--ab-rule);
+      padding: 12px 14px; font-family: var(--ab-sans); font-size: 0.95rem;
+      border-radius: 2px; transition: border-color 0.15s;
+      min-height: 44px;
+    }
+    .filter-group select:focus, .filter-group input:focus {
+      outline: none; border-color: var(--ab-fg);
+    }
+    #event-counter {
+      font-family: var(--ab-mono); font-size: 0.82rem;
+      color: var(--ab-fg-3); margin: 0 0 24px;
+    }
+
+    /* ───────────── event cards ───────────── */
+    .event-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+    }
+    .event {
+      background: #fff;
+      border: 1px solid var(--ab-rule);
+      padding: 22px;
+      border-radius: 4px;
+      transition: border-color 0.15s, transform 0.15s;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .event:hover { border-color: var(--ab-fg-2); transform: translateY(-1px); }
+    .event-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; margin: 0;
+    }
+    .event-date {
+      font-family: var(--ab-mono); font-size: 0.78rem;
+      color: var(--ab-fg-3); letter-spacing: 0.02em; margin: 0;
+    }
+    .badge {
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 2px; font-weight: 600;
+    }
+    .badge.p-high { background: var(--ab-fg); color: #fff; }
+    .badge.p-medium { background: var(--ab-bg-3); color: var(--ab-fg-2); border: 1px solid var(--ab-rule); }
+    .badge.p-low { background: transparent; color: var(--ab-fg-3); border: 1px solid var(--ab-rule); }
+    .event-name {
+      font-family: var(--ab-sans); font-size: 1.1rem; font-weight: 700;
+      line-height: 1.25; margin: 0; color: var(--ab-fg); letter-spacing: -0.01em;
+    }
+    .event-loc { font-size: 0.85rem; color: var(--ab-fg-3); margin: 0; }
+    .event-region { color: var(--ab-fg-2); font-weight: 500; }
+    .event-why { font-size: 0.85rem; color: var(--ab-fg-2); line-height: 1.5; margin: 4px 0 0; }
+    .event-foot { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--ab-rule); }
+    .event-type {
+      font-family: var(--ab-mono); font-size: 0.68rem;
+      color: var(--ab-fg-3); letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .event.archived { opacity: 0.6; }
+    .event.archived:hover { opacity: 1; }
+
+    /* Whole-card links */
+    a.event-link {
+      display: contents;
+      color: inherit;
+      text-decoration: none;
+    }
+    a.event-link .event { cursor: pointer; }
+    a.event-link:hover .event.has-link { border-color: var(--ab-blue); }
+    .event-link-arrow {
+      display: inline-block; font-family: var(--ab-mono);
+      font-size: 0.85rem; color: var(--ab-fg-3);
+      transition: color 0.15s, transform 0.15s;
+      margin-left: 4px;
+      vertical-align: 1px;
+    }
+    a.event-link:hover .event-link-arrow {
+      color: var(--ab-blue);
+      transform: translate(2px, -2px);
+    }
+    .event-no-link {
+      display: inline-block; color: var(--ab-rule-strong);
+      font-family: var(--ab-mono); font-size: 0.85rem;
+      margin-left: 4px; vertical-align: 1px;
+      cursor: help;
+    }
+
+    /* ───────────── archive disclosure ───────────── */
+    details.archive-block { margin: 64px 0 0; padding-top: 32px; border-top: 1px solid var(--ab-rule); }
+    details.archive-block summary {
+      cursor: pointer; list-style: none;
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 16px; flex-wrap: wrap;
+      font-family: var(--ab-sans); font-weight: 800; font-size: 1.4rem;
+      letter-spacing: -0.015em; color: var(--ab-fg);
+    }
+    details.archive-block summary::-webkit-details-marker { display: none; }
+    details.archive-block summary::after {
+      content: "Show / hide";
+      font-family: var(--ab-mono); font-size: 0.74rem;
+      color: var(--ab-fg-3); letter-spacing: 0.1em; text-transform: uppercase;
+      font-weight: 400;
+    }
+    details[open].archive-block summary::after { content: "Hide"; }
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    /* ───────────── footer ───────────── */
+    footer.foot {
+      margin: 96px 0 0; padding: 32px 0 64px;
+      border-top: 1px solid var(--ab-rule);
+      display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .foot-text { color: var(--ab-fg-3); font-size: 0.85rem; margin: 0; }
+    .foot-mono { font-family: var(--ab-mono); font-size: 0.78rem; color: var(--ab-fg-3); letter-spacing: 0.04em; }
+
+    /* ───────────── tab strip ───────────── */
+    .tabs {
+      border-bottom: 1px solid var(--ab-rule);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: sticky; top: 65px; z-index: 9;
+    }
+    .tabs-inner {
+      max-width: var(--ab-max); margin: 0 auto;
+      display: flex; gap: 0; padding: 0 24px;
+    }
+    .tab {
+      background: none; border: 0; cursor: pointer;
+      font-family: var(--ab-sans);
+      font-weight: 600; font-size: 0.95rem;
+      color: var(--ab-fg-3);
+      padding: 16px 0; margin-right: 28px;
+      letter-spacing: -0.01em;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 120ms ease, border-color 120ms ease;
+    }
+    .tab:hover { color: var(--ab-fg-2); }
+    .tab.active {
+      color: var(--ab-fg);
+      border-bottom-color: var(--ab-fg);
+    }
+    .tab-badge {
+      display: inline-block;
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--ab-fg-3); background: var(--ab-bg-3);
+      padding: 2px 6px; border-radius: 999px;
+      margin-left: 8px; vertical-align: 1px;
+    }
+    .panel[hidden] { display: none; }
+    .angela-placeholder {
+      max-width: 640px; margin: 96px auto;
+      text-align: center; padding: 64px 32px;
+      border: 1px dashed var(--ab-rule-strong); border-radius: 12px;
+    }
+    .angela-placeholder h2 {
+      font-family: var(--ab-sans); font-weight: 700;
+      font-size: 1.6rem; letter-spacing: -0.02em;
+      margin: 0 0 12px;
+    }
+    .angela-placeholder p {
+      color: var(--ab-fg-2); line-height: 1.55;
+      margin: 0 0 8px;
+    }
+    .angela-placeholder .mono {
+      font-family: var(--ab-mono); font-size: 0.78rem;
+      color: var(--ab-fg-3); letter-spacing: 0.06em;
+      text-transform: uppercase; margin-top: 24px;
+    }
+
+    /* ───────────── responsive ───────────── */
+    @media (max-width: 800px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .kpi:nth-child(2n) { border-right: 0; }
+      .kpi:nth-child(-n+2) { border-bottom: 1px solid var(--ab-rule); }
+      .kpi { padding: 20px 20px 20px 0; }
+      .filter-bar { flex-direction: column; align-items: stretch; }
+      .filter-group { min-width: 0; }
+      .event-grid, .archive-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 500px) {
+      .nav { padding: 16px 0; }
+      .hero { padding: 48px 0 40px; }
+      .today-card { padding: 20px 22px; }
+      .today-name { font-size: 1.4rem; }
+      .event { padding: 20px; }
+      h1 { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="https://arcticblue.ai/" aria-label="ArcticBlue home">
+        <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
+        <span class="brand-text">ArcticBlue</span>
+      </a>
+      <p class="nav-meta">Last updated · MAY 21, 2026</p>
+    </div>
+  </nav>
+
+  <div class="tabs" role="tablist" aria-label="View selector">
+    <div class="tabs-inner">
+      <button class="tab active" role="tab" data-tab="everyone" aria-selected="true" aria-controls="panel-everyone">For Everyone</button>
+      <button class="tab"        role="tab" data-tab="angela"   aria-selected="false" aria-controls="panel-angela">For Angela <span class="tab-badge">ops</span></button>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <div class="panel" id="panel-everyone" role="tabpanel" data-tab="everyone">
+    <section class="hero">
+      <p class="eyebrow">ArcticBlue Labs · Internal</p>
+      <h1>In-person AI events <em>worth showing up for</em>.</h1>
+      <p class="lede">A live tracker of every enterprise and halo AI event between now and end of 2026 — sorted by priority, location, and speaking route. Today's, upcoming, and yesterday's events are managed automatically.</p>
+
+      <dl class="kpi-row">
+        <div class="kpi">
+          <dt class="kpi-num">82</dt>
+          <dd class="kpi-label">Events tracked</dd>
+        </div>
+        <div class="kpi">
+          <dt class="kpi-num">81</dt>
+          <dd class="kpi-label">Upcoming</dd>
+        </div>
+        <div class="kpi">
+          <dt class="kpi-num">1</dt>
+          <dd class="kpi-label">Archived</dd>
+        </div>
+        <div class="kpi">
+          <dt class="kpi-num">5<span class="plus">+</span></dt>
+          <dd class="kpi-label">Regions</dd>
+        </div>
+      </dl>
+    </section>
+    <section class="today-block">
+      <div class="today-card">
+        <div class="today-card-head">
+          <p class="today-label">No events today · Next up in 11 days</p>
+          <p class="today-date">June 1–4, 2026</p>
+        </div>
+        <h2 class="today-name">Snowflake Summit 2026</h2>
+        <p class="today-meta">San Francisco, CA, USA · Enterprise · Priority: Medium</p>
+        <p class="today-why">Premier enterprise data + agentic AI conference at Moscone; audience of CDOs and data leaders building AI-ready data infrastructure — core data foundations buyer for ArcticBlue.</p>
+      </div>
+    </section>
+    <section class="events">
+      <div class="section-head">
+        <h2 class="section-title">Upcoming</h2>
+        <p class="section-count">81 events · sorted by date</p>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="f-search">Search</label>
+          <input type="search" id="f-search" placeholder="Name, city, country">
+        </div>
+        <div class="filter-group">
+          <label for="f-priority">Priority</label>
+          <select id="f-priority" aria-label="Filter by priority">
+            <option value="">All priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="f-region">Region</label>
+          <select id="f-region" aria-label="Filter by region">
+            <option value="">All regions</option>
+            <option value="Americas">Americas</option>
+<option value="Asia-Pacific">Asia-Pacific</option>
+<option value="Europe">Europe</option>
+<option value="MENA">MENA</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="f-type">Type</label>
+          <select id="f-type" aria-label="Filter by event type">
+            <option value="">All types</option>
+            <option value="Enterprise">Enterprise</option>
+<option value="Halo">Halo</option>
+<option value="Halo (Seed)">Halo (Seed)</option>
+          </select>
+        </div>
+      </div>
+      <p id="event-counter">Showing 81 of 81 upcoming events</p>
+      <div class="event-grid" id="upcoming-grid">
+
+    <a class="event-link" href="https://www.snowflake.com/en/summit/" target="_blank" rel="noopener" aria-label="Open Snowflake Summit 2026 in a new tab"><article class="event has-link"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 1–4, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Snowflake Summit 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · San Francisco, CA, USA</p>
+      <p class="event-why">Premier enterprise data + agentic AI conference at Moscone; audience of CDOs and data leaders building AI-ready data infrastructure — core data foundations buyer for ArcticBlue.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <a class="event-link" href="https://build.microsoft.com/" target="_blank" rel="noopener" aria-label="Open Microsoft Build 2026 in a new tab"><article class="event has-link"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 2–3, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Microsoft Build 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · San Francisco, CA, USA</p>
+      <p class="event-why">Microsoft&#x27;s flagship enterprise AI developer conference in SF; agentic AI (Copilot Studio, Semantic Kernel, AutoGen) deep-dive for enterprise architects and implementation leaders.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <a class="event-link" href="https://collisionconf.com/" target="_blank" rel="noopener" aria-label="Open Collision 2026 in a new tab"><article class="event has-link"
+             data-priority="Low"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 3–6, 2026 (TBC)</p>
+        <span class="badge p-low">Low</span>
+      </header>
+      <h3 class="event-name">Collision 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Toronto, Ontario, Canada</p>
+      <p class="event-why">Web Summit&#x27;s North American flagship tech conference; 35,000+ attendees including enterprise AI buyers, founders, and VCs; large audience at reasonable cost.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <a class="event-link" href="https://world.aiacceleratorinstitute.com/location/caionewyork/" target="_blank" rel="noopener" aria-label="Open Chief AI Officer Summit New York in a new tab"><article class="event has-link"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 4, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Chief AI Officer Summit New York <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · New York, NY, USA</p>
+      <p class="event-why">ArcticBlue&#x27;s exact buyer (Chief AI Officers) in their home base NYC; co-located with Agentic AI Summit NY and GenAI Summit NY at same venue — maximum ICP density.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <a class="event-link" href="https://world.aiacceleratorinstitute.com/location/agenticainewyork/" target="_blank" rel="noopener" aria-label="Open Agentic AI Summit New York in a new tab"><article class="event has-link"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 4, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Agentic AI Summit New York <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · New York, NY, USA</p>
+      <p class="event-why">Co-located with CAIO Summit NY at Convene 360 Madison — same venue, same day; dedicated agentic AI track directly aligned with ArcticBlue&#x27;s sprint-delivery AI agent product.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <a class="event-link" href="https://cdo.cdm.events/" target="_blank" rel="noopener" aria-label="Open CDM CDO/CAIO New York Summit in a new tab"><article class="event has-link"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 4, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">CDM CDO/CAIO New York Summit <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · New York, NY, USA</p>
+      <p class="event-why">Boutique NYC CDO/CAIO summit on the same day as the AIAI NYC cluster; consider attending AIAI cluster (larger, same venue) and using CDM as a parallel relationship-building touchpoint.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 4–5, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">AI &amp; Big Data Expo North America 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Santa Clara, CA, USA</p>
+      <p class="event-why">Co-located enterprise AI, agentic AI, and governance tracks at Santa Clara Convention Center; 250+ speakers and ~10,000 attendees including CTOs, enterprise architects, and AI transformation leaders.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <a class="event-link" href="https://conferences.fortune.com/event/brainstorm-tech-2026/" target="_blank" rel="noopener" aria-label="Open Fortune Brainstorm Tech 2026 in a new tab"><article class="event has-link"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Halo">
+      <header class="event-head">
+        <p class="event-date">June 8–10, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Fortune Brainstorm Tech 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Aspen, CO, USA (Halo)</p>
+      <p class="event-why">Fortune&#x27;s 25th-anniversary flagship tech summit; 300–400 top CEOs, founders, and VCs in Aspen; strong enterprise AI focus with candid off-the-record format — high-prestige relationship-building environment.</p>
+      <footer class="event-foot">
+        <span class="event-type">Halo</span>
+      </footer>
+    </article></a>
+
+    <a class="event-link" href="https://www.ssonetwork.com/events-agentic-applied-ai-enterprise" target="_blank" rel="noopener" aria-label="Open SSON Agentic &amp; Applied AI for the Enterprise in a new tab"><article class="event has-link"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 8–10, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">SSON Agentic &amp; Applied AI for the Enterprise <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Atlanta, GA, USA</p>
+      <p class="event-why">Exact &quot;beyond AI pilots&quot; framing directly matching ArcticBlue&#x27;s sprint-based enterprise delivery model; audience of COOs, ops leaders, and shared services executives deploying AI at scale.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <a class="event-link" href="https://london.theaisummit.com/" target="_blank" rel="noopener" aria-label="Open The AI Summit London 2026 in a new tab"><article class="event has-link"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 10–11, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">The AI Summit London 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · London, UK</p>
+      <p class="event-why">10th anniversary of Europe&#x27;s #1 enterprise AI commercial event; 4,500+ enterprise AI buyers during London Tech Week — ideal London presence event for ArcticBlue&#x27;s European expansion.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Asia-Pacific"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 10–11, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">SuperAI 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Asia-Pacific</span> · Marina Bay Sands, Singapore</p>
+      <p class="event-why">Asia&#x27;s premier AI event (10,000+ attendees) with enterprise adoption at center stage; anchor of Singapore AI Week; Fortune 500 representation from OpenAI, NVIDIA, Google, Salesforce, Palantir; open speaker application.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <a class="event-link" href="https://www.databricks.com/dataaisummit" target="_blank" rel="noopener" aria-label="Open Databricks Data + AI Summit 2026 in a new tab"><article class="event has-link"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 15–18, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Databricks Data + AI Summit 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · San Francisco, CA, USA</p>
+      <p class="event-why">World&#x27;s largest data and AI conference at Moscone; 800+ sessions on LLM deployment, agentic AI, and enterprise data infrastructure — ArcticBlue&#x27;s data-layer buyer audience.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <a class="event-link" href="https://vivatech.com/" target="_blank" rel="noopener" aria-label="Open VivaTech 2026 in a new tab"><article class="event has-link"
+             data-priority="Low"
+             data-region="Europe"
+             data-type="Halo">
+      <header class="event-head">
+        <p class="event-date">June 17–20, 2026</p>
+        <span class="badge p-low">Low</span>
+      </header>
+      <h3 class="event-name">VivaTech 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Paris, France (Halo)</p>
+      <p class="event-why">Europe&#x27;s largest tech event (90,000+ visitors) with enterprise AI and digital transformation central themes; natural cluster with Raise Summit (July 8–9 Paris) — one Paris trip covers both.</p>
+      <footer class="event-foot">
+        <span class="event-type">Halo</span>
+      </footer>
+    </article></a>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 23–24, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Responsible AI Summit North America 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · DoubleTree by Hilton Chicago – Magnificent Mile, Chicago, IL, USA</p>
+      <p class="event-why">North America&#x27;s premier closed-door enterprise AI governance summit with leaders from Walmart, Citi, Capital One, and AstraZeneca — direct match for ArcticBlue&#x27;s AI governance, risk, and responsible deployment audience.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">June 30–July 1, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">GITEX AI Europe 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Messe Berlin, Berlin, Germany</p>
+      <p class="event-why">Europe&#x27;s largest inaugural tech &amp; AI expo at Messe Berlin — accelerated by the global GITEX brand; enterprise AI, cyber, and digital transformation tracks for European enterprise technology leaders; relevant for…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Low"
+             data-region="Europe"
+             data-type="Halo">
+      <header class="event-head">
+        <p class="event-date">July 7–10, 2026</p>
+        <span class="badge p-low">Low</span>
+      </header>
+      <h3 class="event-name">AI for Good Global Summit 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Palexpo, Geneva, Switzerland</p>
+      <p class="event-why">ITU&#x27;s flagship global AI summit drawing 5,000+ senior policymakers and enterprise AI leaders across 4 days in Geneva; AI governance thought leadership and international prestige positioning alongside world governments…</p>
+      <footer class="event-foot">
+        <span class="event-type">Halo</span>
+      </footer>
+    </article>
+
+    <a class="event-link" href="https://www.raisesummit.com/" target="_blank" rel="noopener" aria-label="Open RAISE Summit 2026 in a new tab"><article class="event has-link"
+             data-priority="Medium"
+             data-region="Europe"
+             data-type="Halo">
+      <header class="event-head">
+        <p class="event-date">July 8–9, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">RAISE Summit 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Paris, France (Seed, Halo)</p>
+      <p class="event-why">France&#x27;s national AI summit at the Louvre; 5,000+ global AI leaders, policymakers, and enterprise executives — high-prestige positioning alongside world&#x27;s most influential AI voices.</p>
+      <footer class="event-foot">
+        <span class="event-type">Halo</span>
+      </footer>
+    </article></a>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Asia-Pacific"
+             data-type="Halo">
+      <header class="event-head">
+        <p class="event-date">July 9–11, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">LEAP East 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Asia-Pacific</span> · Hong Kong Convention and Exhibition Centre, Hong Kong, China</p>
+      <p class="event-why">Inaugural APAC edition of the globally renowned LEAP brand; 200+ speakers, 300+ exhibitors; AI and enterprise tech at one of Asia&#x27;s leading innovation hubs — LEAP-adjacent official event per mandate.</p>
+      <footer class="event-foot">
+        <span class="event-type">Halo</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">July 14–15, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Leaders in AI Summit Toronto 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Toronto Marriott City Centre Hotel, Toronto, Ontario, Canada</p>
+      <p class="event-why">Institute for AI Transformation&#x27;s flagship Toronto summit; SVP Business Analytics (Bank of America) and Amazon AWS architects on confirmed speaker roster; open earned speaker application — ArcticBlue&#x27;s best Q3 Canadian…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">July 21–23, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">CDOIQ Symposium 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Hyatt Regency Cambridge, Cambridge, MA, USA</p>
+      <p class="event-why">The 20th Annual CDO/IQ Symposium at MIT&#x27;s backyard; 2,250+ data and AI leaders focusing on trusted AI and enterprise data governance — direct access to CDOs and AI governance leaders evaluating new data infrastructure…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">July 24, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">MachineCon USA 2026 (4th Edition) <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · 583 Park Avenue, New York, NY, USA</p>
+      <p class="event-why">Exclusive 1-day gathering of 150+ CIOs, CDOs, and Chief AI Officers at NYC&#x27;s iconic 583 Park Avenue; AI100 Awards live; ArcticBlue&#x27;s highest-density CxO AI leadership event in its home market mid-summer.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <a class="event-link" href="https://ai4.io/" target="_blank" rel="noopener" aria-label="Open Ai4 2026 in a new tab"><article class="event has-link"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">August 4–6, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Ai4 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Las Vegas, NV, USA</p>
+      <p class="event-why">America&#x27;s largest applied enterprise AI conference; 5,000+ attendees with co-located enterprise-specific summits (Finance, Operations, Policy); open speaker application — best earned speaking opportunity in the window.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">August 4–6, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Ai4 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · The Venetian Resort, Las Vegas, NV, USA</p>
+      <p class="event-why">America&#x27;s largest AI conference with dedicated CAIO, CIO &amp; IT Leadership Summits — 12,000+ attendees, 1,000+ speakers, open speaker application, and free Enterprise AI Buyer Pass; highest-scale enterprise AI audience…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">August 11–12, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">CDAO Chicago 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Chicago, IL, USA</p>
+      <p class="event-why">Corinium&#x27;s Midwest CDAO conference draws senior data, analytics, and AI leaders from Chicago&#x27;s enterprise financial services, manufacturing, and healthcare ecosystem — ideal pipeline event for ArcticBlue&#x27;s Midwest…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">August 17–19, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">CIO 100 Awards &amp; Conference 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Omni PGA Frisco Resort &amp; Spa, Frisco, TX, USA</p>
+      <p class="event-why">Foundry/IDG&#x27;s flagship CIO awards conference honoring 100 IT innovators alongside 300+ senior CIOs; AI, cybersecurity, and digital transformation agenda; strong partner speaking route for enterprise AI solution…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">August 19, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">ALIGN AI Executive Summit San Francisco 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · McCormick &amp; Kuleto&#x27;s, Ghirardelli Square, San Francisco, CA, USA</p>
+      <p class="event-why">Boutique 150+ senior enterprise data and AI executive gathering in SF with open speaker interest form — same organizer (Data Science Connect) as AI Enterprise Conference NYC and COLLIDE Atlanta; ideal West Coast CxO…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <a class="event-link" href="https://world.aiacceleratorinstitute.com/location/losangeles/" target="_blank" rel="noopener" aria-label="Open Generative AI Summit Los Angeles in a new tab"><article class="event has-link"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">August 26, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Generative AI Summit Los Angeles <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Los Angeles, CA, USA</p>
+      <p class="event-why">End-of-window West Coast AIAI GenAI Summit; builds LA presence for ArcticBlue ahead of Q4; same requesttospeak access model as other AIAI events.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+
+    <article class="event"
+             data-priority="High"
+             data-region="MENA"
+             data-type="Halo (Seed)">
+      <header class="event-head">
+        <p class="event-date">August 31–September 3, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">LEAP 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">MENA</span> · Riyadh Exhibition and Convention Centre (RECC) Malham, Riyadh, Saudi Arabia</p>
+      <p class="event-why">World&#x27;s largest tech event (201,000+ visitors) — seed target now confirmed IN WINDOW for this session; AI, enterprise transformation, and sovereign AI themes; 1,000+ speakers including AWS CEO Matt Garman.</p>
+      <footer class="event-foot">
+        <span class="event-type">Halo (Seed)</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 1, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">The AI Enterprise Conference 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Pier Sixty, 60 Chelsea Piers, New York, NY, USA</p>
+      <p class="event-why">Data Science Connect&#x27;s flagship enterprise AI event at Pier Sixty in ArcticBlue&#x27;s home market NYC; dedicated enterprise AI deployment focus with open speaker application — strong same-city pipeline event for enterprise…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 2, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">AI Enterprise Conference 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · New York, NY, USA</p>
+      <p class="event-why">Fortune 500 AI decision-makers and solution providers converge in NYC for Data Science Connect&#x27;s flagship enterprise AI event; same organizer network as ALIGN AI SFO and COLLIDE Atlanta; open speaker interest form…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 14–15, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Forrester Technology &amp; Innovation Forum Central 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Austin, TX, USA</p>
+      <p class="event-why">Forrester&#x27;s flagship enterprise technology and CIO event for Central US; CIOs, CTOs, and digital transformation leaders making 2027 AI strategy and investment decisions ahead of budget season — high-quality enterprise…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 15, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Chief AI Officer Summit Berlin <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · The Ritz Carlton, Berlin, Germany</p>
+      <p class="event-why">AIAI&#x27;s invite-only CAIO Summit at The Ritz Carlton Berlin; complimentary for qualified executives; newly-appointed and seasoned CAIOs focus on enterprise AI strategy and scaling — ArcticBlue&#x27;s exact European buyer…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 15, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Generative AI Summit Berlin <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · The Ritz Carlton, Berlin, Germany</p>
+      <p class="event-why">Co-located with CAIO Summit Berlin at The Ritz Carlton; Bayer, Meta, Mastercard enterprise practitioners on stage; same-day/same-venue maximizes European enterprise AI access for ArcticBlue.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 15–17, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Dreamforce 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Moscone Center, San Francisco, CA, USA</p>
+      <p class="event-why">Salesforce&#x27;s 170,000+ attendee mega-conference with Agentforce as the central enterprise AI narrative; CFP is OPEN; the single largest concentrated enterprise AI implementation audience in the annual calendar.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 15, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Intelligent Enterprise Summit USA 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Kay Bailey Hutchison Convention Center, Dallas, TX, USA</p>
+      <p class="event-why">CIO/CDO-audience summit on AI-powered enterprise architecture; Textron CIO and McKesson VP on confirmed speaker roster; directly aligned with ArcticBlue&#x27;s AI-ready enterprise delivery thesis.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 15, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">CDAO Financial Services &amp; Insurance UK 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · London, UK</p>
+      <p class="event-why">Corinium&#x27;s sector-specific London CDAO event for UK financial services and insurance data leaders — Nominate a Speaker route directly available on official site; targeted CDO/CAIO access in ArcticBlue&#x27;s key European FS…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 21–24, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">TDWI World Conference 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Anaheim, CA, USA</p>
+      <p class="event-why">Premier enterprise data/AI governance conference anchored by an Executive AI Summit on Day 1; CDO, Head of Data, and enterprise analytics leaders focused on AI governance strategy and data foundations — core ArcticBlue…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 21–23, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Gartner CIO &amp; IT Executive Conference Brazil 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Sheraton Sao Paulo WTC Hotel, Sao Paulo, Brazil</p>
+      <p class="event-why">Gartner&#x27;s premier Latin American CIO gathering at the Sheraton Sao Paulo WTC; agentic AI strategy and IT transformation central to 2026 agenda — strategic entry point for ArcticBlue&#x27;s LATAM enterprise market.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 23–24, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">CIO Initiative Summit Philadelphia 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · The Notary Hotel, Philadelphia, PA, USA</p>
+      <p class="event-why">Peer-curated 2-day CIO executive summit at the boutique Notary Hotel; intimate format for senior IT executives navigating AI strategy, digital transformation, and enterprise technology priorities — direct access to…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 23–24, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Big Data LDN 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Olympia London, London, UK</p>
+      <p class="event-why">UK&#x27;s leading free-to-attend data, analytics, and AI conference with 8,000+ enterprise practitioners — open earned speaking model, AI deployment and data governance tracks directly aligned with ArcticBlue&#x27;s…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 28–29, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Enterprise AI Summit Berlin 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Maritim proArte Hotel, Berlin, Germany</p>
+      <p class="event-why">we.CONECT&#x27;s boutique enterprise AI summit in Berlin; 400–500 participants from Germany, Austria, and Switzerland; open &quot;Apply as a speaker&quot; route — ideal entry point for ArcticBlue&#x27;s DACH-region European enterprise…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 28–30, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">GAI World 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Hynes Convention Center, Boston, MA, USA</p>
+      <p class="event-why">&quot;Where Enterprise AI Budget Owners Plan Their Next 12–24 Months&quot; — GAI Insights&#x27; flagship executive AI conference in Boston; open speaker application; directly targets enterprise AI buyer decision-making cycle —…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Low"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 30–October 1, 2026</p>
+        <span class="badge p-low">Low</span>
+      </header>
+      <h3 class="event-name">The AI Conference 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · San Francisco, CA, USA</p>
+      <p class="event-why">Two-day applied AI event in SF covering enterprise AI deployment, agentic systems, and governance; earned speaking for production-AI practitioners; lowest-cost high-signal AI conference in the fall calendar.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 30–October 1, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Forrester Technology &amp; Innovation Forum EMEA 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · 88 Wood Street, London, UK</p>
+      <p class="event-why">Forrester&#x27;s flagship EMEA enterprise technology event at 88 Wood Street; CIOs, CTOs, and digital transformation leaders making 2027 AI investment decisions — highest-density European CIO/CTO buyer audience outside…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">September 30–October 2, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Evanta Global CIO Community Executive Summit 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Waldorf Astoria Monarch Beach Resort &amp; Club, Dana Point, CA, USA</p>
+      <p class="event-why">Gartner/Evanta&#x27;s annual gathering of Global CIOs — highest-concentration of C-suite technology leaders in a private resort setting; peer-driven discussions on agentic AI, enterprise operating models, and strategic AI…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 1–2, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">COLLIDE Data+AI Conference 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Sandy Springs Performing Arts Center, Atlanta, GA, USA</p>
+      <p class="event-why">Nation&#x27;s largest enterprise-focused Southern Data &amp; AI event; same organizer as ALIGN AI SFO and AI Enterprise Conference; Fortune 500 data leaders from Atlanta&#x27;s financial services, healthcare, and logistics ecosystem;…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 5–7, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">AGENTIC AI Summit 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Private Winery Estate, Loudoun County, Virginia, USA</p>
+      <p class="event-why">The only dedicated global enterprise agentic AI summit; KPMG as AI Leadership Sponsor; 1,500+ attendees from Fortune 500 (Amazon, Walmart, GM, JPMorgan); open earned-speaker application for enterprise practitioners —…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="MENA"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 5–7, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Gartner CIO &amp; IT Executive Conference Dubai 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">MENA</span> · Grand Hyatt Dubai, Dubai, UAE</p>
+      <p class="event-why">Gartner&#x27;s premier GCC/Middle East CIO conference (390+ attendees confirmed) at the Grand Hyatt Dubai — ArcticBlue&#x27;s active GCC client base (Gulf Air, BBK, Tamkeen) makes this the highest-priority regional CIO touchpoint…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 6–8, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Gartner HR Symposium/Xpo London 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · ExCeL London, London, UK</p>
+      <p class="event-why">European counterpart to Gartner HR Symposium/Xpo Orlando (#62) — 1,250+ European CHROs at ExCeL London focused on human-AI workforce redesign; ArcticBlue&#x27;s CHRO technology transformation audience in the European…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 7–8, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">World Summit AI 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Taets Art &amp; Event Park, Amsterdam, Netherlands</p>
+      <p class="event-why">10th anniversary — 10,000+ attendees, 300+ speakers including CDOs from Home Depot, Colgate-Palmolive, Schneider Electric; dedicated ADOPT AI enterprise track; strong European platform for ArcticBlue&#x27;s EU presence…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 12–15, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Workday Rising US 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Mandalay Bay Convention Center, Las Vegas, NV, USA</p>
+      <p class="event-why">Workday&#x27;s flagship enterprise conference (10,000+ attendees) with agentic AI, CHRO workforce transformation, and enterprise AI readiness as the 2026 theme — direct access to CHROs, CFOs, and enterprise operations…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 13–15, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Augmented Enterprise Summit 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Atlanta, GA, USA</p>
+      <p class="event-why">Longest-running enterprise AI + digital twin conference (1,200+ attendees, 75+ speakers, 90+ sessions in Atlanta); &quot;Return on Technology&quot; panel directly maps to ArcticBlue&#x27;s measurable ROI thesis — strong enterprise…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 15, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">CDO/CAIO SoCal Summit 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Los Angeles, CA, USA</p>
+      <p class="event-why">CDM Media&#x27;s boutique West Coast CDO/CAIO summit (free for qualified senior executives); direct peer access to LA-market CDOs and CAIOs in an intimate 50-100 person format — extends ArcticBlue&#x27;s West Coast enterprise AI…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 18–21, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Money 20/20 USA 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · The Venetian, Las Vegas, NV, USA</p>
+      <p class="event-why">1 in 3 C-Suite leaders in fintech at the world&#x27;s #1 financial services event; AI-powered banking and payments transformation is center stage — direct access to CIOs, COOs, and digital transformation leaders from global…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 19-22, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Gartner IT Symposium/Xpo 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Walt Disney World Swan &amp; Dolphin Resort, Orlando, FL, USA</p>
+      <p class="event-why">The World&#x27;s Most Important Gathering of CIOs and IT Executives — 10,000+ CIOs with agentic AI, operating models, and strategic AI execution as central agenda; highest-concentration C-suite buyer event in Q4.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 20-21, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">AI &amp; Big Data Expo Europe 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Amsterdam, Netherlands</p>
+      <p class="event-why">TechEx cluster&#x27;s European flagship — co-located AI governance, agentic AI, and data platform tracks; open speaker application; same organizer (CloserStill Media) as AI Summit London (#24).</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 20–22, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">UNLEASH World 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Paris Convention Centre, Paris, France</p>
+      <p class="event-why">The world&#x27;s most influential HR event (14th edition, 5,000+ attendees from 70+ countries); AI-powered workforce transformation as central 2026 theme — ArcticBlue&#x27;s CHRO technology transformation and human-AI operating…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 21–22, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">AI in Finance Summit Fall 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · W Hoboken, Hoboken, NJ, USA</p>
+      <p class="event-why">Re:Work&#x27;s dedicated enterprise AI-in-finance event just across the Hudson from ArcticBlue&#x27;s NYC base; 2-day practitioner summit for AI and ML leaders in financial services with a Suggest a Speaker route actively…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 25–28, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Oracle AI World 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Las Vegas, NV, USA</p>
+      <p class="event-why">Oracle&#x27;s renamed flagship enterprise AI conference (former CloudWorld) — 20,000+ enterprise Oracle ecosystem leaders focused on agentic AI, Oracle Fusion Cloud AI, and enterprise cloud transformation; massive enterprise…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 26–27, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">CDAO Fall 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Renaissance Boston Seaport District Hotel, Boston, MA, USA</p>
+      <p class="event-why">Corinium&#x27;s US flagship CDAO conference in Boston; 150+ CDOs, CAIOs, and data AI leaders; sponsorship includes speaking and 1:1 meetings — directly adjacent to AIAI Boston cluster (Oct 28-29, same hotel) for maximum…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 26–28, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Gartner HR Symposium/Xpo 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Walt Disney World Swan &amp; Dolphin Resort, Orlando, FL, USA</p>
+      <p class="event-why">&quot;The World&#x27;s Most Important Gathering of CHROs and HR Executives&quot; — 4,000+ CHROs with AI workforce transformation and human-AI collaboration as the central 2026 theme; directly aligned with ArcticBlue&#x27;s CHRO technology…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">October 28, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">AIAI Chief AI Officer + Agentic AI + Generative AI Summit Boston <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Renaissance Boston Seaport District Hotel, Boston, MA, USA</p>
+      <p class="event-why">Co-located AIAI Boston cluster — same CAIO/Agentic AI/GenAI format as NY cluster (#19/#20) at Renaissance Seaport; strong Northeast enterprise buyer market; requesttospeak route consistent with existing ArcticBlue AIAI…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 4–5, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Big Data &amp; AI World Madrid 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · IFEMA Madrid, Madrid, Spain</p>
+      <p class="event-why">Spain&#x27;s leading enterprise data and AI trade fair at IFEMA Madrid; same brand family as seed event Big Data &amp; AI World London; gateway to 5,000+ Iberian and Southern European enterprise technology leaders.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 4–5, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Agentic Transformation Summit 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Amsterdam Marriott Hotel, Amsterdam, Netherlands</p>
+      <p class="event-why">Europe&#x27;s dedicated enterprise agentic AI summit with confirmed speakers from Siemens Healthineers and global enterprise AI leaders; co-located with Business Transformation Summit; same organizer (AI, Data &amp; Analytics…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Halo">
+      <header class="event-head">
+        <p class="event-date">November 4–5, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">FT Future of AI Summit 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · London, UK</p>
+      <p class="event-why">Financial Times&#x27;s flagship AI summit for 900+ C-suite decision-makers; focused on enterprise AI ROI, workforce transformation, and regulatory navigation — FT brand prestige with an enterprise implementation agenda;…</p>
+      <footer class="event-foot">
+        <span class="event-type">Halo</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 4–6, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Agentic AI Exchange 2026 (IELA) <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · New York, NY, USA</p>
+      <p class="event-why">Intelligent Enterprise Leaders&#x27; executive-level agentic AI forum in NYC; &quot;shifting from AI delivery to AI orchestration, enablement, and long-term value stewardship&quot; — directly matches ArcticBlue&#x27;s sprint-based…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Europe"
+             data-type="Halo">
+      <header class="event-head">
+        <p class="event-date">November 9-12, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Web Summit 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · MEO Arena, Lisbon, Portugal (Halo)</p>
+      <p class="event-why">World&#x27;s largest technology conference (70,000+ attendees); AI is the center of gravity — strongest global brand-building stage available in Q4; earned speaking accessible via official application.</p>
+      <footer class="event-foot">
+        <span class="event-type">Halo</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 9–12, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Gartner IT Symposium/Xpo Barcelona 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Barcelona, Spain</p>
+      <p class="event-why">European edition of &quot;The World&#x27;s Most Important Gathering of CIOs&quot; — 5,000+ European CIOs in Barcelona; ideal platform for ArcticBlue&#x27;s EU market expansion and enterprise AI positioning with European CIO buyers…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 12, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">AIAI Generative AI + Agentic AI Summit Toronto 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · 475 Yonge Street (George Campus), Toronto, Ontario, Canada</p>
+      <p class="event-why">AIAI&#x27;s co-located Toronto cluster — Generative AI Summit and Agentic AI Summit on the same day at George Campus; consistent requesttospeak access model as AIAI Boston/Berlin/LA/London; builds ArcticBlue&#x27;s Canadian…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 15–18, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">HLTH USA 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · The Venetian Expo Center, Las Vegas, NV, USA</p>
+      <p class="event-why">Healthcare&#x27;s #1 innovation event (5,000+ C-suite) with AI-powered care delivery as the 2026 centerpiece; CHROs, CIOs, and COOs from every major US health system — ArcticBlue&#x27;s best earned-speaking opportunity in…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 17-18, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">The Conference Board AI Leadership Summit 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · New York Marriott Marquis, New York, NY, USA</p>
+      <p class="event-why">Closed-door C-suite and board-level executive summit on AI governance and transformation — one of the most credible US enterprise AI leadership gatherings; ArcticBlue&#x27;s exact board-level buyer audience in NYC.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 17–18, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">Conference Board Future: Enterprise &amp; AI 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · Brussels, Belgium</p>
+      <p class="event-why">Conference Board&#x27;s closed-door European C-suite summit on embedding AI across governance, strategy, and operations; senior decision-makers from global multinationals operating in Europe — same organizer credibility as…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 17–19, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">Enterprise AI World 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Washington, DC, USA</p>
+      <p class="event-why">KMWorld + Enterprise AI World co-located conference in DC; dedicated enterprise AI implementation stage with strong representation from government contractors, consulting firms, and regulated enterprise technology…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 19, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">IDC CIO Summit &amp; Awards Canada 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Delta Hotels Toronto, Toronto, ON, Canada</p>
+      <p class="event-why">IDC&#x27;s flagship Canadian CIO summit themed The Rise of Agentic Systems — direct access to Canadian enterprise CIOs building agentic AI strategies; co-located with CIO awards ceremony for maximum senior-executive…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">November 30 - December 4, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">AWS re:Invent 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Caesars Forum &amp; The Venetian, Las Vegas, NV, USA</p>
+      <p class="event-why">AWS&#x27;s flagship enterprise cloud/AI conference (50,000+ attendees); Amazon Bedrock, Q Business, and multi-agent orchestration are central 2026 themes; high-density enterprise architecture and platform buyer audience.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Europe"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">December 1, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">AIAI Chief AI Officer + Agentic AI + Generative AI Summit London 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Europe</span> · InterContinental London - The O2, London, UK</p>
+      <p class="event-why">Year-end AIAI London flagship — CAIO, Agentic AI, and GenAI co-located at The O2; largest European CAIO audience event of Q4; ArcticBlue&#x27;s strongest European earned speaking opportunity to close the year.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="MENA"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">December 7–11, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">GITEX Global 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">MENA</span> · Dubai Exhibition Centre, Expo City, Dubai, UAE</p>
+      <p class="event-why">World&#x27;s largest tech exposition (180,000+ attendees, 46th edition); GITEX Scale Summit centers AI governance and data sovereignty; critical for ArcticBlue&#x27;s active GCC client base (Gulf Air, BBK, Tamkeen); largest…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">December 9-10, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">The AI Summit New York 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Javits Convention Center, New York, NY, USA</p>
+      <p class="event-why">Where commercial AI comes to life — 5,000+ enterprise AI buyers at Javits; Ambassador Chapter from Wells Fargo, JPMorgan, McDonald&#x27;s, eBay, PayPal; ArcticBlue&#x27;s home-market year-end flagship enterprise AI event.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">December 9–10, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">AI Summit New York 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Javits Center, New York, NY, USA</p>
+      <p class="event-why">11th edition of the world&#x27;s longest-running commercial AI event at Javits Center — 10 content stages, enterprise case studies, and Q4 anchor event for ArcticBlue&#x27;s NYC market; open speaker submission rolling basis on…</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <article class="event"
+             data-priority="Medium"
+             data-region="MENA"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">December 15-16, 2026</p>
+        <span class="badge p-medium">Medium</span>
+      </header>
+      <h3 class="event-name">World Summit AI Qatar 2026 <span class="event-no-link" title="No verified URL on file for this event">·</span></h3>
+      <p class="event-loc"><span class="event-region">MENA</span> · Doha, Qatar</p>
+      <p class="event-why">World Summit AI&#x27;s Gulf edition — ideal for ArcticBlue&#x27;s active GCC client base (Gulf Air, BBK, Tamkeen); sovereign AI and enterprise adoption focus at the heart of the Gulf&#x27;s AI investment surge.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article>
+
+    <a class="event-link" href="https://cdao-ny.coriniumintelligence.com/" target="_blank" rel="noopener" aria-label="Open CDAO New York 2026 in a new tab"><article class="event has-link"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">Corinium — June 10, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">CDAO New York 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · New York, NY, USA</p>
+      <p class="event-why">Senior US CDAO audience in NYC; &quot;America&#x27;s top data, analytics, and AI leaders&quot; per Corinium — direct pipeline opportunity with exact ArcticBlue buyer in home city.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+      </div>
+    </section>
+    <details class="archive-block">
+      <summary>Archive · 1 past events</summary>
+      <div class="archive-grid">
+
+    <a class="event-link" href="https://mitcio.com/" target="_blank" rel="noopener" aria-label="Open MIT Sloan CIO Symposium 2026 in a new tab"><article class="event archived has-link"
+             data-priority="High"
+             data-region="Americas"
+             data-type="Enterprise">
+      <header class="event-head">
+        <p class="event-date">May 19, 2026</p>
+        <span class="badge p-high">High</span>
+      </header>
+      <h3 class="event-name">MIT Sloan CIO Symposium 2026 <span class="event-link-arrow" aria-hidden="true">↗</span></h3>
+      <p class="event-loc"><span class="event-region">Americas</span> · Cambridge, MA, USA</p>
+      <p class="event-why">MIT&#x27;s annual flagship CIO event; theme &quot;Human-AI Synergy: Redefining the Enterprise&quot; — ArcticBlue&#x27;s exact positioning; earned speaking possible for the right practitioner-credibility pitch.</p>
+      <footer class="event-foot">
+        <span class="event-type">Enterprise</span>
+      </footer>
+    </article></a>
+      </div>
+    </details>
+    </div><!-- /panel-everyone -->
+
+    <div class="panel" id="panel-angela" role="tabpanel" data-tab="angela" hidden aria-labelledby="tab-angela">
+      <div class="angela-placeholder">
+        <h2>For Angela — coming next</h2>
+        <p>This tab will be the working ops view: status tracking, speaker assignments, calendar &amp; map layouts, iCal export, and add-event.</p>
+        <p>Phase 1 (tab shell) is shipped. Phase 2 (Supabase backend &amp; magic-link auth) is next.</p>
+        <p class="mono">Tabs persist via localStorage · re-open this URL to come back here</p>
+      </div>
+    </div><!-- /panel-angela -->
+
+    <footer class="foot">
+      <p class="foot-text">ArcticBlue · Event Tracker · Auto-archives events one day after end-date.</p>
+      <p class="foot-mono">v1.1 · 2026-05-21</p>
+    </footer>
+  </main>
+
+<script>
+// ── Tab switcher (For Everyone / For Angela) ──────────────────────────
+(function () {
+  var TAB_KEY = 'ab.tracker.activeTab';
+  var tabs = document.querySelectorAll('.tab[data-tab]');
+  var panels = document.querySelectorAll('.panel[data-tab]');
+  function show(name) {
+    tabs.forEach(function (t) {
+      var on = t.dataset.tab === name;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    panels.forEach(function (p) {
+      var on = p.dataset.tab === name;
+      if (on) { p.removeAttribute('hidden'); } else { p.setAttribute('hidden', ''); }
+    });
+    try { localStorage.setItem(TAB_KEY, name); } catch (e) {}
+  }
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () { show(t.dataset.tab); });
+  });
+  // Restore last-used tab
+  try {
+    var saved = localStorage.getItem(TAB_KEY);
+    if (saved === 'angela' || saved === 'everyone') show(saved);
+  } catch (e) {}
+})();
+
+(function () {
+  var grid = document.getElementById('upcoming-grid');
+  var counter = document.getElementById('event-counter');
+  var search = document.getElementById('f-search');
+  var priority = document.getElementById('f-priority');
+  var region = document.getElementById('f-region');
+  var type = document.getElementById('f-type');
+  if (!grid) return;
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.event'));
+  var TOTAL = cards.length;
+
+  function apply () {
+    var q = (search.value || '').toLowerCase().trim();
+    var pri = priority.value || '';
+    var rgn = region.value || '';
+    var ty = type.value || '';
+    var shown = 0;
+    cards.forEach(function (c) {
+      var ok = true;
+      if (pri && (c.dataset.priority || '').indexOf(pri) !== 0) ok = false;
+      if (rgn && c.dataset.region !== rgn) ok = false;
+      if (ty && c.dataset.type !== ty) ok = false;
+      if (q && c.textContent.toLowerCase().indexOf(q) === -1) ok = false;
+      c.style.display = ok ? '' : 'none';
+      if (ok) shown++;
+    });
+    counter.textContent = 'Showing ' + shown + ' of ' + TOTAL + ' upcoming events';
+  }
+  [search, priority, region, type].forEach(function (el) {
+    if (el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', apply);
+  });
+  apply();
+})();
+</script>
+</body>
+</html>
