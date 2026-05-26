@@ -420,11 +420,13 @@ class handler(BaseHTTPRequestHandler):
             dust_error = f'dust call failed: {e}'
 
         fields = _extract_json(agent_text) or {}
-        # If Dust failed AND we scraped something, run the local regex
-        # extractor on the scraped text. Better than returning an error.
+        # If Dust failed at any stage, run the local regex extractor on
+        # whatever we have (scraped page text or the user's pasted text).
+        # The user still gets a usable pre-fill plus a clear "degraded"
+        # signal so they treat it as draft, not vetted output.
         degraded = False
         degraded_reason = None
-        if dust_error and url:
+        if dust_error:
             fallback = _fallback_extract(text, url, exa_meta)
             for k, v in fallback.items():
                 fields.setdefault(k, v)
@@ -436,11 +438,6 @@ class handler(BaseHTTPRequestHandler):
                 degraded_reason = 'dust_timeout'
             else:
                 degraded_reason = 'dust_unavailable'
-        elif dust_error:
-            # No URL to fall back on — surface the error as 502/504
-            if 'timeout' in dust_error.lower():
-                return _send(self, 504, {'error': dust_error})
-            return _send(self, 502, {'error': dust_error})
 
         # If the agent didn't return a URL but we scraped one, use it.
         if url and not fields.get('url'):
