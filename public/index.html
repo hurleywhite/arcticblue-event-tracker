@@ -721,22 +721,32 @@
       font-size: 1.1rem; letter-spacing: -0.01em;
       margin: 0 0 12px; color: var(--ab-fg);
     }
+    /* `minmax(0, 1fr)` is the standard fix to keep grid cells from
+       overflowing their tracks when chip text would otherwise force a
+       column wider than 1fr. Pair with `min-width: 0; overflow: hidden`
+       on each cell so the cell respects its track width and the chips
+       inside ellipsis-clip correctly. */
+    .ops-calendar { overflow-x: auto; }
     .calendar-grid {
-      display: grid; grid-template-columns: repeat(7, 1fr);
+      display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 1px; background: var(--ab-rule);
       border: 1px solid var(--ab-rule); border-radius: 8px;
       overflow: hidden;
+      min-width: 700px;  /* horizontal-scroll kicks in below this; keeps cells legible on mobile */
+      width: 100%;
     }
     .calendar-day-head {
       background: var(--ab-bg-2); padding: 8px;
       font-family: var(--ab-mono); font-size: 0.66rem;
       color: var(--ab-fg-3); letter-spacing: 0.08em;
       text-transform: uppercase; text-align: center;
+      min-width: 0; overflow: hidden;
     }
     .calendar-day {
       background: var(--ab-bg); padding: 6px 8px;
       min-height: 100px;
       display: flex; flex-direction: column; gap: 2px;
+      min-width: 0; overflow: hidden;
     }
     .calendar-day.is-outside { background: var(--ab-bg-3); }
     .calendar-day.is-outside .calendar-day-num { color: var(--ab-mute); }
