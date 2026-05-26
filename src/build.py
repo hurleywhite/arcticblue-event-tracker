@@ -1898,13 +1898,31 @@ def build():
         var derived = deriveDatesFromText(patch.date_str);
         if (derived.start_date) patch.start_date = derived.start_date;
         if (derived.end_date)   patch.end_date   = derived.end_date;
+        // Rename-into-existing guard: a fresh name must not collide with
+        // another manual event or anything in the catalog.
+        var dup = findDuplicate(patch.name, id);
+        if (dup) {{
+          var srcLabel = dup.source === 'catalog'
+            ? 'the public ArcticBlue catalog (events.json)'
+            : 'another manual event';
+          alert('Renaming to "' + patch.name + '" would collide with ' + srcLabel + '. Pick a different name.');
+          return;
+        }}
         var btn = form.querySelector('button.primary[type="submit"]');
         btn.disabled = true; btn.textContent = 'Saving…';
         sb.from('manual_events').update(patch).eq('id', id).then(function (resp) {{
           btn.disabled = false; btn.textContent = 'Save changes';
-          if (resp.error) {{ status('Save failed: ' + resp.error.message, 'error'); return; }}
+          if (resp.error) {{
+            if (resp.error.code === '23505' || /duplicate key value|unique/i.test(resp.error.message || '')) {{
+              status('Another event with that name exists — pick a different one.', 'warn');
+              loadKnownNames();
+              return;
+            }}
+            status('Save failed: ' + resp.error.message, 'error');
+            return;
+          }}
           flashOk('Manual event saved');
-          // Trigger a re-render to refresh card with latest data
+          loadKnownNames();
           renderOps(email);
         }});
       }});
@@ -1919,6 +1937,7 @@ def build():
           if (resp.error) {{ status('Delete failed: ' + resp.error.message, 'error'); return; }}
           card.remove();
           updateOpsCount();
+          loadKnownNames();   // freed-up name is now valid for reuse
           flashOk('Manual event deleted');
         }});
       }});
@@ -2157,6 +2176,13 @@ def build():
         updateOpsCount();
         renderStats(evs, stateRows, manualRows);
         applyFilters();
+        // Rebuild the dedup index from this fresh fetch — realtime
+        // events from other tabs / sessions land here, so we want every
+        // re-render to refresh _knownNames too.
+        _knownNameSource = {{}};
+        (data.events || []).forEach(function (e) {{ var n = (e.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'catalog'; }});
+        manualRows.forEach(function (m) {{ var n = (m.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'manual:' + m.id; }});
+        _knownNames = Object.keys(_knownNameSource);
         // Mirror into the calendar view (uses the same data set)
         renderCalendar(evs, stateMap, manualRows);
       }});
@@ -2311,25 +2337,37 @@ def build():
       return form;
     }}
 
-    // Lower-cased trimmed name → list of existing events. Used by the
-    // duplicate-name guard at insert time.
-    var _knownNames = null;
+    // Dedup index of every event name we know about — refreshed after
+    // every insert/update/delete so it stays accurate. The catalog
+    // (events.json) is loaded once; manual_events is reloaded each time.
+    var _knownNames = null;          // Set of lowercased names
+    var _knownNameSource = {{}};      // map: name_lower → 'catalog' | 'manual'
     function loadKnownNames() {{
       var p1 = fetch('events.json').then(function (r) {{ return r.json(); }}).then(function (d) {{
         return ((d && d.events) || []).map(function (e) {{ return (e.name || '').toLowerCase().trim(); }});
       }}).catch(function () {{ return []; }});
-      var p2 = sb.from('manual_events').select('name').then(function (r) {{
-        return ((r && r.data) || []).map(function (e) {{ return (e.name || '').toLowerCase().trim(); }});
+      var p2 = sb.from('manual_events').select('id,name').then(function (r) {{
+        return ((r && r.data) || []).map(function (e) {{ return [(e.name || '').toLowerCase().trim(), e.id]; }});
       }});
       return Promise.all([p1, p2]).then(function (a) {{
-        _knownNames = a[0].concat(a[1]).filter(Boolean);
+        _knownNameSource = {{}};
+        a[0].forEach(function (n) {{ if (n) _knownNameSource[n] = 'catalog'; }});
+        a[1].forEach(function (pair) {{ if (pair[0]) _knownNameSource[pair[0]] = 'manual:' + pair[1]; }});
+        _knownNames = Object.keys(_knownNameSource);
         return _knownNames;
       }});
     }}
-    function isDuplicateName(name) {{
+    // Returns null if name is fine, or an object describing the conflict.
+    // selfId optional — when editing, ignores a match against the row being edited.
+    function findDuplicate(name, selfId) {{
       var n = (name || '').toLowerCase().trim();
-      return !!_knownNames && _knownNames.indexOf(n) !== -1;
+      if (!n || !_knownNameSource) return null;
+      var src = _knownNameSource[n];
+      if (!src) return null;
+      if (selfId && src === 'manual:' + selfId) return null;
+      return {{ name_lower: n, source: src }};
     }}
+    function isDuplicateName(name, selfId) {{ return !!findDuplicate(name, selfId); }}
 
     function attachAddEventHandlers(form, email) {{
       // Warm the duplicate-name cache so the submit handler can synchronously
@@ -2438,21 +2476,41 @@ def build():
         var derived = deriveDatesFromText(row.date_str);
         if (derived.start_date) row.start_date = derived.start_date;
         if (derived.end_date)   row.end_date   = derived.end_date;
-        // Duplicate-name guard — case-insensitive across catalog + manual_events
-        if (isDuplicateName(row.name)) {{
-          if (!confirm('"' + row.name + '" already exists in the tracker. Add another copy anyway?')) return;
+        // HARD duplicate-name guard — case-insensitive across catalog + manual_events.
+        // No confirm() escape hatch: duplicates land in the calendar as two
+        // separate entries with two UIDs, which produces double-rendered
+        // events in subscribed calendars. The unique index on the DB
+        // (scripts/2026-05-26_dedup_manual_events.sql) is the final defense.
+        var dup = findDuplicate(row.name);
+        if (dup) {{
+          var srcLabel = dup.source === 'catalog'
+            ? 'the public ArcticBlue catalog (events.json)'
+            : 'manual events';
+          alert('"' + row.name + '" already exists in ' + srcLabel + '. Use the existing entry instead of adding a duplicate.');
+          return;
         }}
         var submitBtn = form.querySelector('button.primary[type="submit"]');
         submitBtn.disabled = true; submitBtn.textContent = 'Saving…';
         sb.from('manual_events').insert(row).select().then(function (resp) {{
           submitBtn.disabled = false; submitBtn.textContent = 'Add event';
-          if (resp.error) {{ status('Add failed: ' + resp.error.message, 'error'); return; }}
+          if (resp.error) {{
+            // 23505 = unique_violation. Hit when the DB unique index catches
+            // a race we missed (two concurrent inserts of the same name).
+            if (resp.error.code === '23505' || /duplicate key value|unique/i.test(resp.error.message || '')) {{
+              status('"' + row.name + '" already exists. Refreshing the duplicate cache…', 'warn');
+              loadKnownNames();
+              return;
+            }}
+            status('Add failed: ' + resp.error.message, 'error');
+            return;
+          }}
           var newRow = (resp.data && resp.data[0]) || row;
           form.remove();
           var card = buildManualCard(newRow, email);
           $opsGrid.insertBefore(card, $opsGrid.firstChild);
           wireManualCard(card, email);
           updateOpsCount();
+          loadKnownNames();   // keep the dup index fresh
           flashOk('Event added');
         }});
       }});
