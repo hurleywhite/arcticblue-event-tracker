@@ -3050,8 +3050,17 @@
               // Only fill empty inputs by default — never clobber what user typed
               var report = applyExtractToForm(form, f, { overwrite: false });
               var dur = Math.round((Date.now() - t0) / 1000);
-              fillMeta.textContent = 'Filled ' + report.filled + ' of ' + report.total + ' fields in ' + dur + 's' +
+              var note = 'Filled ' + report.filled + ' of ' + report.total + ' fields in ' + dur + 's' +
                 (report.skipped ? ' (' + report.skipped + ' skipped — already had values).' : '.');
+              if (data.degraded) {
+                var why = data.degraded_reason === 'dust_rate_limited'
+                  ? 'Dust hit its rate limit — used the scraped page directly with basic extraction. Please double-check the fields.'
+                  : data.degraded_reason === 'dust_timeout'
+                    ? 'Dust took too long — used the scraped page directly with basic extraction. Please double-check the fields.'
+                    : 'Dust unavailable — used the scraped page directly with basic extraction. Please double-check the fields.';
+                note += ' ' + why;
+              }
+              fillMeta.textContent = note;
             }).catch(function (err) {
               fillBtn.disabled = false; fillBtn.textContent = 'Fill from URL';
               fillMeta.textContent = 'Network error: ' + err.message;
@@ -3900,6 +3909,15 @@
         rec === 'maybe' ? '<span class="ops-tag" style="background:#fef3c7;color:#92400e;">Maybe</span>' :
         rec === 'no'    ? '<span class="ops-tag" style="background:#fee2e2;color:#991b1b;">Skip</span>' :
                           '';
+      var degradedBanner = '';
+      if (data.degraded) {
+        var why = data.degraded_reason === 'dust_rate_limited'
+          ? 'Dust hit its rate limit. The fields below come from a basic page-scrape, not the agent. Treat them as a draft and review carefully before promoting.'
+          : data.degraded_reason === 'dust_timeout'
+            ? 'Dust took too long to respond. The fields below come from a basic page-scrape; review before promoting.'
+            : 'Dust was unavailable. The fields below come from a basic page-scrape; review before promoting.';
+        degradedBanner = '<div class="alert warn" style="margin:0 0 12px;">' + escapeHtml(why) + '</div>';
+      }
 
       function row(k, v) {
         if (v === null || v === undefined || v === '') return '';
@@ -3917,9 +3935,10 @@
       }).join('');
 
       var html =
+        degradedBanner +
         '<div class="alert" style="margin:0 0 12px;">' +
           (recPill ? recPill + ' ' : '') +
-          (fields.reasoning ? escapeHtml(fields.reasoning) : 'No reasoning returned.') +
+          (fields.reasoning ? escapeHtml(fields.reasoning) : (data.degraded ? 'No agent reasoning — Dust unavailable.' : 'No reasoning returned.')) +
         '</div>' +
         '<table style="width:100%;border-collapse:collapse;font-size:0.9rem;">' + rows + '</table>' +
         '<div class="add-actions" style="margin-top:14px;">' +

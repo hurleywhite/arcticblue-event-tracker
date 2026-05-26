@@ -196,6 +196,63 @@ def _fetch_via_exa(url):
     return title, text, pub
 
 
+REGION_HINTS = [
+    ('Americas',     r'(usa|united states|canada|mexico|brazil|new york|san francisco|los angeles|chicago|boston|seattle|austin|miami|toronto|vancouver|denver|atlanta|portland)'),
+    ('Europe',       r'(uk|united kingdom|london|paris|berlin|amsterdam|madrid|barcelona|lisbon|munich|zurich|brussels|dublin|stockholm|copenhagen|oslo|helsinki|warsaw|prague|vienna|rome|milan)'),
+    ('Asia-Pacific', r'(singapore|hong kong|tokyo|seoul|shanghai|beijing|sydney|melbourne|delhi|mumbai|bangalore|jakarta|bangkok|kuala lumpur)'),
+    ('MENA',         r'(dubai|abu dhabi|riyadh|doha|tel aviv|cairo|amman|kuwait|manama)'),
+]
+
+
+def _fallback_extract(text, url, exa_meta):
+    """Best-effort regex extraction when Dust is unavailable (rate-limited,
+    failed, etc.). Mirrors the client-side extractFromEmail() logic so the
+    user gets a useful pre-fill even without the agent."""
+    out = {}
+    if url:
+        out['url'] = url
+
+    # Name — prefer the page title Exa returned
+    title = (exa_meta or {}).get('title') or ''
+    if title and 5 < len(title.strip()) < 140:
+        out['name'] = title.strip()
+
+    # Date — try long, then short month formats; range and single forms
+    ml = r'(?:January|February|March|April|May|June|July|August|September|October|November|December)'
+    ms = r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)'
+    date_patterns = [
+        ml + r'\s+\d{1,2}\s*[–—-]\s*(?:' + ml + r'\s+)?\d{1,2},\s+\d{4}',
+        ml + r'\s+\d{1,2},\s+\d{4}',
+        ms + r'\s+\d{1,2}\s*[–—-]\s*\d{1,2},\s+\d{4}',
+        ms + r'\s+\d{1,2},\s+\d{4}',
+    ]
+    for pat in date_patterns:
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            out['date_str'] = m.group(0)
+            break
+
+    # Location — keyword line first
+    lk = re.search(r'^\s*(?:Location|Where|Venue|City|Held in)\s*:\s*(.+)$', text, re.MULTILINE | re.IGNORECASE)
+    if lk:
+        out['location'] = lk.group(1).strip()[:140]
+    else:
+        sa = re.search(r'([A-Z][a-zA-Z]+(?:[ \t]+[A-Z][a-zA-Z]+)?,[ \t]+[A-Z][a-zA-Z]+)[ \t]*$',
+                       text, re.MULTILINE)
+        if sa:
+            out['location'] = sa.group(1)
+
+    # Region from location
+    if out.get('location'):
+        lo = out['location'].lower()
+        for region, pat in REGION_HINTS:
+            if re.search(pat, lo):
+                out['region'] = region
+                break
+
+    return out
+
+
 def _extract_json(text):
     """Pull a JSON object out of the agent's reply. Tries fenced blocks first."""
     if not text:
@@ -348,26 +405,54 @@ class handler(BaseHTTPRequestHandler):
             except Exception as e:
                 return _send(self, 502, {'error': f'scrape failed: {e}'})
 
-        # Call Dust
+        # Call Dust — fall back gracefully if rate-limited or unreachable
+        # so the user still gets a useful pre-fill from the Exa scrape.
+        dust_error    = None
+        agent_text    = ''
+        reply         = None
         try:
             conv_id = _dust_start(_build_prompt(text), caller_email)
             reply   = _dust_poll(conv_id)
+            agent_text = _agent_text(reply)
         except TimeoutError as e:
-            return _send(self, 504, {'error': f'dust timeout: {e}'})
+            dust_error = f'dust timeout: {e}'
         except Exception as e:
-            return _send(self, 502, {'error': f'dust call failed: {e}'})
+            dust_error = f'dust call failed: {e}'
 
-        agent_text = _agent_text(reply)
-        fields     = _extract_json(agent_text) or {}
+        fields = _extract_json(agent_text) or {}
+        # If Dust failed AND we scraped something, run the local regex
+        # extractor on the scraped text. Better than returning an error.
+        degraded = False
+        degraded_reason = None
+        if dust_error and url:
+            fallback = _fallback_extract(text, url, exa_meta)
+            for k, v in fallback.items():
+                fields.setdefault(k, v)
+            degraded = True
+            err_lower = dust_error.lower()
+            if 'rate_limit' in err_lower:
+                degraded_reason = 'dust_rate_limited'
+            elif 'timeout' in err_lower:
+                degraded_reason = 'dust_timeout'
+            else:
+                degraded_reason = 'dust_unavailable'
+        elif dust_error:
+            # No URL to fall back on — surface the error as 502/504
+            if 'timeout' in dust_error.lower():
+                return _send(self, 504, {'error': dust_error})
+            return _send(self, 502, {'error': dust_error})
 
         # If the agent didn't return a URL but we scraped one, use it.
         if url and not fields.get('url'):
             fields['url'] = url
 
         return _send(self, 200, {
-            'fields': fields,
-            'raw':    agent_text[:8000],     # cap reply size
-            'status': reply.get('status'),
-            'caller': caller_email,
-            'source': {'url': url or None, 'exa': exa_meta},
+            'fields':           fields,
+            'raw':              agent_text[:8000] if agent_text else (text[:8000] if degraded else ''),
+            'status':           reply.get('status') if reply else None,
+            'caller':           caller_email,
+            'source':           {'url': url or None, 'exa': exa_meta},
+            'degraded':         degraded,
+            'degraded_reason':  degraded_reason,
+            'degraded_message': dust_error if degraded else None,
         })
