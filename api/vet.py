@@ -25,17 +25,24 @@ import json
 import os
 import time
 import urllib.request
+import urllib.parse
 import urllib.error
 import re
 
 
-SUPABASE_URL          = os.environ.get('SUPABASE_URL', 'https://efkvhlmfdwlobvdmvqiq.supabase.co').rstrip('/')
-SUPABASE_PUBLISHABLE  = os.environ.get('SUPABASE_PUBLISHABLE_KEY', '')
+# All env reads are strip()'d because piping via `echo` (e.g. `echo "..." |
+# vercel env add KEY production`) bakes in a trailing newline that breaks
+# urllib (InvalidURL: control character).
+def _env(key, default=''):
+    return (os.environ.get(key, default) or '').strip()
 
-DUST_API_KEY     = os.environ.get('DUST_API_KEY', '')
-DUST_WORKSPACE   = os.environ.get('DUST_WORKSPACE_ID', 'G5QCSmfJhK')
-DUST_AGENT       = os.environ.get('DUST_AGENT_ID', 'Dir04hvKfi')
-DUST_DOMAIN      = os.environ.get('DUST_DOMAIN', 'https://dust.tt').rstrip('/')
+SUPABASE_URL          = _env('SUPABASE_URL', 'https://efkvhlmfdwlobvdmvqiq.supabase.co').rstrip('/')
+SUPABASE_PUBLISHABLE  = _env('SUPABASE_PUBLISHABLE_KEY')
+
+DUST_API_KEY     = _env('DUST_API_KEY')
+DUST_WORKSPACE   = _env('DUST_WORKSPACE_ID', 'G5QCSmfJhK')
+DUST_AGENT       = _env('DUST_AGENT_ID', 'Dir04hvKfi')
+DUST_DOMAIN      = _env('DUST_DOMAIN', 'https://dust.tt').rstrip('/')
 
 MAX_POLL_SECONDS = 90
 POLL_INTERVAL    = 3.0
@@ -82,7 +89,7 @@ def _verify_editor(access_token):
         return False, 'no email on user record'
     # Cross-check against allowed_editors via REST (RLS allows public read)
     status, rows = _http_json('GET',
-        f"{SUPABASE_URL}/rest/v1/allowed_editors?select=email&email=eq.{urllib.request.quote(email)}",
+        f"{SUPABASE_URL}/rest/v1/allowed_editors?select=email&email=eq.{urllib.parse.quote(email)}",
         headers={
             'apikey':        SUPABASE_PUBLISHABLE,
             'Authorization': f'Bearer {SUPABASE_PUBLISHABLE}',
