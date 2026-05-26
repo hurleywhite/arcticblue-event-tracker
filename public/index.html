@@ -2846,10 +2846,15 @@
         var dm = text.match(dateRes[j]);
         if (dm) { out.date_str = dm[0]; break; }
       }
-      // Name — Subject line first; else first reasonable line
+      // Name — Subject line first; else first reasonable line.
+      // Strip Re:/Fwd: prefixes repeatedly to handle chains like "Fwd: Re: …"
       var subj = text.match(/^\s*Subject:\s*(.+)$/im);
       if (subj) {
-        out.name = subj[1].replace(/^(?:Re:|Fwd?:|FW:)\s*/i, '').trim();
+        var nm = subj[1].trim();
+        while (/^(?:Re:|Fwd?:|FW:)\s*/i.test(nm)) {
+          nm = nm.replace(/^(?:Re:|Fwd?:|FW:)\s*/i, '');
+        }
+        out.name = nm;
       } else {
         var lines = text.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
         for (var k = 0; k < lines.length; k++) {
@@ -2859,13 +2864,21 @@
           }
         }
       }
-      // Location — keyword lines first; else "in/at City"
+      // Location — multi-tier fallback:
+      //   1. "Location:" / "Where:" / "Venue:" keyword line (strongest)
+      //   2. "City, Country" anchored at end of a standalone line
+      //   3. "in <City>" prose (avoid "at" which falsely matches "speak at X")
       var lk = text.match(/^\s*(?:Location|Where|Venue|City)\s*:\s*(.+)$/im);
       if (lk) {
         out.location = lk[1].trim();
       } else {
-        var lc = text.match(/\b(?:in|at)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2}(?:,\s+[A-Z][a-zA-Z]+)?)/);
-        if (lc) out.location = lc[1].trim();
+        var standalone = text.match(/([A-Z][a-zA-Z]+(?:[ 	]+[A-Z][a-zA-Z]+)?,[ 	]+[A-Z][a-zA-Z]+)[ 	]*$/m);
+        if (standalone) {
+          out.location = standalone[1].trim();
+        } else {
+          var lc = text.match(/\bin\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?(?:,\s+[A-Z][a-zA-Z]+)?)/);
+          if (lc) out.location = lc[1].trim();
+        }
       }
       // Region guess from location
       if (out.location) {
@@ -3326,7 +3339,8 @@
       var months = {january:1,february:2,march:3,april:4,may:5,june:6,
                     july:7,august:8,september:9,october:10,november:11,december:12,
                     jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
-      var m = String(text).match(/([A-Za-z]+)\s+(\d{1,2})[^\d]*,?\s*(\d{4})/);
+      // Handle: "Month D, YYYY" · "Month D–D, YYYY" · "Month D-D, YYYY" (with or without parentheticals after)
+      var m = String(text).match(/([A-Za-z]+)\s+(\d{1,2})(?:\s*[–—-]\s*\d{1,2})?[,\s]+(\d{4})/);
       if (!m) return null;
       var mn = months[m[1].toLowerCase()];
       if (!mn) return null;

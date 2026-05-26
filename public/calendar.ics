@@ -1,0 +1,8 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ArcticBlue//Event Tracker//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:ArcticBlue · Saved events
+X-WR-CALDESC:All saved events plus every manual addition. Updated daily.
+END:VCALENDAR
