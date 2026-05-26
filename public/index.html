@@ -2673,10 +2673,46 @@
       card.dataset.manualId = mev.id;
       card.dataset.kind = 'manual';
       card.dataset.region = mev.region || '';
-      card.dataset.hasSpeaker = '';
+      card.dataset.hasSpeaker = (mev.speaker && mev.speaker.trim()) ? '1' : '';
+      card.dataset.status = mev.status || '';
       var whoText  = mev.created_by ? ('Added by ' + escapeHtml(firstNameFromEmail(mev.created_by)) + ' · ' + escapeHtml(formatStamp(mev.created_at))) : '';
       var whoTitle = mev.created_by ? (' title="' + escapeHtml(mev.created_by) + '"') : '';
       var who      = whoText;
+
+      // Reuse renderOpsTags by adapting the manual row into a state-like object
+      var tagsHtml = renderOpsTags({
+        status:   mev.status,
+        speaker:  mev.speaker,
+        priority_override: mev.priority,
+        track:    null
+      });
+
+      // Contact strip below the location line — only render if at least one field
+      var pocBits = [];
+      if (mev.poc_name)  pocBits.push(escapeHtml(mev.poc_name));
+      if (mev.poc_email) pocBits.push('<a href="mailto:' + escapeHtml(mev.poc_email) + '" style="color:var(--ab-blue);text-decoration:none;">' + escapeHtml(mev.poc_email) + '</a>');
+      if (mev.poc_linkedin) pocBits.push('<a href="' + escapeHtml(mev.poc_linkedin) + '" target="_blank" rel="noopener" style="color:var(--ab-blue);text-decoration:none;">LinkedIn ↗</a>');
+      var pocLine = pocBits.length ? '<p class="event-loc" style="font-size:0.8rem;">POC: ' + pocBits.join(' · ') + '</p>' : '';
+
+      var addtlLine = (mev.additional_contacts && mev.additional_contacts.trim())
+        ? '<details style="margin:6px 0;"><summary style="cursor:pointer;font-family:var(--ab-mono);font-size:0.66rem;color:var(--ab-fg-3);letter-spacing:0.06em;text-transform:uppercase;">+ Additional contacts</summary><p style="font-size:0.82rem;color:var(--ab-fg-2);white-space:pre-wrap;margin:6px 0;">' + escapeHtml(mev.additional_contacts) + '</p></details>'
+        : '';
+
+      var notesLine = (mev.notes && mev.notes.trim())
+        ? '<p class="event-why" style="font-size:0.85rem;color:var(--ab-fg-2);margin:0 0 8px;white-space:pre-wrap;">' + escapeHtml(mev.notes) + '</p>'
+        : '';
+
+      var submLine = (mev.submission_status && mev.submission_status.trim() && mev.submission_status !== mev.status)
+        ? '<p class="ops-meta">Submission notes: ' + escapeHtml(mev.submission_status) + '</p>'
+        : '';
+
+      var feeLine = (mev.speaking_fee || mev.paid !== null && mev.paid !== undefined)
+        ? '<p class="ops-meta">' +
+            (mev.speaking_fee ? 'Fee: ' + escapeHtml(mev.speaking_fee) : '') +
+            (mev.speaking_fee && (mev.paid !== null && mev.paid !== undefined) ? ' · ' : '') +
+            (mev.paid !== null && mev.paid !== undefined ? 'Paid: ' + (mev.paid ? 'yes' : 'no') : '') +
+          '</p>'
+        : '';
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<div class="ops-chips">' +
@@ -2688,14 +2724,20 @@
           (mev.url ? ' <a class="ops-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open ' + escapeHtml(mev.name || '') + '">↗</a>' : '') +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(mev.region || '') + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
+        tagsHtml +
+        pocLine +
         (mev.why  ? '<p class="event-why" style="font-size:0.85rem;color:var(--ab-fg-2);margin:0 0 8px;">' + escapeHtml(mev.why) + '</p>' : '') +
+        notesLine +
+        addtlLine +
+        submLine +
+        feeLine +
         '<details class="ops-edit">' +
           '<summary>Edit / Delete</summary>' +
           '<form class="ops-form manual-edit">' +
             '<label><span class="key">Name</span>' +
               '<input type="text" name="name" value="' + escapeHtml(mev.name || '') + '" required></label>' +
             '<label><span class="key">Date</span>' +
-              '<input type="text" name="date_str" value="' + escapeHtml(mev.date_str || '') + '" required></label>' +
+              '<input type="text" name="date_str" value="' + escapeHtml(mev.date_str || '') + '"></label>' +
             '<div class="row">' +
               '<label><span class="key">Location</span>' +
                 '<input type="text" name="location" value="' + escapeHtml(mev.location || '') + '"></label>' +
@@ -2708,8 +2750,38 @@
               '<label><span class="key">Priority</span>' +
                 '<select name="priority">' + optionRows(['', 'High', 'Medium', 'Low'], mev.priority || '') + '</select></label>' +
             '</div>' +
+            '<div class="row">' +
+              '<label><span class="key">Status</span>' +
+                '<select name="status">' + statusOptionRows(mev.status || '') + '</select></label>' +
+              '<label><span class="key">Speaker</span>' +
+                '<input type="text" name="speaker" value="' + escapeHtml(mev.speaker || '') + '"></label>' +
+            '</div>' +
+            '<label><span class="key">Submission status (free text)</span>' +
+              '<input type="text" name="submission_status" value="' + escapeHtml(mev.submission_status || '') + '"></label>' +
+            '<div class="row">' +
+              '<label><span class="key">POC name</span>' +
+                '<input type="text" name="poc_name" value="' + escapeHtml(mev.poc_name || '') + '"></label>' +
+              '<label><span class="key">POC email</span>' +
+                '<input type="text" name="poc_email" value="' + escapeHtml(mev.poc_email || '') + '"></label>' +
+            '</div>' +
+            '<label><span class="key">POC LinkedIn</span>' +
+              '<input type="text" name="poc_linkedin" value="' + escapeHtml(mev.poc_linkedin || '') + '"></label>' +
+            '<label><span class="key">Additional contacts</span>' +
+              '<textarea name="additional_contacts">' + escapeHtml(mev.additional_contacts || '') + '</textarea></label>' +
             '<label><span class="key">Why it fits</span>' +
               '<textarea name="why">' + escapeHtml(mev.why || '') + '</textarea></label>' +
+            '<label><span class="key">Notes</span>' +
+              '<textarea name="notes">' + escapeHtml(mev.notes || '') + '</textarea></label>' +
+            '<div class="row">' +
+              '<label><span class="key">Speaking fee</span>' +
+                '<input type="text" name="speaking_fee" value="' + escapeHtml(mev.speaking_fee || '') + '"></label>' +
+              '<label><span class="key">Paid</span>' +
+                '<select name="paid">' +
+                  '<option value=""'        + (mev.paid === null || mev.paid === undefined ? ' selected' : '') + '>—</option>' +
+                  '<option value="true"'    + (mev.paid === true  ? ' selected' : '') + '>Yes</option>' +
+                  '<option value="false"'   + (mev.paid === false ? ' selected' : '') + '>No</option>' +
+                '</select></label>' +
+            '</div>' +
             '<label><span class="key">URL</span>' +
               '<input type="text" name="url" value="' + escapeHtml(mev.url || '') + '"></label>' +
             '<div class="add-actions">' +
@@ -2730,18 +2802,30 @@
       form.addEventListener('submit', function (ev) {
         ev.preventDefault();
         var fd = new FormData(form);
+        var paidRaw = (fd.get('paid') || '').toString();
         var patch = {
-          name:     (fd.get('name') || '').toString().trim(),
-          date_str: (fd.get('date_str') || '').toString().trim(),
-          location: (fd.get('location') || '').toString().trim() || null,
-          region:   (fd.get('region') || '').toString().trim() || null,
-          type:     (fd.get('type') || '').toString().trim() || null,
-          priority: (fd.get('priority') || '').toString().trim() || null,
-          why:      (fd.get('why') || '').toString().trim() || null,
-          url:      (fd.get('url') || '').toString().trim() || null
+          name:                (fd.get('name') || '').toString().trim(),
+          date_str:            (fd.get('date_str') || '').toString().trim(),
+          location:            (fd.get('location') || '').toString().trim() || null,
+          region:              (fd.get('region') || '').toString().trim() || null,
+          type:                (fd.get('type') || '').toString().trim() || null,
+          priority:            (fd.get('priority') || '').toString().trim() || null,
+          status:              (fd.get('status') || '').toString().trim() || null,
+          submission_status:   (fd.get('submission_status') || '').toString().trim() || null,
+          speaker:             (fd.get('speaker') || '').toString().trim() || null,
+          poc_name:            (fd.get('poc_name') || '').toString().trim() || null,
+          poc_email:           (fd.get('poc_email') || '').toString().trim() || null,
+          poc_linkedin:        (fd.get('poc_linkedin') || '').toString().trim() || null,
+          additional_contacts: (fd.get('additional_contacts') || '').toString().trim() || null,
+          why:                 (fd.get('why') || '').toString().trim() || null,
+          notes:               (fd.get('notes') || '').toString().trim() || null,
+          speaking_fee:        (fd.get('speaking_fee') || '').toString().trim() || null,
+          paid:                paidRaw === 'true' ? true : (paidRaw === 'false' ? false : null),
+          url:                 (fd.get('url') || '').toString().trim() || null
         };
-        if (!patch.name || !patch.date_str) { alert('Name and date are required'); return; }
-        // Re-derive start_date from date_str (best effort)
+        if (!patch.name) { alert('Name is required'); return; }
+        if (!patch.date_str) patch.date_str = 'Date TBD';
+        // Re-derive start_date / end_date from date_str (best effort)
         var derived = deriveDatesFromText(patch.date_str);
         if (derived.start_date) patch.start_date = derived.start_date;
         if (derived.end_date)   patch.end_date   = derived.end_date;
