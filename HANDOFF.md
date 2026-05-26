@@ -45,6 +45,27 @@ For the next AI agent or engineer picking this up.
 - ✅ `TODAY` defaults to `date.today()`; pinnable via `BUILD_DATE` env var
 - ✅ Parser QA: 4 parsers × 5 samples each = 54 assertion checks; bugs found and fixed
 
+### Phase 5 — Dust proxy, URL scrape, polish (shipped May 2026)
+- ✅ Vercel serverless function `/api/vet` (`api/vet.py`) — Dust agent proxy that holds DUST_API_KEY server-side, verifies the caller against `allowed_editors` via Supabase JWT, scrapes URLs via Exa.ai when given a URL, then asks the ArcticBlueEventSpeaking agent for structured fields. Returns recommend/maybe/skip + reasoning + extracted fields.
+- ✅ Graceful fallback: when Dust rate-limits or times out, the same endpoint runs server-side regex extraction on the scraped text and returns a `degraded: true` payload so the user still gets a usable pre-fill.
+- ✅ "Vet with Dust" toolbar button + result panel with recommend pill, field preview, raw-reply toggle, one-click "Promote to event".
+- ✅ "Fill from URL" button on Add Event form auto-scrapes via the same endpoint.
+- ✅ Add Event: date is optional (auto-fills to "Date TBD"); URL is promoted to the top as the primary auto-fill source.
+- ✅ Calendar: month dropdown instead of long scroll; persists in localStorage; ‹ Prev / Next › buttons.
+- ✅ Calendar: events stretch across every day from start_date to end_date — continuation cells render dimmer italic bars; chip border left tinted by status group.
+- ✅ Calendar legend strip under the grid showing status-group color meanings.
+- ✅ Calendar mode toolbar functional: any panel-opening button (Add event / Paste email / Vet with Dust / CSV / Subscribe) auto-switches to Grid view first.
+- ✅ Status taxonomy expanded 20 → 39 by merging in Angela's Replit EventsCal vocabulary. Grouped into Confirmed / Active / Waiting / Action / Closed / Other.
+- ✅ Status filter chip row shows the chips in groups with subtle dividers + colored group labels.
+- ✅ First-name display: "hurley@arcticblue.ai" → "Hurley" in the signed-in pill + "Last edit" + "Added by" stamps; full email preserved in tooltips.
+- ✅ Subscribe panel with copy-link button + paste instructions for Apple / Google / Outlook.
+- ✅ Layout fix: calendar grid uses `minmax(0, 1fr)` so wide chip text doesn't push Friday/Saturday off-screen; horizontal scroll kicks in below 700px viewport.
+- ✅ `manual_events` schema extended with `status`, `submission_status`, `speaker`, `notes`, `poc_name`, `poc_email`, `poc_linkedin`, `additional_contacts`, `speaking_fee`, `paid` — UI fully renders + edits these.
+- ✅ Two SQL migrations in `scripts/`:
+  - `2026-05-26_ingest_angela_events.sql` — 75 idempotent INSERTs of Angela's `events_calendar_upload.xlsx` (status auto-mapped to the expanded palette).
+  - `2026-05-26_dedup_manual_events.sql` — collapses duplicate rows (merging non-null fields into the keeper) and adds `UNIQUE INDEX ON lower(name)`.
+- ✅ Three-layer duplicate prevention: DB unique index on `lower(name)` + UI hard-block at insert/edit + dedup cache refreshed on every renderOps. Catalog events (`events.json`) included in the cross-check so a manual event can't shadow a curated catalog row.
+
 ---
 
 ## What's NOT done — ranked by impact
