@@ -494,6 +494,133 @@
     .saved-star.is-on:hover { color: var(--ab-blue-light); }
     .saved-star[aria-busy="true"] { opacity: 0.4; cursor: wait; }
 
+    /* Chip toggles on the ops card head (urgent, hidden) */
+    .ops-chips { display: flex; gap: 6px; align-items: center; }
+    .ops-chip {
+      font: inherit; cursor: pointer;
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 999px;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
+      color: var(--ab-fg-3); line-height: 1.4;
+      transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+    }
+    .ops-chip:hover { color: var(--ab-fg); border-color: var(--ab-fg-3); }
+    .ops-chip.is-on { background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }
+    .ops-chip.is-on.urgent { background: var(--ab-red); border-color: var(--ab-red); }
+    .ops-chip[aria-busy="true"] { opacity: 0.4; cursor: wait; }
+    .ops-chip.badge-manual {
+      cursor: default; pointer-events: none;
+      background: var(--ab-blue); color: var(--ab-bg); border-color: var(--ab-blue);
+    }
+
+    .ops-card.is-hidden { opacity: 0.55; background: var(--ab-bg-2); }
+    .ops-card.is-urgent { border-color: var(--ab-red); }
+    .ops-card.is-saved.is-urgent { border-color: var(--ab-red); box-shadow: inset 4px 0 0 var(--ab-blue); }
+
+    /* Inline edit disclosure */
+    .ops-edit { margin-top: 12px; border-top: 1px solid var(--ab-rule); padding-top: 12px; }
+    .ops-edit > summary {
+      cursor: pointer; list-style: none;
+      font-family: var(--ab-mono); font-size: 0.72rem;
+      color: var(--ab-fg-3); letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 0;
+      user-select: none;
+    }
+    .ops-edit > summary::-webkit-details-marker { display: none; }
+    .ops-edit > summary::before { content: "▸ "; display: inline-block; transition: transform 120ms ease; }
+    .ops-edit[open] > summary::before { content: "▾ "; }
+    .ops-edit > summary:hover { color: var(--ab-fg); }
+
+    .ops-form { display: grid; gap: 10px; margin-top: 12px; }
+    .ops-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .ops-form label { display: flex; flex-direction: column; gap: 4px; }
+    .ops-form label > .key {
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      color: var(--ab-fg-3); letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .ops-form input[type="text"],
+    .ops-form select,
+    .ops-form textarea {
+      font-family: var(--ab-sans); font-size: 0.9rem;
+      padding: 8px 10px; border: 1px solid var(--ab-rule-strong);
+      border-radius: 6px; background: var(--ab-bg);
+      color: var(--ab-fg); outline: none; min-width: 0;
+    }
+    .ops-form input[type="text"]:focus,
+    .ops-form select:focus,
+    .ops-form textarea:focus {
+      border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
+    }
+    .ops-form textarea { min-height: 70px; resize: vertical; font-family: var(--ab-sans); }
+    .ops-form .field-saved {
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      color: var(--ab-green); letter-spacing: 0.08em;
+      text-transform: uppercase; padding-left: 6px;
+      opacity: 0; transition: opacity 200ms ease;
+    }
+    .ops-form .field-saved.show { opacity: 1; }
+    .ops-form .field-error {
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      color: var(--ab-red); letter-spacing: 0.08em;
+      text-transform: uppercase; padding-left: 6px;
+    }
+    .ops-meta {
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      color: var(--ab-fg-3); letter-spacing: 0.06em;
+      margin-top: 8px;
+    }
+
+    /* Toolbar with + Add event */
+    .ops-toolbar {
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 18px;
+    }
+    .ops-toolbar .add-btn {
+      font-family: var(--ab-sans); font-weight: 600; font-size: 0.9rem;
+      padding: 9px 16px; border-radius: 8px;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
+      color: var(--ab-fg); cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease;
+    }
+    .ops-toolbar .add-btn:hover { background: var(--ab-bg-2); border-color: var(--ab-fg-3); }
+    .ops-toolbar .ops-count {
+      font-family: var(--ab-mono); font-size: 0.74rem;
+      color: var(--ab-fg-3); letter-spacing: 0.06em;
+      margin-left: auto;
+    }
+
+    .add-event-card {
+      grid-column: 1 / -1;
+      padding: 24px;
+      border: 1px dashed var(--ab-blue); border-radius: 10px;
+      background: var(--ab-bg);
+      margin-bottom: 16px;
+    }
+    .add-event-card h3 {
+      font-family: var(--ab-sans); font-weight: 700; font-size: 1.05rem;
+      letter-spacing: -0.01em; margin: 0 0 12px;
+    }
+    .add-event-card .add-actions {
+      display: flex; gap: 8px; margin-top: 12px;
+    }
+    .add-event-card button.primary {
+      font-family: var(--ab-sans); font-weight: 600; font-size: 0.9rem;
+      padding: 9px 16px; border-radius: 8px; border: 0;
+      background: var(--ab-fg); color: var(--ab-bg); cursor: pointer;
+    }
+    .add-event-card button.primary:hover { background: #262626; }
+    .add-event-card button.primary:disabled { background: var(--ab-mute); cursor: not-allowed; }
+    .add-event-card button.secondary {
+      font-family: var(--ab-sans); font-weight: 500; font-size: 0.9rem;
+      padding: 9px 16px; border-radius: 8px;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
+      color: var(--ab-fg-2); cursor: pointer;
+    }
+    .add-event-card button.secondary:hover { color: var(--ab-fg); border-color: var(--ab-fg-3); }
+
     /* ───────────── responsive ───────────── */
     @media (max-width: 800px) {
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
@@ -1967,9 +2094,10 @@
           <button id="signout-ops">Sign out</button>
         </div>
         <div id="ops-status" class="alert" hidden></div>
-        <p style="margin: 0 0 16px; color: var(--ab-fg-3); font-size: 0.9rem;">
-          Click the star on any event to save it for Angela's shortlist. Other ops fields (status, speaker, notes, etc.) ship in the next phase.
-        </p>
+        <div class="ops-toolbar">
+          <button class="add-btn" id="add-event-btn">+ Add event</button>
+          <span class="ops-count" id="ops-count"></span>
+        </div>
         <div class="ops-grid" id="ops-grid"></div>
       </div>
 
@@ -2098,54 +2226,308 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    function renderOps(email, stateMap) {
-      fetch('events.json').then(function (r) { return r.json(); }).then(function (data) {
-        var evs = (data.events || []).filter(function (e) { return e.status !== 'archived'; });
-        $opsGrid.innerHTML = '';
-        evs.forEach(function (ev) {
-          var st = stateMap[ev.num] || {};
-          var card = document.createElement('article');
-          card.className = 'ops-card' + (st.saved ? ' is-saved' : '');
-          card.dataset.eventNum = ev.num;
-          card.innerHTML =
-            '<div class="ops-card-head">' +
-              '<p class="event-date">' + escapeHtml(ev.date_str) + '</p>' +
-              '<button class="saved-star' + (st.saved ? ' is-on' : '') +
-                '" aria-label="Toggle saved" data-on="' + (st.saved ? '1' : '0') + '">' +
-                (st.saved ? '★' : '☆') +
-              '</button>' +
-            '</div>' +
-            '<h3 class="event-name">' + escapeHtml(ev.name) + '</h3>' +
-            '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>';
-          $opsGrid.appendChild(card);
-        });
-        wireStars(email);
+    function formatStamp(iso) {
+      if (!iso) return '';
+      var d = new Date(iso);
+      if (isNaN(d)) return iso;
+      var dt = d.toLocaleString(undefined, {
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit'
+      });
+      return dt;
+    }
+
+    function optionRows(values, current) {
+      return values.map(function (v) {
+        var label = v || '— none —';
+        var sel = (v === (current || '')) ? ' selected' : '';
+        return '<option value="' + escapeHtml(v) + '"' + sel + '>' + escapeHtml(label) + '</option>';
+      }).join('');
+    }
+
+    function flashOk(toast) {
+      status(toast || 'Saved', null);
+      clearTimeout(window._flashT);
+      window._flashT = setTimeout(function () { status(''); }, 1400);
+    }
+
+    // Single-field upsert into event_state. Partial — preserves other columns
+    // on conflict (PostgREST translates upsert with PK conflict into
+    // `INSERT ... ON CONFLICT (event_num) DO UPDATE SET ...` for the
+    // explicit columns we send).
+    function upsertEventState(num, patch, email) {
+      patch.event_num = num;
+      patch.updated_by = email;
+      return sb.from('event_state').upsert(patch, { onConflict: 'event_num' }).then(function (resp) {
+        return resp.error || null;
       });
     }
 
-    function wireStars(email) {
-      $opsGrid.querySelectorAll('.saved-star').forEach(function (btn) {
+    function buildOpsCard(ev, st, email) {
+      var card = document.createElement('article');
+      card.className = 'ops-card';
+      card.dataset.eventNum = ev.num;
+      card.dataset.kind = 'regular';
+      if (st.saved)  card.classList.add('is-saved');
+      if (st.hidden) card.classList.add('is-hidden');
+      if (st.urgent) card.classList.add('is-urgent');
+
+      var metaLine = (st.updated_by && st.updated_at)
+        ? '<p class="ops-meta">Last edit · ' + escapeHtml(st.updated_by) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
+        : '';
+
+      card.innerHTML =
+        '<div class="ops-card-head">' +
+          '<div class="ops-chips">' +
+            '<button class="saved-star' + (st.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (st.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (st.saved ? '★' : '☆') + '</button>' +
+            '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
+            '<button class="ops-chip' + (st.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (st.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
+          '</div>' +
+          '<p class="event-date">' + escapeHtml(ev.date_str) + '</p>' +
+        '</div>' +
+        '<h3 class="event-name">' + escapeHtml(ev.name) + '</h3>' +
+        '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>' +
+        '<details class="ops-edit">' +
+          '<summary>Edit ops</summary>' +
+          '<div class="ops-form">' +
+            '<label><span class="key">Status</span>' +
+              '<input type="text" data-field="status" value="' + escapeHtml(st.status || '') + '" placeholder="e.g. confirmed, declined, waiting on Angela…">' +
+            '</label>' +
+            '<label><span class="key">Speaker</span>' +
+              '<input type="text" data-field="speaker" value="' + escapeHtml(st.speaker || '') + '" placeholder="Who from AB is speaking?">' +
+            '</label>' +
+            '<div class="row">' +
+              '<label><span class="key">Priority override</span>' +
+                '<select data-field="priority_override">' + optionRows(['', 'High', 'Medium', 'Low'], st.priority_override) + '</select>' +
+              '</label>' +
+              '<label><span class="key">Track</span>' +
+                '<select data-field="track">' + optionRows(['', 'Sponsor', 'Earned', 'Both', 'Unknown'], st.track) + '</select>' +
+              '</label>' +
+            '</div>' +
+            '<label><span class="key">Notes</span>' +
+              '<textarea data-field="notes" placeholder="Anything Angela should know…">' + escapeHtml(st.notes || '') + '</textarea>' +
+            '</label>' +
+          '</div>' +
+          metaLine +
+        '</details>';
+      return card;
+    }
+
+    function buildManualCard(mev) {
+      var card = document.createElement('article');
+      card.className = 'ops-card';
+      card.dataset.manualId = mev.id;
+      card.dataset.kind = 'manual';
+      var who = mev.created_by ? ('Added by ' + escapeHtml(mev.created_by) + ' · ' + escapeHtml(formatStamp(mev.created_at))) : '';
+      card.innerHTML =
+        '<div class="ops-card-head">' +
+          '<div class="ops-chips">' +
+            '<span class="ops-chip badge-manual">Manual</span>' +
+          '</div>' +
+          '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
+        '</div>' +
+        '<h3 class="event-name">' + escapeHtml(mev.name || '') + '</h3>' +
+        '<p class="event-loc">' + escapeHtml(mev.region || '') + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
+        (mev.why  ? '<p class="event-why" style="font-size:0.85rem;color:var(--ab-fg-2);margin:0 0 8px;">' + escapeHtml(mev.why) + '</p>' : '') +
+        (mev.url  ? '<p class="event-loc"><a href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" style="color:var(--ab-blue);text-decoration:none;">' + escapeHtml(mev.url) + ' ↗</a></p>' : '') +
+        (who ? '<p class="ops-meta">' + who + '</p>' : '');
+      return card;
+    }
+
+    function wireOpsCard(card, email) {
+      var num = parseInt(card.dataset.eventNum, 10);
+
+      // Boolean toggles (saved-star + urgent + hidden chips)
+      card.querySelectorAll('[data-field][data-on]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          var card = btn.closest('.ops-card');
-          var num = parseInt(card.dataset.eventNum, 10);
-          var on = btn.dataset.on === '1';
-          var nextOn = !on;
+          var field = btn.dataset.field;
+          var nextOn = btn.dataset.on !== '1';
           btn.setAttribute('aria-busy', 'true');
-          sb.from('event_state').upsert({
-            event_num: num,
-            saved: nextOn,
-            updated_by: email
-          }, { onConflict: 'event_num' }).then(function (resp) {
+          var patch = {};
+          patch[field] = nextOn;
+          upsertEventState(num, patch, email).then(function (err) {
             btn.removeAttribute('aria-busy');
-            if (resp.error) {
-              status('Save failed: ' + resp.error.message, 'error');
-              return;
-            }
+            if (err) { status('Save failed: ' + err.message, 'error'); return; }
             btn.dataset.on = nextOn ? '1' : '0';
-            btn.textContent = nextOn ? '★' : '☆';
             btn.classList.toggle('is-on', nextOn);
-            card.classList.toggle('is-saved', nextOn);
-            status('');
+            if (field === 'saved') {
+              btn.textContent = nextOn ? '★' : '☆';
+              card.classList.toggle('is-saved', nextOn);
+            } else if (field === 'urgent') {
+              card.classList.toggle('is-urgent', nextOn);
+            } else if (field === 'hidden') {
+              card.classList.toggle('is-hidden', nextOn);
+            }
+            flashOk();
+          });
+        });
+      });
+
+      // Text inputs (status, speaker) — save on blur if changed
+      card.querySelectorAll('input[type="text"][data-field]').forEach(function (inp) {
+        var initial = inp.value;
+        inp.addEventListener('blur', function () {
+          if (inp.value === initial) return;
+          initial = inp.value;
+          var patch = {};
+          patch[inp.dataset.field] = inp.value.trim() || null;
+          upsertEventState(num, patch, email).then(function (err) {
+            if (err) { status('Save failed: ' + err.message, 'error'); return; }
+            flashOk();
+          });
+        });
+      });
+
+      // Selects (priority_override, track) — save on change
+      card.querySelectorAll('select[data-field]').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          var patch = {};
+          patch[sel.dataset.field] = sel.value || null;
+          upsertEventState(num, patch, email).then(function (err) {
+            if (err) { status('Save failed: ' + err.message, 'error'); return; }
+            flashOk();
+          });
+        });
+      });
+
+      // Textarea (notes) — save on blur if changed
+      card.querySelectorAll('textarea[data-field]').forEach(function (ta) {
+        var initial = ta.value;
+        ta.addEventListener('blur', function () {
+          if (ta.value === initial) return;
+          initial = ta.value;
+          var patch = {};
+          patch[ta.dataset.field] = ta.value.trim() || null;
+          upsertEventState(num, patch, email).then(function (err) {
+            if (err) { status('Save failed: ' + err.message, 'error'); return; }
+            flashOk();
+          });
+        });
+      });
+    }
+
+    function updateOpsCount() {
+      var regular = $opsGrid.querySelectorAll('.ops-card[data-kind="regular"]').length;
+      var manual  = $opsGrid.querySelectorAll('.ops-card[data-kind="manual"]').length;
+      var $count = document.getElementById('ops-count');
+      if (!$count) return;
+      $count.textContent = regular + ' tracked · ' + manual + ' manual';
+    }
+
+    function renderOps(email) {
+      $opsGrid.innerHTML = '<p style="grid-column:1/-1;color:var(--ab-fg-3);font-size:0.9rem;">Loading events…</p>';
+      Promise.all([
+        fetch('events.json').then(function (r) { return r.json(); }),
+        sb.from('event_state').select('*'),
+        sb.from('manual_events').select('*').order('created_at', { ascending: false })
+      ]).then(function (results) {
+        var data = results[0];
+        var stateRows = (results[1] && results[1].data) || [];
+        var manualRows = (results[2] && results[2].data) || [];
+        var stateMap = {};
+        stateRows.forEach(function (r) { stateMap[r.event_num] = r; });
+
+        var evs = (data.events || []).filter(function (e) { return e.status !== 'archived'; });
+        $opsGrid.innerHTML = '';
+        evs.forEach(function (ev) {
+          var card = buildOpsCard(ev, stateMap[ev.num] || {}, email);
+          $opsGrid.appendChild(card);
+          wireOpsCard(card, email);
+        });
+        manualRows.forEach(function (mev) {
+          $opsGrid.appendChild(buildManualCard(mev));
+        });
+        updateOpsCount();
+      });
+    }
+
+    // ── + Add event flow ─────────────────────────────────────────────
+    function wireAddEvent(email) {
+      var $addBtn = document.getElementById('add-event-btn');
+      if (!$addBtn) return;
+      // Clone-and-replace to clear any listeners from a prior route() call
+      var fresh = $addBtn.cloneNode(true);
+      $addBtn.parentNode.replaceChild(fresh, $addBtn);
+      $addBtn = fresh;
+      $addBtn.addEventListener('click', function () {
+        // Toggle: if a form is already open, close it
+        var existing = document.getElementById('add-event-card');
+        if (existing) { existing.remove(); return; }
+
+        var form = document.createElement('form');
+        form.id = 'add-event-card';
+        form.className = 'add-event-card ops-form';
+        form.innerHTML =
+          '<h3>New manual event</h3>' +
+          '<label><span class="key">Name *</span>' +
+            '<input type="text" name="name" required placeholder="e.g. AI Summit San Francisco">' +
+          '</label>' +
+          '<label><span class="key">Date *</span>' +
+            '<input type="text" name="date_str" required placeholder="e.g. September 12, 2026 or September 10–12, 2026">' +
+          '</label>' +
+          '<div class="row">' +
+            '<label><span class="key">Location</span>' +
+              '<input type="text" name="location" placeholder="City, Country">' +
+            '</label>' +
+            '<label><span class="key">Region</span>' +
+              '<select name="region">' +
+                optionRows(['', 'Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'], '') +
+              '</select>' +
+            '</label>' +
+          '</div>' +
+          '<div class="row">' +
+            '<label><span class="key">Type</span>' +
+              '<input type="text" name="type" placeholder="Enterprise, Halo, Research, …">' +
+            '</label>' +
+            '<label><span class="key">Priority</span>' +
+              '<select name="priority">' +
+                optionRows(['', 'High', 'Medium', 'Low'], 'Medium') +
+              '</select>' +
+            '</label>' +
+          '</div>' +
+          '<label><span class="key">Why it fits</span>' +
+            '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
+          '</label>' +
+          '<label><span class="key">URL</span>' +
+            '<input type="text" name="url" placeholder="https://…">' +
+          '</label>' +
+          '<div class="add-actions">' +
+            '<button type="submit" class="primary">Add event</button>' +
+            '<button type="button" class="secondary" data-cancel>Cancel</button>' +
+          '</div>';
+
+        $opsGrid.insertBefore(form, $opsGrid.firstChild);
+        form.querySelector('input[name="name"]').focus();
+
+        form.querySelector('[data-cancel]').addEventListener('click', function () { form.remove(); });
+
+        form.addEventListener('submit', function (ev) {
+          ev.preventDefault();
+          var fd = new FormData(form);
+          var row = {
+            name:      (fd.get('name') || '').toString().trim(),
+            date_str:  (fd.get('date_str') || '').toString().trim(),
+            location:  (fd.get('location') || '').toString().trim() || null,
+            region:    (fd.get('region') || '').toString().trim() || null,
+            type:      (fd.get('type') || '').toString().trim() || null,
+            priority:  (fd.get('priority') || '').toString().trim() || null,
+            why:       (fd.get('why') || '').toString().trim() || null,
+            url:       (fd.get('url') || '').toString().trim() || null,
+            created_by: email
+          };
+          if (!row.name || !row.date_str) { alert('Name and date are required'); return; }
+          var submitBtn = form.querySelector('button.primary');
+          submitBtn.disabled = true; submitBtn.textContent = 'Saving…';
+          sb.from('manual_events').insert(row).select().then(function (resp) {
+            submitBtn.disabled = false; submitBtn.textContent = 'Add event';
+            if (resp.error) { status('Add failed: ' + resp.error.message, 'error'); return; }
+            var newRow = (resp.data && resp.data[0]) || row;
+            form.remove();
+            var card = buildManualCard(newRow);
+            // Insert at the top of the grid so it's immediately visible
+            $opsGrid.insertBefore(card, $opsGrid.firstChild);
+            updateOpsCount();
+            flashOk('Event added');
           });
         });
       });
@@ -2166,11 +2548,8 @@
         }
         $opsEmail.textContent = email;
         showOnly($ops);
-        sb.from('event_state').select('event_num,saved').then(function (r2) {
-          var map = {};
-          (r2.data || []).forEach(function (row) { map[row.event_num] = row; });
-          renderOps(email, map);
-        });
+        renderOps(email);
+        wireAddEvent(email);
       });
     }
 
