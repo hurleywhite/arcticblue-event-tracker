@@ -24,9 +24,17 @@ URLS_FROM_DOC = HERE / 'data' / 'event-urls-from-doc.json'
 URLS_MANUAL   = HERE / 'data' / 'event-urls-manual.json'
 OUT_SHIP      = HERE / 'public' / 'index.html'
 
-# Date the build "thinks" today is. Set to date.today() once the build is on
-# a daily cron. Hardcoded for reproducible local builds.
-TODAY = date(2026, 5, 21)
+# Date the build "thinks" today is.
+# - Default to the real `date.today()` so a daily cron always reflects the
+#   current calendar day.
+# - Override with the BUILD_DATE env var (YYYY-MM-DD) when you need a
+#   reproducible local build for snapshot/debug purposes.
+import os
+_build_date_env = os.environ.get('BUILD_DATE', '').strip()
+if _build_date_env:
+    TODAY = date.fromisoformat(_build_date_env)
+else:
+    TODAY = date.today()
 
 # ── Supabase (For Angela ops tab) ────────────────────────────────────────────
 # Project: AB Event Tracker [Hurley's Org] (ref efkvhlmfdwlobvdmvqiq)
@@ -746,6 +754,20 @@ def build():
       transition: color 120ms ease;
     }}
     .ops-card .ops-link:hover {{ color: var(--ab-blue-light); }}
+    .ops-tags {{ display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }}
+    .ops-tag {{
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      letter-spacing: 0.06em; padding: 3px 8px;
+      border-radius: 999px; background: var(--ab-bg-3);
+      color: var(--ab-fg-2); line-height: 1.4;
+      display: inline-flex; align-items: center; gap: 4px;
+    }}
+    .ops-tag.status   {{ background: #ecfdf5; color: #065f46; }}
+    .ops-tag.speaker  {{ background: #eff6ff; color: #1e40af; }}
+    .ops-tag.pri-high   {{ background: #1f2937; color: #fff; }}
+    .ops-tag.pri-medium {{ background: #fef3c7; color: #92400e; }}
+    .ops-tag.pri-low    {{ background: var(--ab-bg-3); color: var(--ab-fg-3); }}
+    .ops-tag .dot {{ width: 6px; height: 6px; border-radius: 50%; display: inline-block; }}
     .saved-star {{
       font: inherit; background: transparent; border: 0;
       padding: 4px 6px; cursor: pointer; line-height: 1;
@@ -834,6 +856,79 @@ def build():
       font-family: var(--ab-mono); font-size: 0.66rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
       margin-top: 8px;
+    }}
+
+    /* Stats summary bar */
+    .ops-stats {{
+      display: grid; gap: 1px;
+      grid-template-columns: repeat(6, 1fr);
+      background: var(--ab-rule);
+      border: 1px solid var(--ab-rule);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }}
+    .ops-stat {{
+      background: var(--ab-bg); padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 2px;
+    }}
+    .ops-stat .num {{
+      font-family: var(--ab-mono); font-weight: 600;
+      font-size: 1.4rem; letter-spacing: -0.02em;
+      color: var(--ab-fg); line-height: 1.1;
+    }}
+    .ops-stat .lbl {{
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      color: var(--ab-fg-3); letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }}
+    .ops-stat.saved .num   {{ color: var(--ab-blue); }}
+    .ops-stat.urgent .num  {{ color: var(--ab-red); }}
+    @media (max-width: 800px) {{
+      .ops-stats {{ grid-template-columns: repeat(3, 1fr); }}
+    }}
+    @media (max-width: 500px) {{
+      .ops-stats {{ grid-template-columns: repeat(2, 1fr); }}
+    }}
+
+    /* Filter bar */
+    .ops-filters {{
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      padding: 12px; margin-bottom: 16px;
+      border: 1px solid var(--ab-rule); border-radius: 10px;
+      background: var(--ab-bg);
+    }}
+    .ops-filters input[type="search"] {{
+      flex: 1; min-width: 180px;
+      font-family: var(--ab-sans); font-size: 0.9rem;
+      padding: 8px 12px; border: 1px solid var(--ab-rule-strong);
+      border-radius: 6px; background: var(--ab-bg);
+      color: var(--ab-fg); outline: none;
+    }}
+    .ops-filters input[type="search"]:focus {{
+      border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
+    }}
+    .ops-filters select {{
+      font-family: var(--ab-sans); font-size: 0.9rem;
+      padding: 8px 12px; border: 1px solid var(--ab-rule-strong);
+      border-radius: 6px; background: var(--ab-bg);
+      color: var(--ab-fg); outline: none;
+    }}
+    .ops-filter-chip {{
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--ab-mono); font-size: 0.72rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 7px 12px; border-radius: 6px;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
+      color: var(--ab-fg-2); cursor: pointer; user-select: none;
+    }}
+    .ops-filter-chip:hover {{ color: var(--ab-fg); border-color: var(--ab-fg-3); }}
+    .ops-filter-chip input {{ accent-color: var(--ab-blue); }}
+    .ops-filter-chip.has-active {{ background: var(--ab-bg-3); border-color: var(--ab-fg); color: var(--ab-fg); }}
+    .ops-shown {{
+      font-family: var(--ab-mono); font-size: 0.74rem;
+      color: var(--ab-fg-3); letter-spacing: 0.06em;
+      margin-left: auto;
     }}
 
     /* View toggle (Grid / Calendar) */
@@ -1158,6 +1253,23 @@ def build():
           <button id="signout-ops">Sign out</button>
         </div>
         <div id="ops-status" class="alert" hidden></div>
+        <div class="ops-stats" id="ops-stats" hidden></div>
+        <div class="ops-filters">
+          <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
+          <select id="ops-region" aria-label="Filter region">
+            <option value="">All regions</option>
+            <option value="Americas">Americas</option>
+            <option value="Europe">Europe</option>
+            <option value="Asia-Pacific">Asia-Pacific</option>
+            <option value="MENA">MENA</option>
+            <option value="Global">Global</option>
+          </select>
+          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-saved">Saved only</label>
+          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-urgent">Urgent only</label>
+          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-speaker">Has speaker</label>
+          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-hidden">Show hidden</label>
+          <span class="ops-shown" id="ops-shown"></span>
+        </div>
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="grid"     class="active" aria-selected="true">Grid</button>
           <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
@@ -1166,6 +1278,7 @@ def build():
           <button class="add-btn" id="add-event-btn">+ Add event</button>
           <button class="add-btn" id="paste-email-btn">Paste email</button>
           <button class="add-btn" id="csv-btn">CSV import/export</button>
+          <button class="add-btn" id="ical-btn">Download saved .ics</button>
           <span class="ops-count" id="ops-count"></span>
         </div>
         <div class="ops-grid" id="ops-grid"></div>
@@ -1334,11 +1447,32 @@ def build():
       }});
     }}
 
+    function renderOpsTags(st) {{
+      var tags = [];
+      if (st.status) {{
+        tags.push('<span class="ops-tag status">' + escapeHtml(st.status) + '</span>');
+      }}
+      if (st.speaker) {{
+        tags.push('<span class="ops-tag speaker">' + escapeHtml(st.speaker) + '</span>');
+      }}
+      if (st.priority_override) {{
+        var cls = 'pri-' + st.priority_override.toLowerCase();
+        tags.push('<span class="ops-tag ' + cls + '">' + escapeHtml(st.priority_override) + '</span>');
+      }}
+      if (st.track) {{
+        tags.push('<span class="ops-tag">' + escapeHtml(st.track) + '</span>');
+      }}
+      if (tags.length === 0) return '';
+      return '<div class="ops-tags">' + tags.join('') + '</div>';
+    }}
+
     function buildOpsCard(ev, st, email) {{
       var card = document.createElement('article');
       card.className = 'ops-card';
       card.dataset.eventNum = ev.num;
       card.dataset.kind = 'regular';
+      card.dataset.region = ev.region || '';
+      card.dataset.hasSpeaker = (st.speaker && st.speaker.trim()) ? '1' : '';
       if (st.saved)  card.classList.add('is-saved');
       if (st.hidden) card.classList.add('is-hidden');
       if (st.urgent) card.classList.add('is-urgent');
@@ -1360,6 +1494,7 @@ def build():
           (ev.url ? ' <a class="ops-link" href="' + escapeHtml(ev.url) + '" target="_blank" rel="noopener" aria-label="Open ' + escapeHtml(ev.name) + '">↗</a>' : '') +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>' +
+        renderOpsTags(st) +
         '<details class="ops-edit">' +
           '<summary>Edit ops</summary>' +
           '<div class="ops-form">' +
@@ -1386,11 +1521,13 @@ def build():
       return card;
     }}
 
-    function buildManualCard(mev) {{
+    function buildManualCard(mev, email) {{
       var card = document.createElement('article');
       card.className = 'ops-card';
       card.dataset.manualId = mev.id;
       card.dataset.kind = 'manual';
+      card.dataset.region = mev.region || '';
+      card.dataset.hasSpeaker = '';
       var who = mev.created_by ? ('Added by ' + escapeHtml(mev.created_by) + ' · ' + escapeHtml(formatStamp(mev.created_at))) : '';
       card.innerHTML =
         '<div class="ops-card-head">' +
@@ -1399,12 +1536,90 @@ def build():
           '</div>' +
           '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
         '</div>' +
-        '<h3 class="event-name">' + escapeHtml(mev.name || '') + '</h3>' +
+        '<h3 class="event-name">' + escapeHtml(mev.name || '') +
+          (mev.url ? ' <a class="ops-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open ' + escapeHtml(mev.name || '') + '">↗</a>' : '') +
+        '</h3>' +
         '<p class="event-loc">' + escapeHtml(mev.region || '') + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
         (mev.why  ? '<p class="event-why" style="font-size:0.85rem;color:var(--ab-fg-2);margin:0 0 8px;">' + escapeHtml(mev.why) + '</p>' : '') +
-        (mev.url  ? '<p class="event-loc"><a href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" style="color:var(--ab-blue);text-decoration:none;">' + escapeHtml(mev.url) + ' ↗</a></p>' : '') +
+        '<details class="ops-edit">' +
+          '<summary>Edit / Delete</summary>' +
+          '<form class="ops-form manual-edit">' +
+            '<label><span class="key">Name</span>' +
+              '<input type="text" name="name" value="' + escapeHtml(mev.name || '') + '" required></label>' +
+            '<label><span class="key">Date</span>' +
+              '<input type="text" name="date_str" value="' + escapeHtml(mev.date_str || '') + '" required></label>' +
+            '<div class="row">' +
+              '<label><span class="key">Location</span>' +
+                '<input type="text" name="location" value="' + escapeHtml(mev.location || '') + '"></label>' +
+              '<label><span class="key">Region</span>' +
+                '<select name="region">' + optionRows(['', 'Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'], mev.region || '') + '</select></label>' +
+            '</div>' +
+            '<div class="row">' +
+              '<label><span class="key">Type</span>' +
+                '<input type="text" name="type" value="' + escapeHtml(mev.type || '') + '"></label>' +
+              '<label><span class="key">Priority</span>' +
+                '<select name="priority">' + optionRows(['', 'High', 'Medium', 'Low'], mev.priority || '') + '</select></label>' +
+            '</div>' +
+            '<label><span class="key">Why it fits</span>' +
+              '<textarea name="why">' + escapeHtml(mev.why || '') + '</textarea></label>' +
+            '<label><span class="key">URL</span>' +
+              '<input type="text" name="url" value="' + escapeHtml(mev.url || '') + '"></label>' +
+            '<div class="add-actions">' +
+              '<button type="submit" class="primary">Save changes</button>' +
+              '<button type="button" class="secondary" data-delete>Delete event</button>' +
+            '</div>' +
+          '</form>' +
+        '</details>' +
         (who ? '<p class="ops-meta">' + who + '</p>' : '');
       return card;
+    }}
+
+    function wireManualCard(card, email) {{
+      var form = card.querySelector('form.manual-edit');
+      if (!form) return;
+      var id = parseInt(card.dataset.manualId, 10);
+
+      form.addEventListener('submit', function (ev) {{
+        ev.preventDefault();
+        var fd = new FormData(form);
+        var patch = {{
+          name:     (fd.get('name') || '').toString().trim(),
+          date_str: (fd.get('date_str') || '').toString().trim(),
+          location: (fd.get('location') || '').toString().trim() || null,
+          region:   (fd.get('region') || '').toString().trim() || null,
+          type:     (fd.get('type') || '').toString().trim() || null,
+          priority: (fd.get('priority') || '').toString().trim() || null,
+          why:      (fd.get('why') || '').toString().trim() || null,
+          url:      (fd.get('url') || '').toString().trim() || null
+        }};
+        if (!patch.name || !patch.date_str) {{ alert('Name and date are required'); return; }}
+        // Re-derive start_date from date_str (best effort)
+        var derived = deriveStartDateFromText(patch.date_str);
+        if (derived) patch.start_date = derived;
+        var btn = form.querySelector('button.primary[type="submit"]');
+        btn.disabled = true; btn.textContent = 'Saving…';
+        sb.from('manual_events').update(patch).eq('id', id).then(function (resp) {{
+          btn.disabled = false; btn.textContent = 'Save changes';
+          if (resp.error) {{ status('Save failed: ' + resp.error.message, 'error'); return; }}
+          flashOk('Manual event saved');
+          // Trigger a re-render to refresh card with latest data
+          renderOps(email);
+        }});
+      }});
+
+      var delBtn = form.querySelector('[data-delete]');
+      delBtn.addEventListener('click', function () {{
+        var name = (form.querySelector('input[name="name"]').value || '').trim();
+        if (!confirm('Delete "' + (name || 'this manual event') + '"? This cannot be undone.')) return;
+        delBtn.disabled = true; delBtn.textContent = 'Deleting…';
+        sb.from('manual_events').delete().eq('id', id).then(function (resp) {{
+          delBtn.disabled = false; delBtn.textContent = 'Delete event';
+          if (resp.error) {{ status('Delete failed: ' + resp.error.message, 'error'); return; }}
+          card.remove();
+          updateOpsCount();
+          flashOk('Manual event deleted');
+        }});
+      }});
     }}
 
     function wireOpsCard(card, email) {{
@@ -1487,6 +1702,74 @@ def build():
       $count.textContent = regular + ' tracked · ' + manual + ' manual';
     }}
 
+    function applyFilters() {{
+      var $search  = document.getElementById('ops-search');
+      var $region  = document.getElementById('ops-region');
+      var $saved   = document.getElementById('ops-f-saved');
+      var $urgent  = document.getElementById('ops-f-urgent');
+      var $speaker = document.getElementById('ops-f-speaker');
+      var $hidden  = document.getElementById('ops-f-hidden');
+      if (!$search || !$opsGrid) return;
+      var q = ($search.value || '').toLowerCase().trim();
+      var rg = $region ? ($region.value || '') : '';
+      var fSaved   = !!($saved && $saved.checked);
+      var fUrgent  = !!($urgent && $urgent.checked);
+      var fSpeaker = !!($speaker && $speaker.checked);
+      var showHidden = !!($hidden && $hidden.checked);
+      // Toggle has-active classes for chip styling
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-hidden',$hidden]].forEach(function (pair) {{
+        var inp = pair[1]; if (!inp) return;
+        var lbl = inp.closest('.ops-filter-chip');
+        if (lbl) lbl.classList.toggle('has-active', inp.checked);
+      }});
+      var shown = 0;
+      $opsGrid.querySelectorAll('.ops-card').forEach(function (card) {{
+        var on = true;
+        if (q && (card.textContent || '').toLowerCase().indexOf(q) === -1) on = false;
+        if (rg && card.dataset.region !== rg) on = false;
+        if (fSaved && !card.classList.contains('is-saved'))  on = false;
+        if (fUrgent && !card.classList.contains('is-urgent')) on = false;
+        if (fSpeaker && card.dataset.hasSpeaker !== '1')       on = false;
+        if (!showHidden && card.classList.contains('is-hidden')) on = false;
+        card.style.display = on ? '' : 'none';
+        if (on) shown++;
+      }});
+      var $shown = document.getElementById('ops-shown');
+      if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + $opsGrid.querySelectorAll('.ops-card').length;
+    }}
+
+    function wireFilters() {{
+      ['ops-search','ops-region','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-hidden'].forEach(function (id) {{
+        var el = document.getElementById(id); if (!el) return;
+        if (el.dataset.wired) return;
+        el.dataset.wired = '1';
+        var ev = (el.tagName === 'INPUT' && el.type !== 'checkbox') ? 'input' : 'change';
+        el.addEventListener(ev, applyFilters);
+      }});
+    }}
+
+    function renderStats(evs, stateRows, manualRows) {{
+      var $stats = document.getElementById('ops-stats');
+      if (!$stats) return;
+      var total = (evs || []).length + (manualRows || []).length;
+      var saved = 0, urgent = 0, hidden = 0, withSpeaker = 0, withStatus = 0;
+      (stateRows || []).forEach(function (r) {{
+        if (r.saved)  saved++;
+        if (r.urgent) urgent++;
+        if (r.hidden) hidden++;
+        if (r.speaker && r.speaker.trim()) withSpeaker++;
+        if (r.status && r.status.trim())   withStatus++;
+      }});
+      $stats.innerHTML =
+        '<div class="ops-stat"><span class="num">' + total + '</span><span class="lbl">Upcoming</span></div>' +
+        '<div class="ops-stat saved"><span class="num">' + saved + '</span><span class="lbl">Saved</span></div>' +
+        '<div class="ops-stat urgent"><span class="num">' + urgent + '</span><span class="lbl">Urgent</span></div>' +
+        '<div class="ops-stat"><span class="num">' + withSpeaker + '</span><span class="lbl">Speaker set</span></div>' +
+        '<div class="ops-stat"><span class="num">' + withStatus + '</span><span class="lbl">Status set</span></div>' +
+        '<div class="ops-stat"><span class="num">' + hidden + '</span><span class="lbl">Hidden</span></div>';
+      $stats.removeAttribute('hidden');
+    }}
+
     function renderOps(email) {{
       $opsGrid.innerHTML = '<p style="grid-column:1/-1;color:var(--ab-fg-3);font-size:0.9rem;">Loading events…</p>';
       Promise.all([
@@ -1508,9 +1791,13 @@ def build():
           wireOpsCard(card, email);
         }});
         manualRows.forEach(function (mev) {{
-          $opsGrid.appendChild(buildManualCard(mev));
+          var card = buildManualCard(mev, email);
+          $opsGrid.appendChild(card);
+          wireManualCard(card, email);
         }});
         updateOpsCount();
+        renderStats(evs, stateRows, manualRows);
+        applyFilters();
         // Mirror into the calendar view (uses the same data set)
         renderCalendar(evs, stateMap, manualRows);
       }});
@@ -1693,11 +1980,113 @@ def build():
           if (resp.error) {{ status('Add failed: ' + resp.error.message, 'error'); return; }}
           var newRow = (resp.data && resp.data[0]) || row;
           form.remove();
-          var card = buildManualCard(newRow);
+          var card = buildManualCard(newRow, email);
           $opsGrid.insertBefore(card, $opsGrid.firstChild);
+          wireManualCard(card, email);
           updateOpsCount();
           flashOk('Event added');
         }});
+      }});
+    }}
+
+    // ── iCal export ─────────────────────────────────────────────────
+    function icalEscape(s) {{
+      return String(s == null ? '' : s)
+        .replace(/\\\\/g, '\\\\\\\\')
+        .replace(/;/g, '\\\\;')
+        .replace(/,/g, '\\\\,')
+        .replace(/\\n/g, '\\\\n');
+    }}
+
+    function icsDate(iso) {{
+      if (!iso) return '';
+      return iso.replace(/-/g, '');
+    }}
+
+    // Add one day to a YYYY-MM-DD (ICS DTEND is exclusive for all-day events)
+    function icsDatePlus1(iso) {{
+      if (!iso) return '';
+      var d = new Date(iso + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() + 1);
+      return d.toISOString().slice(0,10).replace(/-/g, '');
+    }}
+
+    function buildIcsForSaved(events, stateMap, manualEvents) {{
+      var now = new Date();
+      var dtstamp = now.toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+      var lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//ArcticBlue//Event Tracker//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'X-WR-CALNAME:ArcticBlue · Saved events'
+      ];
+      function pushEvent(ev, st, uid) {{
+        var startIso = ev.start_date || (st && st.start_date) || null;
+        var endIso = ev.end_date || startIso;
+        var desc = [];
+        if (ev.why)         desc.push(ev.why);
+        if (st && st.notes) desc.push('Notes: ' + st.notes);
+        if (st && st.speaker) desc.push('Speaker: ' + st.speaker);
+        if (st && st.status)  desc.push('Status: ' + st.status);
+        if (ev.priority || (st && st.priority_override)) desc.push('Priority: ' + (st && st.priority_override || ev.priority || ''));
+        var description = desc.join('\\n');
+        lines.push('BEGIN:VEVENT');
+        lines.push('UID:' + uid);
+        lines.push('DTSTAMP:' + dtstamp);
+        if (startIso) lines.push('DTSTART;VALUE=DATE:' + icsDate(startIso));
+        if (endIso)   lines.push('DTEND;VALUE=DATE:'   + icsDatePlus1(endIso));
+        lines.push('SUMMARY:' + icalEscape(ev.name || ''));
+        if (ev.location) lines.push('LOCATION:' + icalEscape(ev.location));
+        if (description) lines.push('DESCRIPTION:' + icalEscape(description));
+        if (ev.url) lines.push('URL:' + ev.url);
+        if (st && st.urgent) lines.push('CATEGORIES:URGENT');
+        lines.push('END:VEVENT');
+      }}
+      (events || []).forEach(function (ev) {{
+        var st = stateMap[ev.num];
+        if (!st || !st.saved) return;
+        pushEvent(ev, st, 'event-' + ev.num + '@arcticblue-event-tracker');
+      }});
+      // Manual events: include all of them (since adding manually is a saved-intent action)
+      (manualEvents || []).forEach(function (mev) {{
+        if (!mev.start_date) return;
+        pushEvent({{
+          name: mev.name, location: mev.location, why: mev.why, url: mev.url,
+          start_date: mev.start_date, end_date: mev.end_date || mev.start_date,
+          priority: mev.priority
+        }}, null, 'manual-' + mev.id + '@arcticblue-event-tracker');
+      }});
+      lines.push('END:VCALENDAR');
+      return lines.join('\\r\\n') + '\\r\\n';
+    }}
+
+    function exportSavedAsIcs() {{
+      Promise.all([
+        fetch('events.json').then(function (r) {{ return r.json(); }}),
+        sb.from('event_state').select('*'),
+        sb.from('manual_events').select('*')
+      ]).then(function (results) {{
+        var data = results[0];
+        var stateRows = (results[1] && results[1].data) || [];
+        var manualRows = (results[2] && results[2].data) || [];
+        var stateMap = {{}};
+        stateRows.forEach(function (r) {{ stateMap[r.event_num] = r; }});
+        var evs = (data.events || []).filter(function (e) {{ return e.status !== 'archived'; }});
+        var ics = buildIcsForSaved(evs, stateMap, manualRows);
+        var savedCount = stateRows.filter(function (r) {{ return r.saved; }}).length;
+        if (savedCount === 0 && manualRows.length === 0) {{
+          status('Nothing to export yet — save at least one event first.', 'warn');
+          return;
+        }}
+        var blob = new Blob([ics], {{ type: 'text/calendar;charset=utf-8;' }});
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'arcticblue-saved-' + new Date().toISOString().slice(0,10) + '.ics';
+        document.body.appendChild(a); a.click();
+        setTimeout(function () {{ URL.revokeObjectURL(url); a.remove(); }}, 0);
+        flashOk('iCal downloaded — ' + savedCount + ' saved + ' + manualRows.length + ' manual');
       }});
     }}
 
@@ -2183,11 +2572,13 @@ def build():
       var $addBtn   = document.getElementById('add-event-btn');
       var $pasteBtn = document.getElementById('paste-email-btn');
       var $csvBtn   = document.getElementById('csv-btn');
+      var $icalBtn  = document.getElementById('ical-btn');
       if (!$addBtn) return;
       // Clone-replace to clear listeners from any prior route() call
       var freshAdd = $addBtn.cloneNode(true); $addBtn.parentNode.replaceChild(freshAdd, $addBtn); $addBtn = freshAdd;
       if ($pasteBtn) {{ var fp = $pasteBtn.cloneNode(true); $pasteBtn.parentNode.replaceChild(fp, $pasteBtn); $pasteBtn = fp; }}
       if ($csvBtn)   {{ var fc = $csvBtn.cloneNode(true); $csvBtn.parentNode.replaceChild(fc, $csvBtn); $csvBtn = fc; }}
+      if ($icalBtn)  {{ var fi = $icalBtn.cloneNode(true); $icalBtn.parentNode.replaceChild(fi, $icalBtn); $icalBtn = fi; }}
 
       function openAddForm(opts) {{
         opts = opts || {{}};
@@ -2224,6 +2615,9 @@ def build():
       if ($csvBtn) {{
         $csvBtn.addEventListener('click', function () {{ openCsvPanel(email); }});
       }}
+      if ($icalBtn) {{
+        $icalBtn.addEventListener('click', function () {{ exportSavedAsIcs(); }});
+      }}
     }}
 
     function route(session) {{
@@ -2247,6 +2641,7 @@ def build():
         $opsEmail.textContent = email;
         showOnly($ops);
         wireViewToggle();
+        wireFilters();
         renderOps(email);
         wireAddEvent(email);
         setupRealtime(email);
