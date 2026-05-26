@@ -1,16 +1,12 @@
 -- ════════════════════════════════════════════════════════════════════
 -- ArcticBlue Event Tracker — Ingest Angela's events_calendar_upload.xlsx
 --
--- Run this whole file in Supabase SQL Editor (Project → SQL Editor →
--- New Query → paste → Run). Two phases:
---   1. ALTER manual_events to add the ops columns Angela tracks
---   2. INSERT each event row mapped to those columns
---
--- The INSERTs are guarded against re-insertion with a name lookup;
--- re-running this file is idempotent.
+-- Run this whole file in Supabase SQL Editor.
+-- Two phases:
+--   1. ALTER manual_events to add Angela's ops columns
+--   2. INSERT … WHERE NOT EXISTS by name — safe to re-run
 -- ════════════════════════════════════════════════════════════════════
 
--- ── 1. Schema migration — add ops columns to manual_events ──────────
 alter table public.manual_events
   add column if not exists status              text,
   add column if not exists submission_status   text,
@@ -22,10 +18,6 @@ alter table public.manual_events
   add column if not exists additional_contacts text,
   add column if not exists speaking_fee        text,
   add column if not exists paid                boolean;
-
-
--- ── 2. Insert Angela's tracked events ──────────────────────────────
--- Each insert is guarded by name lookup; safe to re-run.
 
 
 INSERT INTO public.manual_events (
@@ -162,8 +154,8 @@ SELECT
   'Aspen, CO',
   'Americas',
   'Speaking',
-  'Low',
-  'Not accepting External Company Speakers',
+  'Medium',
+  'Attending (Not Speaking)',
   'Not accepting External Company Speakers',
   NULL,
   'Attending and Participating: No Speakers',
@@ -403,8 +395,8 @@ SELECT
   'Cape Town, Africa',
   'Global',
   'Speaking',
-  'Medium',
-  NULL,
+  'Low',
+  'We''ll Pass',
   NULL,
   NULL,
   'Submit online -- Already in contact with Olga',
@@ -434,7 +426,7 @@ SELECT
   'Global',
   'Speaking',
   'Medium',
-  NULL,
+  'Attending (Not Speaking)',
   NULL,
   NULL,
   NULL,
@@ -524,7 +516,7 @@ SELECT
   'Americas',
   'Speaking',
   'Medium',
-  'Personal Contact/Inquiry',
+  'Attending (Not Speaking)',
   'Personal Contact/Inquiry',
   'Thor',
   'Thor will email his personal contacts',
@@ -735,7 +727,7 @@ SELECT
   NULL,
   'Speaking',
   'Medium',
-  NULL,
+  'Date Conflict',
   NULL,
   NULL,
   NULL,
@@ -854,8 +846,8 @@ SELECT
   'Miami',
   'Americas',
   'Speaking',
-  'Medium',
-  NULL,
+  'Low',
+  'No Openings',
   NULL,
   NULL,
   NULL,
@@ -1155,8 +1147,8 @@ SELECT
   'London',
   'Europe',
   'Speaking',
-  'Medium',
-  NULL,
+  'High',
+  'Attending',
   NULL,
   NULL,
   NULL,
@@ -1306,7 +1298,7 @@ SELECT
   NULL,
   'Speaking',
   'Medium',
-  NULL,
+  'Date Conflict',
   NULL,
   NULL,
   NULL,
@@ -1336,7 +1328,7 @@ SELECT
   NULL,
   'Speaking',
   'Medium',
-  NULL,
+  'Date Conflict',
   NULL,
   NULL,
   NULL,
@@ -1366,7 +1358,7 @@ SELECT
   NULL,
   'Speaking',
   'Medium',
-  NULL,
+  'Date Conflict',
   NULL,
   NULL,
   NULL,
@@ -1396,7 +1388,7 @@ SELECT
   'Europe',
   'Speaking',
   'Medium',
-  NULL,
+  'Attending (Not Speaking)',
   NULL,
   NULL,
   NULL,
@@ -1425,8 +1417,8 @@ SELECT
   'San Francisco',
   'Americas',
   'Speaking',
-  'Medium',
-  NULL,
+  'Low',
+  'No Openings',
   NULL,
   NULL,
   NULL,
@@ -1456,7 +1448,7 @@ SELECT
   NULL,
   'Speaking',
   'Medium',
-  NULL,
+  'Date Conflict',
   NULL,
   NULL,
   NULL,
@@ -1545,8 +1537,8 @@ SELECT
   'Rome, Italy',
   'Europe',
   'Speaking',
-  'Medium',
-  NULL,
+  'High',
+  'Attending',
   NULL,
   NULL,
   'Speaking is Sponsorship only/FII institute must invite you',
@@ -1815,8 +1807,8 @@ SELECT
   'Vegas',
   'Global',
   'Speaking',
-  'Medium',
-  NULL,
+  'High',
+  'Attending',
   NULL,
   NULL,
   NULL,
@@ -1846,7 +1838,7 @@ SELECT
   NULL,
   'Speaking',
   'Medium',
-  NULL,
+  'Date Conflict',
   NULL,
   NULL,
   NULL,
@@ -1875,8 +1867,8 @@ SELECT
   'Vegas',
   'Global',
   'Speaking',
-  'Medium',
-  NULL,
+  'High',
+  'Attending',
   NULL,
   NULL,
   NULL,
@@ -2055,8 +2047,8 @@ SELECT
   'Vegas',
   'Global',
   'Speaking',
-  'Medium',
-  NULL,
+  'High',
+  'Attending',
   NULL,
   NULL,
   'HLTH’s main program is not pay-to-play and does not pay honorariums to speakers or accept sponsorship dollars for a main agenda speaking role. HLTH does not cover travel & accommodations for speakers.
@@ -2146,8 +2138,8 @@ SELECT
   'Vegas',
   'Global',
   'Speaking',
-  'Medium',
-  NULL,
+  'High',
+  'Attending',
   NULL,
   NULL,
   'If you want to speak at re:Invent, entry points are: AWS partners co-presenting joint case studies with AWS team',
@@ -2207,7 +2199,7 @@ SELECT
   'Global',
   'Speaking',
   'Medium',
-  NULL,
+  'Thor Contacting',
   NULL,
   'Thor',
   NULL,
@@ -2282,6 +2274,5 @@ WHERE NOT EXISTS (
   SELECT 1 FROM public.manual_events WHERE lower(name) = lower('The Millennium Alliance- ongoing events')
 );
 
--- ── Summary ─────────────────────────────────────────────────────
--- 75 INSERT statements generated.
+-- 75 INSERTs total.
 SELECT count(*) AS manual_events_total FROM public.manual_events;

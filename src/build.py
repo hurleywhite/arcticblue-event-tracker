@@ -903,6 +903,21 @@ def build():
       color: var(--ab-fg-3); letter-spacing: 0.08em;
       text-transform: uppercase; margin-right: 4px;
     }}
+    .status-group-label {{
+      font-family: var(--ab-mono); font-size: 0.62rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 2px 6px 2px 0;
+      display: inline-flex; align-items: center;
+    }}
+    .status-group-label::before {{
+      content: ''; width: 6px; height: 6px;
+      border-radius: 50%; background: currentColor;
+      margin-right: 5px;
+    }}
+    .status-group-sep {{
+      display: inline-block; width: 1px; height: 18px;
+      background: var(--ab-rule); margin: 0 4px;
+    }}
     .status-chip {{
       font-family: var(--ab-sans); font-size: 0.74rem; font-weight: 500;
       padding: 4px 10px; border-radius: 999px;
@@ -1034,6 +1049,27 @@ def build():
     .cal-chip:hover {{ background: var(--ab-bg-3); }}
     .cal-chip.is-saved {{ background: rgba(39,115,194,0.10); border-left-color: var(--ab-blue); }}
     .cal-chip.is-urgent {{ background: rgba(185,28,28,0.10); border-left-color: var(--ab-red); }}
+
+    /* Calendar legend — shows status-group color meanings under the grid */
+    .cal-legend {{
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+      margin-top: 12px; padding: 10px 12px;
+      border: 1px solid var(--ab-rule); border-radius: 8px;
+      background: var(--ab-bg);
+    }}
+    .cal-legend-label {{
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      color: var(--ab-fg-3); letter-spacing: 0.08em;
+      text-transform: uppercase; margin-right: 4px;
+    }}
+    .cal-legend-item {{
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--ab-mono); font-size: 0.72rem;
+      color: var(--ab-fg-2);
+    }}
+    .cal-legend-dot {{
+      width: 8px; height: 8px; border-radius: 50%;
+    }}
     .cal-chip-name {{ flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ab-fg); }}
     .cal-chip-initial {{
       display: inline-block; background: var(--ab-fg); color: var(--ab-bg);
@@ -1474,33 +1510,83 @@ def build():
     }}
 
     // ── Status taxonomy ────────────────────────────────────────────
-    // Angela's working palette of ops statuses. Colors match her existing
-    // Airtable-style color tags from the screenshot so the UI feels native.
+    // Light-theme palette derived from Angela's existing Airtable-style
+    // tags + her Replit app's wider vocabulary. Grouped by lifecycle
+    // stage so the filter row reads top-to-bottom Confirmed → Closed.
+    // Colors are picked to read on white background (in contrast to
+    // Angela's dark-theme overlays in the Replit version).
+    //
+    // Each option carries `dot` (a small indicator color, matches the
+    // group) which the calendar chip uses to convey status at a glance
+    // without having to render the full status name.
+    var STATUS_GROUPS = [
+      {{ key: 'Confirmed', label: 'Confirmed / scheduled', dot: '#047857' }},
+      {{ key: 'Active',    label: 'Active / in progress',  dot: '#0ea5e9' }},
+      {{ key: 'Waiting',   label: 'Waiting on',            dot: '#a16207' }},
+      {{ key: 'Action',    label: 'Needs action',          dot: '#ca8a04' }},
+      {{ key: 'Closed',    label: 'Closed',                dot: '#dc2626' }},
+      {{ key: 'Other',     label: 'Other',                 dot: '#737373' }}
+    ];
+
     var STATUS_OPTIONS = [
-      {{ value: 'Not yet',                                    bg: '#e5e7eb', fg: '#374151' }},
-      {{ value: 'Submitted',                                  bg: '#bbf7d0', fg: '#14532d' }},
-      {{ value: 'Self Submitted',                             bg: '#15803d', fg: '#ffffff' }},
-      {{ value: 'In contact with',                            bg: '#d1fae5', fg: '#065f46' }},
-      {{ value: 'Received Intro Meeting',                     bg: '#d1fae5', fg: '#065f46' }},
-      {{ value: 'Booked',                                     bg: '#047857', fg: '#ffffff' }},
-      {{ value: 'Personal Contact/Inquiry',                   bg: '#e9d5ff', fg: '#6b21a8' }},
-      {{ value: 'Application Process Inquiry',                bg: '#dbeafe', fg: '#1e40af' }},
-      {{ value: 'Enrollment not open yet',                    bg: '#e5e7eb', fg: '#374151' }},
-      {{ value: 'No Openings',                                bg: '#111827', fg: '#ffffff' }},
-      {{ value: 'On Hold',                                    bg: '#fed7aa', fg: '#9a3412' }},
-      {{ value: 'Late Inquiry',                               bg: '#fdba74', fg: '#7c2d12' }},
-      {{ value: 'Joined Waitlist',                            bg: '#c7d2fe', fg: '#3730a3' }},
-      {{ value: 'Skip',                                       bg: '#dc2626', fg: '#ffffff' }},
-      {{ value: 'Needed: Submit Session Topic',               bg: '#fef3c7', fg: '#92400e' }},
-      {{ value: 'Registered for Speaker Updates',             bg: '#bfdbfe', fg: '#1e40af' }},
-      {{ value: "--- cc'd on Inquiry",                        bg: '#f3f4f6', fg: '#6b7280' }},
-      {{ value: "--- cc'd on MTG",                            bg: '#f3f4f6', fg: '#6b7280' }},
-      {{ value: '"Don\\u2019t call us, we call you"',         bg: '#fee2e2', fg: '#991b1b' }},
-      {{ value: 'Not accepting External Company Speakers',    bg: '#1f2937', fg: '#ffffff' }}
+      // ── Confirmed / scheduled ──
+      {{ group: 'Confirmed', value: 'Booked',                                  bg: '#047857', fg: '#ffffff' }},
+      {{ group: 'Confirmed', value: 'Self Submitted',                          bg: '#15803d', fg: '#ffffff' }},
+      {{ group: 'Confirmed', value: 'Attending',                               bg: '#a78bfa', fg: '#3730a3' }},
+      {{ group: 'Confirmed', value: 'Attending (Not Speaking)',                bg: '#c4b5fd', fg: '#4c1d95' }},
+      {{ group: 'Confirmed', value: 'Attending?',                              bg: '#ddd6fe', fg: '#5b21b6' }},
+      // ── Active / in progress ──
+      {{ group: 'Active',    value: 'Submitted',                               bg: '#bbf7d0', fg: '#14532d' }},
+      {{ group: 'Active',    value: 'Booking in Progress',                     bg: '#86efac', fg: '#14532d' }},
+      {{ group: 'Active',    value: 'In contact with',                         bg: '#d1fae5', fg: '#065f46' }},
+      {{ group: 'Active',    value: 'In Progress',                             bg: '#fcd34d', fg: '#78350f' }},
+      {{ group: 'Active',    value: 'Received Intro Meeting',                  bg: '#a7f3d0', fg: '#064e3b' }},
+      {{ group: 'Active',    value: 'Personal Contact/Inquiry',                bg: '#e9d5ff', fg: '#6b21a8' }},
+      {{ group: 'Active',    value: 'Application Process Inquiry',             bg: '#dbeafe', fg: '#1e40af' }},
+      {{ group: 'Active',    value: 'Pending',                                 bg: '#fef3c7', fg: '#854d0e' }},
+      {{ group: 'Active',    value: 'Thor Contacting',                         bg: '#cffafe', fg: '#155e75' }},
+      // ── Waiting on ──
+      {{ group: 'Waiting',   value: 'Joined Waitlist',                         bg: '#c7d2fe', fg: '#3730a3' }},
+      {{ group: 'Waiting',   value: 'Enrollment not open yet',                 bg: '#e5e7eb', fg: '#374151' }},
+      {{ group: 'Waiting',   value: 'Registered for Speaker Updates',         bg: '#bfdbfe', fg: '#1e40af' }},
+      {{ group: 'Waiting',   value: 'On Hold',                                 bg: '#fed7aa', fg: '#9a3412' }},
+      {{ group: 'Waiting',   value: 'Postponed',                               bg: '#fb923c', fg: '#7c2d12' }},
+      {{ group: 'Waiting',   value: 'Postponed?',                              bg: '#fdba74', fg: '#9a3412' }},
+      // ── Needs action ──
+      {{ group: 'Action',    value: 'Finish Submission',                       bg: '#fde047', fg: '#713f12' }},
+      {{ group: 'Action',    value: 'Needed: Submit Session Topic',            bg: '#fef3c7', fg: '#92400e' }},
+      {{ group: 'Action',    value: 'Late Inquiry',                            bg: '#fdba74', fg: '#7c2d12' }},
+      {{ group: 'Action',    value: 'Get Invited',                             bg: '#fca5a5', fg: '#7f1d1d' }},
+      {{ group: 'Action',    value: 'Thor Interested',                         bg: '#7dd3fc', fg: '#0c4a6e' }},
+      {{ group: 'Action',    value: 'Verma Interested',                        bg: '#67e8f9', fg: '#155e75' }},
+      // ── Closed ──
+      {{ group: 'Closed',    value: 'No Openings',                             bg: '#111827', fg: '#ffffff' }},
+      {{ group: 'Closed',    value: 'Not Accepted',                            bg: '#dc2626', fg: '#ffffff' }},
+      {{ group: 'Closed',    value: 'Not Accepted This Yr',                    bg: '#ef4444', fg: '#ffffff' }},
+      {{ group: 'Closed',    value: 'Skip',                                    bg: '#b91c1c', fg: '#ffffff' }},
+      {{ group: 'Closed',    value: 'Passing',                                 bg: '#94a3b8', fg: '#1e293b' }},
+      {{ group: 'Closed',    value: "We'll Pass",                              bg: '#cbd5e1', fg: '#475569' }},
+      {{ group: 'Closed',    value: 'Not accepting External Company Speakers', bg: '#1f2937', fg: '#ffffff' }},
+      {{ group: 'Closed',    value: 'Date Conflict',                           bg: '#475569', fg: '#ffffff' }},
+      {{ group: 'Closed',    value: 'Sponsorship Only',                        bg: '#fda4af', fg: '#9f1239' }},
+      {{ group: 'Closed',    value: '"Don\\u2019t call us, we call you"',      bg: '#fee2e2', fg: '#991b1b' }},
+      // ── Other / placeholder ──
+      {{ group: 'Other',     value: 'Not yet',                                 bg: '#e5e7eb', fg: '#374151' }},
+      {{ group: 'Other',     value: "--- cc'd on Inquiry",                     bg: '#f3f4f6', fg: '#6b7280' }},
+      {{ group: 'Other',     value: "--- cc'd on MTG",                         bg: '#f3f4f6', fg: '#6b7280' }}
     ];
 
     var STATUS_BY_VALUE = {{}};
     STATUS_OPTIONS.forEach(function (s) {{ STATUS_BY_VALUE[s.value] = s; }});
+    var STATUS_GROUP_BY_KEY = {{}};
+    STATUS_GROUPS.forEach(function (g) {{ STATUS_GROUP_BY_KEY[g.key] = g; }});
+
+    function statusGroupDot(value) {{
+      var s = STATUS_BY_VALUE[value];
+      if (!s) return null;
+      var g = STATUS_GROUP_BY_KEY[s.group];
+      return g ? g.dot : null;
+    }}
 
     function statusStyle(value) {{
       var s = STATUS_BY_VALUE[value];
@@ -1925,27 +2011,41 @@ def build():
     function buildStatusFilters() {{
       var host = document.getElementById('status-filters');
       if (!host || host.dataset.built === '1') return;
+      // Walk STATUS_GROUPS in order so the filter row reads
+      // Confirmed → Active → Waiting → Action → Closed → Other.
       var frag = document.createDocumentFragment();
-      STATUS_OPTIONS.forEach(function (s) {{
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'status-chip';
-        btn.dataset.status = s.value;
-        btn.style.background = s.bg;
-        btn.style.color = s.fg;
-        btn.style.borderColor = s.bg;
-        btn.textContent = s.value;
-        btn.title = 'Click to filter by ' + s.value;
-        btn.addEventListener('click', function () {{
-          btn.classList.toggle('is-on');
-          applyFilters();
+      STATUS_GROUPS.forEach(function (g, idx) {{
+        if (idx > 0) {{
+          var sep = document.createElement('span');
+          sep.className = 'status-group-sep';
+          frag.appendChild(sep);
+        }}
+        var label = document.createElement('span');
+        label.className = 'status-group-label';
+        label.style.color = g.dot;
+        label.textContent = g.label;
+        frag.appendChild(label);
+        STATUS_OPTIONS.filter(function (s) {{ return s.group === g.key; }}).forEach(function (s) {{
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'status-chip';
+          btn.dataset.status = s.value;
+          btn.style.background = s.bg;
+          btn.style.color = s.fg;
+          btn.style.borderColor = s.bg;
+          btn.textContent = s.value;
+          btn.title = g.label + ' · click to filter by ' + s.value;
+          btn.addEventListener('click', function () {{
+            btn.classList.toggle('is-on');
+            applyFilters();
+          }});
+          frag.appendChild(btn);
         }});
-        frag.appendChild(btn);
       }});
       var clearBtn = document.createElement('button');
       clearBtn.type = 'button';
       clearBtn.className = 'clear-btn';
-      clearBtn.textContent = 'Clear status filters';
+      clearBtn.textContent = 'Clear';
       clearBtn.addEventListener('click', function () {{
         host.querySelectorAll('.status-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
         applyFilters();
@@ -2581,7 +2681,12 @@ def build():
 
         (byDate[dayIso] || []).forEach(function (entry) {{
           var ev = entry.event;
-          var st = stateMap[ev.num] || {{}};
+          // Catalog events read state from event_state; manual events bring
+          // their own ops fields baked onto the entry object.
+          var isManual = !!ev._manual;
+          var st = isManual
+            ? {{ status: ev._manualStatus, speaker: ev._manualSpeaker }}
+            : (stateMap[ev.num] || {{}});
           if (st.hidden) return;
           var chip = document.createElement('div');
           chip.className = 'cal-chip';
@@ -2593,6 +2698,10 @@ def build():
           chip.dataset.eventNum = ev.num;
           var sp  = st.speaker || '';
           var ini = sp ? initials(sp) : '';
+          // Tint chip border with the status group color (left edge), so
+          // the calendar at-a-glance shows pipeline state.
+          var grpDot = statusGroupDot(st.status);
+          if (grpDot) chip.style.borderLeftColor = grpDot;
           // Status pill on the chip — colored to match the status filter
           var statusInline = '';
           if (st.status && STATUS_BY_VALUE[st.status] && entry.isStart) {{
@@ -2650,19 +2759,23 @@ def build():
       var combined = events.slice();
       (manualEvents || []).forEach(function (m) {{
         if (!m.start_date) {{
-          // Try to derive start_date from date_str — best effort
-          var derived = deriveStartDateFromText(m.date_str);
-          if (derived) m = Object.assign({{}}, m, {{ start_date: derived }});
+          var derived = deriveDatesFromText(m.date_str);
+          if (derived.start_date) m = Object.assign({{}}, m, {{ start_date: derived.start_date, end_date: m.end_date || derived.end_date }});
         }}
         combined.push({{
-          num: 'm' + m.id, // composite key — string for chip data attribute
+          num: 'm' + m.id,
           _manual: true,
           _manualId: m.id,
           name: m.name,
           start_date: m.start_date,
+          end_date: m.end_date || m.start_date,
           location: m.location || '',
           region: m.region || '',
-          date_str: m.date_str || ''
+          date_str: m.date_str || '',
+          // Hoist Angela's ops fields onto the calendar entry so the chip
+          // can color-tint by status group + show speaker initials.
+          _manualStatus:  m.status || '',
+          _manualSpeaker: m.speaker || ''
         }});
       }});
 
@@ -2739,6 +2852,16 @@ def build():
       var monthHost = document.createElement('div');
       monthHost.id = 'cal-month-host';
       cal.appendChild(monthHost);
+
+      // Legend: one row of color dots showing status-group meanings
+      var legend = document.createElement('div');
+      legend.className = 'cal-legend';
+      legend.innerHTML =
+        '<span class="cal-legend-label">Status groups:</span>' +
+        STATUS_GROUPS.map(function (g) {{
+          return '<span class="cal-legend-item"><span class="cal-legend-dot" style="background:' + g.dot + ';"></span>' + escapeHtml(g.label) + '</span>';
+        }}).join('');
+      cal.appendChild(legend);
 
       function onChipClick(num) {{
         setView('grid');
