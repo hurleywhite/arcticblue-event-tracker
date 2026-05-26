@@ -626,6 +626,37 @@
       .ops-stats { grid-template-columns: repeat(2, 1fr); }
     }
 
+    /* Status filter chip row */
+    .status-filters {
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      padding: 10px 12px; margin-bottom: 16px;
+      border: 1px solid var(--ab-rule); border-radius: 10px;
+      background: var(--ab-bg);
+    }
+    .status-filters > .label {
+      font-family: var(--ab-mono); font-size: 0.7rem;
+      color: var(--ab-fg-3); letter-spacing: 0.08em;
+      text-transform: uppercase; margin-right: 4px;
+    }
+    .status-chip {
+      font-family: var(--ab-sans); font-size: 0.74rem; font-weight: 500;
+      padding: 4px 10px; border-radius: 999px;
+      border: 1px solid transparent;
+      cursor: pointer; opacity: 0.45;
+      transition: opacity 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+      white-space: nowrap;
+    }
+    .status-chip:hover { opacity: 0.8; }
+    .status-chip.is-on { opacity: 1; box-shadow: 0 0 0 2px var(--ab-fg); transform: translateY(-1px); }
+    .status-filters .clear-btn {
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      letter-spacing: 0.06em; padding: 5px 10px;
+      border: 1px solid var(--ab-rule-strong); border-radius: 6px;
+      background: var(--ab-bg); color: var(--ab-fg-3);
+      cursor: pointer; margin-left: auto;
+    }
+    .status-filters .clear-btn:hover { color: var(--ab-fg); }
+
     /* Filter bar */
     .ops-filters {
       display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
@@ -735,6 +766,22 @@
       border-radius: 50%; width: 16px; height: 16px;
       line-height: 16px; text-align: center; flex-shrink: 0;
     }
+    .cal-chip-status {
+      font-family: var(--ab-mono); font-size: 0.58rem; font-weight: 600;
+      padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
+      letter-spacing: 0.02em;
+    }
+    /* Continuation chips on multi-day events */
+    .cal-chip.is-continuation {
+      opacity: 0.7;
+      border-left-style: dashed;
+    }
+    .cal-chip.is-continuation .continuation-name {
+      color: var(--ab-fg-2); font-style: italic;
+    }
+    .cal-chip.is-start:not(.is-end) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+    .cal-chip.is-continuation:not(.is-end) { border-radius: 0; }
+    .cal-chip.is-end:not(.is-start) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
     .cal-region-dot {
       width: 6px; height: 6px; border-radius: 50%;
       display: inline-block; flex-shrink: 0;
@@ -2271,6 +2318,10 @@
         </div>
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-stats" id="ops-stats" hidden></div>
+        <div class="status-filters" id="status-filters">
+          <span class="label">Status:</span>
+          <!-- chips injected by buildStatusFilters() -->
+        </div>
         <div class="ops-filters">
           <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
           <select id="ops-region" aria-label="Filter region">
@@ -2429,6 +2480,55 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
+    // ── Status taxonomy ────────────────────────────────────────────
+    // Angela's working palette of ops statuses. Colors match her existing
+    // Airtable-style color tags from the screenshot so the UI feels native.
+    var STATUS_OPTIONS = [
+      { value: 'Not yet',                                    bg: '#e5e7eb', fg: '#374151' },
+      { value: 'Submitted',                                  bg: '#bbf7d0', fg: '#14532d' },
+      { value: 'Self Submitted',                             bg: '#15803d', fg: '#ffffff' },
+      { value: 'In contact with',                            bg: '#d1fae5', fg: '#065f46' },
+      { value: 'Received Intro Meeting',                     bg: '#d1fae5', fg: '#065f46' },
+      { value: 'Booked',                                     bg: '#047857', fg: '#ffffff' },
+      { value: 'Personal Contact/Inquiry',                   bg: '#e9d5ff', fg: '#6b21a8' },
+      { value: 'Application Process Inquiry',                bg: '#dbeafe', fg: '#1e40af' },
+      { value: 'Enrollment not open yet',                    bg: '#e5e7eb', fg: '#374151' },
+      { value: 'No Openings',                                bg: '#111827', fg: '#ffffff' },
+      { value: 'On Hold',                                    bg: '#fed7aa', fg: '#9a3412' },
+      { value: 'Late Inquiry',                               bg: '#fdba74', fg: '#7c2d12' },
+      { value: 'Joined Waitlist',                            bg: '#c7d2fe', fg: '#3730a3' },
+      { value: 'Skip',                                       bg: '#dc2626', fg: '#ffffff' },
+      { value: 'Needed: Submit Session Topic',               bg: '#fef3c7', fg: '#92400e' },
+      { value: 'Registered for Speaker Updates',             bg: '#bfdbfe', fg: '#1e40af' },
+      { value: "--- cc'd on Inquiry",                        bg: '#f3f4f6', fg: '#6b7280' },
+      { value: "--- cc'd on MTG",                            bg: '#f3f4f6', fg: '#6b7280' },
+      { value: '"Don\u2019t call us, we call you"',         bg: '#fee2e2', fg: '#991b1b' },
+      { value: 'Not accepting External Company Speakers',    bg: '#1f2937', fg: '#ffffff' }
+    ];
+
+    var STATUS_BY_VALUE = {};
+    STATUS_OPTIONS.forEach(function (s) { STATUS_BY_VALUE[s.value] = s; });
+
+    function statusStyle(value) {
+      var s = STATUS_BY_VALUE[value];
+      if (!s) return '';
+      return 'background:' + s.bg + ';color:' + s.fg + ';';
+    }
+
+    function statusOptionRows(current) {
+      var rows = '<option value=""' + (!current ? ' selected' : '') + '>\u2014 none \u2014</option>';
+      STATUS_OPTIONS.forEach(function (s) {
+        var sel = (s.value === current) ? ' selected' : '';
+        rows += '<option value="' + escapeHtml(s.value) + '"' + sel + '>' + escapeHtml(s.value) + '</option>';
+      });
+      // If the current value isn't in our palette, surface it as a one-off
+      // option so we don't silently overwrite legacy data when re-saved.
+      if (current && !STATUS_BY_VALUE[current]) {
+        rows += '<option value="' + escapeHtml(current) + '" selected>' + escapeHtml(current) + '  (legacy)</option>';
+      }
+      return rows;
+    }
+
     // "hurley@arcticblue.ai" → "Hurley". Used in any user-facing label;
     // the full email is preserved as the `title` attribute so it's still
     // visible on hover for audit purposes.
@@ -2483,7 +2583,9 @@
     function renderOpsTags(st) {
       var tags = [];
       if (st.status) {
-        tags.push('<span class="ops-tag status">' + escapeHtml(st.status) + '</span>');
+        var style = statusStyle(st.status);
+        var styleAttr = style ? ' style="' + style + '"' : '';
+        tags.push('<span class="ops-tag status"' + styleAttr + '>' + escapeHtml(st.status) + '</span>');
       }
       if (st.speaker) {
         tags.push('<span class="ops-tag speaker">' + escapeHtml(st.speaker) + '</span>');
@@ -2506,6 +2608,7 @@
       card.dataset.kind = 'regular';
       card.dataset.region = ev.region || '';
       card.dataset.hasSpeaker = (st.speaker && st.speaker.trim()) ? '1' : '';
+      card.dataset.status = st.status || '';
       if (st.saved)  card.classList.add('is-saved');
       if (st.hidden) card.classList.add('is-hidden');
       if (st.urgent) card.classList.add('is-urgent');
@@ -2532,7 +2635,7 @@
           '<summary>Edit ops</summary>' +
           '<div class="ops-form">' +
             '<label><span class="key">Status</span>' +
-              '<input type="text" data-field="status" value="' + escapeHtml(st.status || '') + '" placeholder="e.g. confirmed, declined, waiting on Angela…">' +
+              '<select data-field="status">' + statusOptionRows(st.status || '') + '</select>' +
             '</label>' +
             '<label><span class="key">Speaker</span>' +
               '<input type="text" data-field="speaker" value="' + escapeHtml(st.speaker || '') + '" placeholder="Who from AB is speaking?">' +
@@ -2702,13 +2805,17 @@
         });
       });
 
-      // Selects (priority_override, track) — save on change
+      // Selects (status, priority_override, track) — save on change
       card.querySelectorAll('select[data-field]').forEach(function (sel) {
         sel.addEventListener('change', function () {
           var patch = {};
           patch[sel.dataset.field] = sel.value || null;
           upsertEventState(num, patch, email).then(function (err) {
             if (err) { status('Save failed: ' + err.message, 'error'); return; }
+            if (sel.dataset.field === 'status') {
+              card.dataset.status = sel.value || '';
+              applyFilters();
+            }
             flashOk();
           });
         });
@@ -2738,6 +2845,39 @@
       $count.textContent = regular + ' tracked · ' + manual + ' manual';
     }
 
+    function buildStatusFilters() {
+      var host = document.getElementById('status-filters');
+      if (!host || host.dataset.built === '1') return;
+      var frag = document.createDocumentFragment();
+      STATUS_OPTIONS.forEach(function (s) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'status-chip';
+        btn.dataset.status = s.value;
+        btn.style.background = s.bg;
+        btn.style.color = s.fg;
+        btn.style.borderColor = s.bg;
+        btn.textContent = s.value;
+        btn.title = 'Click to filter by ' + s.value;
+        btn.addEventListener('click', function () {
+          btn.classList.toggle('is-on');
+          applyFilters();
+        });
+        frag.appendChild(btn);
+      });
+      var clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.className = 'clear-btn';
+      clearBtn.textContent = 'Clear status filters';
+      clearBtn.addEventListener('click', function () {
+        host.querySelectorAll('.status-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
+        applyFilters();
+      });
+      frag.appendChild(clearBtn);
+      host.appendChild(frag);
+      host.dataset.built = '1';
+    }
+
     function applyFilters() {
       var $search  = document.getElementById('ops-search');
       var $region  = document.getElementById('ops-region');
@@ -2758,6 +2898,11 @@
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
       });
+      // Status chip filter — OR across selected statuses (multi-select)
+      var activeStatuses = Array.prototype.map.call(
+        document.querySelectorAll('.status-filters .status-chip.is-on'),
+        function (b) { return b.dataset.status; }
+      );
       var shown = 0;
       $opsGrid.querySelectorAll('.ops-card').forEach(function (card) {
         var on = true;
@@ -2767,6 +2912,7 @@
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
         if (fSpeaker && card.dataset.hasSpeaker !== '1')       on = false;
         if (!showHidden && card.classList.contains('is-hidden')) on = false;
+        if (activeStatuses.length > 0 && activeStatuses.indexOf(card.dataset.status || '') === -1) on = false;
         card.style.display = on ? '' : 'none';
         if (on) shown++;
       });
@@ -3322,11 +3468,28 @@
         grid.appendChild(cell);
       }
 
-      // Index events by start_date for O(1) lookup
+      // Index events by EVERY day they span. Each day-entry remembers
+      // whether it's the first day (so we render the name + speaker
+      // initial) or a continuation (so we render a dimmer bar).
+      function _eachDay(startIso, endIso, fn) {
+        if (!startIso) return;
+        var s = new Date(startIso + 'T00:00:00Z');
+        var e = endIso ? new Date(endIso + 'T00:00:00Z') : s;
+        if (isNaN(s)) return;
+        if (isNaN(e) || e < s) e = s;
+        // Cap multi-day spans at 60 days to avoid runaway from bad data
+        var maxIter = 60;
+        for (var d = new Date(s); d <= e && maxIter-- > 0; d.setUTCDate(d.getUTCDate() + 1)) {
+          var iso = d.toISOString().slice(0, 10);
+          fn(iso, d.getTime() === s.getTime(), d.getTime() === e.getTime());
+        }
+      }
+
       var byDate = {};
       events.forEach(function (ev) {
-        if (!ev.start_date) return;
-        (byDate[ev.start_date] = byDate[ev.start_date] || []).push(ev);
+        _eachDay(ev.start_date, ev.end_date || ev.start_date, function (iso, isStart, isEnd) {
+          (byDate[iso] = byDate[iso] || []).push({ event: ev, isStart: isStart, isEnd: isEnd });
+        });
       });
 
       for (var day = 1; day <= daysInMonth; day++) {
@@ -3339,24 +3502,45 @@
         head2.textContent = day;
         cell.appendChild(head2);
 
-        (byDate[dayIso] || []).forEach(function (ev) {
+        (byDate[dayIso] || []).forEach(function (entry) {
+          var ev = entry.event;
           var st = stateMap[ev.num] || {};
           if (st.hidden) return;
           var chip = document.createElement('div');
           chip.className = 'cal-chip';
-          if (st.saved) chip.classList.add('is-saved');
+          if (st.saved)  chip.classList.add('is-saved');
           if (st.urgent) chip.classList.add('is-urgent');
+          if (!entry.isStart) chip.classList.add('is-continuation');
+          if (entry.isStart)  chip.classList.add('is-start');
+          if (entry.isEnd)    chip.classList.add('is-end');
           chip.dataset.eventNum = ev.num;
-          var sp = st.speaker || '';
+          var sp  = st.speaker || '';
           var ini = sp ? initials(sp) : '';
-          chip.innerHTML =
-            '<span class="cal-region-dot" style="background:' + regionColor(ev.region) + ';"></span>' +
-            '<span class="cal-chip-name">' + escapeHtml(ev.name) + '</span>' +
-            (ini ? '<span class="cal-chip-initial" title="' + escapeHtml(sp) + '">' + escapeHtml(ini) + '</span>' : '');
+          // Status pill on the chip — colored to match the status filter
+          var statusInline = '';
+          if (st.status && STATUS_BY_VALUE[st.status] && entry.isStart) {
+            var s = STATUS_BY_VALUE[st.status];
+            statusInline = '<span class="cal-chip-status" style="background:' + s.bg + ';color:' + s.fg + ';">' + escapeHtml(st.status.slice(0, 12)) + (st.status.length > 12 ? '…' : '') + '</span>';
+          }
+          if (entry.isStart) {
+            chip.innerHTML =
+              '<span class="cal-region-dot" style="background:' + regionColor(ev.region) + ';"></span>' +
+              '<span class="cal-chip-name">' + escapeHtml(ev.name) + '</span>' +
+              (ini ? '<span class="cal-chip-initial" title="' + escapeHtml(sp) + '">' + escapeHtml(ini) + '</span>' : '') +
+              statusInline;
+          } else {
+            // Continuation cell — narrow bar that just hints "this event continues"
+            chip.innerHTML =
+              '<span class="cal-region-dot" style="background:' + regionColor(ev.region) + ';"></span>' +
+              '<span class="cal-chip-name continuation-name">' + escapeHtml(ev.name) + '</span>';
+          }
           chip.title = ev.name +
             (sp ? ' · Speaker: ' + sp : '') +
             (ev.location ? ' · ' + ev.location : '') +
-            (st.status ? ' · ' + st.status : '');
+            (st.status ? ' · ' + st.status : '') +
+            (ev.start_date && (ev.end_date && ev.end_date !== ev.start_date)
+              ? ' · ' + ev.start_date + ' to ' + ev.end_date
+              : '');
           chip.addEventListener('click', function () { onChipClick(ev.num); });
           cell.appendChild(chip);
         });
@@ -4082,25 +4266,45 @@
         return form;
       }
 
+      // The panels all inject into #ops-grid which is hidden in Calendar
+      // view. Auto-switch to Grid so every toolbar button is functional
+      // from either view.
+      function ensureGridView() {
+        if (typeof currentView !== 'undefined' && currentView !== 'grid') setView('grid');
+      }
+
       $addBtn.addEventListener('click', function () {
+        ensureGridView();
         var existing = document.getElementById('add-event-card');
         if (existing) { existing.remove(); return; }
         openAddForm({});
       });
       if ($pasteBtn) {
-        $pasteBtn.addEventListener('click', function () { openAddForm({ expandPaste: true }); });
+        $pasteBtn.addEventListener('click', function () {
+          ensureGridView();
+          openAddForm({ expandPaste: true });
+        });
       }
       if ($vetBtn) {
-        $vetBtn.addEventListener('click', function () { openVetPanel(email); });
+        $vetBtn.addEventListener('click', function () {
+          ensureGridView();
+          openVetPanel(email);
+        });
       }
       if ($csvBtn) {
-        $csvBtn.addEventListener('click', function () { openCsvPanel(email); });
+        $csvBtn.addEventListener('click', function () {
+          ensureGridView();
+          openCsvPanel(email);
+        });
       }
       if ($icalBtn) {
         $icalBtn.addEventListener('click', function () { exportSavedAsIcs(); });
       }
       if ($subBtn) {
-        $subBtn.addEventListener('click', function () { openSubscribePanel(); });
+        $subBtn.addEventListener('click', function () {
+          ensureGridView();
+          openSubscribePanel();
+        });
       }
     }
 
@@ -4127,6 +4331,7 @@
         showOnly($ops);
         wireViewToggle();
         wireFilters();
+        buildStatusFilters();
         renderOps(email);
         wireAddEvent(email);
         setupRealtime(email);
