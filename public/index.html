@@ -2296,6 +2296,7 @@
           <button class="add-btn" id="paste-email-btn">Paste email</button>
           <button class="add-btn" id="csv-btn">CSV import/export</button>
           <button class="add-btn" id="ical-btn">Download saved .ics</button>
+          <button class="add-btn" id="ical-subscribe-btn">Subscribe in calendar app</button>
           <span class="ops-count" id="ops-count"></span>
         </div>
         <div class="ops-grid" id="ops-grid"></div>
@@ -3599,17 +3600,79 @@
     }
 
     // ── + Add event / Paste email orchestration ─────────────────────
+    // Opens an inline panel that surfaces the public feed URL + a 1-click
+    // copy button + paste-instructions for the three common calendar apps.
+    function openSubscribePanel() {
+      var existing = document.getElementById('subscribe-panel');
+      if (existing) { existing.remove(); return; }
+      var feedUrl = window.location.origin + '/calendar.ics';
+      var panel = document.createElement('div');
+      panel.id = 'subscribe-panel';
+      panel.className = 'add-event-card';
+      panel.innerHTML =
+        '<h3>Subscribe in your calendar app</h3>' +
+        '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
+          'This URL auto-updates daily with every saved event + every manual event. ' +
+          'Once subscribed, your calendar app refreshes on its own — no need to re-download.' +
+        '</p>' +
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">' +
+          '<input type="text" id="subscribe-url" readonly value="' + escapeHtml(feedUrl) + '" ' +
+            'style="flex:1;font-family:var(--ab-mono);font-size:0.85rem;padding:10px 12px;border:1px solid var(--ab-rule-strong);border-radius:6px;background:var(--ab-bg-2);color:var(--ab-fg);">' +
+          '<button type="button" class="primary" id="subscribe-copy-btn" style="white-space:nowrap;font-family:var(--ab-sans);font-weight:600;font-size:0.9rem;padding:10px 16px;border-radius:6px;border:0;background:var(--ab-fg);color:var(--ab-bg);cursor:pointer;">Copy link</button>' +
+        '</div>' +
+        '<details open style="border-top:1px solid var(--ab-rule);padding-top:12px;">' +
+          '<summary style="cursor:pointer;font-family:var(--ab-mono);font-size:0.72rem;color:var(--ab-fg-3);letter-spacing:0.08em;text-transform:uppercase;">Paste it here</summary>' +
+          '<div style="display:grid;gap:10px;margin-top:10px;font-size:0.9rem;color:var(--ab-fg-2);line-height:1.55;">' +
+            '<div><strong>Apple Calendar (Mac):</strong> File → New Calendar Subscription → paste → Subscribe → choose auto-refresh.</div>' +
+            '<div><strong>Apple Calendar (iPhone/iPad):</strong> Settings → Calendar → Accounts → Add Account → Other → Add Subscribed Calendar → paste.</div>' +
+            '<div><strong>Google Calendar:</strong> Left sidebar → Other calendars → + → From URL → paste → Add calendar.</div>' +
+            '<div><strong>Outlook (web):</strong> Calendar → Add calendar → Subscribe from web → paste.</div>' +
+          '</div>' +
+        '</details>' +
+        '<div class="add-actions" style="margin-top:14px;">' +
+          '<button type="button" class="secondary" id="subscribe-close-btn">Close</button>' +
+        '</div>' +
+        '<p class="ops-meta" style="margin-top:10px;">Tip: the feed is empty until at least one event is starred ★ saved, or you add a manual event.</p>';
+
+      $opsGrid.insertBefore(panel, $opsGrid.firstChild);
+
+      panel.querySelector('#subscribe-close-btn').addEventListener('click', function () { panel.remove(); });
+
+      var copyBtn = panel.querySelector('#subscribe-copy-btn');
+      copyBtn.addEventListener('click', function () {
+        var input = panel.querySelector('#subscribe-url');
+        function done() {
+          var original = copyBtn.textContent;
+          copyBtn.textContent = '✓ Copied';
+          copyBtn.disabled = true;
+          setTimeout(function () { copyBtn.textContent = original; copyBtn.disabled = false; }, 1600);
+        }
+        // Prefer the async Clipboard API (HTTPS required); fall back to select-and-execCommand
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(feedUrl).then(done, function () {
+            input.select(); input.setSelectionRange(0, 9999);
+            try { document.execCommand('copy'); done(); } catch (e) { alert('Couldn\u2019t copy. Select the URL manually and Cmd+C.'); }
+          });
+        } else {
+          input.select(); input.setSelectionRange(0, 9999);
+          try { document.execCommand('copy'); done(); } catch (e) { alert('Couldn\u2019t copy. Select the URL manually and Cmd+C.'); }
+        }
+      });
+    }
+
     function wireAddEvent(email) {
       var $addBtn   = document.getElementById('add-event-btn');
       var $pasteBtn = document.getElementById('paste-email-btn');
       var $csvBtn   = document.getElementById('csv-btn');
       var $icalBtn  = document.getElementById('ical-btn');
+      var $subBtn   = document.getElementById('ical-subscribe-btn');
       if (!$addBtn) return;
       // Clone-replace to clear listeners from any prior route() call
       var freshAdd = $addBtn.cloneNode(true); $addBtn.parentNode.replaceChild(freshAdd, $addBtn); $addBtn = freshAdd;
       if ($pasteBtn) { var fp = $pasteBtn.cloneNode(true); $pasteBtn.parentNode.replaceChild(fp, $pasteBtn); $pasteBtn = fp; }
       if ($csvBtn)   { var fc = $csvBtn.cloneNode(true); $csvBtn.parentNode.replaceChild(fc, $csvBtn); $csvBtn = fc; }
       if ($icalBtn)  { var fi = $icalBtn.cloneNode(true); $icalBtn.parentNode.replaceChild(fi, $icalBtn); $icalBtn = fi; }
+      if ($subBtn)   { var fs = $subBtn.cloneNode(true); $subBtn.parentNode.replaceChild(fs, $subBtn); $subBtn = fs; }
 
       function openAddForm(opts) {
         opts = opts || {};
@@ -3648,6 +3711,9 @@
       }
       if ($icalBtn) {
         $icalBtn.addEventListener('click', function () { exportSavedAsIcs(); });
+      }
+      if ($subBtn) {
+        $subBtn.addEventListener('click', function () { openSubscribePanel(); });
       }
     }
 
