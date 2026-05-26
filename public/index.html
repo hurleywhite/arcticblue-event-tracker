@@ -483,6 +483,12 @@
     .ops-card .event-loc {
       font-size: 0.85rem; color: var(--ab-fg-2); margin: 0 0 12px;
     }
+    .ops-card .ops-link {
+      color: var(--ab-blue); text-decoration: none;
+      font-weight: 600; padding: 0 4px;
+      transition: color 120ms ease;
+    }
+    .ops-card .ops-link:hover { color: var(--ab-blue-light); }
     .saved-star {
       font: inherit; background: transparent; border: 0;
       padding: 4px 6px; cursor: pointer; line-height: 1;
@@ -571,6 +577,89 @@
       font-family: var(--ab-mono); font-size: 0.66rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
       margin-top: 8px;
+    }
+
+    /* View toggle (Grid / Calendar) */
+    .view-toggle {
+      display: inline-flex; gap: 2px;
+      padding: 3px; background: var(--ab-bg-3);
+      border-radius: 8px; margin-bottom: 16px;
+    }
+    .view-toggle button {
+      font-family: var(--ab-sans); font-weight: 500; font-size: 0.85rem;
+      padding: 6px 14px; border-radius: 6px; border: 0;
+      background: transparent; color: var(--ab-fg-2);
+      cursor: pointer; transition: background 120ms ease, color 120ms ease;
+    }
+    .view-toggle button:hover { color: var(--ab-fg); }
+    .view-toggle button.active { background: var(--ab-bg); color: var(--ab-fg); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+    /* Calendar view */
+    .ops-calendar { display: none; }
+    .ops-calendar.show { display: block; }
+    .calendar-month { margin-bottom: 32px; }
+    .calendar-month-head {
+      font-family: var(--ab-sans); font-weight: 700;
+      font-size: 1.1rem; letter-spacing: -0.01em;
+      margin: 0 0 12px; color: var(--ab-fg);
+    }
+    .calendar-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 1px; background: var(--ab-rule);
+      border: 1px solid var(--ab-rule); border-radius: 8px;
+      overflow: hidden;
+    }
+    .calendar-day-head {
+      background: var(--ab-bg-2); padding: 8px;
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      color: var(--ab-fg-3); letter-spacing: 0.08em;
+      text-transform: uppercase; text-align: center;
+    }
+    .calendar-day {
+      background: var(--ab-bg); padding: 6px 8px;
+      min-height: 100px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .calendar-day.is-outside { background: var(--ab-bg-3); }
+    .calendar-day.is-outside .calendar-day-num { color: var(--ab-mute); }
+    .calendar-day.is-today { background: rgba(39,115,194,0.06); }
+    .calendar-day.is-today .calendar-day-num { color: var(--ab-blue); font-weight: 700; }
+    .calendar-day-num {
+      font-family: var(--ab-mono); font-size: 0.72rem;
+      color: var(--ab-fg-3); margin-bottom: 4px;
+    }
+    .cal-chip {
+      font-family: var(--ab-sans); font-size: 0.7rem; line-height: 1.3;
+      padding: 3px 6px 4px; border-radius: 4px;
+      background: var(--ab-bg-2);
+      border-left: 3px solid var(--ab-rule-strong);
+      cursor: pointer; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+      transition: background 120ms ease;
+      display: flex; align-items: center; gap: 4px; min-width: 0;
+    }
+    .cal-chip:hover { background: var(--ab-bg-3); }
+    .cal-chip.is-saved { background: rgba(39,115,194,0.10); border-left-color: var(--ab-blue); }
+    .cal-chip.is-urgent { background: rgba(185,28,28,0.10); border-left-color: var(--ab-red); }
+    .cal-chip-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ab-fg); }
+    .cal-chip-initial {
+      display: inline-block; background: var(--ab-fg); color: var(--ab-bg);
+      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 600;
+      border-radius: 50%; width: 16px; height: 16px;
+      line-height: 16px; text-align: center; flex-shrink: 0;
+    }
+    .cal-region-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      display: inline-block; flex-shrink: 0;
+    }
+
+    .ops-card.is-highlight {
+      animation: ops-highlight 1600ms ease-out;
+    }
+    @keyframes ops-highlight {
+      0%   { box-shadow: 0 0 0 0 rgba(39,115,194,0); }
+      20%  { box-shadow: 0 0 0 6px rgba(39,115,194,0.3); border-color: var(--ab-blue); }
+      100% { box-shadow: 0 0 0 0 rgba(39,115,194,0); }
     }
 
     /* Toolbar with + Add event */
@@ -2094,11 +2183,18 @@
           <button id="signout-ops">Sign out</button>
         </div>
         <div id="ops-status" class="alert" hidden></div>
+        <div class="view-toggle" role="tablist" aria-label="View">
+          <button type="button" role="tab" data-view="grid"     class="active" aria-selected="true">Grid</button>
+          <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
+        </div>
         <div class="ops-toolbar">
           <button class="add-btn" id="add-event-btn">+ Add event</button>
+          <button class="add-btn" id="paste-email-btn">Paste email</button>
+          <button class="add-btn" id="csv-btn">CSV import/export</button>
           <span class="ops-count" id="ops-count"></span>
         </div>
         <div class="ops-grid" id="ops-grid"></div>
+        <div class="ops-calendar" id="ops-calendar"></div>
       </div>
 
     </div><!-- /panel-angela -->
@@ -2285,7 +2381,9 @@
           '</div>' +
           '<p class="event-date">' + escapeHtml(ev.date_str) + '</p>' +
         '</div>' +
-        '<h3 class="event-name">' + escapeHtml(ev.name) + '</h3>' +
+        '<h3 class="event-name">' + escapeHtml(ev.name) +
+          (ev.url ? ' <a class="ops-link" href="' + escapeHtml(ev.url) + '" target="_blank" rel="noopener" aria-label="Open ' + escapeHtml(ev.name) + '">↗</a>' : '') +
+        '</h3>' +
         '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>' +
         '<details class="ops-edit">' +
           '<summary>Edit ops</summary>' +
@@ -2438,104 +2536,729 @@
           $opsGrid.appendChild(buildManualCard(mev));
         });
         updateOpsCount();
+        // Mirror into the calendar view (uses the same data set)
+        renderCalendar(evs, stateMap, manualRows);
       });
     }
 
-    // ── + Add event flow ─────────────────────────────────────────────
-    function wireAddEvent(email) {
-      var $addBtn = document.getElementById('add-event-btn');
-      if (!$addBtn) return;
-      // Clone-and-replace to clear any listeners from a prior route() call
-      var fresh = $addBtn.cloneNode(true);
-      $addBtn.parentNode.replaceChild(fresh, $addBtn);
-      $addBtn = fresh;
-      $addBtn.addEventListener('click', function () {
-        // Toggle: if a form is already open, close it
-        var existing = document.getElementById('add-event-card');
-        if (existing) { existing.remove(); return; }
+    // ── Email → event-fields extractor ─────────────────────────────
+    function extractFromEmail(text) {
+      var out = {};
+      text = text || '';
+      // URL — first plausible https?:// link, skip common boilerplate
+      var urlRe = /https?:\/\/[^\s<>"'\]\)]+/g;
+      var urls = text.match(urlRe) || [];
+      var skipPat = /unsubscribe|privacy|terms-of-service|googleusercontent|track\.|click\.|notifications?\./i;
+      var good = null;
+      for (var i = 0; i < urls.length; i++) {
+        if (!skipPat.test(urls[i])) { good = urls[i]; break; }
+      }
+      if (good) out.url = good.replace(/[.,;:>'\)]+$/, '');
+      // Date — multiple formats, prefer ranges
+      var months = 'January|February|March|April|May|June|July|August|September|October|November|December';
+      var monthsShort = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec';
+      var dateRes = [
+        new RegExp('(?:' + months + ')\s+\d{1,2}\s*[–—-]\s*(?:(?:' + months + ')\s+)?\d{1,2},\s+\d{4}', 'i'),
+        new RegExp('(?:' + months + ')\s+\d{1,2},\s+\d{4}', 'i'),
+        new RegExp('(?:' + monthsShort + ')\s+\d{1,2}\s*[–—-]\s*\d{1,2},\s+\d{4}', 'i'),
+        new RegExp('(?:' + monthsShort + ')\s+\d{1,2},\s+\d{4}', 'i')
+      ];
+      for (var j = 0; j < dateRes.length; j++) {
+        var dm = text.match(dateRes[j]);
+        if (dm) { out.date_str = dm[0]; break; }
+      }
+      // Name — Subject line first; else first reasonable line
+      var subj = text.match(/^\s*Subject:\s*(.+)$/im);
+      if (subj) {
+        out.name = subj[1].replace(/^(?:Re:|Fwd?:|FW:)\s*/i, '').trim();
+      } else {
+        var lines = text.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+        for (var k = 0; k < lines.length; k++) {
+          var l = lines[k];
+          if (l.length > 5 && l.length < 120 && !/^https?:/i.test(l) && !/^[\w.-]+@[\w.-]+/.test(l)) {
+            out.name = l; break;
+          }
+        }
+      }
+      // Location — keyword lines first; else "in/at City"
+      var lk = text.match(/^\s*(?:Location|Where|Venue|City)\s*:\s*(.+)$/im);
+      if (lk) {
+        out.location = lk[1].trim();
+      } else {
+        var lc = text.match(/\b(?:in|at)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2}(?:,\s+[A-Z][a-zA-Z]+)?)/);
+        if (lc) out.location = lc[1].trim();
+      }
+      // Region guess from location
+      if (out.location) {
+        var lo = out.location.toLowerCase();
+        if (/(usa|united states|canada|mexico|brazil|new york|san francisco|los angeles|chicago|boston|seattle|austin|miami|toronto|vancouver)/.test(lo)) out.region = 'Americas';
+        else if (/(uk|united kingdom|london|paris|berlin|amsterdam|madrid|barcelona|lisbon|munich|zurich|brussels|dublin|stockholm|copenhagen|oslo)/.test(lo)) out.region = 'Europe';
+        else if (/(singapore|hong kong|tokyo|seoul|shanghai|beijing|sydney|melbourne|delhi|mumbai|bangalore)/.test(lo)) out.region = 'Asia-Pacific';
+        else if (/(dubai|abu dhabi|riyadh|doha|tel aviv|cairo)/.test(lo)) out.region = 'MENA';
+      }
+      return out;
+    }
 
-        var form = document.createElement('form');
-        form.id = 'add-event-card';
-        form.className = 'add-event-card ops-form';
-        form.innerHTML =
-          '<h3>New manual event</h3>' +
-          '<label><span class="key">Name *</span>' +
-            '<input type="text" name="name" required placeholder="e.g. AI Summit San Francisco">' +
-          '</label>' +
-          '<label><span class="key">Date *</span>' +
-            '<input type="text" name="date_str" required placeholder="e.g. September 12, 2026 or September 10–12, 2026">' +
-          '</label>' +
-          '<div class="row">' +
-            '<label><span class="key">Location</span>' +
-              '<input type="text" name="location" placeholder="City, Country">' +
+    // Apply extracted fields to the form (only fills empty inputs by default)
+    function applyExtractToForm(form, extracted, opts) {
+      opts = opts || {};
+      var keys = ['name', 'date_str', 'location', 'region', 'url'];
+      var filled = 0, skipped = 0;
+      keys.forEach(function (k) {
+        var el = form.querySelector('[name="' + k + '"]');
+        if (!el) return;
+        if (!extracted[k]) return;
+        if (el.value && !opts.overwrite) { skipped++; return; }
+        el.value = extracted[k];
+        filled++;
+      });
+      return { filled: filled, skipped: skipped, total: keys.filter(function (k) { return extracted[k]; }).length };
+    }
+
+    function buildAddEventForm() {
+      var form = document.createElement('form');
+      form.id = 'add-event-card';
+      form.className = 'add-event-card ops-form';
+      form.innerHTML =
+        '<h3>New manual event</h3>' +
+        '<details class="ops-edit" id="paste-email-section">' +
+          '<summary>Or paste from email / web copy…</summary>' +
+          '<div class="ops-form" style="margin-top:8px;">' +
+            '<label><span class="key">Paste here</span>' +
+              '<textarea id="paste-email-text" placeholder="Paste the full email or web event listing text. We\u2019ll auto-fill name, date, location, region, and URL." style="min-height:120px;"></textarea>' +
             '</label>' +
-            '<label><span class="key">Region</span>' +
-              '<select name="region">' +
-                optionRows(['', 'Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'], '') +
-              '</select>' +
-            '</label>' +
+            '<div class="add-actions">' +
+              '<button type="button" class="primary" id="paste-extract-btn">Extract fields</button>' +
+              '<button type="button" class="secondary" id="paste-clear-btn">Clear</button>' +
+            '</div>' +
+            '<p class="ops-meta" id="paste-extract-meta"></p>' +
           '</div>' +
-          '<div class="row">' +
-            '<label><span class="key">Type</span>' +
-              '<input type="text" name="type" placeholder="Enterprise, Halo, Research, …">' +
-            '</label>' +
-            '<label><span class="key">Priority</span>' +
-              '<select name="priority">' +
-                optionRows(['', 'High', 'Medium', 'Low'], 'Medium') +
-              '</select>' +
-            '</label>' +
-          '</div>' +
-          '<label><span class="key">Why it fits</span>' +
-            '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
+        '</details>' +
+        '<label><span class="key">Name *</span>' +
+          '<input type="text" name="name" required placeholder="e.g. AI Summit San Francisco">' +
+        '</label>' +
+        '<label><span class="key">Date *</span>' +
+          '<input type="text" name="date_str" required placeholder="e.g. September 12, 2026 or September 10–12, 2026">' +
+        '</label>' +
+        '<div class="row">' +
+          '<label><span class="key">Location</span>' +
+            '<input type="text" name="location" placeholder="City, Country">' +
           '</label>' +
-          '<label><span class="key">URL</span>' +
-            '<input type="text" name="url" placeholder="https://…">' +
+          '<label><span class="key">Region</span>' +
+            '<select name="region">' +
+              optionRows(['', 'Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'], '') +
+            '</select>' +
           '</label>' +
-          '<div class="add-actions">' +
-            '<button type="submit" class="primary">Add event</button>' +
-            '<button type="button" class="secondary" data-cancel>Cancel</button>' +
-          '</div>';
+        '</div>' +
+        '<div class="row">' +
+          '<label><span class="key">Type</span>' +
+            '<input type="text" name="type" placeholder="Enterprise, Halo, Research, …">' +
+          '</label>' +
+          '<label><span class="key">Priority</span>' +
+            '<select name="priority">' +
+              optionRows(['', 'High', 'Medium', 'Low'], 'Medium') +
+            '</select>' +
+          '</label>' +
+        '</div>' +
+        '<label><span class="key">Why it fits</span>' +
+          '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
+        '</label>' +
+        '<label><span class="key">URL</span>' +
+          '<input type="text" name="url" placeholder="https://…">' +
+        '</label>' +
+        '<div class="add-actions">' +
+          '<button type="submit" class="primary">Add event</button>' +
+          '<button type="button" class="secondary" data-cancel>Cancel</button>' +
+        '</div>';
+      return form;
+    }
 
-        $opsGrid.insertBefore(form, $opsGrid.firstChild);
-        form.querySelector('input[name="name"]').focus();
+    function attachAddEventHandlers(form, email) {
+      // Extract from pasted email
+      var extractBtn = form.querySelector('#paste-extract-btn');
+      var clearBtn   = form.querySelector('#paste-clear-btn');
+      var pasteArea  = form.querySelector('#paste-email-text');
+      var meta       = form.querySelector('#paste-extract-meta');
+      extractBtn.addEventListener('click', function () {
+        var text = pasteArea.value || '';
+        if (text.trim().length < 10) { meta.textContent = 'Nothing to extract from yet.'; return; }
+        var extracted = extractFromEmail(text);
+        var report = applyExtractToForm(form, extracted, { overwrite: false });
+        if (report.total === 0) {
+          meta.textContent = 'Couldn\u2019t find a name / date / location / URL in that text. Fill the form manually.';
+          return;
+        }
+        meta.textContent = 'Extracted ' + report.filled + ' of ' + report.total + ' fields' + (report.skipped ? ' (' + report.skipped + ' skipped because fields were already filled).' : '.');
+      });
+      clearBtn.addEventListener('click', function () { pasteArea.value = ''; meta.textContent = ''; });
 
-        form.querySelector('[data-cancel]').addEventListener('click', function () { form.remove(); });
+      // Cancel
+      form.querySelector('[data-cancel]').addEventListener('click', function () { form.remove(); });
 
-        form.addEventListener('submit', function (ev) {
-          ev.preventDefault();
-          var fd = new FormData(form);
-          var row = {
-            name:      (fd.get('name') || '').toString().trim(),
-            date_str:  (fd.get('date_str') || '').toString().trim(),
-            location:  (fd.get('location') || '').toString().trim() || null,
-            region:    (fd.get('region') || '').toString().trim() || null,
-            type:      (fd.get('type') || '').toString().trim() || null,
-            priority:  (fd.get('priority') || '').toString().trim() || null,
-            why:       (fd.get('why') || '').toString().trim() || null,
-            url:       (fd.get('url') || '').toString().trim() || null,
-            created_by: email
-          };
-          if (!row.name || !row.date_str) { alert('Name and date are required'); return; }
-          var submitBtn = form.querySelector('button.primary');
-          submitBtn.disabled = true; submitBtn.textContent = 'Saving…';
-          sb.from('manual_events').insert(row).select().then(function (resp) {
-            submitBtn.disabled = false; submitBtn.textContent = 'Add event';
-            if (resp.error) { status('Add failed: ' + resp.error.message, 'error'); return; }
-            var newRow = (resp.data && resp.data[0]) || row;
-            form.remove();
-            var card = buildManualCard(newRow);
-            // Insert at the top of the grid so it's immediately visible
-            $opsGrid.insertBefore(card, $opsGrid.firstChild);
-            updateOpsCount();
-            flashOk('Event added');
-          });
+      // Submit → manual_events insert
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var fd = new FormData(form);
+        var row = {
+          name:       (fd.get('name') || '').toString().trim(),
+          date_str:   (fd.get('date_str') || '').toString().trim(),
+          location:   (fd.get('location') || '').toString().trim() || null,
+          region:     (fd.get('region') || '').toString().trim() || null,
+          type:       (fd.get('type') || '').toString().trim() || null,
+          priority:   (fd.get('priority') || '').toString().trim() || null,
+          why:        (fd.get('why') || '').toString().trim() || null,
+          url:        (fd.get('url') || '').toString().trim() || null,
+          created_by: email
+        };
+        if (!row.name || !row.date_str) { alert('Name and date are required'); return; }
+        var submitBtn = form.querySelector('button.primary[type="submit"]');
+        submitBtn.disabled = true; submitBtn.textContent = 'Saving…';
+        sb.from('manual_events').insert(row).select().then(function (resp) {
+          submitBtn.disabled = false; submitBtn.textContent = 'Add event';
+          if (resp.error) { status('Add failed: ' + resp.error.message, 'error'); return; }
+          var newRow = (resp.data && resp.data[0]) || row;
+          form.remove();
+          var card = buildManualCard(newRow);
+          $opsGrid.insertBefore(card, $opsGrid.firstChild);
+          updateOpsCount();
+          flashOk('Event added');
         });
       });
+    }
+
+    // ── View toggle (Grid / Calendar) ───────────────────────────────
+    var VIEW_KEY = 'ab.angela.view';
+    var currentView = 'grid';
+
+    function setView(name) {
+      if (name !== 'grid' && name !== 'calendar') name = 'grid';
+      currentView = name;
+      document.querySelectorAll('.view-toggle button[data-view]').forEach(function (b) {
+        var on = b.dataset.view === name;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      var g = document.getElementById('ops-grid');
+      var c = document.getElementById('ops-calendar');
+      if (g) g.style.display = (name === 'grid') ? '' : 'none';
+      if (c) c.classList.toggle('show', name === 'calendar');
+      try { localStorage.setItem(VIEW_KEY, name); } catch (e) {}
+    }
+
+    function wireViewToggle() {
+      document.querySelectorAll('.view-toggle button[data-view]').forEach(function (b) {
+        // Clone-replace to avoid duplicate listeners on re-route
+        var fresh = b.cloneNode(true);
+        b.parentNode.replaceChild(fresh, b);
+        fresh.addEventListener('click', function () { setView(fresh.dataset.view); });
+      });
+      try {
+        var saved = localStorage.getItem(VIEW_KEY);
+        if (saved === 'grid' || saved === 'calendar') setView(saved);
+      } catch (e) {}
+    }
+
+    // ── Calendar rendering ──────────────────────────────────────────
+    var REGION_COLORS = {
+      'Americas':     '#2773c2',
+      'Europe':       '#7c3aed',
+      'Asia-Pacific': '#059669',
+      'MENA':         '#ca8a04',
+      'Global':       '#475569'
+    };
+
+    function regionColor(r) { return REGION_COLORS[r] || '#737373'; }
+
+    function initials(name) {
+      if (!name) return '';
+      var parts = String(name).trim().split(/\s+/).filter(Boolean);
+      return parts.map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+    }
+
+    function isoFromYMD(y, m, d) {
+      return y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    }
+
+    function buildCalendarMonth(year, month, events, stateMap, onChipClick) {
+      var monthDiv = document.createElement('div');
+      monthDiv.className = 'calendar-month';
+
+      var head = document.createElement('h3');
+      head.className = 'calendar-month-head';
+      head.textContent = new Date(year, month, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+      monthDiv.appendChild(head);
+
+      var grid = document.createElement('div');
+      grid.className = 'calendar-grid';
+      ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function (d) {
+        var dh = document.createElement('div');
+        dh.className = 'calendar-day-head';
+        dh.textContent = d;
+        grid.appendChild(dh);
+      });
+
+      var firstDay = new Date(year, month, 1).getDay();
+      var daysInMonth = new Date(year, month+1, 0).getDate();
+      var prevMonthDays = new Date(year, month, 0).getDate();
+      var today = new Date(); today.setHours(0,0,0,0);
+      var todayIso = isoFromYMD(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // Lead with previous month's tail
+      for (var i = 0; i < firstDay; i++) {
+        var dn = prevMonthDays - firstDay + i + 1;
+        var cell = document.createElement('div');
+        cell.className = 'calendar-day is-outside';
+        cell.innerHTML = '<div class="calendar-day-num">' + dn + '</div>';
+        grid.appendChild(cell);
+      }
+
+      // Index events by start_date for O(1) lookup
+      var byDate = {};
+      events.forEach(function (ev) {
+        if (!ev.start_date) return;
+        (byDate[ev.start_date] = byDate[ev.start_date] || []).push(ev);
+      });
+
+      for (var day = 1; day <= daysInMonth; day++) {
+        var dayIso = isoFromYMD(year, month, day);
+        var cell = document.createElement('div');
+        cell.className = 'calendar-day';
+        if (dayIso === todayIso) cell.classList.add('is-today');
+        var head2 = document.createElement('div');
+        head2.className = 'calendar-day-num';
+        head2.textContent = day;
+        cell.appendChild(head2);
+
+        (byDate[dayIso] || []).forEach(function (ev) {
+          var st = stateMap[ev.num] || {};
+          if (st.hidden) return;
+          var chip = document.createElement('div');
+          chip.className = 'cal-chip';
+          if (st.saved) chip.classList.add('is-saved');
+          if (st.urgent) chip.classList.add('is-urgent');
+          chip.dataset.eventNum = ev.num;
+          var sp = st.speaker || '';
+          var ini = sp ? initials(sp) : '';
+          chip.innerHTML =
+            '<span class="cal-region-dot" style="background:' + regionColor(ev.region) + ';"></span>' +
+            '<span class="cal-chip-name">' + escapeHtml(ev.name) + '</span>' +
+            (ini ? '<span class="cal-chip-initial" title="' + escapeHtml(sp) + '">' + escapeHtml(ini) + '</span>' : '');
+          chip.title = ev.name +
+            (sp ? ' · Speaker: ' + sp : '') +
+            (ev.location ? ' · ' + ev.location : '') +
+            (st.status ? ' · ' + st.status : '');
+          chip.addEventListener('click', function () { onChipClick(ev.num); });
+          cell.appendChild(chip);
+        });
+
+        grid.appendChild(cell);
+      }
+
+      // Trail: pad to complete the last week
+      var totalCells = firstDay + daysInMonth;
+      var trail = (Math.ceil(totalCells / 7) * 7) - totalCells;
+      for (var t = 1; t <= trail; t++) {
+        var cell2 = document.createElement('div');
+        cell2.className = 'calendar-day is-outside';
+        cell2.innerHTML = '<div class="calendar-day-num">' + t + '</div>';
+        grid.appendChild(cell2);
+      }
+
+      monthDiv.appendChild(grid);
+      return monthDiv;
+    }
+
+    function renderCalendar(events, stateMap, manualEvents) {
+      var cal = document.getElementById('ops-calendar');
+      if (!cal) return;
+      cal.innerHTML = '';
+
+      // Combine regular + manual events. Manual events use bigserial id namespace
+      // distinct from event_num, so we tag them so the click handler can find
+      // them in the ops-grid by data-manual-id instead.
+      var combined = events.slice();
+      (manualEvents || []).forEach(function (m) {
+        if (!m.start_date) {
+          // Try to derive start_date from date_str — best effort
+          var derived = deriveStartDateFromText(m.date_str);
+          if (derived) m = Object.assign({}, m, { start_date: derived });
+        }
+        combined.push({
+          num: 'm' + m.id, // composite key — string for chip data attribute
+          _manual: true,
+          _manualId: m.id,
+          name: m.name,
+          start_date: m.start_date,
+          location: m.location || '',
+          region: m.region || '',
+          date_str: m.date_str || ''
+        });
+      });
+
+      // Determine month range
+      var earliest = null, latest = null;
+      combined.forEach(function (ev) {
+        if (!ev.start_date) return;
+        var d = new Date(ev.start_date);
+        if (isNaN(d)) return;
+        if (!earliest || d < earliest) earliest = d;
+        if (!latest || d > latest) latest = d;
+      });
+      if (!earliest) {
+        cal.innerHTML = '<p class="alert">No events with dates to display on the calendar yet.</p>';
+        return;
+      }
+      // Always include current month even if no events
+      var now = new Date(); now.setDate(1);
+      if (now < earliest) earliest = now;
+      // Cap at Dec 2027 to prevent runaway in case of bad data
+      var capDate = new Date(2027, 11, 1);
+      if (latest > capDate) latest = capDate;
+
+      var y = earliest.getFullYear(), m = earliest.getMonth();
+      var endY = latest.getFullYear(), endM = latest.getMonth();
+      var guard = 0; // safety
+      while ((y < endY || (y === endY && m <= endM)) && guard++ < 36) {
+        cal.appendChild(buildCalendarMonth(y, m, combined, stateMap, function (num) {
+          // Click chip → switch to Grid, scroll to + highlight the card
+          setView('grid');
+          var selector = String(num).charAt(0) === 'm'
+            ? '.ops-card[data-manual-id="' + String(num).slice(1) + '"]'
+            : '.ops-card[data-event-num="' + num + '"]';
+          var card = $opsGrid.querySelector(selector);
+          if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.remove('is-highlight');
+            // Re-trigger animation
+            void card.offsetWidth;
+            card.classList.add('is-highlight');
+            setTimeout(function () { card.classList.remove('is-highlight'); }, 1700);
+          }
+        }));
+        m++;
+        if (m > 11) { m = 0; y++; }
+      }
+    }
+
+    function deriveStartDateFromText(text) {
+      if (!text) return null;
+      var months = {january:1,february:2,march:3,april:4,may:5,june:6,
+                    july:7,august:8,september:9,october:10,november:11,december:12,
+                    jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+      var m = String(text).match(/([A-Za-z]+)\s+(\d{1,2})[^\d]*,?\s*(\d{4})/);
+      if (!m) return null;
+      var mn = months[m[1].toLowerCase()];
+      if (!mn) return null;
+      var d = parseInt(m[2], 10);
+      var y = parseInt(m[3], 10);
+      return y + '-' + String(mn).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    }
+
+    // ── Realtime subscription ───────────────────────────────────────
+    var realtimeChannel = null;
+    function setupRealtime(email) {
+      if (realtimeChannel) {
+        try { realtimeChannel.unsubscribe(); } catch (e) {}
+        realtimeChannel = null;
+      }
+      try {
+        realtimeChannel = sb.channel('ops-realtime-' + Math.random().toString(36).slice(2,8))
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'event_state' }, function () {
+            renderOps(email);
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'manual_events' }, function () {
+            renderOps(email);
+          })
+          .subscribe();
+      } catch (e) {
+        // Realtime is a nice-to-have; if it fails, polling on user action still works
+        console.warn('Realtime setup failed:', e);
+      }
+    }
+
+    // ── CSV import/export ───────────────────────────────────────────
+    var CSV_COLUMNS = ['event_num','status','speaker','priority_override','track','saved','hidden','urgent','notes'];
+
+    function toCsvCell(v) {
+      if (v === null || v === undefined) return '';
+      v = String(v);
+      if (v.indexOf(',') >= 0 || v.indexOf('"') >= 0 || v.indexOf('\n') >= 0) {
+        return '"' + v.replace(/"/g, '""') + '"';
+      }
+      return v;
+    }
+
+    function rowsToCsv(headers, rows) {
+      var lines = [headers.map(toCsvCell).join(',')];
+      rows.forEach(function (row) {
+        lines.push(headers.map(function (h) { return toCsvCell(row[h]); }).join(','));
+      });
+      return lines.join('\n') + '\n';
+    }
+
+    function parseCsvLine(line) {
+      var cells = []; var i = 0, current = '', inQuote = false;
+      while (i < line.length) {
+        var ch = line[i];
+        if (inQuote) {
+          if (ch === '"') {
+            if (line[i+1] === '"') { current += '"'; i += 2; continue; }
+            inQuote = false; i++; continue;
+          }
+          current += ch; i++;
+        } else {
+          if (ch === '"') { inQuote = true; i++; continue; }
+          if (ch === ',') { cells.push(current); current = ''; i++; continue; }
+          current += ch; i++;
+        }
+      }
+      cells.push(current);
+      return cells;
+    }
+
+    function parseCsv(text) {
+      // Strip BOM, normalize newlines
+      text = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+      // Handle multi-line quoted cells by walking the string
+      var rows = []; var i = 0; var cur = ''; var rowCells = []; var inQ = false;
+      while (i < text.length) {
+        var ch = text[i];
+        if (inQ) {
+          if (ch === '"') {
+            if (text[i+1] === '"') { cur += '"'; i += 2; continue; }
+            inQ = false; i++; continue;
+          }
+          cur += ch; i++;
+        } else {
+          if (ch === '"') { inQ = true; i++; continue; }
+          if (ch === ',') { rowCells.push(cur); cur = ''; i++; continue; }
+          if (ch === '\n') { rowCells.push(cur); rows.push(rowCells); rowCells = []; cur = ''; i++; continue; }
+          cur += ch; i++;
+        }
+      }
+      if (cur !== '' || rowCells.length > 0) { rowCells.push(cur); rows.push(rowCells); }
+      if (rows.length === 0) return { headers: [], rows: [] };
+      var headers = rows[0].map(function (h) { return h.trim(); });
+      var data = rows.slice(1).filter(function (r) { return r.some(function (c) { return c && c.trim().length > 0; }); })
+        .map(function (cells) {
+          var obj = {};
+          headers.forEach(function (h, idx) { obj[h] = cells[idx] !== undefined ? cells[idx] : ''; });
+          return obj;
+        });
+      return { headers: headers, rows: data };
+    }
+
+    function coerceCsvValue(col, raw) {
+      var v = (raw == null) ? '' : String(raw).trim();
+      if (col === 'event_num') {
+        if (!v) return null;
+        var n = parseInt(v, 10);
+        return Number.isFinite(n) ? n : null;
+      }
+      if (col === 'saved' || col === 'hidden' || col === 'urgent') {
+        if (/^(true|1|yes|y|on)$/i.test(v)) return true;
+        if (/^(false|0|no|n|off|)$/i.test(v)) return false;
+        return false;
+      }
+      // Text columns: empty becomes null so we don't blow away NULLs to ''
+      return v === '' ? null : v;
+    }
+
+    function downloadCsv(filename, csvText) {
+      var blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 0);
+    }
+
+    function diffRows(currentRows, incomingRows) {
+      var byNum = {};
+      currentRows.forEach(function (r) { byNum[r.event_num] = r; });
+      var added = [], updated = [], unchanged = [];
+      incomingRows.forEach(function (row) {
+        if (row.event_num == null) return; // skip invalid
+        var existing = byNum[row.event_num];
+        if (!existing) { added.push(row); return; }
+        var changed = CSV_COLUMNS.some(function (c) {
+          if (c === 'event_num') return false;
+          var a = existing[c]; var b = row[c];
+          if (a === null && b === null) return false;
+          if (a === false && (b === null || b === false)) return false;
+          if (b === false && (a === null || a === false)) return false;
+          return String(a == null ? '' : a) !== String(b == null ? '' : b);
+        });
+        (changed ? updated : unchanged).push(row);
+      });
+      return { added: added, updated: updated, unchanged: unchanged };
+    }
+
+    function openCsvPanel(email) {
+      // Toggle close if open
+      var existing = document.getElementById('csv-panel');
+      if (existing) { existing.remove(); return; }
+
+      var panel = document.createElement('div');
+      panel.id = 'csv-panel';
+      panel.className = 'add-event-card';
+      panel.innerHTML =
+        '<h3>CSV import / export</h3>' +
+        '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
+          'Export current ops state as CSV, edit in any spreadsheet tool, then re-upload. ' +
+          'Columns: <code>' + CSV_COLUMNS.join(', ') + '</code>. Booleans: <code>true</code> / <code>false</code>.' +
+        '</p>' +
+        '<div class="add-actions" style="margin-bottom:8px;">' +
+          '<button type="button" class="primary" id="csv-export-btn">Download current CSV</button>' +
+          '<label class="primary" style="cursor:pointer;display:inline-flex;align-items:center;padding:9px 16px;background:var(--ab-fg);color:var(--ab-bg);border-radius:8px;font-weight:600;font-size:0.9rem;">' +
+            'Upload CSV…' +
+            '<input type="file" id="csv-file" accept=".csv,text/csv" style="display:none;">' +
+          '</label>' +
+          '<button type="button" class="secondary" id="csv-cancel-btn">Close</button>' +
+        '</div>' +
+        '<div id="csv-preview" style="margin-top:8px;"></div>';
+
+      $opsGrid.insertBefore(panel, $opsGrid.firstChild);
+      panel.querySelector('#csv-cancel-btn').addEventListener('click', function () { panel.remove(); });
+
+      // Export current state
+      panel.querySelector('#csv-export-btn').addEventListener('click', function () {
+        sb.from('event_state').select('*').order('event_num').then(function (resp) {
+          if (resp.error) { status('Export failed: ' + resp.error.message, 'error'); return; }
+          var rows = resp.data || [];
+          // If empty, give a header-only template
+          if (rows.length === 0) rows = [];
+          var csv = rowsToCsv(CSV_COLUMNS, rows);
+          var stamp = new Date().toISOString().slice(0,10);
+          downloadCsv('event_state_' + stamp + '.csv', csv);
+          flashOk('CSV downloaded');
+        });
+      });
+
+      // Upload + preview
+      panel.querySelector('#csv-file').addEventListener('change', function (ev) {
+        var file = ev.target.files && ev.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          var text = String(reader.result || '');
+          var parsed = parseCsv(text);
+          // Validate headers
+          var missing = CSV_COLUMNS.filter(function (c) { return parsed.headers.indexOf(c) === -1; });
+          var $prev = panel.querySelector('#csv-preview');
+          if (parsed.rows.length === 0) {
+            $prev.innerHTML = '<p class="alert error">CSV looks empty.</p>';
+            return;
+          }
+          if (missing.length > 0) {
+            $prev.innerHTML = '<p class="alert error">Missing required columns: ' + missing.map(escapeHtml).join(', ') + '. Use the download button to grab a valid template.</p>';
+            return;
+          }
+          // Coerce types
+          var coerced = parsed.rows.map(function (row) {
+            var out = {};
+            CSV_COLUMNS.forEach(function (c) { out[c] = coerceCsvValue(c, row[c]); });
+            return out;
+          }).filter(function (r) { return r.event_num !== null; });
+
+          // Diff against current state
+          sb.from('event_state').select('*').then(function (resp) {
+            if (resp.error) { $prev.innerHTML = '<p class="alert error">Couldn\u2019t fetch current state: ' + escapeHtml(resp.error.message) + '</p>'; return; }
+            var current = resp.data || [];
+            var diff = diffRows(current, coerced);
+            var $prev2 = panel.querySelector('#csv-preview');
+            $prev2.innerHTML =
+              '<div class="alert">' +
+                '<strong>Preview:</strong> ' +
+                '<span style="color:var(--ab-green);">' + diff.added.length + ' new</span> · ' +
+                '<span style="color:var(--ab-blue);">' + diff.updated.length + ' updated</span> · ' +
+                '<span style="color:var(--ab-fg-3);">' + diff.unchanged.length + ' unchanged</span>' +
+              '</div>' +
+              '<div class="add-actions" style="margin-top:8px;">' +
+                '<button type="button" class="primary" id="csv-apply-btn">Apply ' + (diff.added.length + diff.updated.length) + ' change' + ((diff.added.length + diff.updated.length) === 1 ? '' : 's') + '</button>' +
+                '<button type="button" class="secondary" id="csv-discard-btn">Discard</button>' +
+              '</div>';
+            $prev2.querySelector('#csv-discard-btn').addEventListener('click', function () { $prev2.innerHTML = ''; ev.target.value = ''; });
+            $prev2.querySelector('#csv-apply-btn').addEventListener('click', function () {
+              var btn = $prev2.querySelector('#csv-apply-btn');
+              btn.disabled = true; btn.textContent = 'Applying…';
+              // Tag updated_by on all changes
+              var toUpsert = diff.added.concat(diff.updated).map(function (r) {
+                var row = {};
+                CSV_COLUMNS.forEach(function (c) { row[c] = r[c]; });
+                row.updated_by = email;
+                return row;
+              });
+              if (toUpsert.length === 0) { btn.disabled = false; btn.textContent = 'Nothing to apply'; return; }
+              sb.from('event_state').upsert(toUpsert, { onConflict: 'event_num' }).then(function (resp2) {
+                if (resp2.error) { btn.disabled = false; btn.textContent = 'Retry'; status('Apply failed: ' + resp2.error.message, 'error'); return; }
+                $prev2.innerHTML = '<p class="alert"><strong>Applied:</strong> ' + diff.added.length + ' new + ' + diff.updated.length + ' updated. Refreshing grid…</p>';
+                flashOk('CSV applied');
+                setTimeout(function () { panel.remove(); renderOps(email); }, 600);
+              });
+            });
+          });
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    // ── + Add event / Paste email orchestration ─────────────────────
+    function wireAddEvent(email) {
+      var $addBtn   = document.getElementById('add-event-btn');
+      var $pasteBtn = document.getElementById('paste-email-btn');
+      var $csvBtn   = document.getElementById('csv-btn');
+      if (!$addBtn) return;
+      // Clone-replace to clear listeners from any prior route() call
+      var freshAdd = $addBtn.cloneNode(true); $addBtn.parentNode.replaceChild(freshAdd, $addBtn); $addBtn = freshAdd;
+      if ($pasteBtn) { var fp = $pasteBtn.cloneNode(true); $pasteBtn.parentNode.replaceChild(fp, $pasteBtn); $pasteBtn = fp; }
+      if ($csvBtn)   { var fc = $csvBtn.cloneNode(true); $csvBtn.parentNode.replaceChild(fc, $csvBtn); $csvBtn = fc; }
+
+      function openAddForm(opts) {
+        opts = opts || {};
+        var existing = document.getElementById('add-event-card');
+        if (existing) {
+          if (opts.expandPaste) {
+            var section = document.getElementById('paste-email-section');
+            if (section) section.setAttribute('open', '');
+            var pa = document.getElementById('paste-email-text');
+            if (pa) pa.focus();
+          }
+          return existing;
+        }
+        var form = buildAddEventForm();
+        $opsGrid.insertBefore(form, $opsGrid.firstChild);
+        attachAddEventHandlers(form, email);
+        if (opts.expandPaste) {
+          form.querySelector('#paste-email-section').setAttribute('open', '');
+          setTimeout(function () { form.querySelector('#paste-email-text').focus(); }, 0);
+        } else {
+          form.querySelector('input[name="name"]').focus();
+        }
+        return form;
+      }
+
+      $addBtn.addEventListener('click', function () {
+        var existing = document.getElementById('add-event-card');
+        if (existing) { existing.remove(); return; }
+        openAddForm({});
+      });
+      if ($pasteBtn) {
+        $pasteBtn.addEventListener('click', function () { openAddForm({ expandPaste: true }); });
+      }
+      if ($csvBtn) {
+        $csvBtn.addEventListener('click', function () { openCsvPanel(email); });
+      }
     }
 
     function route(session) {
       if (!session || !session.user || !session.user.email) {
         showOnly($signin);
+        // Drop any active realtime channel from a previous session
+        if (realtimeChannel) {
+          try { realtimeChannel.unsubscribe(); } catch (e) {}
+          realtimeChannel = null;
+        }
         return;
       }
       var email = session.user.email.toLowerCase();
@@ -2548,8 +3271,10 @@
         }
         $opsEmail.textContent = email;
         showOnly($ops);
+        wireViewToggle();
         renderOps(email);
         wireAddEvent(email);
+        setupRealtime(email);
       });
     }
 
