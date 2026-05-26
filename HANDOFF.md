@@ -6,17 +6,44 @@ For the next AI agent or engineer picking this up.
 
 ## What's done
 
-- ✅ Parses 82 events from `data/ArcticBlue AI 2026 Event Tracker.docx` (Q2/Q3 2026 window)
-- ✅ Auto-buckets events into TODAY / UPCOMING / ARCHIVED based on the build date
+### Phase 1 — public read-only page (shipped May 2026)
+- ✅ Parses 82 events from `data/events.json` (canonical) or the source .docx (legacy fallback)
+- ✅ Auto-buckets into TODAY / UPCOMING / ARCHIVED based on `date.today()` (or `BUILD_DATE` env override)
 - ✅ Auto-archives events whose end-date is in the past
-- ✅ White-primary internal aesthetic (HRF parity: clean, monochrome, sharp typography)
-- ✅ ArcticBlue logo and brand fonts (Hanken Grotesk + Fragment Mono)
+- ✅ White-primary aesthetic; Hanken Grotesk + Fragment Mono; ArcticBlue logo + #2773c2 accent
 - ✅ KPI strip, today/up-next callout, filters (search / priority / region / type)
-- ✅ Real ArcticBlue logo from `framerusercontent.com` saved to `public/arcticblue-logo.png`
-- ✅ Verified URL linking — 18 of 82 events have a hyperlink confirmed from the source doc
-- ✅ No-hallucination rule enforced in code — cards without verified URLs are deliberately non-clickable
-- ✅ Mobile responsive (KPI grid stacks, filters stack, cards stack, archive collapses)
-- ✅ Live on Vercel at `https://arcticblue-event-tracker-deploy.vercel.app/`
+- ✅ Verified URL linking — only renders ↗ for events with URLs in `event-urls-from-doc.json` or `event-urls-manual.json`
+- ✅ Mobile responsive
+- ✅ Live on Vercel
+
+### Phase 2 — Supabase auth + ops state for Angela (shipped May 2026)
+- ✅ Supabase project `efkvhlmfdwlobvdmvqiq` ("AB Event Tracker [Hurley's Org]")
+- ✅ Schema: `allowed_editors`, `event_state`, `manual_events` (see `supabase/migrations/0001_init.sql`)
+- ✅ RLS gates writes to `auth.email() in allowed_editors`; reads are public
+- ✅ Magic-link sign-in in the "For Angela" tab
+- ✅ Allow-list = `angela@arcticblue.ai`, `hurley@arcticblue.ai`, `thor@arcticblue.ai`
+- ✅ Per-event ops: Saved ★, Urgent, Hidden, Status, Speaker, Priority override, Track, Notes
+- ✅ Inline status/speaker/priority/track badges on cards (no need to open Edit)
+- ✅ "Last edit · email · timestamp" per card
+- ✅ + Add event form writes to `manual_events`; Edit / Delete on manual events
+
+### Phase 3 — power tools (shipped May 2026)
+- ✅ Stats summary bar (Upcoming · Saved · Urgent · Speaker set · Status set · Hidden)
+- ✅ Filter bar (search · region · Saved only · Urgent only · Has speaker · Show hidden)
+- ✅ Grid / Calendar view toggle (selection persists in `localStorage`)
+- ✅ Month-by-month calendar with region-color chips, speaker initials, click-to-jump
+- ✅ Realtime updates via Supabase channel — multi-tab live sync
+- ✅ Paste-email field extractor (heuristic regex pulls name/date/location/region/URL)
+- ✅ CSV import/export of `event_state` with diff preview before commit
+- ✅ One-shot iCal download of currently-saved events
+
+### Phase 4 — calendar feed + automation (shipped May 2026)
+- ✅ Public iCal feed at `/calendar.ics` — every saved event + every manual event, regenerated daily
+- ✅ "Subscribe in calendar app" button with copy-link + paste instructions for Apple / Google / Outlook
+- ✅ Manual events store `start_date` + `end_date` (including cross-month ranges) so the feed shows correct multi-day blocks
+- ✅ GitHub Action `daily-build.yml` runs at 09:00 UTC and on-demand; only commits when content actually changed
+- ✅ `TODAY` defaults to `date.today()`; pinnable via `BUILD_DATE` env var
+- ✅ Parser QA: 4 parsers × 5 samples each = 54 assertion checks; bugs found and fixed
 
 ---
 
@@ -24,64 +51,71 @@ For the next AI agent or engineer picking this up.
 
 ### High value
 
-1. **Backfill the 67 events without verified URLs.** Open the source `.docx`, visit each event in a browser, paste the verified URL into `data/event-urls-manual.json`. Don't guess — only add URLs that load a real page about the event. Each manual entry should be a deliberate human verification.
+1. **Backfill remaining events without verified URLs.** Open the source `.docx` (or whatever new event sources arrive), visit each event in a browser, paste the verified URL into `data/event-urls-manual.json`. Don't guess — only add URLs that load a real page about the event.
 
-2. **Calendar view toggle.** Today the page is grid-only. A monthly calendar layout (event chips on day cells) would make "what's coming up in June?" visually trivial. The existing `data-priority`, `data-region`, `data-type`, and start-date attributes already exist on each card — reuse them.
+2. **Specific start times on events.** Today everything in the iCal feed is all-day. If Angela wants "9am keynote" on the calendar, the schema needs `start_time` / `end_time` columns (nullable), plus form fields and ICS `DTSTART;VALUE=DATE-TIME` output. Roughly a one-hour change.
 
-3. **Auto-rebuild on a daily cron.** Right now `build.py` is manual. A GitHub Action that runs `python3 src/extract-urls.py && python3 src/build.py && vercel deploy` daily would keep TODAY / UPCOMING / ARCHIVED always current without anyone clicking anything.
+3. **Email-to-event automation.** Today the paste-email extractor is manual (Angela pastes an email into a textarea). A backend service that *receives* emails and runs the same extractor → inserts into `manual_events` directly would close the loop. Options: Cloudflare Email Workers, Supabase Edge Function with a Postmark inbound webhook, or a Resend route. Needs DNS + service setup.
 
 ### Medium value
 
-4. **Source the .docx from Google Docs directly.** Currently `data/ArcticBlue AI 2026 Event Tracker.docx` is a local snapshot. The original lives at `https://docs.google.com/document/d/1Gi358-ohqpcCf_H5ykcaGpLXq3CQVcM0sVSKNkRxxT8/edit`. The Google Docs API would let `extract-urls.py` and `build.py` pull live state on every build — eliminating "snapshot is stale" risk.
+4. **Per-user iCal feeds.** Today `/calendar.ics` is one shared feed of everything-saved. If different team members want their own shortlists, we'd need `/calendar/<token>.ics` with signed URLs. A small Supabase Edge Function could handle it.
 
-5. **Email-scraping ingestion.** The original ask said this tracker would receive emails about new events. A small ingestion pipeline (parse forwarded emails → extract event name + date + URL → append to the doc OR to a sidecar JSON) would close the "Hurley forwards an event invite" loop end-to-end. Out of scope for the static page; would need a Cloudflare Worker or similar.
+5. **Slack notification on new manual event.** Supabase database webhook → Slack incoming-webhook URL on every `manual_events` insert. Two-line config job.
 
-6. **Map view.** Each event has a city/country. A choropleth or pin-map of upcoming events (lit up red for the next 30 days, gray after) would be visually compelling for the team. Use a vector world SVG (Natural Earth) — do NOT load Mapbox or similar from a third-party CDN.
+6. **Map view.** Each event has a city/country. A choropleth or pin map of upcoming events would be visually compelling. Use a vector world SVG (Natural Earth) — do NOT load Mapbox from a third-party CDN.
 
-7. **Tier-level prioritization metadata.** Currently each event has High / Medium / Low priority. The doc has richer info per event (pay-to-play y/n, speaking deadline, contact email). Expose those on a card-flip or details disclosure.
+7. **Tier-level prioritization metadata.** The doc has richer info per event (pay-to-play, speaking deadline, contact email). Expose those on a card-flip or details disclosure.
 
 ### Polish
 
-8. **More descriptive "no URL on file" affordance.** Right now non-linked cards show a faint `·` after the title with a `title` attribute. Better UX would be a small "no link" pill in the footer area, or a "request URL" button that emails ops@arcticblue.
-
-9. **Print stylesheet.** Thor occasionally prints these for offsite reading. A `@media print` block that flattens to a single column, removes filters, and shows the URL inline next to each linked event would be useful.
-
-10. **A11y audit.** Screen-reader testing on the today/up-next callout. The current ARIA labels are sparse.
+8. **A11y audit** — screen-reader testing on the today/up-next callout, sign-in flow, ops form.
+9. **Print stylesheet** — Thor occasionally prints these. A `@media print` block that flattens to one column, removes filters, shows the URL inline.
+10. **`utcnow()` deprecation** — `build.py` uses `datetime.utcnow()` which warns in Python 3.12+. Migrate to `datetime.now(datetime.UTC)`.
 
 ---
 
 ## What NOT to break
 
-These are correct as designed — don't "fix" them:
-
-- **Cards without URLs are non-clickable.** This is intentional. The no-hallucination rule says we'd rather show an unlinked card than guess a URL. If you want every card linked, fill `event-urls-manual.json` from the source doc — don't make the build invent URLs.
-- **White background, not dark.** Internal ArcticBlue tools are white-primary. The marketing site (arcticblue.ai) is dark — different aesthetic register.
-- **Inline CSS and JS in `public/index.html`.** No build pipeline. No bundlers. The page must work when opened with `file:///`.
-- **One single HTML file as the deploy target.** Adding `public/about.html` or splitting into a SPA is out of scope until ArcticBlue explicitly asks for multi-page.
+- **Cards without URLs are non-clickable.** Don't make the build invent URLs. Fill `event-urls-manual.json` after visiting in a browser.
+- **White background, not dark.** Internal tool aesthetic. The marketing site at arcticblue.ai is dark — different register.
+- **Single self-contained HTML file.** No webpack, no Vite, no Next.js conversion. The page must work via `file:///` for the public view (Supabase Auth needs HTTP origin — that's expected).
+- **One single HTML file as the deploy target.** Don't split into a SPA without explicit ask.
 - **No tracking / no analytics scripts.** The page is intentionally analytics-free.
+- **Publishable key in HTML is OK; service-role key never is.** RLS is the security boundary.
+- **The hardcoded TODAY is gone — don't put it back.** `date.today()` is what makes the daily build meaningful.
 
 ---
 
 ## Known gotchas
 
-- **The .docx hyperlink XPath is fragile.** `extract-urls.py` reads `<w:hyperlink r:id=...>` elements directly. If the doc gets opened and re-saved in a different Word version, the relationship-XML structure may shift. If extraction starts returning zero URLs, that's the first place to look.
+- **The `.docx` hyperlink XPath is fragile.** `extract-urls.py` reads `<w:hyperlink r:id=...>` elements. If the doc gets re-saved by a different Word version the relationship-XML structure may shift.
 
-- **Today-date is baked in at build time.** The page doesn't know today's real date — it knows the date `build.py` was run. If you want true "current day" behavior, either: (a) run a daily cron + redeploy, or (b) move TODAY / UPCOMING / ARCHIVED classification to client-side JS using `new Date()`.
+- **Cross-month date ranges only work in manual events.** Regular events (from `events.json`) get their range from Python `parse_date()` which handles cross-month. Manual events get theirs from the JS `deriveDatesFromText()` which also handles cross-month. Same logic, two languages — keep them in sync if you change one.
 
-- **The TODAY constant in `build.py` is hardcoded to 2026-05-21.** Update it to `date.today()` before adding the daily cron, otherwise every rebuild will think it's May 21.
+- **DTEND in the iCal feed is exclusive.** Per RFC 5545 for all-day events, `DTEND` is the day *after* the last day of the event. "June 1–4, 2026" emits `DTSTART:20260601` + `DTEND:20260605`. Don't "fix" this — it's correct.
 
-- **Vercel project switching.** This deploys to a project called `arcticblue-event-tracker-deploy`. The HRF/QA repo also has projects called `hrf-qa-preview` and `hrf-preview-deploy` — don't confuse them. The `.vercel/project.json` inside `public/` will reflect which project is currently linked.
+- **The Supabase publishable key is embedded in the built HTML.** That's intentional — it's the anon/publishable role which RLS gates. Service-role keys must never appear in `src/build.py` or anywhere committed.
+
+- **Vercel project switching.** This deploys to `arcticblue-event-tracker-deploy` (project id `prj_aIPEIr1LJVyx37aZ1wTqgzBszg2M`). GitHub auto-deploy is wired; manual `cd public && vercel deploy --prod --yes` still works.
+
+- **iCloud-synced project paths are dangerous.** macOS's "Optimize Mac Storage" can evict `.git/objects/` and lock all git operations. Keep the working copy at `~/Developer/` or another non-iCloud location, not on Desktop.
 
 ---
 
 ## Files you can safely edit without breaking the build
 
 - `data/event-urls-manual.json` — add manual URL overrides
-- `data/ArcticBlue AI 2026 Event Tracker.docx` — update the source doc (then re-run both scripts)
-- `src/build.py` — content / layout / styling changes (keep the no-hallucination contract intact)
-- `src/extract-urls.py` — URL-extraction logic (keep the no-hallucination contract intact)
-- `public/arcticblue-logo.png` — swap in a different logo asset
+- `data/events.json` — canonical event list (the Dust agent writes this in production)
+- `data/ArcticBlue AI 2026 Event Tracker.docx` — legacy source (extract-urls.py reads it)
+- `src/build.py` — generators (keep the no-hallucination contract intact)
+- `public/arcticblue-logo.png` — swap the logo asset
+- `supabase/migrations/0001_init.sql` — schema (re-runnable, idempotent)
+- `.github/workflows/daily-build.yml` — cron schedule, build steps
 
 ## Files you should leave alone
 
-- `public/index.html` — this is the BUILD OUTPUT. Edit the generators, not the output, or you'll lose your changes on next build.
+- `public/index.html` — this is the BUILD OUTPUT. Edit `src/build.py`, not this file directly.
+- `public/events.json` — same, generated by `build.py`.
+- `public/calendar.ics` — generated by `build.py`.
+- `public/.vercel/` — Vercel CLI link, gitignored.
