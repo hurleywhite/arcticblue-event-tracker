@@ -2474,9 +2474,9 @@
             <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
             Paste email
           </button>
-          <button class="ab-btn ab-btn--purple" id="vet-dust-btn">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
-            Vet with Dust
+          <button class="ab-btn ab-btn--purple" id="search-dust-btn">
+            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            Search events
           </button>
           <button class="ab-btn ab-btn--amber" id="csv-btn">
             <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"/><path d="M3 10h18"/><path d="M10 6v12"/></svg>
@@ -4529,136 +4529,200 @@
       });
     }
 
-    // ── Vet with Dust ────────────────────────────────────────────────
-    // Sends the candidate text through the ArcticBlueEventSpeaking Dust
-    // agent (via the /api/vet Vercel function which holds the API key)
-    // and renders the agent's structured recommendation + lets the user
-    // promote it into the + Add Event form with one click.
-    function openVetPanel(email) {
-      var existing = document.getElementById('vet-panel');
+    // ── Search events via Dust ───────────────────────────────────────
+    // Asks the ArcticBlueEventSpeaking agent for N upcoming events
+    // matching criteria (count + types + quarters + regions), renders
+    // them as a result list, and lets the user add individual rows
+    // (or all at once) into manual_events. Replaces the older
+    // single-candidate Vet workflow.
+
+    function _currentQuarterOptions() {
+      // Build 8 quarters starting from the current one.
+      var now = new Date();
+      var qstart = Math.floor(now.getMonth() / 3);   // 0..3
+      var year   = now.getFullYear();
+      var out = [];
+      for (var i = 0; i < 8; i++) {
+        var qi = (qstart + i) % 4;
+        var yi = year + Math.floor((qstart + i) / 4);
+        out.push('Q' + (qi + 1) + ' ' + yi);
+      }
+      return out;
+    }
+
+    var SEARCH_TYPE_OPTIONS    = ['Enterprise', 'Halo', 'Research', 'Industry', 'Sponsor', 'Conference', 'Summit', 'Workshop'];
+    var SEARCH_REGION_OPTIONS  = ['Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'];
+
+    function _multichip(host, options, defaults) {
+      // Build a chip group inside `host`. Returns getter for selected values.
+      options.forEach(function (opt) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'extra-chip';
+        btn.dataset.value = opt;
+        btn.textContent = opt;
+        if (defaults && defaults.indexOf(opt) !== -1) btn.classList.add('is-on');
+        btn.addEventListener('click', function () { btn.classList.toggle('is-on'); });
+        host.appendChild(btn);
+      });
+      return function () {
+        return Array.prototype.map.call(
+          host.querySelectorAll('.extra-chip.is-on'),
+          function (b) { return b.dataset.value; }
+        );
+      };
+    }
+
+    function openSearchPanel(email) {
+      var existing = document.getElementById('search-panel');
       if (existing) { existing.remove(); return; }
 
+      var qOpts = _currentQuarterOptions();
+      // Default: first two quarters from today
+      var qDefaults = qOpts.slice(0, 2);
+
       var panel = document.createElement('div');
-      panel.id = 'vet-panel';
+      panel.id = 'search-panel';
       panel.className = 'add-event-card';
       panel.innerHTML =
-        '<h3>Vet a candidate with Dust</h3>' +
+        '<h3>Search events via Dust</h3>' +
         '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
-          'Paste the email, web copy, or a description of the event. ' +
-          'The <strong>ArcticBlueEventSpeaking</strong> agent will extract the details, ' +
-          'rate the fit, and let you promote it into a manual event with one click.' +
+          'The <strong>ArcticBlueEventSpeaking</strong> agent will find upcoming in-person AI events matching your criteria.' +
         '</p>' +
-        '<label><span class="key">Candidate</span>' +
-          '<textarea id="vet-text" placeholder="Paste here\u2026" style="min-height:140px;"></textarea>' +
-        '</label>' +
-        '<div class="add-actions" style="margin-top:10px;">' +
-          '<button type="button" class="primary" id="vet-run-btn">Run vetting</button>' +
-          '<button type="button" class="secondary" id="vet-cancel-btn">Close</button>' +
+        '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">' +
+          '<label style="display:inline-flex;align-items:center;gap:8px;font-family:var(--ab-mono);font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--ab-fg-3);">' +
+            'How many:' +
+            '<input type="number" id="search-count" min="1" max="25" value="10" style="width:60px;padding:6px 8px;border:1px solid var(--ab-rule-strong);border-radius:6px;font-family:var(--ab-sans);font-size:0.9rem;">' +
+          '</label>' +
         '</div>' +
-        '<p class="ops-meta" id="vet-meta" style="margin-top:10px;">Dust replies usually take 5\u201340 seconds.</p>' +
-        '<div id="vet-result" style="margin-top:12px;"></div>';
+        '<div class="extra-filters" style="margin-bottom:10px;">' +
+          '<div class="extra-filter-group" id="search-types">' +
+            '<span class="extra-filter-label">Types</span>' +
+          '</div>' +
+          '<div class="extra-filter-group" id="search-quarters">' +
+            '<span class="extra-filter-label">Quarters</span>' +
+          '</div>' +
+          '<div class="extra-filter-group" id="search-regions">' +
+            '<span class="extra-filter-label">Regions</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="add-actions" style="margin-top:10px;">' +
+          '<button type="button" class="primary" id="search-run-btn">Run search</button>' +
+          '<button type="button" class="secondary" id="search-cancel-btn">Close</button>' +
+        '</div>' +
+        '<p class="ops-meta" id="search-meta" style="margin-top:10px;">Dust replies usually take 10\u201360 seconds.</p>' +
+        '<div id="search-results" style="margin-top:12px;"></div>';
 
       $opsGrid.insertBefore(panel, $opsGrid.firstChild);
-      panel.querySelector('#vet-text').focus();
 
-      panel.querySelector('#vet-cancel-btn').addEventListener('click', function () { panel.remove(); });
+      var getTypes    = _multichip(panel.querySelector('#search-types'),    SEARCH_TYPE_OPTIONS,   ['Enterprise', 'Halo']);
+      var getQuarters = _multichip(panel.querySelector('#search-quarters'), qOpts,                  qDefaults);
+      var getRegions  = _multichip(panel.querySelector('#search-regions'),  SEARCH_REGION_OPTIONS,  []);
 
-      panel.querySelector('#vet-run-btn').addEventListener('click', function () {
-        var text = panel.querySelector('#vet-text').value || '';
-        if (text.trim().length < 10) {
-          panel.querySelector('#vet-meta').textContent = 'Need at least 10 characters of context.';
-          return;
-        }
-        var runBtn = panel.querySelector('#vet-run-btn');
-        var meta   = panel.querySelector('#vet-meta');
+      panel.querySelector('#search-cancel-btn').addEventListener('click', function () { panel.remove(); });
+
+      panel.querySelector('#search-run-btn').addEventListener('click', function () {
+        var count = parseInt(panel.querySelector('#search-count').value, 10);
+        if (!Number.isFinite(count) || count < 1) count = 10;
+        if (count > 25) count = 25;
+        var criteria = { count: count, types: getTypes(), quarters: getQuarters(), regions: getRegions() };
+        var runBtn = panel.querySelector('#search-run-btn');
+        var meta   = panel.querySelector('#search-meta');
         runBtn.disabled = true; runBtn.textContent = 'Asking Dust\u2026';
-        meta.textContent = 'Sending to ArcticBlueEventSpeaking. This can take 30\u201360 seconds.';
+        meta.textContent = 'Asking ArcticBlueEventSpeaking for ' + count + ' events. This can take 10\u201360 seconds.';
 
         sb.auth.getSession().then(function (r) {
           var token = r && r.data && r.data.session && r.data.session.access_token;
           if (!token) {
-            runBtn.disabled = false; runBtn.textContent = 'Run vetting';
-            meta.textContent = 'Couldn\u2019t read your Supabase session. Try signing out and back in.';
+            runBtn.disabled = false; runBtn.textContent = 'Run search';
+            meta.textContent = 'Sign-in expired. Refresh and try again.';
             return;
           }
           var t0 = Date.now();
-          fetch('/api/vet', {
+          fetch('/api/search', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body:    JSON.stringify({ text: text })
+            body:    JSON.stringify(criteria)
           }).then(function (res) {
             return res.json().then(function (j) { return [res.status, j]; });
           }).then(function (pair) {
-            var status = pair[0], data = pair[1];
+            var st = pair[0], data = pair[1];
             var dur = Math.round((Date.now() - t0) / 1000);
-            runBtn.disabled = false; runBtn.textContent = 'Re-run vetting';
-            if (status !== 200) {
-              meta.textContent = 'Vetting failed (' + status + '): ' + (data && data.error || 'unknown error');
+            runBtn.disabled = false; runBtn.textContent = 'Re-run search';
+            if (st !== 200) {
+              meta.textContent = 'Search failed (' + st + '): ' + (data && data.error || 'unknown error');
               return;
             }
-            meta.textContent = 'Done in ' + dur + 's.';
-            renderVetResult(panel, data, email);
+            meta.textContent = 'Found ' + (data.events || []).length + ' events in ' + dur + 's.';
+            renderSearchResults(panel, data, email);
           }).catch(function (err) {
-            runBtn.disabled = false; runBtn.textContent = 'Re-run vetting';
+            runBtn.disabled = false; runBtn.textContent = 'Re-run search';
             meta.textContent = 'Network error: ' + err.message;
           });
         });
       });
     }
 
-    function renderVetResult(panel, data, email) {
-      var fields = data.fields || {};
-      var rec    = (fields.recommend || '').toLowerCase();
-      var recPill =
-        rec === 'yes'   ? '<span class="ops-tag" style="background:#dcfce7;color:#166534;">Recommend</span>' :
-        rec === 'maybe' ? '<span class="ops-tag" style="background:#fef3c7;color:#92400e;">Maybe</span>' :
-        rec === 'no'    ? '<span class="ops-tag" style="background:#fee2e2;color:#991b1b;">Skip</span>' :
-                          '';
-      var degradedBanner = '';
-      if (data.degraded) {
-        var why = data.degraded_reason === 'dust_rate_limited'
-          ? 'Dust hit its rate limit. The fields below come from a basic page-scrape, not the agent. Treat them as a draft and review carefully before promoting.'
-          : data.degraded_reason === 'dust_timeout'
-            ? 'Dust took too long to respond. The fields below come from a basic page-scrape; review before promoting.'
-            : 'Dust was unavailable. The fields below come from a basic page-scrape; review before promoting.';
-        degradedBanner = '<div class="alert warn" style="margin:0 0 12px;">' + escapeHtml(why) + '</div>';
+    function renderSearchResults(panel, data, email) {
+      var events = (data.events || []);
+      var $r = panel.querySelector('#search-results');
+      if (events.length === 0) {
+        $r.innerHTML = '<p class="alert">Dust returned no events for these criteria. Try widening the types or quarters.</p>';
+        return;
       }
 
-      function row(k, v) {
-        if (v === null || v === undefined || v === '') return '';
-        var safe = escapeHtml(String(v));
-        if (k === 'url') {
-          safe = '<a href="' + safe + '" target="_blank" rel="noopener" style="color:var(--ab-blue);text-decoration:none;">' + safe + ' \u2197</a>';
-        }
-        return '<tr><td style="padding:4px 12px 4px 0;font-family:var(--ab-mono);font-size:0.72rem;letter-spacing:0.06em;color:var(--ab-fg-3);text-transform:uppercase;vertical-align:top;">' +
-                 escapeHtml(k) +
-               '</td><td style="padding:4px 0;color:var(--ab-fg);">' + safe + '</td></tr>';
+      function recPillHtml(rec) {
+        var r = (rec || '').toLowerCase();
+        if (r === 'yes')   return '<span class="ops-tag" style="background:#dcfce7;color:#166534;">Recommend</span>';
+        if (r === 'maybe') return '<span class="ops-tag" style="background:#fef3c7;color:#92400e;">Maybe</span>';
+        if (r === 'no')    return '<span class="ops-tag" style="background:#fee2e2;color:#991b1b;">Skip</span>';
+        return '';
       }
 
-      var rows = ['name', 'date_str', 'location', 'region', 'type', 'priority', 'why', 'url'].map(function (k) {
-        return row(k, fields[k]);
+      var cards = events.map(function (ev, idx) {
+        var url = ev.url ? ' <a href="' + escapeHtml(ev.url) + '" target="_blank" rel="noopener" style="color:var(--ab-blue);text-decoration:none;font-weight:600;">↗</a>' : '';
+        var dup = isDuplicateName(ev.name) ? '<span class="ops-tag" style="background:#fef2f2;color:#7f1d1d;border:1px solid #fecaca;">Already in tracker</span>' : '';
+        return (
+          '<div class="search-result" data-idx="' + idx + '" style="border:1px solid var(--ab-rule);border-radius:8px;padding:14px;margin-bottom:10px;background:var(--ab-bg);">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;flex-wrap:wrap;">' +
+              '<div style="flex:1;min-width:0;">' +
+                '<h4 style="margin:0;font-size:1.02rem;font-weight:700;letter-spacing:-0.01em;color:var(--ab-fg);">' + escapeHtml(ev.name || '(unnamed)') + url + '</h4>' +
+                '<p style="margin:4px 0 0;font-size:0.85rem;color:var(--ab-fg-2);">' +
+                  escapeHtml(ev.date_str || '') + ' · ' + escapeHtml(ev.region || '') + (ev.location ? ' · ' + escapeHtml(ev.location) : '') +
+                  (ev.type ? ' · ' + escapeHtml(ev.type) : '') +
+                  (ev.priority ? ' · ' + escapeHtml(ev.priority) : '') +
+                '</p>' +
+              '</div>' +
+              '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' +
+                recPillHtml(ev.recommend) + ' ' + dup +
+              '</div>' +
+            '</div>' +
+            (ev.why || ev.reasoning ?
+              '<p style="font-size:0.85rem;color:var(--ab-fg-2);margin:4px 0 8px;">' +
+                (ev.why ? escapeHtml(ev.why) : '') +
+                (ev.why && ev.reasoning ? ' — ' : '') +
+                (ev.reasoning ? '<em>' + escapeHtml(ev.reasoning) + '</em>' : '') +
+              '</p>' : '') +
+            '<div class="add-actions" style="margin-top:6px;">' +
+              '<button type="button" class="primary search-add" data-idx="' + idx + '" ' + (dup ? 'disabled' : '') + '>Add to events</button>' +
+            '</div>' +
+          '</div>'
+        );
       }).join('');
 
-      var html =
-        degradedBanner +
-        '<div class="alert" style="margin:0 0 12px;">' +
-          (recPill ? recPill + ' ' : '') +
-          (fields.reasoning ? escapeHtml(fields.reasoning) : (data.degraded ? 'No agent reasoning — Dust unavailable.' : 'No reasoning returned.')) +
+      $r.innerHTML =
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">' +
+          '<button type="button" class="primary" id="search-add-all">Add all to events</button>' +
+          '<button type="button" class="secondary" id="search-raw-btn">Show raw reply</button>' +
         '</div>' +
-        '<table style="width:100%;border-collapse:collapse;font-size:0.9rem;">' + rows + '</table>' +
-        '<div class="add-actions" style="margin-top:14px;">' +
-          '<button type="button" class="primary" id="vet-promote-btn">' +
-            (rec === 'no' ? 'Add anyway' : 'Promote to event') +
-          '</button>' +
-          '<button type="button" class="secondary" id="vet-rawreply-btn">Show raw reply</button>' +
-        '</div>' +
-        '<pre id="vet-raw" style="display:none;margin-top:10px;padding:12px;background:var(--ab-bg-3);border-radius:6px;font-size:0.78rem;line-height:1.5;color:var(--ab-fg-2);max-height:280px;overflow:auto;white-space:pre-wrap;"></pre>';
+        '<pre id="search-raw" style="display:none;margin:0 0 10px;padding:12px;background:var(--ab-bg-3);border-radius:6px;font-size:0.78rem;color:var(--ab-fg-2);max-height:280px;overflow:auto;white-space:pre-wrap;"></pre>' +
+        cards;
 
-      var $r = panel.querySelector('#vet-result');
-      $r.innerHTML = html;
+      // Persist data for delegated handlers
+      var _eventsByIdx = events;
 
-      $r.querySelector('#vet-rawreply-btn').addEventListener('click', function () {
-        var pre = $r.querySelector('#vet-raw');
+      $r.querySelector('#search-raw-btn').addEventListener('click', function () {
+        var pre = $r.querySelector('#search-raw');
         if (pre.style.display === 'none') {
           pre.textContent = data.raw || '(no raw reply)';
           pre.style.display = 'block';
@@ -4667,24 +4731,77 @@
         }
       });
 
-      $r.querySelector('#vet-promote-btn').addEventListener('click', function () {
-        // Open the add-event form, then fill it with the Dust fields (overwriting any draft)
-        panel.remove();
-        var form = (function ensureOpen() {
-          var existing = document.getElementById('add-event-card');
-          if (existing) return existing;
-          // wireAddEvent hooks the button → trigger it programmatically
-          var $addBtn = document.getElementById('add-event-btn');
-          if ($addBtn) $addBtn.click();
-          return document.getElementById('add-event-card');
-        })();
-        if (form) {
-          applyExtractToForm(form, fields, { overwrite: true });
-          var nameInp = form.querySelector('input[name="name"]');
-          if (nameInp) nameInp.focus();
-        }
+      function insertOne(ev) {
+        if (!ev || !ev.name) return Promise.resolve({ ok: false, reason: 'missing name' });
+        if (isDuplicateName(ev.name)) return Promise.resolve({ ok: false, reason: 'duplicate' });
+        var dates = ev.date_str ? deriveDatesFromText(ev.date_str) : {};
+        var row = {
+          name:       ev.name.trim(),
+          date_str:   ev.date_str || 'Date TBD',
+          start_date: dates.start_date || null,
+          end_date:   dates.end_date   || null,
+          location:   ev.location || null,
+          region:     ev.region   || null,
+          type:       ev.type     || null,
+          priority:   ev.priority || null,
+          why:        ev.why      || null,
+          url:        ev.url      || null,
+          created_by: email
+        };
+        return sb.from('manual_events').insert(row).select().then(function (resp) {
+          if (resp.error) {
+            if (resp.error.code === '23505') return { ok: false, reason: 'duplicate' };
+            return { ok: false, reason: resp.error.message };
+          }
+          return { ok: true, row: resp.data && resp.data[0] };
+        });
+      }
+
+      $r.querySelectorAll('.search-add').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = parseInt(btn.dataset.idx, 10);
+          var ev = _eventsByIdx[idx];
+          btn.disabled = true; btn.textContent = 'Adding\u2026';
+          insertOne(ev).then(function (r) {
+            if (r.ok) {
+              btn.textContent = 'Added ✓';
+              btn.classList.remove('primary'); btn.classList.add('secondary');
+              loadKnownNames();
+              renderOps(email);
+              flashOk('Added "' + (ev.name || '') + '"');
+            } else {
+              btn.disabled = false;
+              btn.textContent = 'Add to events';
+              status('Add failed: ' + r.reason, 'error');
+            }
+          });
+        });
+      });
+
+      $r.querySelector('#search-add-all').addEventListener('click', function () {
+        var addAll = $r.querySelector('#search-add-all');
+        addAll.disabled = true; addAll.textContent = 'Adding\u2026';
+        var added = 0, skipped = 0, errors = 0;
+        // Insert serially so dedup cache stays in sync between rows
+        var chain = Promise.resolve();
+        events.forEach(function (ev) {
+          chain = chain.then(function () { return insertOne(ev); }).then(function (r) {
+            if (r.ok) { added++; loadKnownNames(); }
+            else if (r.reason === 'duplicate') { skipped++; }
+            else { errors++; }
+          });
+        });
+        chain.then(function () {
+          addAll.disabled = false;
+          addAll.textContent = 'Add all to events';
+          var msg = 'Added ' + added + ' · skipped ' + skipped + ' duplicate' + (skipped === 1 ? '' : 's');
+          if (errors) msg += ' · ' + errors + ' error' + (errors === 1 ? '' : 's');
+          flashOk(msg);
+          renderOps(email);
+        });
       });
     }
+
 
     // ── + Add event / Paste email orchestration ─────────────────────
     // Opens an inline panel that surfaces the public feed URL + a 1-click
@@ -4748,20 +4865,20 @@
     }
 
     function wireAddEvent(email) {
-      var $addBtn   = document.getElementById('add-event-btn');
-      var $pasteBtn = document.getElementById('paste-email-btn');
-      var $vetBtn   = document.getElementById('vet-dust-btn');
-      var $csvBtn   = document.getElementById('csv-btn');
-      var $icalBtn  = document.getElementById('ical-btn');
-      var $subBtn   = document.getElementById('ical-subscribe-btn');
+      var $addBtn    = document.getElementById('add-event-btn');
+      var $pasteBtn  = document.getElementById('paste-email-btn');
+      var $searchBtn = document.getElementById('search-dust-btn');
+      var $csvBtn    = document.getElementById('csv-btn');
+      var $icalBtn   = document.getElementById('ical-btn');
+      var $subBtn    = document.getElementById('ical-subscribe-btn');
       if (!$addBtn) return;
       // Clone-replace to clear listeners from any prior route() call
       var freshAdd = $addBtn.cloneNode(true); $addBtn.parentNode.replaceChild(freshAdd, $addBtn); $addBtn = freshAdd;
-      if ($pasteBtn) { var fp = $pasteBtn.cloneNode(true); $pasteBtn.parentNode.replaceChild(fp, $pasteBtn); $pasteBtn = fp; }
-      if ($vetBtn)   { var fv = $vetBtn.cloneNode(true); $vetBtn.parentNode.replaceChild(fv, $vetBtn); $vetBtn = fv; }
-      if ($csvBtn)   { var fc = $csvBtn.cloneNode(true); $csvBtn.parentNode.replaceChild(fc, $csvBtn); $csvBtn = fc; }
-      if ($icalBtn)  { var fi = $icalBtn.cloneNode(true); $icalBtn.parentNode.replaceChild(fi, $icalBtn); $icalBtn = fi; }
-      if ($subBtn)   { var fs = $subBtn.cloneNode(true); $subBtn.parentNode.replaceChild(fs, $subBtn); $subBtn = fs; }
+      if ($pasteBtn)  { var fp = $pasteBtn.cloneNode(true);  $pasteBtn.parentNode.replaceChild(fp, $pasteBtn);   $pasteBtn  = fp; }
+      if ($searchBtn) { var fs2 = $searchBtn.cloneNode(true); $searchBtn.parentNode.replaceChild(fs2, $searchBtn); $searchBtn = fs2; }
+      if ($csvBtn)    { var fc = $csvBtn.cloneNode(true);    $csvBtn.parentNode.replaceChild(fc, $csvBtn);       $csvBtn    = fc; }
+      if ($icalBtn)   { var fi = $icalBtn.cloneNode(true);   $icalBtn.parentNode.replaceChild(fi, $icalBtn);     $icalBtn   = fi; }
+      if ($subBtn)    { var fs = $subBtn.cloneNode(true);    $subBtn.parentNode.replaceChild(fs, $subBtn);       $subBtn    = fs; }
 
       function openAddForm(opts) {
         opts = opts || {};
@@ -4806,10 +4923,10 @@
           openAddForm({ expandPaste: true });
         });
       }
-      if ($vetBtn) {
-        $vetBtn.addEventListener('click', function () {
+      if ($searchBtn) {
+        $searchBtn.addEventListener('click', function () {
           ensureGridView();
-          openVetPanel(email);
+          openSearchPanel(email);
         });
       }
       if ($csvBtn) {

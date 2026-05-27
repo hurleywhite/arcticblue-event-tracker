@@ -3,6 +3,9 @@
   "functions": {
     "api/vet.py": {
       "maxDuration": 120
+    },
+    "api/search.py": {
+      "maxDuration": 120
     }
   },
   "headers": [
