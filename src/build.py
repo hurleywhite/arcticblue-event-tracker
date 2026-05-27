@@ -937,6 +937,51 @@ def build():
     }}
     .status-filters .clear-btn:hover {{ color: var(--ab-fg); }}
 
+    /* Extra filters — Priority / Track / Speakers rows */
+    .extra-filters {{
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 10px 12px; margin-bottom: 16px;
+      border: 1px solid var(--ab-rule); border-radius: 10px;
+      background: var(--ab-bg);
+    }}
+    .extra-filter-group {{
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    }}
+    .extra-filter-label {{
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ab-fg-3); min-width: 84px;
+    }}
+    .extra-empty {{
+      font-family: var(--ab-mono); font-size: 0.7rem;
+      color: var(--ab-fg-3); font-style: italic;
+    }}
+    .extra-chip {{
+      font-family: var(--ab-sans); font-size: 0.74rem; font-weight: 500;
+      padding: 4px 10px; border-radius: 999px;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
+      color: var(--ab-fg-2); cursor: pointer; opacity: 0.55;
+      transition: opacity 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+      white-space: nowrap;
+    }}
+    .extra-chip:hover {{ opacity: 0.9; color: var(--ab-fg); border-color: var(--ab-fg-3); }}
+    .extra-chip.is-on {{ opacity: 1; box-shadow: 0 0 0 2px var(--ab-fg); transform: translateY(-1px); }}
+    .extra-chip.pri-high.is-on   {{ background: #1f2937; color: #fff; border-color: #1f2937; box-shadow: 0 0 0 2px #1f2937; }}
+    .extra-chip.pri-medium.is-on {{ background: #fef3c7; color: #92400e; border-color: #92400e; box-shadow: 0 0 0 2px #92400e; }}
+    .extra-chip.pri-low.is-on    {{ background: var(--ab-bg-3); color: var(--ab-fg-3); border-color: var(--ab-fg-3); box-shadow: 0 0 0 2px var(--ab-fg-3); }}
+    .extra-chip.track-sponsor.is-on  {{ background: #dbeafe; color: #1e40af; border-color: #1e40af; box-shadow: 0 0 0 2px #1e40af; }}
+    .extra-chip.track-earned.is-on   {{ background: #fef3c7; color: #92400e; border-color: #92400e; box-shadow: 0 0 0 2px #92400e; }}
+    .extra-chip.track-both.is-on     {{ background: #e9d5ff; color: #6b21a8; border-color: #6b21a8; box-shadow: 0 0 0 2px #6b21a8; }}
+    .extra-chip.track-unknown.is-on  {{ background: var(--ab-bg-3); color: var(--ab-fg-3); border-color: var(--ab-fg-3); box-shadow: 0 0 0 2px var(--ab-fg-3); }}
+    .extra-clear {{
+      font-family: var(--ab-mono); font-size: 0.62rem;
+      letter-spacing: 0.06em; padding: 4px 8px;
+      border: 1px solid var(--ab-rule-strong); border-radius: 6px;
+      background: var(--ab-bg); color: var(--ab-fg-3);
+      cursor: pointer; margin-left: auto;
+    }}
+    .extra-clear:hover {{ color: var(--ab-fg); }}
+
     /* Filter bar */
     .ops-filters {{
       display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
@@ -1351,6 +1396,19 @@ def build():
           <span class="label">Status:</span>
           <!-- chips injected by buildStatusFilters() -->
         </div>
+        <div class="extra-filters" id="extra-filters">
+          <div class="extra-filter-group" id="filter-priority">
+            <span class="extra-filter-label">Priority</span>
+            <!-- chips injected by buildExtraFilters() -->
+          </div>
+          <div class="extra-filter-group" id="filter-track">
+            <span class="extra-filter-label">Track</span>
+          </div>
+          <div class="extra-filter-group" id="filter-speaker">
+            <span class="extra-filter-label">Speakers</span>
+            <span class="extra-empty" id="filter-speaker-empty">No speakers assigned yet</span>
+          </div>
+        </div>
         <div class="ops-filters">
           <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
           <select id="ops-region" aria-label="Filter region">
@@ -1688,6 +1746,10 @@ def build():
       card.dataset.region = ev.region || '';
       card.dataset.hasSpeaker = (st.speaker && st.speaker.trim()) ? '1' : '';
       card.dataset.status = st.status || '';
+      // Priority falls back to the event's own priority; override wins if set
+      card.dataset.priority = (st.priority_override || ev.priority || '');
+      card.dataset.track    = (st.track || '');
+      card.dataset.speaker  = (st.speaker || '');
       if (st.saved)  card.classList.add('is-saved');
       if (st.hidden) card.classList.add('is-hidden');
       if (st.urgent) card.classList.add('is-urgent');
@@ -1744,6 +1806,9 @@ def build():
       card.dataset.region = mev.region || '';
       card.dataset.hasSpeaker = (mev.speaker && mev.speaker.trim()) ? '1' : '';
       card.dataset.status = mev.status || '';
+      card.dataset.priority = mev.priority || '';
+      card.dataset.track    = ''; // manual_events doesn't carry a track column
+      card.dataset.speaker  = (mev.speaker || '');
       var whoText  = mev.created_by ? ('Added by ' + escapeHtml(firstNameFromEmail(mev.created_by)) + ' · ' + escapeHtml(formatStamp(mev.created_at))) : '';
       var whoTitle = mev.created_by ? (' title="' + escapeHtml(mev.created_by) + '"') : '';
       var who      = whoText;
@@ -1994,12 +2059,27 @@ def build():
           patch[sel.dataset.field] = sel.value || null;
           upsertEventState(num, patch, email).then(function (err) {{
             if (err) {{ status('Save failed: ' + err.message, 'error'); return; }}
-            if (sel.dataset.field === 'status') {{
-              card.dataset.status = sel.value || '';
-              applyFilters();
-            }}
+            // Mirror the new value onto the card's data-attributes so the
+            // filter chip rows + status group color see the change without
+            // waiting for the next renderOps.
+            var f = sel.dataset.field;
+            if (f === 'status')            card.dataset.status   = sel.value || '';
+            if (f === 'priority_override') card.dataset.priority = sel.value || '';
+            if (f === 'track')             card.dataset.track    = sel.value || '';
+            applyFilters();
             flashOk();
           }});
+        }});
+      }});
+
+      // Speaker (text input) — refresh data-speaker + data-hasSpeaker on save
+      card.querySelectorAll('input[data-field="speaker"]').forEach(function (inp) {{
+        inp.addEventListener('blur', function () {{
+          // The generic text handler above already wrote to Supabase;
+          // we just need to keep the card's data attributes consistent.
+          card.dataset.speaker     = inp.value || '';
+          card.dataset.hasSpeaker  = inp.value && inp.value.trim() ? '1' : '';
+          applyFilters();
         }});
       }});
 
@@ -2025,6 +2105,106 @@ def build():
       var $count = document.getElementById('ops-count');
       if (!$count) return;
       $count.textContent = regular + ' tracked · ' + manual + ' manual';
+    }}
+
+    // ── Priority + Track + Speakers filter rows ────────────────────
+    function _makeExtraChip(value, label, extraClass) {{
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'extra-chip' + (extraClass ? ' ' + extraClass : '');
+      btn.dataset.value = value;
+      btn.textContent = label;
+      btn.title = 'Click to filter by ' + label;
+      btn.addEventListener('click', function () {{
+        btn.classList.toggle('is-on');
+        applyFilters();
+      }});
+      return btn;
+    }}
+
+    function buildExtraFilters() {{
+      // Priority (static)
+      var pri = document.getElementById('filter-priority');
+      if (pri && pri.dataset.built !== '1') {{
+        ['High', 'Medium', 'Low'].forEach(function (v) {{
+          pri.appendChild(_makeExtraChip(v, v, 'pri-' + v.toLowerCase()));
+        }});
+        var clr = document.createElement('button');
+        clr.type = 'button'; clr.className = 'extra-clear'; clr.textContent = 'Clear';
+        clr.addEventListener('click', function () {{
+          pri.querySelectorAll('.extra-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
+          applyFilters();
+        }});
+        pri.appendChild(clr);
+        pri.dataset.built = '1';
+      }}
+      // Track (static — values defined in the schema CHECK constraint)
+      var trk = document.getElementById('filter-track');
+      if (trk && trk.dataset.built !== '1') {{
+        [['Sponsor','track-sponsor'], ['Earned','track-earned'], ['Both','track-both'], ['Unknown','track-unknown']].forEach(function (pair) {{
+          trk.appendChild(_makeExtraChip(pair[0], pair[0], pair[1]));
+        }});
+        var clrT = document.createElement('button');
+        clrT.type = 'button'; clrT.className = 'extra-clear'; clrT.textContent = 'Clear';
+        clrT.addEventListener('click', function () {{
+          trk.querySelectorAll('.extra-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
+          applyFilters();
+        }});
+        trk.appendChild(clrT);
+        trk.dataset.built = '1';
+      }}
+    }}
+
+    // Rebuild the Speakers row from the current data set. Called from
+    // renderOps() so the chip list reflects who's actually assigned right
+    // now (including changes that just synced in via realtime).
+    function rebuildSpeakerFilter(stateRows, manualRows) {{
+      var host = document.getElementById('filter-speaker');
+      if (!host) return;
+      // Wipe any prior chips/clear/empty markers but keep the label
+      Array.prototype.slice.call(host.querySelectorAll('.extra-chip, .extra-clear, .extra-empty'))
+        .forEach(function (n) {{ n.remove(); }});
+
+      // Collect distinct speaker tokens from both sources. The speaker
+      // field can be a single name ("Thor"), a comma-joined pair, or
+      // free text. Split on common separators and dedupe case-insensitive.
+      var seen = {{}};
+      var speakers = [];
+      function add(raw) {{
+        if (!raw || typeof raw !== 'string') return;
+        raw.split(/[,;/&]| and |\\bplus\\b/i).forEach(function (s) {{
+          var t = s.trim();
+          if (!t) return;
+          var k = t.toLowerCase();
+          if (seen[k]) return;
+          seen[k] = true;
+          speakers.push(t);
+        }});
+      }}
+      (stateRows  || []).forEach(function (r) {{ add(r.speaker); }});
+      (manualRows || []).forEach(function (m) {{ add(m.speaker); }});
+
+      if (speakers.length === 0) {{
+        var empty = document.createElement('span');
+        empty.className = 'extra-empty';
+        empty.id = 'filter-speaker-empty';
+        empty.textContent = 'No speakers assigned yet';
+        host.appendChild(empty);
+        return;
+      }}
+
+      // Sort alphabetically, then build chips
+      speakers.sort(function (a, b) {{ return a.localeCompare(b); }});
+      speakers.forEach(function (name) {{
+        host.appendChild(_makeExtraChip(name, name));
+      }});
+      var clr = document.createElement('button');
+      clr.type = 'button'; clr.className = 'extra-clear'; clr.textContent = 'Clear';
+      clr.addEventListener('click', function () {{
+        host.querySelectorAll('.extra-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
+        applyFilters();
+      }});
+      host.appendChild(clr);
     }}
 
     function buildStatusFilters() {{
@@ -2099,6 +2279,20 @@ def build():
         document.querySelectorAll('.status-filters .status-chip.is-on'),
         function (b) {{ return b.dataset.status; }}
       );
+      // Priority / Track / Speakers — OR across each dimension; AND across dimensions
+      var activePriorities = Array.prototype.map.call(
+        document.querySelectorAll('#filter-priority .extra-chip.is-on'),
+        function (b) {{ return b.dataset.value; }}
+      );
+      var activeTracks = Array.prototype.map.call(
+        document.querySelectorAll('#filter-track .extra-chip.is-on'),
+        function (b) {{ return b.dataset.value; }}
+      );
+      var activeSpeakers = Array.prototype.map.call(
+        document.querySelectorAll('#filter-speaker .extra-chip.is-on'),
+        function (b) {{ return (b.dataset.value || '').toLowerCase(); }}
+      );
+
       var shown = 0;
       $opsGrid.querySelectorAll('.ops-card').forEach(function (card) {{
         var on = true;
@@ -2108,7 +2302,21 @@ def build():
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
         if (fSpeaker && card.dataset.hasSpeaker !== '1')       on = false;
         if (!showHidden && card.classList.contains('is-hidden')) on = false;
-        if (activeStatuses.length > 0 && activeStatuses.indexOf(card.dataset.status || '') === -1) on = false;
+        if (activeStatuses.length   > 0 && activeStatuses.indexOf(card.dataset.status   || '') === -1) on = false;
+        if (activePriorities.length > 0 && activePriorities.indexOf(card.dataset.priority || '') === -1) on = false;
+        if (activeTracks.length     > 0 && activeTracks.indexOf(card.dataset.track     || '') === -1) on = false;
+        // Speakers — the card's speaker field may carry multiple names
+        // ("Thor, Verma"). Treat ANY token-level overlap as a match.
+        if (activeSpeakers.length > 0) {{
+          var sp = (card.dataset.speaker || '').toLowerCase();
+          if (!sp) {{
+            on = false;
+          }} else {{
+            var tokens = sp.split(/[,;/&]| and |\\bplus\\b/i).map(function (s) {{ return s.trim(); }}).filter(Boolean);
+            var hit = activeSpeakers.some(function (a) {{ return tokens.indexOf(a) !== -1; }});
+            if (!hit) on = false;
+          }}
+        }}
         card.style.display = on ? '' : 'none';
         if (on) shown++;
       }});
@@ -2175,6 +2383,7 @@ def build():
         }});
         updateOpsCount();
         renderStats(evs, stateRows, manualRows);
+        rebuildSpeakerFilter(stateRows, manualRows);
         applyFilters();
         // Rebuild the dedup index from this fresh fetch — realtime
         // events from other tabs / sessions land here, so we want every
@@ -3590,6 +3799,7 @@ def build():
         wireViewToggle();
         wireFilters();
         buildStatusFilters();
+        buildExtraFilters();
         renderOps(email);
         wireAddEvent(email);
         setupRealtime(email);
