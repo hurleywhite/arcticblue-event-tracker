@@ -2476,7 +2476,7 @@
           </button>
           <button class="ab-btn ab-btn--purple" id="search-dust-btn">
             <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            Search events
+            Find events
           </button>
           <button class="ab-btn ab-btn--amber" id="csv-btn">
             <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"/><path d="M3 10h18"/><path d="M10 6v12"/></svg>
@@ -4585,7 +4585,7 @@
       panel.id = 'search-panel';
       panel.className = 'add-event-card';
       panel.innerHTML =
-        '<h3>Search events via Dust</h3>' +
+        '<h3>Find events via Dust</h3>' +
         '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
           'The <strong>ArcticBlueEventSpeaking</strong> agent will find upcoming in-person AI events matching your criteria.' +
         '</p>' +
@@ -4607,7 +4607,7 @@
           '</div>' +
         '</div>' +
         '<div class="add-actions" style="margin-top:10px;">' +
-          '<button type="button" class="primary" id="search-run-btn">Run search</button>' +
+          '<button type="button" class="primary" id="search-run-btn">Find events</button>' +
           '<button type="button" class="secondary" id="search-cancel-btn">Close</button>' +
         '</div>' +
         '<p class="ops-meta" id="search-meta" style="margin-top:10px;">Dust replies usually take 10\u201360 seconds.</p>' +
@@ -4634,7 +4634,7 @@
         sb.auth.getSession().then(function (r) {
           var token = r && r.data && r.data.session && r.data.session.access_token;
           if (!token) {
-            runBtn.disabled = false; runBtn.textContent = 'Run search';
+            runBtn.disabled = false; runBtn.textContent = 'Find events';
             meta.textContent = 'Sign-in expired. Refresh and try again.';
             return;
           }
@@ -4648,15 +4648,15 @@
           }).then(function (pair) {
             var st = pair[0], data = pair[1];
             var dur = Math.round((Date.now() - t0) / 1000);
-            runBtn.disabled = false; runBtn.textContent = 'Re-run search';
+            runBtn.disabled = false; runBtn.textContent = 'Find more';
             if (st !== 200) {
-              meta.textContent = 'Search failed (' + st + '): ' + (data && data.error || 'unknown error');
+              meta.textContent = 'Find failed (' + st + '): ' + (data && data.error || 'unknown error');
               return;
             }
             meta.textContent = 'Found ' + (data.events || []).length + ' events in ' + dur + 's.';
             renderSearchResults(panel, data, email);
           }).catch(function (err) {
-            runBtn.disabled = false; runBtn.textContent = 'Re-run search';
+            runBtn.disabled = false; runBtn.textContent = 'Find more';
             meta.textContent = 'Network error: ' + err.message;
           });
         });
