@@ -6644,6 +6644,48 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       return card;
     }
 
+    // Parse a tri-state select value ('true' / 'false' / '') into a
+    // boolean or null — used for the Seed? / Urgent? dropdowns.
+    function triBool(s) { s = (s == null ? '' : String(s)); return s === 'true' ? true : (s === 'false' ? false : null); }
+
+    // Shared markup for the ArcticScout rich detail fields, used by BOTH the
+    // "Add event" form (pass {}) and the per-card "Edit" form (pass mev).
+    // External_id is intentionally omitted — it's a system provenance id.
+    function richDetailFields(o) {
+      o = o || {};
+      function v(k) { return escapeHtml(o[k] || ''); }
+      function triSel(name, cur) {
+        var t = (cur === true), f = (cur === false), n = (cur === null || cur === undefined);
+        return '<select name="' + name + '">' +
+          '<option value=""'      + (n ? ' selected' : '') + '>—</option>' +
+          '<option value="true"'  + (t ? ' selected' : '') + '>Yes</option>' +
+          '<option value="false"' + (f ? ' selected' : '') + '>No</option>' +
+        '</select>';
+      }
+      return '' +
+        '<label><span class="key">About</span><textarea name="about">' + v('about') + '</textarea></label>' +
+        '<label><span class="key">Focus areas</span><textarea name="focus_areas">' + v('focus_areas') + '</textarea></label>' +
+        '<label><span class="key">Typical attendees</span><input type="text" name="typical_attendees" value="' + v('typical_attendees') + '"></label>' +
+        '<label><span class="key">Speaking route</span><textarea name="speaking_route">' + v('speaking_route') + '</textarea></label>' +
+        '<label><span class="key">Contact info</span><textarea name="contact_info">' + v('contact_info') + '</textarea></label>' +
+        '<div class="row">' +
+          '<label><span class="key">Deadline</span><input type="text" name="deadline" value="' + v('deadline') + '"></label>' +
+          '<label><span class="key">Attendee count</span><input type="text" name="attendee_count" value="' + v('attendee_count') + '"></label>' +
+        '</div>' +
+        '<div class="row">' +
+          '<label><span class="key">Pay-to-play</span><select name="pay_to_play">' + optionRows(['', 'Yes', 'No', 'Unknown'], o.pay_to_play || '') + '</select></label>' +
+          '<label><span class="key">Venue</span><input type="text" name="venue" value="' + v('venue') + '"></label>' +
+        '</div>' +
+        '<div class="row">' +
+          '<label><span class="key">City</span><input type="text" name="city" value="' + v('city') + '"></label>' +
+          '<label><span class="key">Country</span><input type="text" name="country" value="' + v('country') + '"></label>' +
+        '</div>' +
+        '<div class="row">' +
+          '<label><span class="key">Seed?</span>' + triSel('seed', o.seed) + '</label>' +
+          '<label><span class="key">Urgent?</span>' + triSel('urgent', o.urgent) + '</label>' +
+        '</div>';
+    }
+
     function buildManualCard(mev, email) {
       var card = document.createElement('article');
       card.className = 'ops-card';
@@ -6765,6 +6807,9 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
             '</div>' +
             '<label><span class="key">URL</span>' +
               '<input type="text" name="url" value="' + escapeHtml(mev.url || '') + '"></label>' +
+            '<details class="ops-edit"><summary>More details (About, Focus, Deadline, …)</summary>' +
+              '<div class="ops-form" style="margin-top:8px;">' + richDetailFields(mev) + '</div>' +
+            '</details>' +
             '<div class="add-actions">' +
               '<button type="submit" class="primary">Save changes</button>' +
               '<button type="button" class="secondary" data-delete>Delete event</button>' +
@@ -6807,7 +6852,20 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           notes:               (fd.get('notes') || '').toString().trim() || null,
           speaking_fee:        (fd.get('speaking_fee') || '').toString().trim() || null,
           paid:                paidRaw === 'true' ? true : (paidRaw === 'false' ? false : null),
-          url:                 (fd.get('url') || '').toString().trim() || null
+          url:                 (fd.get('url') || '').toString().trim() || null,
+          about:               (fd.get('about') || '').toString().trim() || null,
+          focus_areas:         (fd.get('focus_areas') || '').toString().trim() || null,
+          typical_attendees:   (fd.get('typical_attendees') || '').toString().trim() || null,
+          speaking_route:      (fd.get('speaking_route') || '').toString().trim() || null,
+          contact_info:        (fd.get('contact_info') || '').toString().trim() || null,
+          deadline:            (fd.get('deadline') || '').toString().trim() || null,
+          attendee_count:      (fd.get('attendee_count') || '').toString().trim() || null,
+          pay_to_play:         (fd.get('pay_to_play') || '').toString().trim() || null,
+          venue:               (fd.get('venue') || '').toString().trim() || null,
+          city:                (fd.get('city') || '').toString().trim() || null,
+          country:             (fd.get('country') || '').toString().trim() || null,
+          seed:                triBool(fd.get('seed')),
+          urgent:              triBool(fd.get('urgent'))
         };
         if (!patch.name) { alert('Name is required'); return; }
         if (!patch.date_str) patch.date_str = 'Date TBD';
@@ -7391,6 +7449,9 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         '<label><span class="key">Why it fits</span>' +
           '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
         '</label>' +
+        '<details class="ops-edit"><summary>More details (About, Focus, Deadline, …)</summary>' +
+          '<div class="ops-form" style="margin-top:8px;">' + richDetailFields({}) + '</div>' +
+        '</details>' +
         '<div class="add-actions">' +
           '<button type="submit" class="primary">Add event</button>' +
           '<button type="button" class="secondary" data-cancel>Cancel</button>' +
@@ -7525,6 +7586,19 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           priority:   (fd.get('priority') || '').toString().trim() || null,
           why:        (fd.get('why') || '').toString().trim() || null,
           url:        (fd.get('url') || '').toString().trim() || null,
+          about:              (fd.get('about') || '').toString().trim() || null,
+          focus_areas:        (fd.get('focus_areas') || '').toString().trim() || null,
+          typical_attendees:  (fd.get('typical_attendees') || '').toString().trim() || null,
+          speaking_route:     (fd.get('speaking_route') || '').toString().trim() || null,
+          contact_info:       (fd.get('contact_info') || '').toString().trim() || null,
+          deadline:           (fd.get('deadline') || '').toString().trim() || null,
+          attendee_count:     (fd.get('attendee_count') || '').toString().trim() || null,
+          pay_to_play:        (fd.get('pay_to_play') || '').toString().trim() || null,
+          venue:              (fd.get('venue') || '').toString().trim() || null,
+          city:               (fd.get('city') || '').toString().trim() || null,
+          country:            (fd.get('country') || '').toString().trim() || null,
+          seed:               triBool(fd.get('seed')),
+          urgent:             triBool(fd.get('urgent')),
           created_by: email
         };
         if (!row.name) { alert('Name is required (it shows on the calendar)'); return; }
