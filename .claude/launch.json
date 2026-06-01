@@ -4,7 +4,11 @@
     {
       "name": "tracker",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-u", "-m", "http.server", "8765", "--directory", "public"],
+      "runtimeArgs": [
+        "-u",
+        "-c",
+        "import functools; from http.server import HTTPServer, SimpleHTTPRequestHandler; H=functools.partial(SimpleHTTPRequestHandler, directory='/Users/hurleywhite/Developer/arcticblue-event-tracker/public'); HTTPServer(('127.0.0.1', 8765), H).serve_forever()"
+      ],
       "port": 8765
     }
   ]

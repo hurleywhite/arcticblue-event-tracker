@@ -78,9 +78,18 @@ def _load_events_json():
     the no-hallucination rule (null url → unlinked card)."""
     data = json.loads(EVENTS_SOURCE.read_text())
     raw = data.get('events') or []
+    # Optional rich metadata (present on ArcticScout-sourced rows). We carry
+    # every key through so the expanded pop-up card can render them.
+    RICH_KEYS = (
+        'about', 'focus_areas', 'typical_attendees', 'speaking_route',
+        'contact_info', 'poc_email', 'deadline', 'attendee_count',
+        'pay_to_play', 'seed', 'urgent', 'venue', 'city', 'country',
+        'region', 'notes', 'speaker', 'workflow_status', 'source',
+        'external_id', 'start_date', 'end_date',
+    )
     events = []
     for r in raw:
-        events.append({
+        ev = {
             'num':           r.get('num'),
             'name':          r.get('name', ''),
             'date_str':      r.get('date_str', ''),
@@ -89,7 +98,11 @@ def _load_events_json():
             'priority':      r.get('priority', ''),
             'priority_full': r.get('priority_full', r.get('priority', '')),
             'why':           r.get('why', ''),
-        })
+        }
+        for k in RICH_KEYS:
+            if r.get(k) not in (None, ''):
+                ev[k] = r.get(k)
+        events.append(ev)
         # Merge URL from events.json into the lookup map (only if non-null)
         if r.get('url') and r.get('num') is not None:
             EVENT_URLS[str(r['num'])] = r['url']
@@ -167,11 +180,24 @@ def parse_date(date_str):
 def classify(events):
     today_events, upcoming, archived = [], [], []
     for ev in events:
-        start, end = parse_date(ev['date_str'])
+        # Prefer explicit ISO start/end (ArcticScout rows carry them) so
+        # bucketing never depends on re-parsing a display date string.
+        start = end = None
+        iso_s, iso_e = ev.get('start_date'), ev.get('end_date')
+        if iso_s:
+            try:
+                start = date.fromisoformat(iso_s)
+                end = date.fromisoformat(iso_e) if iso_e else start
+            except (ValueError, TypeError):
+                start = end = None
+        if not start:
+            start, end = parse_date(ev['date_str'])
         if not start:
             ev['_parse_failed'] = True
             upcoming.append(ev)  # fail safe
             continue
+        if end is None:
+            end = start
         ev['_start'] = start
         ev['_end'] = end
         if start <= TODAY <= end:
@@ -216,23 +242,24 @@ def render_event_card(ev, archived=False):
     if why and len(why) > 220:
         why = why[:220].rsplit(' ', 1)[0] + '…'
     extra_class = ' archived' if archived else ''
-    # Verified URL from the source doc (no invented URLs)
-    url = EVENT_URLS.get(str(ev.get('num', '')))
+    num = ev.get('num', '')
+    # Verified URL from the source doc (no invented URLs). The card itself is
+    # NO LONGER a link — clicking it opens an expanded pop-up (modal) that
+    # carries the website link *inside* it, alongside the rich detail fields.
+    url = EVENT_URLS.get(str(num))
     if url:
-        # Whole card is a clickable link; opens in new tab
-        wrap_open = f'<a class="event-link" href="{e(url)}" target="_blank" rel="noopener" aria-label="Open {e(ev["name"])} in a new tab">'
-        wrap_close = '</a>'
         link_indicator = '<span class="event-link-arrow" aria-hidden="true">↗</span>'
         extra_class += ' has-link'
     else:
-        wrap_open = ''
-        wrap_close = ''
         link_indicator = '<span class="event-no-link" title="No verified URL on file for this event">·</span>'
     return f'''
-    {wrap_open}<article class="event{extra_class}"
+    <article class="event is-clickable{extra_class}"
+             data-num="{e(str(num))}"
              data-priority="{e(priority_label)}"
              data-region="{e(region)}"
-             data-type="{e(typ)}">
+             data-type="{e(typ)}"
+             role="button" tabindex="0" aria-haspopup="dialog"
+             aria-label="Open details for {e(ev['name'])}">
       <header class="event-head">
         <p class="event-date">{e(fmt_date(ev))}</p>
         <span class="badge {pc}">{e(priority_label)}</span>
@@ -242,8 +269,9 @@ def render_event_card(ev, archived=False):
       {f'<p class="event-why">{e(why)}</p>' if why else ''}
       <footer class="event-foot">
         <span class="event-type">{e(typ)}</span>
+        <span class="event-more">Details →</span>
       </footer>
-    </article>{wrap_close}'''
+    </article>'''
 
 
 def build():
@@ -259,6 +287,43 @@ def build():
     today_html = '\n'.join(render_event_card(ev) for ev in today_evs) if today_evs else ''
     upcoming_html = '\n'.join(render_event_card(ev) for ev in upcoming)
     archived_html = '\n'.join(render_event_card(ev, archived=True) for ev in archived)
+
+    # ── Catalog data blob for the expanded pop-up (modal) cards ──────────
+    # Every rendered card carries data-num; the modal looks the full record
+    # up here by num. Includes the ArcticScout rich fields when present.
+    MODAL_FIELDS = (
+        'about', 'focus_areas', 'typical_attendees', 'speaking_route',
+        'contact_info', 'poc_email', 'deadline', 'attendee_count',
+        'pay_to_play', 'seed', 'urgent', 'venue', 'city', 'country',
+        'notes', 'speaker', 'workflow_status', 'source', 'priority_full',
+    )
+
+    def modal_event(ev, bucket):
+        rec = {
+            'num':      ev.get('num'),
+            'name':     ev.get('name', ''),
+            'date_str': ev.get('date_str', ''),
+            'location': ev.get('location', ''),
+            'region':   ev.get('region') or region_from_location(ev.get('location', '')),
+            'type':     ev.get('type', ''),
+            'priority': ev.get('priority', ''),
+            'why':      ev.get('why', ''),
+            'url':      EVENT_URLS.get(str(ev.get('num', ''))),
+            'status':   bucket,
+        }
+        for k in MODAL_FIELDS:
+            if ev.get(k) not in (None, ''):
+                rec[k] = ev.get(k)
+        return rec
+
+    catalog_records = (
+        [modal_event(ev, 'today')    for ev in today_evs] +
+        [modal_event(ev, 'upcoming') for ev in upcoming]  +
+        [modal_event(ev, 'archived') for ev in archived]
+    )
+    catalog_by_num = {str(r['num']): r for r in catalog_records if r.get('num') is not None}
+    # Escape '<' so a field value can never break out of the <script> tag.
+    catalog_json = json.dumps(catalog_by_num, ensure_ascii=False).replace('<', '\\u003c')
 
     today_iso = TODAY.isoformat()
     last_updated = TODAY.strftime('%B %d, %Y')
@@ -515,22 +580,27 @@ def build():
     .event-loc {{ font-size: 0.85rem; color: var(--ab-fg-3); margin: 0; }}
     .event-region {{ color: var(--ab-fg-2); font-weight: 500; }}
     .event-why {{ font-size: 0.85rem; color: var(--ab-fg-2); line-height: 1.5; margin: 4px 0 0; }}
-    .event-foot {{ margin-top: auto; padding-top: 10px; border-top: 1px solid var(--ab-rule); }}
+    .event-foot {{
+      margin-top: auto; padding-top: 10px; border-top: 1px solid var(--ab-rule);
+      display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+    }}
     .event-type {{
       font-family: var(--ab-mono); font-size: 0.68rem;
       color: var(--ab-fg-3); letter-spacing: 0.1em; text-transform: uppercase;
     }}
+    .event-more {{
+      font-family: var(--ab-mono); font-size: 0.66rem; letter-spacing: 0.08em;
+      color: var(--ab-mute); text-transform: uppercase;
+      opacity: 0; transition: opacity 0.15s, color 0.15s;
+    }}
     .event.archived {{ opacity: 0.6; }}
     .event.archived:hover {{ opacity: 1; }}
 
-    /* Whole-card links */
-    a.event-link {{
-      display: contents;
-      color: inherit;
-      text-decoration: none;
-    }}
-    a.event-link .event {{ cursor: pointer; }}
-    a.event-link:hover .event.has-link {{ border-color: var(--ab-blue); }}
+    /* Clickable cards open the expanded pop-up (modal) */
+    .event.is-clickable {{ cursor: pointer; }}
+    .event.is-clickable:hover {{ border-color: var(--ab-blue); }}
+    .event.is-clickable:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 2px; }}
+    .event.is-clickable:hover .event-more {{ opacity: 1; color: var(--ab-blue); }}
     .event-link-arrow {{
       display: inline-block; font-family: var(--ab-mono);
       font-size: 0.85rem; color: var(--ab-fg-3);
@@ -538,7 +608,7 @@ def build():
       margin-left: 4px;
       vertical-align: 1px;
     }}
-    a.event-link:hover .event-link-arrow {{
+    .event.is-clickable:hover .event-link-arrow {{
       color: var(--ab-blue);
       transform: translate(2px, -2px);
     }}
@@ -547,6 +617,76 @@ def build():
       font-family: var(--ab-mono); font-size: 0.85rem;
       margin-left: 4px; vertical-align: 1px;
       cursor: help;
+    }}
+
+    /* ───────────── expanded pop-up (modal) ───────────── */
+    .modal-overlay {{
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(10, 10, 10, 0.55);
+      backdrop-filter: blur(3px);
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 5vh 20px; overflow-y: auto;
+      animation: modalFade 0.14s ease-out;
+    }}
+    .modal-overlay[hidden] {{ display: none; }}
+    @keyframes modalFade {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+    .modal-card {{
+      position: relative; background: #fff;
+      width: 100%; max-width: 640px;
+      border: 1px solid var(--ab-rule-strong); border-radius: 8px;
+      box-shadow: 0 24px 60px rgba(10, 10, 10, 0.28);
+      animation: modalRise 0.16s ease-out;
+    }}
+    @keyframes modalRise {{ from {{ transform: translateY(8px); opacity: 0.6; }} to {{ transform: translateY(0); opacity: 1; }} }}
+    .modal-scroll {{ padding: 30px 32px 26px; max-height: 86vh; overflow-y: auto; }}
+    .modal-close {{
+      position: absolute; top: 10px; right: 12px; z-index: 1;
+      width: 34px; height: 34px; border: none; background: var(--ab-bg-3);
+      border-radius: 50%; cursor: pointer; font-size: 1.4rem; line-height: 1;
+      color: var(--ab-fg-2); transition: background 0.15s, color 0.15s;
+    }}
+    .modal-close:hover {{ background: var(--ab-fg); color: #fff; }}
+    .modal-head {{ border-bottom: 1px solid var(--ab-rule); padding-bottom: 16px; margin-bottom: 18px; padding-right: 30px; }}
+    .modal-badges {{ display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }}
+    .modal-badges .badge {{ position: static; }}
+    .modal-date {{
+      font-family: var(--ab-mono); font-size: 0.82rem; color: var(--ab-fg-3);
+      margin: 0 0 4px; letter-spacing: 0.02em;
+    }}
+    .modal-title {{
+      font-family: var(--ab-sans); font-size: 1.55rem; font-weight: 800;
+      line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--ab-fg);
+    }}
+    .modal-loc {{ font-size: 0.92rem; color: var(--ab-fg-2); margin: 0; }}
+    .modal-loc .event-region {{ color: var(--ab-fg); font-weight: 600; }}
+    .modal-body {{ display: flex; flex-direction: column; gap: 16px; }}
+    .modal-field {{ display: flex; flex-direction: column; gap: 4px; }}
+    .modal-field .k {{
+      font-family: var(--ab-mono); font-size: 0.64rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ab-fg-3);
+    }}
+    .modal-field .v {{ font-size: 0.92rem; color: var(--ab-fg); line-height: 1.55; white-space: pre-wrap; }}
+    .modal-field .v a {{ color: var(--ab-blue); }}
+    .modal-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }}
+    .modal-actions {{
+      margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--ab-rule);
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }}
+    .modal-visit {{
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--ab-blue); color: #fff; text-decoration: none;
+      font-family: var(--ab-sans); font-weight: 600; font-size: 0.9rem;
+      padding: 10px 16px; border-radius: 5px; transition: background 0.15s;
+    }}
+    .modal-visit:hover {{ background: #1f5fa3; }}
+    .modal-nolink {{
+      font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-mute);
+      align-self: center;
+    }}
+    @media (max-width: 560px) {{
+      .modal-scroll {{ padding: 26px 20px 22px; }}
+      .modal-title {{ font-size: 1.3rem; }}
+      .modal-grid {{ grid-template-columns: 1fr; }}
     }}
 
     /* ───────────── archive disclosure ───────────── */
@@ -754,6 +894,14 @@ def build():
       transition: color 120ms ease;
     }}
     .ops-card .ops-link:hover {{ color: var(--ab-blue-light); }}
+    .ops-details-btn {{
+      font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--ab-fg-3);
+      background: var(--ab-bg-3); border: 1px solid var(--ab-rule);
+      border-radius: 4px; padding: 2px 8px; margin-left: 6px; cursor: pointer;
+      vertical-align: 2px; transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }}
+    .ops-details-btn:hover {{ background: var(--ab-blue); color: #fff; border-color: var(--ab-blue); }}
     .ops-tags {{ display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }}
     .ops-tag {{
       font-family: var(--ab-mono); font-size: 0.66rem;
@@ -1483,9 +1631,27 @@ def build():
 
     <footer class="foot">
       <p class="foot-text">ArcticBlue · Event Tracker · Auto-archives events one day after end-date.</p>
-      <p class="foot-mono">v1.1 · {today_iso}</p>
+      <p class="foot-mono">v1.2 · {today_iso}</p>
     </footer>
   </main>
+
+  <!-- ── Expanded pop-up (modal) for a single event ─────────────────── -->
+  <div id="event-modal" class="modal-overlay" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
+      <div class="modal-scroll">
+        <div class="modal-head">
+          <div class="modal-badges" id="modal-badges"></div>
+          <p class="modal-date" id="modal-date"></p>
+          <h2 class="modal-title" id="modal-title"></h2>
+          <p class="modal-loc" id="modal-loc"></p>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-actions" id="modal-actions"></div>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="catalog-data">{catalog_json}</script>
 
 <script>
 // ── Tab switcher (For Everyone / For Angela) ──────────────────────────
@@ -1547,6 +1713,150 @@ def build():
     if (el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', apply);
   }});
   apply();
+}})();
+
+// ── Expanded pop-up (modal) for an event ──────────────────────────────
+// Clicking any catalog card (public page) or a "Details" affordance in the
+// For-Angela tab opens this. The event website link lives INSIDE the modal
+// now — the card itself is no longer a whole-card link.
+(function () {{
+  var CATALOG = {{}};
+  try {{
+    var blob = document.getElementById('catalog-data');
+    if (blob) CATALOG = JSON.parse(blob.textContent || '{{}}');
+  }} catch (e) {{ CATALOG = {{}}; }}
+  window.AB_CATALOG = CATALOG;
+
+  var overlay  = document.getElementById('event-modal');
+  var closeBtn = document.getElementById('modal-close');
+  if (!overlay) return;
+  var $badges  = document.getElementById('modal-badges');
+  var $date    = document.getElementById('modal-date');
+  var $title   = document.getElementById('modal-title');
+  var $loc     = document.getElementById('modal-loc');
+  var $body    = document.getElementById('modal-body');
+  var $actions = document.getElementById('modal-actions');
+  var lastFocus = null;
+
+  function esc(s) {{
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }}
+  function priClass(p) {{
+    p = (p || '').toLowerCase();
+    if (p.indexOf('high') === 0) return 'p-high';
+    if (p.indexOf('low')  === 0) return 'p-low';
+    return 'p-medium';
+  }}
+  function field(label, val, html) {{
+    if (val == null || String(val).trim() === '') return '';
+    return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' +
+           '<span class="v">' + (html ? val : esc(val)) + '</span></div>';
+  }}
+
+  function openEventModal(rec) {{
+    if (!rec) return;
+    var badges = [];
+    if (rec.priority) badges.push('<span class="badge ' + priClass(rec.priority) + '">' + esc(rec.priority) + '</span>');
+    if (rec.type)     badges.push('<span class="badge p-medium">' + esc(rec.type) + '</span>');
+    if (rec.workflow_status) badges.push('<span class="badge p-low">' + esc(rec.workflow_status) + '</span>');
+    if (rec.status && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
+    if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
+    if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
+    if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
+    $badges.innerHTML = badges.join('');
+
+    $date.textContent  = rec.date_str || '';
+    $title.textContent = rec.name || 'Event';
+    var regionTxt = rec.region ? '<span class="event-region">' + esc(rec.region) + '</span>' : '';
+    var locTxt = esc(rec.location || '');
+    $loc.innerHTML = regionTxt + (regionTxt && locTxt ? ' · ' : '') + locTxt;
+
+    var html = '';
+    html += field('Why it fits ArcticBlue', rec.why);
+    html += field('About', rec.about);
+    html += field('Focus areas', rec.focus_areas);
+    html += field('Typical attendees', rec.typical_attendees);
+    html += field('Speaking route', rec.speaking_route);
+
+    // Short facts in a 2-up grid
+    var grid = '';
+    grid += field('Deadline', rec.deadline);
+    grid += field('Attendee count', rec.attendee_count);
+    grid += field('Pay-to-play', rec.pay_to_play);
+    grid += field('Venue', rec.venue);
+    grid += field('Submission status', rec.submission_status);
+    grid += field('Speaking fee', rec.speaking_fee);
+    if (grid) html += '<div class="modal-grid">' + grid + '</div>';
+
+    html += field('ArcticBlue speaker', rec.speaker);
+
+    // Contacts
+    var contactBits = [];
+    if (rec.poc_name)  contactBits.push(esc(rec.poc_name));
+    if (rec.poc_email) contactBits.push('<a href="mailto:' + esc(rec.poc_email) + '">' + esc(rec.poc_email) + '</a>');
+    if (rec.poc_linkedin) contactBits.push('<a href="' + esc(rec.poc_linkedin) + '" target="_blank" rel="noopener">LinkedIn ↗</a>');
+    if (contactBits.length) html += field('Point of contact', contactBits.join(' · '), true);
+    html += field('Contact info', rec.contact_info);
+    html += field('Additional contacts', rec.additional_contacts);
+    html += field('Notes', rec.notes);
+
+    $body.innerHTML = html || '<p class="modal-nolink">No extra detail on file for this event yet.</p>';
+
+    if (rec.url) {{
+      $actions.innerHTML = '<a class="modal-visit" href="' + esc(rec.url) + '" target="_blank" rel="noopener">Visit event website ↗</a>';
+    }} else {{
+      $actions.innerHTML = '<span class="modal-nolink">No verified website URL on file.</span>';
+    }}
+
+    lastFocus = document.activeElement;
+    overlay.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+    overlay.querySelector('.modal-scroll').scrollTop = 0;
+    closeBtn.focus();
+  }}
+  function closeModal() {{
+    overlay.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }}
+  window.openEventModal = openEventModal;
+  window.closeEventModal = closeModal;
+  window.openEventByNum = function (num) {{ openEventModal(CATALOG[String(num)]); }};
+
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (ev) {{ if (ev.target === overlay) closeModal(); }});
+  document.addEventListener('keydown', function (ev) {{
+    if (ev.key === 'Escape' && !overlay.hasAttribute('hidden')) closeModal();
+  }});
+
+  // Public catalog cards: delegate clicks + keyboard activation.
+  document.addEventListener('click', function (ev) {{
+    var card = ev.target.closest ? ev.target.closest('.event.is-clickable') : null;
+    if (!card) return;
+    if (ev.target.closest('a')) return; // let real links inside cards work
+    var rec = CATALOG[card.getAttribute('data-num')];
+    if (rec) {{ ev.preventDefault(); openEventModal(rec); }}
+  }});
+
+  // For-Angela ops/manual cards: the "Details →" button carries a stashed
+  // record (card._modalRec) so we can show the same rich pop-up.
+  document.addEventListener('click', function (ev) {{
+    var btn = ev.target.closest ? ev.target.closest('[data-detail]') : null;
+    if (!btn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    var card = btn.closest('.ops-card');
+    if (card && card._modalRec) openEventModal(card._modalRec);
+  }});
+  document.addEventListener('keydown', function (ev) {{
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    var t = ev.target;
+    if (!t || !t.classList || !t.classList.contains('is-clickable')) return;
+    var rec = CATALOG[t.getAttribute('data-num')];
+    if (rec) {{ ev.preventDefault(); openEventModal(rec); }}
+  }});
 }})();
 
 // ── Supabase wiring for "For Angela" tab ──────────────────────────────
@@ -1806,6 +2116,7 @@ def build():
         '</div>' +
         '<h3 class="event-name">' + escapeHtml(ev.name) +
           (ev.url ? ' <a class="ops-link" href="' + escapeHtml(ev.url) + '" target="_blank" rel="noopener" aria-label="Open ' + escapeHtml(ev.name) + '">↗</a>' : '') +
+          ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>' +
         renderOpsTags(st) +
@@ -1832,6 +2143,16 @@ def build():
           '</div>' +
           metaLine +
         '</details>';
+      // Stash a modal record on the node for the delegated "Details" handler.
+      var rec = {{}};
+      for (var k in ev) {{ if (Object.prototype.hasOwnProperty.call(ev, k)) rec[k] = ev[k]; }}
+      if (st) {{
+        if (st.speaker) rec.speaker = st.speaker;
+        if (st.notes)   rec.notes = st.notes;
+        if (st.status)  rec.workflow_status = st.status;
+        if (st.priority_override) rec.priority = st.priority_override;
+      }}
+      card._modalRec = rec;
       return card;
     }}
 
@@ -1893,6 +2214,7 @@ def build():
         '</div>' +
         '<h3 class="event-name">' + escapeHtml(mev.name || '') +
           (mev.url ? ' <a class="ops-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open ' + escapeHtml(mev.name || '') + '">↗</a>' : '') +
+          ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(mev.region || '') + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
         tagsHtml +
@@ -1962,6 +2284,11 @@ def build():
           '</form>' +
         '</details>' +
         (who ? '<p class="ops-meta"' + whoTitle + '>' + who + '</p>' : '');
+      // Stash a modal record on the node for the delegated "Details" handler.
+      var mrec = {{}};
+      for (var mk in mev) {{ if (Object.prototype.hasOwnProperty.call(mev, mk)) mrec[mk] = mev[mk]; }}
+      mrec.workflow_status = mev.status || null;
+      card._modalRec = mrec;
       return card;
     }}
 
@@ -4025,15 +4352,25 @@ def write_events_json(today_evs, upcoming, archived):
     Schema is stable; do not break it without bumping `schema_version`."""
     OUT_JSON = HERE / 'public' / 'events.json'
 
+    RICH_KEYS = (
+        'about', 'focus_areas', 'typical_attendees', 'speaking_route',
+        'contact_info', 'poc_email', 'deadline', 'attendee_count',
+        'pay_to_play', 'seed', 'urgent', 'venue', 'city', 'country',
+        'notes', 'speaker', 'workflow_status', 'source', 'external_id',
+    )
+
     def serialize(ev, bucket):
-        return {
+        out = {
             'num':           ev.get('num'),
             'name':          ev.get('name', ''),
             'date_str':      ev.get('date_str', ''),
             'start_date':    ev.get('_start').isoformat() if ev.get('_start') else None,
             'end_date':      ev.get('_end').isoformat()   if ev.get('_end')   else None,
             'location':      ev.get('location', ''),
-            'region':        region_from_location(ev.get('location', '')),
+            # Granular region (e.g. "Bay Area") when the source carries one;
+            # otherwise fall back to the coarse Americas/Europe/… mapping.
+            'region':        ev.get('region') or region_from_location(ev.get('location', '')),
+            'region_coarse': region_from_location(ev.get('location', '')),
             'type':          ev.get('type', ''),
             'priority':      ev.get('priority', ''),
             'priority_full': ev.get('priority_full', ev.get('priority', '')),
@@ -4041,6 +4378,10 @@ def write_events_json(today_evs, upcoming, archived):
             'url':           EVENT_URLS.get(str(ev.get('num', ''))),
             'status':        bucket,
         }
+        for k in RICH_KEYS:
+            if ev.get(k) not in (None, ''):
+                out[k] = ev.get(k)
+        return out
 
     payload = {
         'schema_version': 1,
