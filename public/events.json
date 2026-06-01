@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-31T11:04:24.628022Z",
-  "build_date": "2026-05-31",
+  "generated_at": "2026-06-01T15:30:56.310534Z",
+  "build_date": "2026-06-01",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
-    "today": 0,
-    "upcoming": 81,
+    "today": 1,
+    "upcoming": 80,
     "archived": 1,
     "total": 82
   },
@@ -24,7 +24,7 @@
       "priority_full": "Medium",
       "why": "Premier enterprise data + agentic AI conference at Moscone; audience of CDOs and data leaders building AI-ready data infrastructure \u2014 core data foundations buyer for ArcticBlue.",
       "url": "https://www.snowflake.com/en/summit/",
-      "status": "upcoming"
+      "status": "today"
     },
     {
       "num": 17,
