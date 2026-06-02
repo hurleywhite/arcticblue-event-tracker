@@ -219,6 +219,36 @@ def _norm_tags(v):
     return out
 
 
+# ── Duplicate detection ──────────────────────────────────────────────
+# Two keys guard against duplicates:
+#   1) exact lowercased name  -> catches identical re-submits.
+#   2) order-independent fingerprint -> catches the SAME event under a reworded
+#      title. It drops punctuation, 4-digit years and generic event words, then
+#      sorts the remaining distinctive tokens. So
+#        "The AI Leadership Summit — The Conference Board"
+#        "The Conference Board AI Leadership Summit 2026"
+#      both collapse to "ai board conference leadership" and dedupe. City and
+#      region words are KEPT, so New York vs London editions stay distinct.
+_DEDUPE_STOP = {
+    'the', 'a', 'an', 'and', 'or', 'of', 'for', 'to', 'in', 'on', 'at', 'by', 'with',
+    'summit', 'summits', 'conference', 'conferences', 'expo', 'forum', 'event', 'events',
+}
+_YEAR_RE = re.compile(r'^(?:19|20)\d{2}$')
+
+
+def _fingerprint(name):
+    """Order-independent dedupe key. May be '' if the name is all stop-words
+    (callers must treat an empty fingerprint as 'no fingerprint match')."""
+    s = re.sub(r'[^a-z0-9]+', ' ', (name or '').lower())
+    toks = [t for t in s.split() if t not in _DEDUPE_STOP and not _YEAR_RE.match(t)]
+    return ' '.join(sorted(set(toks)))
+
+
+def _fps_of(names):
+    """Set of non-empty fingerprints for an iterable of names."""
+    return {fp for fp in (_fingerprint(n) for n in names) if fp}
+
+
 def _coerce(ev):
     """Filter an incoming dict to allowed columns + coerce types. Returns a
     row dict (may be empty) or None if the input isn't an object."""
@@ -582,10 +612,13 @@ class handler(BaseHTTPRequestHandler):
         if len(items) > MAX_EVENTS:
             return _send(self, 413, {'error': 'too many events (max %d per request)' % MAX_EVENTS})
 
-        # Dedupe sources (fetched once).
-        existing = _existing_manual_names()
-        catalog  = _catalog_names(self.headers.get('Host', ''))
-        seen_this_run = set()
+        # Dedupe sources (fetched once). We keep BOTH exact lowercased names and
+        # order-independent fingerprints for each source.
+        existing_names = _existing_manual_names()
+        catalog_names  = _catalog_names(self.headers.get('Host', ''))
+        existing_fps   = _fps_of(existing_names)
+        catalog_fps    = _fps_of(catalog_names)
+        seen_names, seen_fps = set(), set()
 
         inserted, rejected, skipped, errors = [], [], [], []
         enrich_used = 0  # how many Exa speaking-route lookups we've spent
@@ -615,20 +648,27 @@ class handler(BaseHTTPRequestHandler):
             row.setdefault('external_id', 'dust')
 
             lname = name.lower()
-            if lname in seen_this_run or lname in existing or lname in catalog:
+            fp = _fingerprint(name)
+            is_dup = (
+                lname in seen_names or lname in existing_names or lname in catalog_names
+                or (fp and (fp in seen_fps or fp in existing_fps or fp in catalog_fps))
+            )
+            if is_dup:
                 skipped.append({'name': name, 'reason': 'duplicate'})
                 continue
 
             # Worthiness gate (OpenAI). Runs ONLY on genuinely-new events, so
             # a token is never spent judging a duplicate. No-ops if disabled.
-            verdict = _evaluate_event(row, existing | catalog)
+            verdict = _evaluate_event(row, existing_names | catalog_names)
             if verdict['decision'] == 'reject':
                 rejected.append({
                     'name':   name,
                     'reason': verdict['reason'] or 'not worthy',
                     'score':  verdict['score'],
                 })
-                seen_this_run.add(lname)  # don't re-judge same name in this batch
+                seen_names.add(lname)  # don't re-judge same name in this batch
+                if fp:
+                    seen_fps.add(fp)
                 continue
 
             # Speaking-route enrichment: only when the caller didn't already
@@ -647,8 +687,11 @@ class handler(BaseHTTPRequestHandler):
             if status in (200, 201) and isinstance(data, list) and data:
                 inserted.append({'id': data[0].get('id'), 'name': name,
                                  'speaking_route': row.get('speaking_route')})
-                seen_this_run.add(lname)
-                existing.add(lname)
+                seen_names.add(lname)
+                existing_names.add(lname)
+                if fp:
+                    seen_fps.add(fp)
+                    existing_fps.add(fp)
             elif status == 409 or (isinstance(data, dict) and str(data.get('code')) == '23505'):
                 skipped.append({'name': name, 'reason': 'duplicate (db unique index)'})
             else:

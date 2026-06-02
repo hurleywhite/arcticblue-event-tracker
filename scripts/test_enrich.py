@@ -104,5 +104,35 @@ check('no event url -> None', ev._find_speaking_route('Some Event', '') is None)
 ev.EXA_API_KEY = ''
 check('EXA disabled -> None', ev._find_speaking_route('Foo', 'https://foo.com/') is None)
 
+print('6) _fingerprint: reworded titles collapse; distinct editions stay apart')
+# The real duplicate that slipped through (id 16 vs catalog).
+fp_a = ev._fingerprint('The AI Leadership Summit — The Conference Board')
+fp_b = ev._fingerprint('The Conference Board AI Leadership Summit 2026')
+check('reworded Conference Board pair -> same fingerprint', fp_a == fp_b and fp_a != '')
+# Year / punctuation / spacing invariance.
+check('year + punctuation invariant',
+      ev._fingerprint('World Summit AI Amsterdam 2026') == ev._fingerprint('World  Summit, AI: Amsterdam!'))
+# Distinct city editions must NOT collapse.
+check('New York vs London stay distinct',
+      ev._fingerprint('Chief AI Officer Summit New York') != ev._fingerprint('Chief AI Officer Summit London 2026'))
+check('ISG NY vs Paris stay distinct',
+      ev._fingerprint('ISG AI Impact Summit New York') != ev._fingerprint('ISG AI Impact Summit Paris'))
+# US vs EMEA Gartner editions stay distinct (region qualifier preserved).
+check('Gartner US vs EMEA stay distinct',
+      ev._fingerprint('Gartner IT Symposium/Xpo 2026 (US)') != ev._fingerprint('Gartner IT Symposium/Xpo EMEA 2026'))
+
+print('7) dedupe decision uses fingerprint against the catalog (id 16 case)')
+catalog_names = {'the conference board ai leadership summit 2026'}
+catalog_fps = ev._fps_of(catalog_names)
+cand = 'The AI Leadership Summit — The Conference Board'
+cfp = ev._fingerprint(cand)
+is_dup = (cand.lower() in catalog_names) or (cfp and cfp in catalog_fps)
+check('reworded candidate flagged duplicate via fingerprint', bool(is_dup))
+# A genuinely new event is NOT a duplicate.
+new = 'Quantum Robotics World Forum Tokyo'
+nfp = ev._fingerprint(new)
+not_dup = (new.lower() in catalog_names) or (nfp and nfp in catalog_fps)
+check('genuinely-new event is NOT flagged', not not_dup)
+
 print('\n%d passed, %d failed' % (passed, failed))
 raise SystemExit(1 if failed else 0)
