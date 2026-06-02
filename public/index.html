@@ -6879,7 +6879,9 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
     // falls back to parsing the free-form date_str, and lands undated rows in
     // a "Date TBD" bucket sorted to the very end. Returns key / label / sort
     // where key is 'YYYY-MM' (or 'tbd'), label is e.g. 'June 2026', and sort is
-    // a comparable integer (year*100+month, TBD = 999999).
+    // a DAY-PRECISE comparable integer (year*10000 + month*100 + day) so cards
+    // order by their actual event date — within a month too — regardless of
+    // when they were added. Undated rows sort last (99999999).
     var OPS_MONTH_NAMES = ['January','February','March','April','May','June',
       'July','August','September','October','November','December'];
     function opsMonthMeta(startIso, dateStr) {
@@ -6892,15 +6894,17 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       if (iso && /^\d{4}-\d{2}/.test(iso)) {
         var y = parseInt(iso.slice(0, 4), 10);
         var mo = parseInt(iso.slice(5, 7), 10);
+        var day = parseInt(iso.slice(8, 10), 10) || 1;  // missing day -> 1st
+        if (day < 1 || day > 31) day = 1;
         if (y && mo >= 1 && mo <= 12) {
           return {
             key: iso.slice(0, 4) + '-' + iso.slice(5, 7),
             label: OPS_MONTH_NAMES[mo - 1] + ' ' + y,
-            sort: y * 100 + mo
+            sort: y * 10000 + mo * 100 + day
           };
         }
       }
-      return { key: 'tbd', label: 'Date TBD', sort: 999999 };
+      return { key: 'tbd', label: 'Date TBD', sort: 99999999 };
     }
 
     function buildOpsCard(ev, st, email) {
@@ -7617,7 +7621,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       var cards = Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card'));
       if (!cards.length) { buildMonthsMenu([]); return; }
       cards.sort(function (a, b) {
-        return (parseInt(a.dataset.sort || '999999', 10)) - (parseInt(b.dataset.sort || '999999', 10));
+        return (parseInt(a.dataset.sort || '99999999', 10)) - (parseInt(b.dataset.sort || '99999999', 10));
       });
       var frag = document.createDocumentFragment();
       var curKey = null;
