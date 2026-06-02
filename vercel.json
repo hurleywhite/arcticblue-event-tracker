@@ -6,6 +6,9 @@
     },
     "api/search.py": {
       "maxDuration": 120
+    },
+    "api/events.py": {
+      "maxDuration": 30
     }
   },
   "headers": [
