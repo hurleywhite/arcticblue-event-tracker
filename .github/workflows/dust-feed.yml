@@ -1,0 +1,47 @@
+name: Dust event auto-feed
+
+# Twice a week, ask the ArcticBlueEventSpeaking Dust agent for newly-found
+# speaking events and POST them to /api/events. The endpoint's OpenAI
+# worthiness gate decides which ones are kept. Nothing is committed to the
+# repo — this only writes to Supabase via the ingest endpoint.
+#
+# Also runnable on demand from the Actions tab (Run workflow).
+
+on:
+  schedule:
+    # 13:00 UTC Mon & Thu (~ 09:00 ET / 06:00 PT, after the daily build).
+    - cron: "0 13 * * 1,4"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# Never let two feed runs overlap (the agent + gate can take a couple minutes).
+concurrency:
+  group: dust-feed
+  cancel-in-progress: false
+
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run Dust feed
+        env:
+          DUST_API_KEY:         ${{ secrets.DUST_API_KEY }}
+          EVENTS_INGEST_SECRET: ${{ secrets.EVENTS_INGEST_SECRET }}
+          # Optional overrides — only set these as repo secrets/vars if you
+          # ever move the deployment or change the workspace/agent.
+          EVENTS_ENDPOINT:   ${{ vars.EVENTS_ENDPOINT }}
+          DUST_WORKSPACE_ID: ${{ vars.DUST_WORKSPACE_ID }}
+          DUST_AGENT_ID:     ${{ vars.DUST_AGENT_ID }}
+          DUST_DOMAIN:       ${{ vars.DUST_DOMAIN }}
+          DUST_FEED_COUNT:   ${{ vars.DUST_FEED_COUNT }}
+        run: python3 scripts/dust_feed.py
