@@ -7,7 +7,7 @@ X-WR-CALNAME:ArcticBlue · Saved events
 X-WR-CALDESC:All saved events plus every manual addition. Updated daily.
 BEGIN:VEVENT
 UID:manual-6@arcticblue-event-tracker
-DTSTAMP:20260602T174922Z
+DTSTAMP:20260602T180813Z
 DTSTART;VALUE=DATE:20260612
 DTEND;VALUE=DATE:20260613
 SUMMARY:DDX Innovation & UX Conference New York

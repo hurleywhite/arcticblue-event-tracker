@@ -945,6 +945,78 @@ def build():
 
     /* Ops grid — same skeleton as .event-grid but with edit controls */
     .ops-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }}
+
+    /* Month dividers inside the For-Angela ops grid. Mirrors the public
+       .month-header but is clickable to collapse/expand that month's cards. */
+    .ops-month-header {{
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 12px;
+      margin: 26px 0 4px;
+      font-family: var(--ab-mono);
+      font-size: 0.74rem; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--ab-fg-2);
+      background: transparent; border: 0; width: 100%; text-align: left;
+      cursor: pointer; padding: 4px 0;
+      transition: color 0.15s;
+    }}
+    .ops-month-header:hover {{ color: var(--ab-fg); }}
+    .ops-month-header:first-child {{ margin-top: 0; }}
+    .ops-month-header .mh-caret {{
+      display: inline-block; font-size: 0.6rem; line-height: 1;
+      transition: transform 0.15s; color: var(--ab-fg-3);
+    }}
+    .ops-month-header.collapsed .mh-caret {{ transform: rotate(-90deg); }}
+    .ops-month-header .mh-count {{
+      font-weight: 400; color: var(--ab-fg-3); letter-spacing: 0.08em;
+    }}
+    .ops-month-header .mh-line {{
+      flex: 1; height: 1px; background: var(--ab-rule);
+    }}
+
+    /* "Months" hide/show dropdown in the ops filter bar */
+    .ops-months {{ position: relative; display: inline-block; }}
+    .ops-months-btn {{
+      font-family: var(--ab-mono); font-size: 0.66rem; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--ab-fg-2);
+      background: var(--ab-bg-3); border: 1px solid var(--ab-rule);
+      border-radius: 6px; padding: 5px 10px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }}
+    .ops-months-btn:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg); }}
+    .ops-months-btn .mb-caret {{ font-size: 0.55rem; color: var(--ab-fg-3); }}
+    .ops-months-menu {{
+      position: absolute; top: calc(100% + 6px); right: 0; z-index: 40;
+      min-width: 220px; max-height: 360px; overflow-y: auto;
+      background: var(--ab-bg); border: 1px solid var(--ab-rule);
+      border-radius: 8px; padding: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+      display: none;
+    }}
+    .ops-months-menu.open {{ display: block; }}
+    .ops-months-actions {{
+      display: flex; gap: 6px; padding: 2px 4px 8px;
+      border-bottom: 1px solid var(--ab-rule); margin-bottom: 6px;
+    }}
+    .ops-months-actions button {{
+      flex: 1; font-family: var(--ab-mono); font-size: 0.6rem;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--ab-fg-2); background: var(--ab-bg-3);
+      border: 1px solid var(--ab-rule); border-radius: 5px;
+      padding: 4px 6px; cursor: pointer; transition: background 0.15s, color 0.15s;
+    }}
+    .ops-months-actions button:hover {{ background: var(--ab-blue); color: #fff; border-color: var(--ab-blue); }}
+    .ops-months-list label {{
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 6px; border-radius: 5px; cursor: pointer;
+      font-size: 0.8rem; color: var(--ab-fg);
+    }}
+    .ops-months-list label:hover {{ background: var(--ab-bg-3); }}
+    .ops-months-list input {{ accent-color: var(--ab-blue); cursor: pointer; }}
+    .ops-months-list .mc-count {{
+      margin-left: auto; font-family: var(--ab-mono);
+      font-size: 0.66rem; color: var(--ab-fg-3);
+    }}
     .ops-card {{
       position: relative;
       padding: 22px;
@@ -1750,6 +1822,18 @@ def build():
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-urgent">Urgent only</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-speaker">Has speaker</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-hidden">Show hidden</label>
+          <div class="ops-months">
+            <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
+              Months <span class="mb-caret" aria-hidden="true">&#9660;</span>
+            </button>
+            <div class="ops-months-menu" id="ops-months-menu" role="menu" aria-label="Show or hide months">
+              <div class="ops-months-actions">
+                <button type="button" id="ops-months-all">Show all</button>
+                <button type="button" id="ops-months-none">Hide all</button>
+              </div>
+              <div class="ops-months-list" id="ops-months-list"></div>
+            </div>
+          </div>
           <span class="ops-shown" id="ops-shown"></span>
         </div>
         <div class="view-toggle" role="tablist" aria-label="View">
@@ -2074,6 +2158,9 @@ def build():
     var $signoutOps    = document.getElementById('signout-ops');
     var $opsGrid   = document.getElementById('ops-grid');
     var $opsStatus = document.getElementById('ops-status');
+    // Month keys ('YYYY-MM' or 'tbd') the user has collapsed in the ops grid.
+    // A truthy value means that month's cards are hidden via the dropdown / header.
+    var opsCollapsedMonths = {{}};
 
     function showOnly(el) {{
       [$loading, $signin, $sent, $unauth, $ops].forEach(function (n) {{
@@ -2376,6 +2463,34 @@ def build():
       return '<div class="ops-tags">' + tags.join('') + '</div>';
     }}
 
+    // Month-grouping metadata for an ops card. Prefers an ISO start_date,
+    // falls back to parsing the free-form date_str, and lands undated rows in
+    // a "Date TBD" bucket sorted to the very end. Returns key / label / sort
+    // where key is 'YYYY-MM' (or 'tbd'), label is e.g. 'June 2026', and sort is
+    // a comparable integer (year*100+month, TBD = 999999).
+    var OPS_MONTH_NAMES = ['January','February','March','April','May','June',
+      'July','August','September','October','November','December'];
+    function opsMonthMeta(startIso, dateStr) {{
+      // Prefer a well-formed ISO start_date; if it's missing OR malformed,
+      // fall back to parsing the free-form date_str before giving up to TBD.
+      var iso = (startIso && /^\\d{{4}}-\\d{{2}}/.test(startIso)) ? startIso : null;
+      if (!iso && dateStr) {{
+        try {{ iso = deriveDatesFromText(dateStr).start_date; }} catch (e) {{ iso = null; }}
+      }}
+      if (iso && /^\\d{{4}}-\\d{{2}}/.test(iso)) {{
+        var y = parseInt(iso.slice(0, 4), 10);
+        var mo = parseInt(iso.slice(5, 7), 10);
+        if (y && mo >= 1 && mo <= 12) {{
+          return {{
+            key: iso.slice(0, 4) + '-' + iso.slice(5, 7),
+            label: OPS_MONTH_NAMES[mo - 1] + ' ' + y,
+            sort: y * 100 + mo
+          }};
+        }}
+      }}
+      return {{ key: 'tbd', label: 'Date TBD', sort: 999999 }};
+    }}
+
     function buildOpsCard(ev, st, email) {{
       var card = document.createElement('article');
       card.className = 'ops-card';
@@ -2386,6 +2501,10 @@ def build():
       card.dataset.status = st.status || '';
       var opsStages = stageTagsOf(st);
       card.dataset.statusTags = opsStages.join('|');
+      var opsMeta = opsMonthMeta(ev.start_date || (st && st.start_date), ev.date_str);
+      card.dataset.month = opsMeta.key;
+      card.dataset.monthLabel = opsMeta.label;
+      card.dataset.sort = opsMeta.sort;
       // Priority falls back to the event's own priority; override wins if set
       card.dataset.priority = (st.priority_override || ev.priority || '');
       card.dataset.track    = (st.track || '');
@@ -2514,6 +2633,10 @@ def build():
       card.dataset.priority = mev.priority || '';
       card.dataset.track    = ''; // manual_events doesn't carry a track column
       card.dataset.speaker  = (mev.speaker || '');
+      var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
+      card.dataset.month = manualMeta.key;
+      card.dataset.monthLabel = manualMeta.label;
+      card.dataset.sort = manualMeta.sort;
       var whoText  = mev.created_by ? ('Added by ' + escapeHtml(firstNameFromEmail(mev.created_by)) + ' · ' + escapeHtml(formatStamp(mev.created_at))) : '';
       var whoTitle = mev.created_by ? (' title="' + escapeHtml(mev.created_by) + '"') : '';
       var who      = whoText;
@@ -3053,6 +3176,111 @@ def build():
       host.dataset.built = '1';
     }}
 
+    // ── Month grouping for the ops grid ────────────────────────────
+    // Builds an .ops-month-header divider (clickable to collapse) for one
+    // month. Caret rotates via the .collapsed class; count is filled by
+    // applyFilters so it always reflects what the active filters matched.
+    function buildOpsMonthHeader(key, label) {{
+      var h = document.createElement('button');
+      h.type = 'button';
+      h.className = 'ops-month-header' + (opsCollapsedMonths[key] ? ' collapsed' : '');
+      h.dataset.month = key;
+      h.setAttribute('aria-expanded', opsCollapsedMonths[key] ? 'false' : 'true');
+      h.innerHTML =
+        '<span class="mh-caret" aria-hidden="true">▼</span>' +
+        '<span class="mh-label">' + escapeHtml(label) + '</span>' +
+        '<span class="mh-count" data-mh-count></span>' +
+        '<span class="mh-line" aria-hidden="true"></span>';
+      h.addEventListener('click', function () {{ toggleOpsMonth(key); }});
+      return h;
+    }}
+
+    // Re-sort every .ops-card chronologically and (re)insert month dividers.
+    // Cards keep their DOM nodes — we only move them — so wired handlers and
+    // open <details> survive. Also (re)builds the Months dropdown list.
+    function regroupOpsByMonth() {{
+      if (!$opsGrid) return;
+      Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-month-header'))
+        .forEach(function (h) {{ if (h.parentNode) h.parentNode.removeChild(h); }});
+      var cards = Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card'));
+      if (!cards.length) {{ buildMonthsMenu([]); return; }}
+      cards.sort(function (a, b) {{
+        return (parseInt(a.dataset.sort || '999999', 10)) - (parseInt(b.dataset.sort || '999999', 10));
+      }});
+      var frag = document.createDocumentFragment();
+      var curKey = null;
+      var order = [];
+      cards.forEach(function (card) {{
+        var key = card.dataset.month || 'tbd';
+        if (key !== curKey) {{
+          curKey = key;
+          order.push({{ key: key, label: card.dataset.monthLabel || 'Date TBD' }});
+          frag.appendChild(buildOpsMonthHeader(key, card.dataset.monthLabel || 'Date TBD'));
+        }}
+        frag.appendChild(card);
+      }});
+      $opsGrid.appendChild(frag);
+      buildMonthsMenu(order);
+    }}
+
+    function toggleOpsMonth(key) {{
+      opsCollapsedMonths[key] = !opsCollapsedMonths[key];
+      applyFilters();
+    }}
+
+    function setAllMonths(collapsed) {{
+      if (!$opsGrid) return;
+      Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-month-header')).forEach(function (h) {{
+        opsCollapsedMonths[h.dataset.month] = !!collapsed;
+      }});
+      applyFilters();
+    }}
+
+    // (Re)render the per-month checkbox list inside the Months dropdown.
+    // A CHECKED box means the month is SHOWN; unchecked means collapsed.
+    function buildMonthsMenu(order) {{
+      var list = document.getElementById('ops-months-list');
+      if (!list) return;
+      if (!order || !order.length) {{
+        list.innerHTML = '<p style="font-size:0.78rem;color:var(--ab-fg-3);padding:6px;margin:0;">No months yet</p>';
+        return;
+      }}
+      list.innerHTML = order.map(function (m) {{
+        var checked = opsCollapsedMonths[m.key] ? '' : ' checked';
+        return '<label><input type="checkbox" data-month-toggle="' + escapeHtml(m.key) + '"' + checked + '>' +
+               '<span>' + escapeHtml(m.label) + '</span>' +
+               '<span class="mc-count" data-mc-count="' + escapeHtml(m.key) + '"></span></label>';
+      }}).join('');
+      Array.prototype.slice.call(list.querySelectorAll('input[data-month-toggle]')).forEach(function (cb) {{
+        cb.addEventListener('change', function () {{
+          opsCollapsedMonths[cb.getAttribute('data-month-toggle')] = !cb.checked;
+          applyFilters();
+        }});
+      }});
+    }}
+
+    // Wire the Months dropdown button + Show all / Hide all (once).
+    function wireMonthsMenu() {{
+      var btn = document.getElementById('ops-months-btn');
+      var menu = document.getElementById('ops-months-menu');
+      if (!btn || !menu || btn.dataset.wired) return;
+      btn.dataset.wired = '1';
+      btn.addEventListener('click', function (e) {{
+        e.stopPropagation();
+        var open = menu.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }});
+      menu.addEventListener('click', function (e) {{ e.stopPropagation(); }});
+      document.addEventListener('click', function () {{
+        menu.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }});
+      var allBtn  = document.getElementById('ops-months-all');
+      var noneBtn = document.getElementById('ops-months-none');
+      if (allBtn)  allBtn.addEventListener('click', function () {{ setAllMonths(false); }});
+      if (noneBtn) noneBtn.addEventListener('click', function () {{ setAllMonths(true); }});
+    }}
+
     function applyFilters() {{
       var $search  = document.getElementById('ops-search');
       var $region  = document.getElementById('ops-region');
@@ -3098,6 +3326,7 @@ def build():
       );
 
       var shown = 0;
+      var monthMatched = {{}};
       $opsGrid.querySelectorAll('.ops-card').forEach(function (card) {{
         var on = true;
         if (q && (card.textContent || '').toLowerCase().indexOf(q) === -1) on = false;
@@ -3126,8 +3355,31 @@ def build():
             if (!hit) on = false;
           }}
         }}
-        card.style.display = on ? '' : 'none';
-        if (on) shown++;
+        // Collapsing a month is a view convenience, not a filter: a card that
+        // passes the filters still counts toward "shown" even when its month
+        // is folded — we only hide it from view.
+        var mkey = card.dataset.month || 'tbd';
+        if (on) {{ monthMatched[mkey] = (monthMatched[mkey] || 0) + 1; shown++; }}
+        card.style.display = (on && !opsCollapsedMonths[mkey]) ? '' : 'none';
+      }});
+      // Month dividers: hide a header whose month matched nothing; otherwise
+      // reflect the collapsed state + the matched count.
+      Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-month-header')).forEach(function (h) {{
+        var mkey = h.dataset.month || 'tbd';
+        var n = monthMatched[mkey] || 0;
+        h.style.display = n ? '' : 'none';
+        var collapsed = !!opsCollapsedMonths[mkey];
+        h.classList.toggle('collapsed', collapsed);
+        h.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        var cnt = h.querySelector('[data-mh-count]');
+        if (cnt) cnt.textContent = n + (n === 1 ? ' event' : ' events') + (collapsed ? ' · hidden' : '');
+      }});
+      // Keep the Months dropdown in sync: checkbox checked = month shown.
+      Array.prototype.slice.call(document.querySelectorAll('#ops-months-list input[data-month-toggle]')).forEach(function (cb) {{
+        cb.checked = !opsCollapsedMonths[cb.getAttribute('data-month-toggle')];
+      }});
+      Array.prototype.slice.call(document.querySelectorAll('#ops-months-list [data-mc-count]')).forEach(function (sp) {{
+        sp.textContent = (monthMatched[sp.getAttribute('data-mc-count')] || 0);
       }});
       var $shown = document.getElementById('ops-shown');
       if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + $opsGrid.querySelectorAll('.ops-card').length;
@@ -3203,6 +3455,8 @@ def build():
         updateOpsCount();
         renderStats(evs, stateRows, manualRows);
         rebuildSpeakerFilter(stateRows, manualRows);
+        regroupOpsByMonth();
+        wireMonthsMenu();
         applyFilters();
         // Rebuild the dedup index from this fresh fetch — realtime
         // events from other tabs / sessions land here, so we want every
@@ -3562,6 +3816,8 @@ def build():
           $opsGrid.insertBefore(card, $opsGrid.firstChild);
           wireManualCard(card, email);
           updateOpsCount();
+          regroupOpsByMonth();   // slot the new card into its month section
+          applyFilters();
           loadKnownNames();   // keep the dup index fresh
           flashOk('Event added');
         }});
