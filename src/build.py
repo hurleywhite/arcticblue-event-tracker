@@ -1096,7 +1096,7 @@ def build():
     /* Stats summary bar */
     .ops-stats {{
       display: grid; gap: 1px;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       background: var(--ab-rule);
       border: 1px solid var(--ab-rule);
       border-radius: 10px;
@@ -1120,10 +1120,10 @@ def build():
     .ops-stat.saved .num   {{ color: var(--ab-blue); }}
     .ops-stat.urgent .num  {{ color: var(--ab-red); }}
     @media (max-width: 800px) {{
-      .ops-stats {{ grid-template-columns: repeat(3, 1fr); }}
+      .ops-stats {{ grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }}
     }}
     @media (max-width: 500px) {{
-      .ops-stats {{ grid-template-columns: repeat(2, 1fr); }}
+      .ops-stats {{ grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }}
     }}
 
     /* Status filter chip row */
