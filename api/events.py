@@ -444,22 +444,27 @@ def _exa_search(query, include_domains=None, num=8):
 
 def _find_speaking_route(name, home_url):
     """Find a 'how to get on stage' link for this event. Returns a URL string
-    or None. Prefers a page on the event's own domain; falls back to the open
-    web (e.g. a Sessionize CFP). NEVER returns a plain attend/register page."""
+    or None.
+
+    PRECISION RULE: we only accept an apply/propose-to-speak page that lives on
+    the EVENT'S OWN registrable domain. We deliberately do NOT search the open
+    web, because a keyword search ('<event> call for speakers') readily returns
+    a DIFFERENT same-themed event's CFP (e.g. Microsoft Ignite -> a community
+    'Copilot Summit' CFP), and attaching the wrong event's link is worse than
+    attaching none. If we have no event domain, or the site has no on-site
+    apply page, we return None and leave speaking_route blank ('when confident'
+    only). NEVER returns a plain attend/register page."""
     if not (EXA_API_KEY and name):
         return None
+    dom = _domain_of(home_url)
+    if not dom:
+        return None  # no event domain -> can't verify ownership; never guess
     query = ('%s call for speakers OR apply to speak OR submit a speaker '
              'OR speaker application' % name)
-    dom = _domain_of(home_url)
-
-    # Pass 1 — restrict to the event's own domain (highest precision).
-    if dom:
-        for r in _exa_search(query, include_domains=[dom], num=6):
-            if _looks_like_apply(r['url'], r['title']):
-                return r['url']
-    # Pass 2 — open web, but still only accept genuine apply/propose pages.
-    for r in _exa_search(query, include_domains=None, num=8):
-        if _looks_like_apply(r['url'], r['title']) and not _looks_like_attend_only(r['url'], r['title']):
+    for r in _exa_search(query, include_domains=[dom], num=8):
+        # Belt-and-suspenders: require the result to actually be ON the event's
+        # registrable domain (so reg./submit. subdomains pass, off-site does not).
+        if _looks_like_apply(r['url'], r['title']) and _domain_of(r['url']) == dom:
             return r['url']
     return None
 

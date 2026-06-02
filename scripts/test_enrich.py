@@ -67,36 +67,40 @@ check('apply_url itself dropped (not a column)', 'apply_url' not in r)
 r2 = ev._coerce({'name': 'X', 'speaking_route': 'KEEP', 'apply_url': 'https://x.io/cfp'})
 check('explicit speaking_route wins over alias', r2.get('speaking_route') == 'KEEP')
 
-print('5) _find_speaking_route picks the apply page, skips the attend page')
-calls = {'n': 0}
-
-
-def fake_exa(query, include_domains=None, num=8):
-    calls['n'] += 1
-    # Pass 1 (domain-restricted) returns only an attend page; pass 2 returns the
-    # real apply page alongside noise — the function must skip attend, take apply.
-    if include_domains:
-        return [{'url': 'https://ai4.io/register/', 'title': 'Register'}]
-    return [
-        {'url': 'https://ai4.io/register/', 'title': 'Register'},
-        {'url': 'https://ai4.io/application-speaker/', 'title': 'Speak at Ai4'},
-    ]
-
-
+print('5) _find_speaking_route: same-domain apply only; skips attend + off-site')
 ev.EXA_API_KEY = 'test-key'          # enable the code path
-ev._exa_search = fake_exa            # stub the network
-route = ev._find_speaking_route('Ai4 2026', 'https://ai4.io/')
-check('returns the apply link', route == 'https://ai4.io/application-speaker/')
-check('did not return the attend link', route != 'https://ai4.io/register/')
 
-# No apply page anywhere -> return None (never attach an attend link)
+# (a) On-site apply page (on a subdomain of the event's registrable domain) is
+#     accepted; the attend page on the same site is skipped.
+ev._exa_search = lambda q, include_domains=None, num=8: [
+    {'url': 'https://newyork.theaisummit.com/register/', 'title': 'Register'},
+    {'url': 'https://reg.theaisummit.com/new-york-submit-speaker', 'title': 'Submit a Speaker'},
+]
+route = ev._find_speaking_route('The AI Summit New York 2026', 'https://newyork.theaisummit.com/')
+check('returns on-site apply (subdomain ok)', route == 'https://reg.theaisummit.com/new-york-submit-speaker')
+
+# (b) Exa returns an OFF-DOMAIN apply page (wrong event) -> must be REJECTED.
+#     This is the real bug we found: Microsoft Ignite -> Copilot Summit CFP.
+ev._exa_search = lambda q, include_domains=None, num=8: [
+    {'url': 'https://copilot.summitna.com/call-for-speakers/', 'title': 'Call for Speakers'},
+]
+check('off-domain apply rejected (wrong event)',
+      ev._find_speaking_route('Microsoft Ignite 2026', 'https://ignite.microsoft.com/') is None)
+
+# (c) No apply page anywhere -> None (never attach an attend link).
 ev._exa_search = lambda q, include_domains=None, num=8: [
     {'url': 'https://foo.com/register/', 'title': 'Register'},
     {'url': 'https://foo.com/tickets/', 'title': 'Tickets'},
 ]
 check('no apply page -> None', ev._find_speaking_route('Foo', 'https://foo.com/') is None)
 
-# EXA disabled -> None, no work
+# (d) No event homepage URL -> None (can't verify ownership; never guess).
+ev._exa_search = lambda q, include_domains=None, num=8: [
+    {'url': 'https://random.com/call-for-speakers/', 'title': 'CFP'},
+]
+check('no event url -> None', ev._find_speaking_route('Some Event', '') is None)
+
+# (e) EXA disabled -> None, no work.
 ev.EXA_API_KEY = ''
 check('EXA disabled -> None', ev._find_speaking_route('Foo', 'https://foo.com/') is None)
 
