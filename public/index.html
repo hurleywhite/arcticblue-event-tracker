@@ -218,6 +218,23 @@
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 12px;
     }
+    /* Month dividers inside the upcoming grid — span the full row so the
+       list reads as month-by-month sections instead of one long block. */
+    .month-header {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 14px;
+      margin: 26px 0 4px;
+      font-family: var(--ab-mono);
+      font-size: 0.74rem; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--ab-fg-2);
+    }
+    .month-header::after {
+      content: ""; flex: 1; height: 1px; background: var(--ab-rule);
+    }
+    .month-header:first-child { margin-top: 0; }
+    .month-header .month-count {
+      font-weight: 400; color: var(--ab-fg-3); letter-spacing: 0.08em;
+    }
     .event {
       background: #fff;
       border: 1px solid var(--ab-rule);
@@ -1196,6 +1213,7 @@
       </div>
       <p id="event-counter">Showing 154 of 154 upcoming events</p>
       <div class="event-grid" id="upcoming-grid">
+<div class="month-header" data-month="2026-06" role="separator" aria-label="June 2026, 39 events">June 2026<span class="month-count">39 events</span></div>
 
     <article class="event is-clickable has-link"
              data-num="18"
@@ -1978,6 +1996,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="2026-07" role="separator" aria-label="July 2026, 11 events">July 2026<span class="month-count">11 events</span></div>
 
     <article class="event is-clickable"
              data-num="52"
@@ -2198,6 +2217,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="2026-08" role="separator" aria-label="August 2026, 15 events">August 2026<span class="month-count">15 events</span></div>
 
     <article class="event is-clickable has-link"
              data-num="115"
@@ -2498,6 +2518,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="2026-09" role="separator" aria-label="September 2026, 24 events">September 2026<span class="month-count">24 events</span></div>
 
     <article class="event is-clickable"
              data-num="54"
@@ -2978,6 +2999,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="2026-10" role="separator" aria-label="October 2026, 24 events">October 2026<span class="month-count">24 events</span></div>
 
     <article class="event is-clickable"
              data-num="90"
@@ -3458,6 +3480,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="2026-11" role="separator" aria-label="November 2026, 24 events">November 2026<span class="month-count">24 events</span></div>
 
     <article class="event is-clickable has-link"
              data-num="193"
@@ -3938,6 +3961,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="2026-12" role="separator" aria-label="December 2026, 6 events">December 2026<span class="month-count">6 events</span></div>
 
     <article class="event is-clickable"
              data-num="49"
@@ -4058,6 +4082,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="2027-01" role="separator" aria-label="January 2027, 1 event">January 2027<span class="month-count">1 event</span></div>
 
     <article class="event is-clickable has-link"
              data-num="223"
@@ -4078,6 +4103,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="2027-03" role="separator" aria-label="March 2027, 2 events">March 2027<span class="month-count">2 events</span></div>
 
     <article class="event is-clickable has-link"
              data-num="218"
@@ -4118,6 +4144,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="2027-04" role="separator" aria-label="April 2027, 3 events">April 2027<span class="month-count">3 events</span></div>
 
     <article class="event is-clickable has-link"
              data-num="217"
@@ -4178,6 +4205,7 @@ Advisory and programming are typically coordinated through the Columbia Business
         <span class="event-more">Details →</span>
       </footer>
     </article>
+<div class="month-header" data-month="tbd" role="separator" aria-label="Date TBD, 5 events">Date TBD<span class="month-count">5 events</span></div>
 
     <article class="event is-clickable has-link"
              data-num="25"
@@ -5992,6 +6020,17 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
 
     <div class="panel" id="panel-angela" role="tabpanel" data-tab="angela" hidden aria-labelledby="tab-angela">
 
+      <!-- Preloaded ArcticBlue speakers — referenced by every speaker input
+           (manual form + ops-card inline editor) via list="ab-speakers".
+           A datalist suggests these names but still allows a free-typed value,
+           so existing speakers from imports are never lost. -->
+      <datalist id="ab-speakers">
+        <option value="Thor"></option>
+        <option value="Joe"></option>
+        <option value="Jerome"></option>
+        <option value="Scott"></option>
+      </datalist>
+
       <!-- State 1 · loading session -->
       <div id="angela-loading" class="alert">Loading your session…</div>
 
@@ -6173,6 +6212,17 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       if (q && c.textContent.toLowerCase().indexOf(q) === -1) ok = false;
       c.style.display = ok ? '' : 'none';
       if (ok) shown++;
+    });
+    // Hide any month divider whose cards are all filtered out, so we never
+    // show an empty "June 2026" header floating above nothing.
+    Array.prototype.slice.call(grid.querySelectorAll('.month-header')).forEach(function (h) {
+      var vis = 0;
+      var n = h.nextElementSibling;
+      while (n && !n.classList.contains('month-header')) {
+        if (n.classList.contains('event') && n.style.display !== 'none') vis++;
+        n = n.nextElementSibling;
+      }
+      h.style.display = vis ? '' : 'none';
     });
     counter.textContent = 'Showing ' + shown + ' of ' + TOTAL + ' upcoming events';
   }
@@ -6600,7 +6650,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
               '<select data-field="status">' + statusOptionRows(st.status || '') + '</select>' +
             '</label>' +
             '<label><span class="key">Speaker</span>' +
-              '<input type="text" data-field="speaker" value="' + escapeHtml(st.speaker || '') + '" placeholder="Who from AB is speaking?">' +
+              '<input type="text" data-field="speaker" list="ab-speakers" value="' + escapeHtml(st.speaker || '') + '" placeholder="Who from AB is speaking?">' +
             '</label>' +
             '<div class="row">' +
               '<label><span class="key">Priority override</span>' +
@@ -6764,7 +6814,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
               '<label><span class="key">Status</span>' +
                 '<select name="status">' + statusOptionRows(mev.status || '') + '</select></label>' +
               '<label><span class="key">Speaker</span>' +
-                '<input type="text" name="speaker" value="' + escapeHtml(mev.speaker || '') + '"></label>' +
+                '<input type="text" name="speaker" list="ab-speakers" value="' + escapeHtml(mev.speaker || '') + '"></label>' +
             '</div>' +
             '<label><span class="key">Submission status (free text)</span>' +
               '<input type="text" name="submission_status" value="' + escapeHtml(mev.submission_status || '') + '"></label>' +
@@ -7433,6 +7483,9 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
             '</select>' +
           '</label>' +
         '</div>' +
+        '<label><span class="key">ArcticBlue speaker</span>' +
+          '<input type="text" name="speaker" list="ab-speakers" placeholder="Thor, Joe, Jerome, Scott…">' +
+        '</label>' +
         '<label><span class="key">Why it fits</span>' +
           '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
         '</label>' +
@@ -7573,6 +7626,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           priority:   (fd.get('priority') || '').toString().trim() || null,
           why:        (fd.get('why') || '').toString().trim() || null,
           url:        (fd.get('url') || '').toString().trim() || null,
+          speaker:    (fd.get('speaker') || '').toString().trim() || null,
           about:              (fd.get('about') || '').toString().trim() || null,
           focus_areas:        (fd.get('focus_areas') || '').toString().trim() || null,
           typical_attendees:  (fd.get('typical_attendees') || '').toString().trim() || null,
@@ -8044,11 +8098,18 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       cal.appendChild(legend);
 
       function onChipClick(num) {
-        setView('grid');
         var selector = String(num).charAt(0) === 'm'
           ? '.ops-card[data-manual-id="' + String(num).slice(1) + '"]'
           : '.ops-card[data-event-num="' + num + '"]';
         var card = $opsGrid.querySelector(selector);
+        // Primary behaviour: open the rich detail pop-up straight from the
+        // calendar so a click goes to the event, not just a scroll-to-card.
+        if (card && card._modalRec && typeof window.openEventModal === 'function') {
+          window.openEventModal(card._modalRec);
+          return;
+        }
+        // Fallback (card not built yet / no stashed record): jump + flash.
+        setView('grid');
         if (card) {
           card.scrollIntoView({ behavior: 'smooth', block: 'center' });
           card.classList.remove('is-highlight');

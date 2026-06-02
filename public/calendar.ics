@@ -5,4 +5,14 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 X-WR-CALNAME:ArcticBlue · Saved events
 X-WR-CALDESC:All saved events plus every manual addition. Updated daily.
+BEGIN:VEVENT
+UID:manual-6@arcticblue-event-tracker
+DTSTAMP:20260602T163452Z
+DTSTART;VALUE=DATE:20260612
+DTEND;VALUE=DATE:20260613
+SUMMARY:DDX Innovation & UX Conference New York
+LOCATION:New York City\, USA
+DESCRIPTION:Priority: Medium\nAdded by: hurley@arcticblue.ai
+URL:https://www.ddxconference.com/newyork
+END:VEVENT
 END:VCALENDAR

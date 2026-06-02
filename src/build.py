@@ -281,6 +281,46 @@ def render_event_card(ev, archived=False):
     </article>'''
 
 
+def render_upcoming_grouped(upcoming):
+    """Render the upcoming list with a full-width month divider before each
+    new month, so the grid reads month-by-month instead of one long block.
+
+    `upcoming` is already sorted ascending by `_start` (events that failed to
+    parse a date have no `_start` and sort to the end → grouped under
+    'Date TBD'). Headers carry a data-month key + per-month count so the
+    client filter JS can hide a header when none of its cards are visible.
+    """
+    out = []
+    cur_key = None
+    # Pre-count events per group so each header can show its size.
+    counts = {}
+    for ev in upcoming:
+        start = ev.get('_start')
+        k = (start.year, start.month) if start else ('tbd',)
+        counts[k] = counts.get(k, 0) + 1
+    for ev in upcoming:
+        start = ev.get('_start')
+        if start:
+            key = (start.year, start.month)
+            label = start.strftime('%B %Y')
+            data_key = f'{start.year:04d}-{start.month:02d}'
+        else:
+            key = ('tbd',)
+            label = 'Date TBD'
+            data_key = 'tbd'
+        if key != cur_key:
+            cur_key = key
+            n = counts[key]
+            noun = 'event' if n == 1 else 'events'
+            out.append(
+                f'<div class="month-header" data-month="{data_key}" role="separator" '
+                f'aria-label="{label}, {n} {noun}">{e(label)}'
+                f'<span class="month-count">{n} {noun}</span></div>'
+            )
+        out.append(render_event_card(ev))
+    return '\n'.join(out)
+
+
 def build():
     events = parse_events()
     today_evs, upcoming, archived = classify(events)
@@ -292,7 +332,7 @@ def build():
 
     # Render groups
     today_html = '\n'.join(render_event_card(ev) for ev in today_evs) if today_evs else ''
-    upcoming_html = '\n'.join(render_event_card(ev) for ev in upcoming)
+    upcoming_html = render_upcoming_grouped(upcoming)
     archived_html = '\n'.join(render_event_card(ev, archived=True) for ev in archived)
 
     # ── Catalog data blob for the expanded pop-up (modal) cards ──────────
@@ -554,6 +594,23 @@ def build():
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 12px;
+    }}
+    /* Month dividers inside the upcoming grid — span the full row so the
+       list reads as month-by-month sections instead of one long block. */
+    .month-header {{
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 14px;
+      margin: 26px 0 4px;
+      font-family: var(--ab-mono);
+      font-size: 0.74rem; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--ab-fg-2);
+    }}
+    .month-header::after {{
+      content: ""; flex: 1; height: 1px; background: var(--ab-rule);
+    }}
+    .month-header:first-child {{ margin-top: 0; }}
+    .month-header .month-count {{
+      font-weight: 400; color: var(--ab-fg-3); letter-spacing: 0.08em;
     }}
     .event {{
       background: #fff;
@@ -1551,6 +1608,17 @@ def build():
 
     <div class="panel" id="panel-angela" role="tabpanel" data-tab="angela" hidden aria-labelledby="tab-angela">
 
+      <!-- Preloaded ArcticBlue speakers — referenced by every speaker input
+           (manual form + ops-card inline editor) via list="ab-speakers".
+           A datalist suggests these names but still allows a free-typed value,
+           so existing speakers from imports are never lost. -->
+      <datalist id="ab-speakers">
+        <option value="Thor"></option>
+        <option value="Joe"></option>
+        <option value="Jerome"></option>
+        <option value="Scott"></option>
+      </datalist>
+
       <!-- State 1 · loading session -->
       <div id="angela-loading" class="alert">Loading your session…</div>
 
@@ -1732,6 +1800,17 @@ def build():
       if (q && c.textContent.toLowerCase().indexOf(q) === -1) ok = false;
       c.style.display = ok ? '' : 'none';
       if (ok) shown++;
+    }});
+    // Hide any month divider whose cards are all filtered out, so we never
+    // show an empty "June 2026" header floating above nothing.
+    Array.prototype.slice.call(grid.querySelectorAll('.month-header')).forEach(function (h) {{
+      var vis = 0;
+      var n = h.nextElementSibling;
+      while (n && !n.classList.contains('month-header')) {{
+        if (n.classList.contains('event') && n.style.display !== 'none') vis++;
+        n = n.nextElementSibling;
+      }}
+      h.style.display = vis ? '' : 'none';
     }});
     counter.textContent = 'Showing ' + shown + ' of ' + TOTAL + ' upcoming events';
   }}
@@ -2159,7 +2238,7 @@ def build():
               '<select data-field="status">' + statusOptionRows(st.status || '') + '</select>' +
             '</label>' +
             '<label><span class="key">Speaker</span>' +
-              '<input type="text" data-field="speaker" value="' + escapeHtml(st.speaker || '') + '" placeholder="Who from AB is speaking?">' +
+              '<input type="text" data-field="speaker" list="ab-speakers" value="' + escapeHtml(st.speaker || '') + '" placeholder="Who from AB is speaking?">' +
             '</label>' +
             '<div class="row">' +
               '<label><span class="key">Priority override</span>' +
@@ -2323,7 +2402,7 @@ def build():
               '<label><span class="key">Status</span>' +
                 '<select name="status">' + statusOptionRows(mev.status || '') + '</select></label>' +
               '<label><span class="key">Speaker</span>' +
-                '<input type="text" name="speaker" value="' + escapeHtml(mev.speaker || '') + '"></label>' +
+                '<input type="text" name="speaker" list="ab-speakers" value="' + escapeHtml(mev.speaker || '') + '"></label>' +
             '</div>' +
             '<label><span class="key">Submission status (free text)</span>' +
               '<input type="text" name="submission_status" value="' + escapeHtml(mev.submission_status || '') + '"></label>' +
@@ -2992,6 +3071,9 @@ def build():
             '</select>' +
           '</label>' +
         '</div>' +
+        '<label><span class="key">ArcticBlue speaker</span>' +
+          '<input type="text" name="speaker" list="ab-speakers" placeholder="Thor, Joe, Jerome, Scott…">' +
+        '</label>' +
         '<label><span class="key">Why it fits</span>' +
           '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
         '</label>' +
@@ -3132,6 +3214,7 @@ def build():
           priority:   (fd.get('priority') || '').toString().trim() || null,
           why:        (fd.get('why') || '').toString().trim() || null,
           url:        (fd.get('url') || '').toString().trim() || null,
+          speaker:    (fd.get('speaker') || '').toString().trim() || null,
           about:              (fd.get('about') || '').toString().trim() || null,
           focus_areas:        (fd.get('focus_areas') || '').toString().trim() || null,
           typical_attendees:  (fd.get('typical_attendees') || '').toString().trim() || null,
@@ -3603,11 +3686,18 @@ def build():
       cal.appendChild(legend);
 
       function onChipClick(num) {{
-        setView('grid');
         var selector = String(num).charAt(0) === 'm'
           ? '.ops-card[data-manual-id="' + String(num).slice(1) + '"]'
           : '.ops-card[data-event-num="' + num + '"]';
         var card = $opsGrid.querySelector(selector);
+        // Primary behaviour: open the rich detail pop-up straight from the
+        // calendar so a click goes to the event, not just a scroll-to-card.
+        if (card && card._modalRec && typeof window.openEventModal === 'function') {{
+          window.openEventModal(card._modalRec);
+          return;
+        }}
+        // Fallback (card not built yet / no stashed record): jump + flash.
+        setView('grid');
         if (card) {{
           card.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
           card.classList.remove('is-highlight');
