@@ -621,6 +621,10 @@
     .ops-tag.pri-high   { background: #1f2937; color: #fff; }
     .ops-tag.pri-medium { background: #fef3c7; color: #92400e; }
     .ops-tag.pri-low    { background: var(--ab-bg-3); color: var(--ab-fg-3); }
+    /* Pipeline-stage pills (primary) get bg/fg inline from stageStyle();
+       the legacy single-status pill is demoted to a small muted detail. */
+    .ops-tag.stage  { font-weight: 600; letter-spacing: 0.04em; }
+    .ops-tag.legacy { font-size: 0.58rem; opacity: 0.72; }
     .ops-tag .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
     .saved-star {
       font: inherit; background: transparent; border: 0;
@@ -790,6 +794,60 @@
       cursor: pointer; margin-left: auto;
     }
     .status-filters .clear-btn:hover { color: var(--ab-fg); }
+
+    /* Pipeline-stage filter row — the new primary status control. The
+       full legacy status vocabulary lives below it in a collapsed
+       <details>, so the at-a-glance filter is just the 5 stages. */
+    .stage-filters {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      padding: 10px 12px; margin-bottom: 12px;
+      border: 1px solid var(--ab-rule); border-radius: 10px;
+      background: var(--ab-bg);
+    }
+    .stage-filters > .label {
+      font-family: var(--ab-mono); font-size: 0.7rem;
+      color: var(--ab-fg-3); letter-spacing: 0.08em;
+      text-transform: uppercase; margin-right: 4px;
+    }
+    .stage-chip {
+      font-family: var(--ab-sans); font-size: 0.78rem; font-weight: 600;
+      padding: 5px 12px; border-radius: 999px;
+      border: 1px solid transparent;
+      cursor: pointer; opacity: 0.5;
+      transition: opacity 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+      white-space: nowrap;
+    }
+    .stage-chip:hover { opacity: 0.85; }
+    .stage-chip.is-on { opacity: 1; box-shadow: 0 0 0 2px var(--ab-fg); transform: translateY(-1px); }
+    .stage-filters .clear-btn {
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      letter-spacing: 0.06em; padding: 5px 10px;
+      border: 1px solid var(--ab-rule-strong); border-radius: 6px;
+      background: var(--ab-bg); color: var(--ab-fg-3);
+      cursor: pointer; margin-left: auto;
+    }
+    .stage-filters .clear-btn:hover { color: var(--ab-fg); }
+    .legacy-status-wrap { margin-bottom: 16px; }
+    .legacy-status-wrap > summary {
+      font-family: var(--ab-mono); font-size: 0.66rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ab-fg-3); cursor: pointer; padding: 4px 2px;
+    }
+    .legacy-status-wrap[open] > summary { margin-bottom: 8px; }
+    .legacy-status-wrap .status-filters { margin-bottom: 0; }
+
+    /* Stage multi-select checkboxes inside the ops/manual edit forms */
+    .stage-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ops-form .stage-picker label {
+      flex-direction: row; align-items: center; gap: 5px;
+      font-family: var(--ab-sans); font-size: 0.76rem; font-weight: 500;
+      padding: 4px 9px; border-radius: 999px;
+      border: 1px solid var(--ab-rule-strong);
+      background: var(--ab-bg); color: var(--ab-fg-2);
+      cursor: pointer; user-select: none;
+    }
+    .ops-form .stage-picker label.is-on { box-shadow: 0 0 0 2px var(--ab-fg) inset; }
+    .ops-form .stage-picker label input { margin: 0; width: auto; }
 
     /* Extra filters — Priority / Track / Speakers rows */
     .extra-filters {
@@ -6065,10 +6123,17 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         </div>
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-stats" id="ops-stats" hidden></div>
-        <div class="status-filters" id="status-filters">
-          <span class="label">Status:</span>
-          <!-- chips injected by buildStatusFilters() -->
+        <div class="stage-filters" id="stage-filters">
+          <span class="label">Pipeline:</span>
+          <!-- 5 stage chips injected by buildStageFilters() -->
         </div>
+        <details class="legacy-status-wrap">
+          <summary>Legacy status filters (detail)</summary>
+          <div class="status-filters" id="status-filters">
+            <span class="label">Status:</span>
+            <!-- chips injected by buildStatusFilters() -->
+          </div>
+        </details>
         <div class="extra-filters" id="extra-filters">
           <div class="extra-filter-group" id="filter-priority">
             <span class="extra-filter-label">Priority</span>
@@ -6277,8 +6342,14 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
     var badges = [];
     if (rec.priority) badges.push('<span class="badge ' + priClass(rec.priority) + '">' + esc(rec.priority) + '</span>');
     if (rec.type)     badges.push('<span class="badge p-medium">' + esc(rec.type) + '</span>');
-    if (rec.workflow_status) badges.push('<span class="badge p-low">' + esc(rec.workflow_status) + '</span>');
-    if (rec.status && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
+    // Pipeline stages (primary). Fall back to the legacy single status badge
+    // only when no stages are set, so we don't double up.
+    if (rec.stage_tags && rec.stage_tags.length) {
+      rec.stage_tags.forEach(function (k) { badges.push('<span class="badge p-low">' + esc(k) + '</span>'); });
+    } else if (rec.workflow_status) {
+      badges.push('<span class="badge p-low">' + esc(rec.workflow_status) + '</span>');
+    }
+    if (rec.status && !(rec.stage_tags && rec.stage_tags.length) && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
     if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
     if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
@@ -6534,6 +6605,109 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       return rows;
     }
 
+    // ── Pipeline stages (the simplified, multi-tag status model) ───────
+    // An event can hold SEVERAL of these at once (e.g. Submitted + Meeting
+    // held + Booked). Stored in event_state.status_tags / manual_events
+    // .status_tags (Postgres text[]). The old single `status` column is
+    // kept as an optional granular "legacy" detail and still drives the
+    // read-side fallback below for rows not yet migrated.
+    //
+    // Order here IS the canonical pipeline order (Identified → … → Booked),
+    // with Declined as the terminal off-ramp last.
+    var STAGE_TAGS = [
+      { key: 'Identified',   dot: '#737373', bg: '#e5e7eb', fg: '#374151' },
+      { key: 'Submitted',    dot: '#0ea5e9', bg: '#bae6fd', fg: '#075985' },
+      { key: 'Meeting held', dot: '#8b5cf6', bg: '#ddd6fe', fg: '#5b21b6' },
+      { key: 'Booked',       dot: '#047857', bg: '#bbf7d0', fg: '#14532d' },
+      { key: 'Declined',     dot: '#dc2626', bg: '#fee2e2', fg: '#991b1b' }
+    ];
+    var STAGE_BY_KEY = {};
+    STAGE_TAGS.forEach(function (s, i) { s.order = i; STAGE_BY_KEY[s.key] = s; });
+    // "Most important" ranking for a single calendar tint when an event
+    // carries several stages: a win (Booked) trumps everything, then the
+    // terminal Declined, then progress backwards.
+    var STAGE_DISPLAY_RANK = ['Booked', 'Declined', 'Meeting held', 'Submitted', 'Identified'];
+
+    function stageStyle(key) {
+      var s = STAGE_BY_KEY[key];
+      if (!s) return '';
+      return 'background:' + s.bg + ';color:' + s.fg + ';';
+    }
+    function stageDot(key) {
+      var s = STAGE_BY_KEY[key];
+      return s ? s.dot : null;
+    }
+
+    // Keep only recognized stages, dedupe, return in canonical order.
+    function normalizeStageTags(arr) {
+      if (!arr) return [];
+      if (!Array.isArray(arr)) {
+        // Accept a pipe- or comma-joined string (CSV / older rows)
+        arr = String(arr).split(/[|,]/);
+      }
+      var seen = {};
+      arr.forEach(function (v) {
+        var k = (v == null ? '' : String(v)).trim();
+        if (STAGE_BY_KEY[k]) seen[k] = true;
+      });
+      return STAGE_TAGS.filter(function (s) { return seen[s.key]; }).map(function (s) { return s.key; });
+    }
+
+    // Best-effort map from a single legacy `status` to one stage. Mirrors
+    // the SQL backfill in scripts/2026-06-02_add_status_tags.sql so the UI
+    // shows the same thing pre- and post-migration. First match wins.
+    function legacyToStages(status) {
+      var s = (status == null ? '' : String(status)).trim();
+      if (!s) return [];
+      if (/book|self submitted|attending|confirmed/i.test(s)) return ['Booked'];
+      if (/not accept|declin|\bskip\b|passing|we.ll pass|no opening|date conflict|sponsorship only|don.?t call/i.test(s)) return ['Declined'];
+      if (/intro meeting|received intro|in contact|cc.?d on mtg|\bmeeting\b/i.test(s)) return ['Meeting held'];
+      if (/submit|application|finish submission/i.test(s)) return ['Submitted'];
+      return ['Identified'];
+    }
+
+    // Resolve the stage list for an ops/manual row: prefer the stored
+    // status_tags array; fall back to deriving from the legacy status.
+    function stageTagsOf(st) {
+      if (!st) return [];
+      var norm = normalizeStageTags(st.status_tags);
+      if (norm.length) return norm;
+      return legacyToStages(st.status);
+    }
+
+    // Pick the single most meaningful stage (for the calendar tint).
+    function mostAdvancedStage(tags) {
+      tags = tags || [];
+      for (var i = 0; i < STAGE_DISPLAY_RANK.length; i++) {
+        if (tags.indexOf(STAGE_DISPLAY_RANK[i]) !== -1) return STAGE_DISPLAY_RANK[i];
+      }
+      return null;
+    }
+
+    function renderStagePills(tags) {
+      return (tags || []).map(function (k) {
+        return '<span class="ops-tag stage" style="' + stageStyle(k) + '">' + escapeHtml(k) + '</span>';
+      }).join('');
+    }
+
+    // 5 checkboxes for an edit form. `name` is the form field name (used by
+    // the manual form's FormData.getAll); `current` is the array of checked
+    // stages. For the ops inline editor we don't use a <form>, so the
+    // wireOpsCard handler reads the checkboxes by [data-stage] instead.
+    function stageCheckboxes(current, name) {
+      var checked = normalizeStageTags(current);
+      return '<div class="stage-picker" data-stage-picker>' +
+        STAGE_TAGS.map(function (s) {
+          var on = checked.indexOf(s.key) !== -1;
+          return '<label class="' + (on ? 'is-on' : '') + '" style="' + stageStyle(s.key) + '">' +
+            '<input type="checkbox" data-stage' + (name ? ' name="' + name + '"' : '') +
+            ' value="' + escapeHtml(s.key) + '"' + (on ? ' checked' : '') + '>' +
+            escapeHtml(s.key) +
+          '</label>';
+        }).join('') +
+      '</div>';
+    }
+
     // "hurley@arcticblue.ai" → "Hurley". Used in any user-facing label;
     // the full email is preserved as the `title` attribute so it's still
     // visible on hover for audit purposes.
@@ -6587,11 +6761,11 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
 
     function renderOpsTags(st) {
       var tags = [];
-      if (st.status) {
-        var style = statusStyle(st.status);
-        var styleAttr = style ? ' style="' + style + '"' : '';
-        tags.push('<span class="ops-tag status"' + styleAttr + '>' + escapeHtml(st.status) + '</span>');
-      }
+      // Primary: the multi-tag pipeline stages.
+      var stages = stageTagsOf(st);
+      stages.forEach(function (k) {
+        tags.push('<span class="ops-tag stage" style="' + stageStyle(k) + '">' + escapeHtml(k) + '</span>');
+      });
       if (st.speaker) {
         tags.push('<span class="ops-tag speaker">' + escapeHtml(st.speaker) + '</span>');
       }
@@ -6601,6 +6775,13 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       }
       if (st.track) {
         tags.push('<span class="ops-tag">' + escapeHtml(st.track) + '</span>');
+      }
+      // Legacy single status — kept as a small muted detail so nothing
+      // Angela typed is lost, but visually demoted beneath the stages.
+      if (st.status) {
+        var style = statusStyle(st.status);
+        var styleAttr = style ? ' style="' + style + '"' : '';
+        tags.push('<span class="ops-tag status legacy"' + styleAttr + ' title="Legacy status detail">' + escapeHtml(st.status) + '</span>');
       }
       if (tags.length === 0) return '';
       return '<div class="ops-tags">' + tags.join('') + '</div>';
@@ -6614,6 +6795,8 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       card.dataset.region = ev.region || '';
       card.dataset.hasSpeaker = (st.speaker && st.speaker.trim()) ? '1' : '';
       card.dataset.status = st.status || '';
+      var opsStages = stageTagsOf(st);
+      card.dataset.statusTags = opsStages.join('|');
       // Priority falls back to the event's own priority; override wins if set
       card.dataset.priority = (st.priority_override || ev.priority || '');
       card.dataset.track    = (st.track || '');
@@ -6646,8 +6829,8 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         '<details class="ops-edit">' +
           '<summary>Edit ops</summary>' +
           '<div class="ops-form">' +
-            '<label><span class="key">Status</span>' +
-              '<select data-field="status">' + statusOptionRows(st.status || '') + '</select>' +
+            '<label><span class="key">Pipeline stages</span>' +
+              stageCheckboxes(opsStages) +
             '</label>' +
             '<label><span class="key">Speaker</span>' +
               '<input type="text" data-field="speaker" list="ab-speakers" value="' + escapeHtml(st.speaker || '') + '" placeholder="Who from AB is speaking?">' +
@@ -6663,6 +6846,13 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
             '<label><span class="key">Notes</span>' +
               '<textarea data-field="notes" placeholder="Anything Angela should know…">' + escapeHtml(st.notes || '') + '</textarea>' +
             '</label>' +
+            '<details class="ops-edit"><summary>Legacy status (detail)</summary>' +
+              '<div class="ops-form" style="margin-top:8px;">' +
+                '<label><span class="key">Legacy status</span>' +
+                  '<select data-field="status">' + statusOptionRows(st.status || '') + '</select>' +
+                '</label>' +
+              '</div>' +
+            '</details>' +
           '</div>' +
           metaLine +
         '</details>';
@@ -6674,6 +6864,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         if (st.notes)   rec.notes = st.notes;
         if (st.status)  rec.workflow_status = st.status;
         if (st.priority_override) rec.priority = st.priority_override;
+        rec.stage_tags = opsStages;
       }
       card._modalRec = rec;
       return card;
@@ -6729,6 +6920,8 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       card.dataset.region = mev.region || '';
       card.dataset.hasSpeaker = (mev.speaker && mev.speaker.trim()) ? '1' : '';
       card.dataset.status = mev.status || '';
+      var manualStages = stageTagsOf(mev);
+      card.dataset.statusTags = manualStages.join('|');
       card.dataset.priority = mev.priority || '';
       card.dataset.track    = ''; // manual_events doesn't carry a track column
       card.dataset.speaker  = (mev.speaker || '');
@@ -6738,8 +6931,9 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
 
       // Reuse renderOpsTags by adapting the manual row into a state-like object
       var tagsHtml = renderOpsTags({
-        status:   mev.status,
-        speaker:  mev.speaker,
+        status:      mev.status,
+        status_tags: mev.status_tags,
+        speaker:     mev.speaker,
         priority_override: mev.priority,
         track:    null
       });
@@ -6810,12 +7004,17 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
               '<label><span class="key">Priority</span>' +
                 '<select name="priority">' + optionRows(['', 'High', 'Medium', 'Low'], mev.priority || '') + '</select></label>' +
             '</div>' +
-            '<div class="row">' +
-              '<label><span class="key">Status</span>' +
-                '<select name="status">' + statusOptionRows(mev.status || '') + '</select></label>' +
-              '<label><span class="key">Speaker</span>' +
-                '<input type="text" name="speaker" list="ab-speakers" value="' + escapeHtml(mev.speaker || '') + '"></label>' +
-            '</div>' +
+            '<label><span class="key">Pipeline stages</span>' +
+              stageCheckboxes(manualStages, 'status_tags') +
+            '</label>' +
+            '<label><span class="key">Speaker</span>' +
+              '<input type="text" name="speaker" list="ab-speakers" value="' + escapeHtml(mev.speaker || '') + '"></label>' +
+            '<details class="ops-edit"><summary>Legacy status (detail)</summary>' +
+              '<div class="ops-form" style="margin-top:8px;">' +
+                '<label><span class="key">Legacy status</span>' +
+                  '<select name="status">' + statusOptionRows(mev.status || '') + '</select></label>' +
+              '</div>' +
+            '</details>' +
             '<label><span class="key">Submission status (free text)</span>' +
               '<input type="text" name="submission_status" value="' + escapeHtml(mev.submission_status || '') + '"></label>' +
             '<div class="row">' +
@@ -6858,6 +7057,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       var mrec = {};
       for (var mk in mev) { if (Object.prototype.hasOwnProperty.call(mev, mk)) mrec[mk] = mev[mk]; }
       mrec.workflow_status = mev.status || null;
+      mrec.stage_tags = manualStages;
       card._modalRec = mrec;
       return card;
     }
@@ -6879,6 +7079,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           type:                (fd.get('type') || '').toString().trim() || null,
           priority:            (fd.get('priority') || '').toString().trim() || null,
           status:              (fd.get('status') || '').toString().trim() || null,
+          status_tags:         normalizeStageTags(fd.getAll('status_tags')),
           submission_status:   (fd.get('submission_status') || '').toString().trim() || null,
           speaker:             (fd.get('speaker') || '').toString().trim() || null,
           poc_name:            (fd.get('poc_name') || '').toString().trim() || null,
@@ -6957,6 +7158,33 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
 
     function wireOpsCard(card, email) {
       var num = parseInt(card.dataset.eventNum, 10);
+
+      // Pipeline-stage checkboxes — save the whole status_tags array on any
+      // toggle. The ops editor isn't a <form>, so we gather by [data-stage].
+      var stageBoxes = card.querySelectorAll('input[type="checkbox"][data-stage]');
+      if (stageBoxes.length) {
+        stageBoxes.forEach(function (box) {
+          box.addEventListener('change', function () {
+            var tags = normalizeStageTags(
+              Array.prototype.map.call(stageBoxes, function (b) { return b.checked ? b.value : null; })
+            );
+            box.closest('label').classList.toggle('is-on', box.checked);
+            upsertEventState(num, { status_tags: tags }, email).then(function (err) {
+              if (err) { status('Save failed: ' + err.message, 'error'); return; }
+              card.dataset.statusTags = tags.join('|');
+              // Refresh the visible pills + calendar tint on next render.
+              var pillHost = card.querySelector('.ops-tags');
+              if (pillHost) {
+                var stagePills = pillHost.querySelectorAll('.ops-tag.stage');
+                stagePills.forEach(function (p) { p.remove(); });
+                if (tags.length) pillHost.insertAdjacentHTML('afterbegin', renderStagePills(tags));
+              }
+              applyFilters();
+              flashOk();
+            });
+          });
+        });
+      }
 
       // Boolean toggles (saved-star + urgent + hidden chips)
       card.querySelectorAll('[data-field][data-on]').forEach(function (btn) {
@@ -7154,6 +7382,41 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       host.appendChild(clr);
     }
 
+    // The new primary filter row: one chip per pipeline stage. Selecting
+    // chips keeps any card carrying ANY of the chosen stages (OR).
+    function buildStageFilters() {
+      var host = document.getElementById('stage-filters');
+      if (!host || host.dataset.built === '1') return;
+      var frag = document.createDocumentFragment();
+      STAGE_TAGS.forEach(function (s) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'stage-chip';
+        btn.dataset.stage = s.key;
+        btn.style.background = s.bg;
+        btn.style.color = s.fg;
+        btn.style.borderColor = s.bg;
+        btn.textContent = s.key;
+        btn.title = 'Filter by ' + s.key;
+        btn.addEventListener('click', function () {
+          btn.classList.toggle('is-on');
+          applyFilters();
+        });
+        frag.appendChild(btn);
+      });
+      var clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.className = 'clear-btn';
+      clearBtn.textContent = 'Clear';
+      clearBtn.addEventListener('click', function () {
+        host.querySelectorAll('.stage-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
+        applyFilters();
+      });
+      frag.appendChild(clearBtn);
+      host.appendChild(frag);
+      host.dataset.built = '1';
+    }
+
     function buildStatusFilters() {
       var host = document.getElementById('status-filters');
       if (!host || host.dataset.built === '1') return;
@@ -7221,7 +7484,12 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
       });
-      // Status chip filter — OR across selected statuses (multi-select)
+      // Pipeline-stage filter — keep a card if it carries ANY selected stage.
+      var activeStages = Array.prototype.map.call(
+        document.querySelectorAll('#stage-filters .stage-chip.is-on'),
+        function (b) { return b.dataset.stage; }
+      );
+      // Legacy status chip filter — OR across selected statuses (multi-select)
       var activeStatuses = Array.prototype.map.call(
         document.querySelectorAll('.status-filters .status-chip.is-on'),
         function (b) { return b.dataset.status; }
@@ -7249,6 +7517,11 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
         if (fSpeaker && card.dataset.hasSpeaker !== '1')       on = false;
         if (!showHidden && card.classList.contains('is-hidden')) on = false;
+        if (activeStages.length > 0) {
+          var cardStages = (card.dataset.statusTags || '').split('|').filter(Boolean);
+          var stageHit = activeStages.some(function (a) { return cardStages.indexOf(a) !== -1; });
+          if (!stageHit) on = false;
+        }
         if (activeStatuses.length   > 0 && activeStatuses.indexOf(card.dataset.status   || '') === -1) on = false;
         if (activePriorities.length > 0 && activePriorities.indexOf(card.dataset.priority || '') === -1) on = false;
         if (activeTracks.length     > 0 && activeTracks.indexOf(card.dataset.track     || '') === -1) on = false;
@@ -7285,20 +7558,30 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       var $stats = document.getElementById('ops-stats');
       if (!$stats) return;
       var total = (evs || []).length + (manualRows || []).length;
-      var saved = 0, urgent = 0, hidden = 0, withSpeaker = 0, withStatus = 0;
+      var saved = 0, urgent = 0, hidden = 0, withSpeaker = 0, inPipeline = 0, booked = 0;
       (stateRows || []).forEach(function (r) {
         if (r.saved)  saved++;
         if (r.urgent) urgent++;
         if (r.hidden) hidden++;
         if (r.speaker && r.speaker.trim()) withSpeaker++;
-        if (r.status && r.status.trim())   withStatus++;
+        var stages = stageTagsOf(r);
+        if (stages.length) inPipeline++;
+        if (stages.indexOf('Booked') !== -1) booked++;
+      });
+      // Manual events carry their own stage tags too — fold them in.
+      (manualRows || []).forEach(function (m) {
+        if (m.speaker && (m.speaker + '').trim()) withSpeaker++;
+        var stages = stageTagsOf(m);
+        if (stages.length) inPipeline++;
+        if (stages.indexOf('Booked') !== -1) booked++;
       });
       $stats.innerHTML =
         '<div class="ops-stat"><span class="num">' + total + '</span><span class="lbl">Upcoming</span></div>' +
         '<div class="ops-stat saved"><span class="num">' + saved + '</span><span class="lbl">Saved</span></div>' +
         '<div class="ops-stat urgent"><span class="num">' + urgent + '</span><span class="lbl">Urgent</span></div>' +
         '<div class="ops-stat"><span class="num">' + withSpeaker + '</span><span class="lbl">Speaker set</span></div>' +
-        '<div class="ops-stat"><span class="num">' + withStatus + '</span><span class="lbl">Status set</span></div>' +
+        '<div class="ops-stat"><span class="num">' + inPipeline + '</span><span class="lbl">In pipeline</span></div>' +
+        '<div class="ops-stat"><span class="num">' + booked + '</span><span class="lbl">Booked</span></div>' +
         '<div class="ops-stat"><span class="num">' + hidden + '</span><span class="lbl">Hidden</span></div>';
       $stats.removeAttribute('hidden');
     }
@@ -7486,6 +7769,9 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         '<label><span class="key">ArcticBlue speaker</span>' +
           '<input type="text" name="speaker" list="ab-speakers" placeholder="Thor, Joe, Jerome, Scott…">' +
         '</label>' +
+        '<label><span class="key">Pipeline stages</span>' +
+          stageCheckboxes([], 'status_tags') +
+        '</label>' +
         '<label><span class="key">Why it fits</span>' +
           '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
         '</label>' +
@@ -7627,6 +7913,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           why:        (fd.get('why') || '').toString().trim() || null,
           url:        (fd.get('url') || '').toString().trim() || null,
           speaker:    (fd.get('speaker') || '').toString().trim() || null,
+          status_tags:        normalizeStageTags(fd.getAll('status_tags')),
           about:              (fd.get('about') || '').toString().trim() || null,
           focus_areas:        (fd.get('focus_areas') || '').toString().trim() || null,
           typical_attendees:  (fd.get('typical_attendees') || '').toString().trim() || null,
@@ -7919,7 +8206,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           // their own ops fields baked onto the entry object.
           var isManual = !!ev._manual;
           var st = isManual
-            ? { status: ev._manualStatus, speaker: ev._manualSpeaker }
+            ? { status: ev._manualStatus, status_tags: ev._manualStatusTags, speaker: ev._manualSpeaker }
             : (stateMap[ev.num] || {});
           if (st.hidden) return;
           var chip = document.createElement('div');
@@ -7932,15 +8219,19 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           chip.dataset.eventNum = ev.num;
           var sp  = st.speaker || '';
           var ini = sp ? initials(sp) : '';
-          // Tint chip border with the status group color (left edge), so
-          // the calendar at-a-glance shows pipeline state.
-          var grpDot = statusGroupDot(st.status);
+          // Tint chip border with the most-advanced pipeline stage color
+          // (left edge), so the calendar at-a-glance shows pipeline state.
+          var calStages  = stageTagsOf(st);
+          var topStage   = mostAdvancedStage(calStages);
+          var grpDot = topStage ? stageDot(topStage) : null;
           if (grpDot) chip.style.borderLeftColor = grpDot;
-          // Status pill on the chip — colored to match the status filter
+          // Stage pill on the chip — shows the most-advanced stage; a small
+          // "+N" hints that more stages are set.
           var statusInline = '';
-          if (st.status && STATUS_BY_VALUE[st.status] && entry.isStart) {
-            var s = STATUS_BY_VALUE[st.status];
-            statusInline = '<span class="cal-chip-status" style="background:' + s.bg + ';color:' + s.fg + ';">' + escapeHtml(st.status.slice(0, 12)) + (st.status.length > 12 ? '…' : '') + '</span>';
+          if (topStage && STAGE_BY_KEY[topStage] && entry.isStart) {
+            var s = STAGE_BY_KEY[topStage];
+            var extra = calStages.length > 1 ? ' +' + (calStages.length - 1) : '';
+            statusInline = '<span class="cal-chip-status" style="background:' + s.bg + ';color:' + s.fg + ';">' + escapeHtml(topStage) + extra + '</span>';
           }
           if (entry.isStart) {
             chip.innerHTML =
@@ -7957,7 +8248,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           chip.title = ev.name +
             (sp ? ' · Speaker: ' + sp : '') +
             (ev.location ? ' · ' + ev.location : '') +
-            (st.status ? ' · ' + st.status : '') +
+            (calStages.length ? ' · ' + calStages.join(', ') : '') +
             (ev.start_date && (ev.end_date && ev.end_date !== ev.start_date)
               ? ' · ' + ev.start_date + ' to ' + ev.end_date
               : '');
@@ -8007,9 +8298,10 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           region: m.region || '',
           date_str: m.date_str || '',
           // Hoist Angela's ops fields onto the calendar entry so the chip
-          // can color-tint by status group + show speaker initials.
-          _manualStatus:  m.status || '',
-          _manualSpeaker: m.speaker || ''
+          // can color-tint by pipeline stage + show speaker initials.
+          _manualStatus:     m.status || '',
+          _manualStatusTags: m.status_tags || [],
+          _manualSpeaker:    m.speaker || ''
         });
       });
 
@@ -8091,9 +8383,9 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       var legend = document.createElement('div');
       legend.className = 'cal-legend';
       legend.innerHTML =
-        '<span class="cal-legend-label">Status groups:</span>' +
-        STATUS_GROUPS.map(function (g) {
-          return '<span class="cal-legend-item"><span class="cal-legend-dot" style="background:' + g.dot + ';"></span>' + escapeHtml(g.label) + '</span>';
+        '<span class="cal-legend-label">Pipeline stages:</span>' +
+        STAGE_TAGS.map(function (g) {
+          return '<span class="cal-legend-item"><span class="cal-legend-dot" style="background:' + g.dot + ';"></span>' + escapeHtml(g.key) + '</span>';
         }).join('');
       cal.appendChild(legend);
 
@@ -8223,7 +8515,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
     }
 
     // ── CSV import/export ───────────────────────────────────────────
-    var CSV_COLUMNS = ['event_num','status','speaker','priority_override','track','saved','hidden','urgent','notes'];
+    var CSV_COLUMNS = ['event_num','status_tags','status','speaker','priority_override','track','saved','hidden','urgent','notes'];
 
     function toCsvCell(v) {
       if (v === null || v === undefined) return '';
@@ -8306,6 +8598,10 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         if (/^(false|0|no|n|off|)$/i.test(v)) return false;
         return false;
       }
+      // Pipeline stages — pipe-separated list → normalized text[] array.
+      if (col === 'status_tags') {
+        return normalizeStageTags(v.split('|'));
+      }
       // Text columns: empty becomes null so we don't blow away NULLs to ''
       return v === '' ? null : v;
     }
@@ -8330,6 +8626,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         var changed = CSV_COLUMNS.some(function (c) {
           if (c === 'event_num') return false;
           var a = existing[c]; var b = row[c];
+          if (b === undefined) return false; // column not supplied by this import
           if (a === null && b === null) return false;
           if (a === false && (b === null || b === false)) return false;
           if (b === false && (a === null || a === false)) return false;
@@ -8352,7 +8649,8 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         '<h3>CSV import / export</h3>' +
         '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
           'Export current ops state as CSV, edit in any spreadsheet tool, then re-upload. ' +
-          'Columns: <code>' + CSV_COLUMNS.join(', ') + '</code>. Booleans: <code>true</code> / <code>false</code>.' +
+          'Columns: <code>' + CSV_COLUMNS.join(', ') + '</code>. Booleans: <code>true</code> / <code>false</code>. ' +
+          '<code>status_tags</code> is a pipe-joined list of pipeline stages, e.g. <code>Submitted|Meeting held|Booked</code> (optional — omit the column to leave stages untouched).' +
         '</p>' +
         '<div class="add-actions" style="margin-bottom:8px;">' +
           '<button type="button" class="primary" id="csv-export-btn">Download current CSV</button>' +
@@ -8374,6 +8672,13 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           var rows = resp.data || [];
           // If empty, give a header-only template
           if (rows.length === 0) rows = [];
+          // Flatten the status_tags text[] into a pipe-joined string so it
+          // round-trips cleanly through a spreadsheet (no comma collisions).
+          rows = rows.map(function (r) {
+            var c = Object.assign({}, r);
+            c.status_tags = Array.isArray(c.status_tags) ? c.status_tags.join('|') : (c.status_tags || '');
+            return c;
+          });
           var csv = rowsToCsv(CSV_COLUMNS, rows);
           var stamp = new Date().toISOString().slice(0,10);
           downloadCsv('event_state_' + stamp + '.csv', csv);
@@ -8389,8 +8694,12 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         reader.onload = function () {
           var text = String(reader.result || '');
           var parsed = parseCsv(text);
-          // Validate headers
-          var missing = CSV_COLUMNS.filter(function (c) { return parsed.headers.indexOf(c) === -1; });
+          // status_tags is OPTIONAL on import — older CSVs predate it. When
+          // the column is absent we leave existing DB stage tags untouched
+          // rather than wiping them to empty.
+          var hasStageCol = parsed.headers.indexOf('status_tags') !== -1;
+          // Validate headers (status_tags excluded from the required set)
+          var missing = CSV_COLUMNS.filter(function (c) { return c !== 'status_tags' && parsed.headers.indexOf(c) === -1; });
           var $prev = panel.querySelector('#csv-preview');
           if (parsed.rows.length === 0) {
             $prev.innerHTML = '<p class="alert error">CSV looks empty.</p>';
@@ -8403,7 +8712,10 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           // Coerce types
           var coerced = parsed.rows.map(function (row) {
             var out = {};
-            CSV_COLUMNS.forEach(function (c) { out[c] = coerceCsvValue(c, row[c]); });
+            CSV_COLUMNS.forEach(function (c) {
+              if (c === 'status_tags' && !hasStageCol) return; // leave undefined → untouched
+              out[c] = coerceCsvValue(c, row[c]);
+            });
             return out;
           }).filter(function (r) { return r.event_num !== null; });
 
@@ -8431,7 +8743,10 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
               // Tag updated_by on all changes
               var toUpsert = diff.added.concat(diff.updated).map(function (r) {
                 var row = {};
-                CSV_COLUMNS.forEach(function (c) { row[c] = r[c]; });
+                CSV_COLUMNS.forEach(function (c) {
+                  if (c === 'status_tags' && !hasStageCol) return; // preserve DB value
+                  row[c] = r[c];
+                });
                 row.updated_by = email;
                 return row;
               });
@@ -8889,6 +9204,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         showOnly($ops);
         wireViewToggle();
         wireFilters();
+        buildStageFilters();
         buildStatusFilters();
         buildExtraFilters();
         renderOps(email);
