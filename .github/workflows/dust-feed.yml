@@ -1,16 +1,18 @@
-name: Dust event auto-feed
+name: Dust event auto-feed (manual only)
 
-# Twice a week, ask the ArcticBlueEventSpeaking Dust agent for newly-found
-# speaking events and POST them to /api/events. The endpoint's OpenAI
-# worthiness gate decides which ones are kept. Nothing is committed to the
-# repo — this only writes to Supabase via the ingest endpoint.
+# Asks the ArcticBlueEventSpeaking Dust agent for newly-found speaking events
+# and POSTs them to /api/events (the OpenAI gate filters them). Nothing is
+# committed — this only writes to Supabase via the ingest endpoint.
 #
-# Also runnable on demand from the Actions tab (Run workflow).
+# IMPORTANT — COST: this path calls the Dust *API*, which spends Dust *API
+# tokens* and starts a brand-new agent run each time. The preferred path is
+# the IN-CHAT one: the Dust agent itself POSTs to /api/events from your normal
+# chatbot runs (uses in-chat tokens, no extra runs). This workflow is kept
+# ONLY as an on-demand fallback — there is intentionally NO schedule, so it
+# never runs (or bills) on its own. To re-enable a cadence, add a `schedule:`
+# block back under `on:`.
 
 on:
-  schedule:
-    # 13:00 UTC Mon & Thu (~ 09:00 ET / 06:00 PT, after the daily build).
-    - cron: "0 13 * * 1,4"
   workflow_dispatch: {}
 
 permissions:
