@@ -69,6 +69,26 @@ INGEST_SECRET = _env('EVENTS_INGEST_SECRET')
 DEFAULT_CREATED_BY = _env('EVENTS_INGEST_CREATED_BY', 'dust@arcticblue.ai')
 MAX_EVENTS = 50
 
+# ── Speaking-route enrichment (optional, via Exa) ────────────────────
+# For every genuinely-new, gate-accepted event that does NOT already carry a
+# speaking_route, we ask Exa to find HOW TO GET ON STAGE: a call-for-speakers /
+# "apply to speak" / "submit a speaker" / "suggest a speaker" page. We attach
+# that link ONLY — never a plain attend/register/tickets page. Reuses the same
+# EXA_API_KEY already configured for /api/vet. If EXA_API_KEY is unset the whole
+# step is a no-op (events still insert, just without an auto-found apply link).
+EXA_API_KEY = _env('EXA_API_KEY')
+EXA_BASE    = _env('EXA_BASE_URL', 'https://api.exa.ai').rstrip('/')
+try:
+    # Cap Exa lookups per request so a 50-event batch can't blow the function
+    # timeout. New events beyond this many still insert, just un-enriched.
+    ENRICH_MAX = int(_env('EVENTS_ENRICH_MAX', '12') or '12')
+except ValueError:
+    ENRICH_MAX = 12
+
+# Incoming aliases folded onto the canonical `speaking_route` column so the
+# in-chat agent can name the field naturally.
+_ROUTE_ALIASES = ('apply_url', 'cfp_url', 'submit_speaker_url', 'speaker_url')
+
 # ── OpenAI worthiness gate ───────────────────────────────────────────
 # Optional. If OPENAI_API_KEY is unset the gate is SKIPPED and every new
 # (non-duplicate) event is inserted, exactly as the original endpoint did.
@@ -204,6 +224,13 @@ def _coerce(ev):
     row dict (may be empty) or None if the input isn't an object."""
     if not isinstance(ev, dict):
         return None
+    ev = dict(ev)  # don't mutate the caller's object
+    # Fold apply-link aliases onto the canonical speaking_route column.
+    if not ev.get('speaking_route'):
+        for alias in _ROUTE_ALIASES:
+            if ev.get(alias):
+                ev['speaking_route'] = ev[alias]
+                break
     row = {}
     for k, v in ev.items():
         if k not in ALLOWED or v is None:
@@ -335,6 +362,108 @@ def _http_json(method, url, headers=None, body=None, timeout=20):
         return 0, {'error': 'network: %s' % e}
 
 
+# ── Speaking-route enrichment helpers ────────────────────────────────
+# Substrings (matched against URL + page title, lowercased) that mark a page
+# as a way to GET ON STAGE. Path/title signals win over the host: e.g.
+# reg.theaisummit.com/new-york-submit-speaker is an APPLY page (path has
+# "submit-speaker") even though the host starts with "reg".
+_APPLY_SIGNALS = (
+    'call-for-speaker', 'call_for_speaker', 'callforspeaker', 'call for speaker',
+    'call-for-paper', 'call for paper', 'cfp',
+    'submit-speaker', 'submit-a-speaker', 'submit a speaker', 'submit-talk',
+    'speaker-application', 'application-speaker', 'speaker-submission',
+    'apply-to-speak', 'apply to speak', 'become-a-speaker', 'become a speaker',
+    'speak-at', 'speaking-opportunit', 'speaking opportunit',
+    'speaker-enquir', 'speakers-enquir', 'speaker enquir', 'speaker-inquir',
+    'suggest-a-speaker', 'suggest a speaker', 'speaker-opt-in', 'speaker opt-in',
+    'speaker-interest', 'propose-a-talk', 'propose a talk', 'sessionize.com',
+)
+# Pages that are ONLY about attending — never attach these as a speaking route.
+_ATTEND_SIGNALS = (
+    'register', 'registration', 'ticket', 'tickets', 'buy-', 'pricing',
+    'passes', 'book-now', '/attend', 'delegate', 'checkout', 'order',
+)
+
+
+def _looks_like_apply(url, title):
+    """True when the page is a way to apply/propose to SPEAK (not just attend)."""
+    hay = ('%s %s' % (url or '', title or '')).lower()
+    return any(sig in hay for sig in _APPLY_SIGNALS)
+
+
+def _looks_like_attend_only(url, title):
+    hay = ('%s %s' % (url or '', title or '')).lower()
+    return any(sig in hay for sig in _ATTEND_SIGNALS) and not _looks_like_apply(url, title)
+
+
+_TWO_PART_TLDS = ('co.uk', 'com.au', 'co.nz', 'co.jp', 'com.br', 'co.za', 'org.uk')
+
+
+def _domain_of(url):
+    """Registrable-ish domain for an URL, e.g. https://newyork.theaisummit.com/x
+    -> 'theaisummit.com'. Used so Exa's includeDomains (which also matches
+    subdomains like reg.theaisummit.com) keeps results on the event's site."""
+    if not url:
+        return ''
+    try:
+        netloc = urllib.parse.urlsplit(url if '://' in url else 'https://' + url).netloc
+    except ValueError:
+        return ''
+    netloc = netloc.split('@')[-1].split(':')[0].strip().lower()
+    if netloc.startswith('www.'):
+        netloc = netloc[4:]
+    labels = [p for p in netloc.split('.') if p]
+    if len(labels) <= 2:
+        return '.'.join(labels)
+    last3 = '.'.join(labels[-3:])
+    for tld in _TWO_PART_TLDS:
+        if last3.endswith(tld):
+            return last3
+    return '.'.join(labels[-2:])
+
+
+def _exa_search(query, include_domains=None, num=8):
+    """Best-effort Exa web search. Returns a list of {url, title} (possibly
+    empty). Never raises."""
+    if not EXA_API_KEY:
+        return []
+    body = {'query': query, 'numResults': num, 'type': 'auto'}
+    if include_domains:
+        body['includeDomains'] = include_domains
+    status, data = _http_json(
+        'POST', EXA_BASE + '/search',
+        headers={'x-api-key': EXA_API_KEY, 'Content-Type': 'application/json'},
+        body=body, timeout=12)
+    out = []
+    if status == 200 and isinstance(data, dict):
+        for r in (data.get('results') or []):
+            if isinstance(r, dict) and r.get('url'):
+                out.append({'url': r.get('url'), 'title': r.get('title') or ''})
+    return out
+
+
+def _find_speaking_route(name, home_url):
+    """Find a 'how to get on stage' link for this event. Returns a URL string
+    or None. Prefers a page on the event's own domain; falls back to the open
+    web (e.g. a Sessionize CFP). NEVER returns a plain attend/register page."""
+    if not (EXA_API_KEY and name):
+        return None
+    query = ('%s call for speakers OR apply to speak OR submit a speaker '
+             'OR speaker application' % name)
+    dom = _domain_of(home_url)
+
+    # Pass 1 — restrict to the event's own domain (highest precision).
+    if dom:
+        for r in _exa_search(query, include_domains=[dom], num=6):
+            if _looks_like_apply(r['url'], r['title']):
+                return r['url']
+    # Pass 2 — open web, but still only accept genuine apply/propose pages.
+    for r in _exa_search(query, include_domains=None, num=8):
+        if _looks_like_apply(r['url'], r['title']) and not _looks_like_attend_only(r['url'], r['title']):
+            return r['url']
+    return None
+
+
 def _existing_manual_names():
     status, rows = _http_json(
         'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name',
@@ -454,6 +583,7 @@ class handler(BaseHTTPRequestHandler):
         seen_this_run = set()
 
         inserted, rejected, skipped, errors = [], [], [], []
+        enrich_used = 0  # how many Exa speaking-route lookups we've spent
 
         for ev in items:
             row = _coerce(ev)
@@ -496,9 +626,22 @@ class handler(BaseHTTPRequestHandler):
                 seen_this_run.add(lname)  # don't re-judge same name in this batch
                 continue
 
+            # Speaking-route enrichment: only when the caller didn't already
+            # supply one, only for accepted events, and capped per request so a
+            # big batch can't time out. Best-effort — never blocks the insert.
+            if not row.get('speaking_route') and enrich_used < ENRICH_MAX and EXA_API_KEY:
+                enrich_used += 1
+                try:
+                    route = _find_speaking_route(name, row.get('url'))
+                except Exception:
+                    route = None
+                if route:
+                    row['speaking_route'] = 'Apply to speak: ' + route
+
             status, data = _insert_one(row)
             if status in (200, 201) and isinstance(data, list) and data:
-                inserted.append({'id': data[0].get('id'), 'name': name})
+                inserted.append({'id': data[0].get('id'), 'name': name,
+                                 'speaking_route': row.get('speaking_route')})
                 seen_this_run.add(lname)
                 existing.add(lname)
             elif status == 409 or (isinstance(data, dict) and str(data.get('code')) == '23505'):
@@ -520,4 +663,5 @@ class handler(BaseHTTPRequestHandler):
                 'errors':   len(errors),
             },
             'gate': {'enabled': _gate_enabled(), 'model': OPENAI_MODEL if _gate_enabled() else None},
+            'enrich': {'enabled': bool(EXA_API_KEY), 'lookups_used': enrich_used},
         })

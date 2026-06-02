@@ -65,7 +65,19 @@ ADD_EVENTS_TOOL = {
         "with the events you found as `new_events`. Each event is screened by "
         "an AI worthiness gate; only accepted, non-duplicate events are saved. "
         "Returns counts of inserted / rejected / skipped(duplicate) / errored "
-        "plus per-event detail. Call it once per run with all events at once."
+        "plus per-event detail. Call it once per run with all events at once.\n\n"
+        "IMPORTANT — capture HOW TO GET ON STAGE for each event:\n"
+        "  - If the event has a public call-for-speakers / 'apply to speak' / "
+        "'submit a speaker' / 'suggest a speaker' page, put that URL in "
+        "`apply_url`. This must be the APPLY-TO-SPEAK link, NOT a plain "
+        "attend/register/tickets link. `url` stays the event homepage.\n"
+        "  - If there is no public apply page but you are CONFIDENT who decides "
+        "the speakers (e.g. the conference's Head of Content / Program "
+        "Director), put their name in `poc_name` and, if known, `poc_email` / "
+        "`poc_linkedin`. Only do this when you actually know who it is — never "
+        "guess a name.\n"
+        "  - If you provide neither, the server will try to find an apply-to- "
+        "speak link automatically; that's fine."
     ),
     'inputSchema': {
         'type': 'object',
@@ -85,7 +97,11 @@ ADD_EVENTS_TOOL = {
                         'type':       {'type': 'string', 'description': 'Enterprise | Halo | Research | Industry | Sponsor | Other.'},
                         'priority':   {'type': 'string', 'description': 'High | Medium | Low.'},
                         'why':        {'type': 'string', 'description': 'One sentence on why it fits ArcticBlue.'},
-                        'url':        {'type': 'string', 'description': 'Verified homepage URL, else omit.'},
+                        'url':        {'type': 'string', 'description': 'Verified event HOMEPAGE URL, else omit.'},
+                        'apply_url':  {'type': 'string', 'description': "Apply-to-speak / call-for-speakers / 'submit a speaker' page URL. NOT an attend/register/tickets link. Omit if none."},
+                        'poc_name':   {'type': 'string', 'description': 'Name of the person who decides speakers — ONLY if you are confident who it is. Else omit.'},
+                        'poc_email':  {'type': 'string', 'description': "That decision-maker's email, if known. Else omit."},
+                        'poc_linkedin': {'type': 'string', 'description': "That decision-maker's LinkedIn URL, if known. Else omit."},
                     },
                     'required': ['name'],
                 },
@@ -149,7 +165,9 @@ def _ingest(new_events, host):
              % (counts.get('inserted', 0), counts.get('rejected', 0),
                 counts.get('skipped', 0), counts.get('errors', 0))]
     for ev in (data.get('inserted') or []):
-        lines.append('  ADDED: %s' % ev.get('name'))
+        route = ev.get('speaking_route')
+        lines.append('  ADDED: %s%s' % (ev.get('name'),
+                                        ('  [%s]' % route) if route else ''))
     for ev in (data.get('rejected') or []):
         lines.append('  REJECTED (not worthy): %s -- %s' % (ev.get('name'), ev.get('reason')))
     for ev in (data.get('skipped') or []):

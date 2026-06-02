@@ -8,7 +8,7 @@
       "maxDuration": 120
     },
     "api/events.py": {
-      "maxDuration": 30
+      "maxDuration": 60
     },
     "api/mcp.py": {
       "maxDuration": 120
