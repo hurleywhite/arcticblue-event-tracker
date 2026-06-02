@@ -247,11 +247,18 @@ def render_event_card(ev, archived=False):
     # NO LONGER a link — clicking it opens an expanded pop-up (modal) that
     # carries the website link *inside* it, alongside the rich detail fields.
     url = EVENT_URLS.get(str(num))
+    nm = e(ev['name'])
     if url:
-        link_indicator = '<span class="event-link-arrow" aria-hidden="true">↗</span>'
         extra_class += ' has-link'
+        # The NAME itself is the website link (underlined + very bold). The
+        # rest of the card still opens the pop-up; the card's delegated click
+        # handler ignores clicks that land inside an <a>.
+        name_html = (f'<a class="event-name-link" href="{e(url)}" target="_blank" '
+                     f'rel="noopener" aria-label="Open website for {nm}">{nm} '
+                     f'<span class="event-link-arrow" aria-hidden="true">↗</span></a>')
     else:
-        link_indicator = '<span class="event-no-link" title="No verified URL on file for this event">·</span>'
+        name_html = (f'{nm} <span class="event-no-link" '
+                     f'title="No verified URL on file for this event">·</span>')
     return f'''
     <article class="event is-clickable{extra_class}"
              data-num="{e(str(num))}"
@@ -264,7 +271,7 @@ def render_event_card(ev, archived=False):
         <p class="event-date">{e(fmt_date(ev))}</p>
         <span class="badge {pc}">{e(priority_label)}</span>
       </header>
-      <h3 class="event-name">{e(ev['name'])} {link_indicator}</h3>
+      <h3 class="event-name">{name_html}</h3>
       <p class="event-loc"><span class="event-region">{e(region)}</span> · {e(ev['location'])}</p>
       {f'<p class="event-why">{e(why)}</p>' if why else ''}
       <footer class="event-foot">
@@ -577,6 +584,16 @@ def build():
       font-family: var(--ab-sans); font-size: 1.1rem; font-weight: 700;
       line-height: 1.25; margin: 0; color: var(--ab-fg); letter-spacing: -0.01em;
     }}
+    /* The event name doubles as the website link — underlined + very bold. */
+    .event-name-link {{
+      color: inherit; font-weight: 800;
+      text-decoration: underline; text-decoration-thickness: 2px;
+      text-underline-offset: 3px; text-decoration-color: var(--ab-rule-strong);
+      transition: color 0.15s, text-decoration-color 0.15s;
+    }}
+    .event-name-link:hover, .event-name-link:focus-visible {{
+      color: var(--ab-blue); text-decoration-color: var(--ab-blue);
+    }}
     .event-loc {{ font-size: 0.85rem; color: var(--ab-fg-3); margin: 0; }}
     .event-region {{ color: var(--ab-fg-2); font-weight: 500; }}
     .event-why {{ font-size: 0.85rem; color: var(--ab-fg-2); line-height: 1.5; margin: 4px 0 0; }}
@@ -656,6 +673,15 @@ def build():
     .modal-title {{
       font-family: var(--ab-sans); font-size: 1.55rem; font-weight: 800;
       line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--ab-fg);
+    }}
+    /* Modal heading doubles as the website link — underlined, inherits 800 weight. */
+    .modal-title-link {{
+      color: inherit; text-decoration: underline; text-decoration-thickness: 2px;
+      text-underline-offset: 3px; text-decoration-color: var(--ab-rule-strong);
+      transition: color 0.15s, text-decoration-color 0.15s;
+    }}
+    .modal-title-link:hover, .modal-title-link:focus-visible {{
+      color: var(--ab-blue); text-decoration-color: var(--ab-blue);
     }}
     .modal-loc {{ font-size: 0.92rem; color: var(--ab-fg-2); margin: 0; }}
     .modal-loc .event-region {{ color: var(--ab-fg); font-weight: 600; }}
@@ -1768,7 +1794,11 @@ def build():
     $badges.innerHTML = badges.join('');
 
     $date.textContent  = rec.date_str || '';
-    $title.textContent = rec.name || 'Event';
+    if (rec.url) {{
+      $title.innerHTML = '<a class="modal-title-link" href="' + esc(rec.url) + '" target="_blank" rel="noopener">' + esc(rec.name || 'Event') + ' <span class="event-link-arrow" aria-hidden="true">↗</span></a>';
+    }} else {{
+      $title.textContent = rec.name || 'Event';
+    }}
     var regionTxt = rec.region ? '<span class="event-region">' + esc(rec.region) + '</span>' : '';
     var locTxt = esc(rec.location || '');
     $loc.innerHTML = regionTxt + (regionTxt && locTxt ? ' · ' : '') + locTxt;
@@ -2114,8 +2144,10 @@ def build():
           '</div>' +
           '<p class="event-date">' + escapeHtml(ev.date_str) + '</p>' +
         '</div>' +
-        '<h3 class="event-name">' + escapeHtml(ev.name) +
-          (ev.url ? ' <a class="ops-link" href="' + escapeHtml(ev.url) + '" target="_blank" rel="noopener" aria-label="Open ' + escapeHtml(ev.name) + '">↗</a>' : '') +
+        '<h3 class="event-name">' +
+          (ev.url
+            ? '<a class="event-name-link" href="' + escapeHtml(ev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + ' <span class="event-link-arrow" aria-hidden="true">↗</span></a>'
+            : escapeHtml(ev.name)) +
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>' +
@@ -2254,8 +2286,10 @@ def build():
           '</div>' +
           '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
         '</div>' +
-        '<h3 class="event-name">' + escapeHtml(mev.name || '') +
-          (mev.url ? ' <a class="ops-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open ' + escapeHtml(mev.name || '') + '">↗</a>' : '') +
+        '<h3 class="event-name">' +
+          (mev.url
+            ? '<a class="event-name-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + ' <span class="event-link-arrow" aria-hidden="true">↗</span></a>'
+            : escapeHtml(mev.name || '')) +
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(mev.region || '') + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
