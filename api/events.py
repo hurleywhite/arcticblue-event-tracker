@@ -16,6 +16,7 @@ AUTH (one of):
 BODY (any of):
   - a single event object:            { "name": "...", "date_str": "...", ... }
   - a wrapped batch:                  { "events": [ {...}, {...} ] }
+  - the Dust agent's block:           { "new_events": [ {...}, {...} ] }
   - a top-level array:                [ {...}, {...} ]
   Max 50 events per request. Only known manual_events columns are stored;
   any other keys are ignored. `name` is required per event.
@@ -434,6 +435,9 @@ class handler(BaseHTTPRequestHandler):
             items = body
         elif isinstance(body, dict) and isinstance(body.get('events'), list):
             items = body['events']
+        elif isinstance(body, dict) and isinstance(body.get('new_events'), list):
+            # Matches the Dust agent's final JSON block: {"new_events":[...]}.
+            items = body['new_events']
         elif isinstance(body, dict):
             items = [body]
         else:
