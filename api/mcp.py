@@ -1,0 +1,304 @@
+"""POST /api/mcp — a Remote MCP server the Dust agent calls IN-CHAT.
+
+WHY this exists:
+  The Dust "ArcticBlueEventSpeaking" agent finds new speaking events when YOU
+  run it in the chatbot. We want those events pushed into the tracker WITHOUT
+  spending Dust *API* tokens (no outside automation calling the Dust API) and
+  WITHOUT extra agent runs. The clean way: give the agent a TOOL it invokes
+  during your normal in-chat run. Dust supports "Remote MCP Server" tools, so
+  this endpoint speaks MCP (Model Context Protocol) over HTTP and exposes one
+  tool — `add_events` — that forwards events into the existing /api/events
+  ingest endpoint (which runs the OpenAI worthiness gate + inserts to Supabase).
+
+  Flow:  you run the Dust chatbot  ->  agent finds events  ->  agent calls the
+  `add_events` MCP tool  ->  this server POSTs them to /api/events  ->  gate
+  filters  ->  Supabase manual_events  ->  they appear in the "For Angela" tab.
+  All on IN-CHAT tokens. No GitHub Action, no Dust API key.
+
+TRANSPORT:
+  MCP "Streamable HTTP". Dust POSTs JSON-RPC 2.0 messages here. We answer
+  requests with a single application/json JSON-RPC response and answer
+  notifications with 202 (no body). Stateless — fine for serverless. A GET
+  returns 405 (we offer no server-initiated SSE stream), which compliant MCP
+  clients tolerate.
+
+AUTH:
+  Dust sends  Authorization: Bearer <token>  on every call. We compare it to
+  MCP_BEARER_TOKEN. To minimize setup, if MCP_BEARER_TOKEN is unset we fall
+  back to EVENTS_INGEST_SECRET (already configured), so you can paste that one
+  value into Dust and set zero new Vercel env vars.
+
+METHODS handled: initialize, notifications/initialized, ping, tools/list,
+  tools/call (tool: add_events).
+
+ENV:
+  MCP_BEARER_TOKEN       (token Dust sends; falls back to EVENTS_INGEST_SECRET)
+  EVENTS_INGEST_SECRET   (REQUIRED — door key forwarded to /api/events)
+  EVENTS_ENDPOINT        (optional — defaults to https://<this-host>/api/events)
+"""
+from http.server import BaseHTTPRequestHandler
+import json
+import os
+import hmac
+import urllib.request
+import urllib.error
+
+
+def _env(k, d=''):
+    return (os.environ.get(k, d) or '').strip()
+
+
+EVENTS_INGEST_SECRET = _env('EVENTS_INGEST_SECRET')
+# Token Dust holds. Default to the ingest secret so the user sets nothing new.
+MCP_BEARER_TOKEN     = _env('MCP_BEARER_TOKEN') or EVENTS_INGEST_SECRET
+# Where to forward accepted events. Defaults to this same deployment (built
+# from the inbound Host header at request time) but can be pinned via env.
+EVENTS_ENDPOINT_ENV  = _env('EVENTS_ENDPOINT')
+
+PROTOCOL_VERSION = '2025-06-18'   # echoed/fallback MCP protocol version
+SERVER_INFO      = {'name': 'arcticblue-event-tracker', 'version': '1.0.0'}
+
+ADD_EVENTS_TOOL = {
+    'name': 'add_events',
+    'description': (
+        "Add newly-found ArcticBlue speaking events to the tracker. Call this "
+        "with the events you found as `new_events`. Each event is screened by "
+        "an AI worthiness gate; only accepted, non-duplicate events are saved. "
+        "Returns counts of inserted / rejected / skipped(duplicate) / errored "
+        "plus per-event detail. Call it once per run with all events at once."
+    ),
+    'inputSchema': {
+        'type': 'object',
+        'properties': {
+            'new_events': {
+                'type': 'array',
+                'description': 'The events to add. Each needs at least a name.',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'name':       {'type': 'string', 'description': 'Official event name (required).'},
+                        'date_str':   {'type': 'string', 'description': "Original date string, e.g. 'September 14-16, 2026'."},
+                        'start_date': {'type': 'string', 'description': 'ISO YYYY-MM-DD if known.'},
+                        'end_date':   {'type': 'string', 'description': 'ISO YYYY-MM-DD if known.'},
+                        'location':   {'type': 'string', 'description': 'City, Country or City, State.'},
+                        'region':     {'type': 'string', 'description': 'Americas | Europe | Asia-Pacific | MENA | Global.'},
+                        'type':       {'type': 'string', 'description': 'Enterprise | Halo | Research | Industry | Sponsor | Other.'},
+                        'priority':   {'type': 'string', 'description': 'High | Medium | Low.'},
+                        'why':        {'type': 'string', 'description': 'One sentence on why it fits ArcticBlue.'},
+                        'url':        {'type': 'string', 'description': 'Verified homepage URL, else omit.'},
+                    },
+                    'required': ['name'],
+                },
+            },
+        },
+        'required': ['new_events'],
+    },
+}
+
+
+def _http_json(method, url, headers=None, body=None, timeout=60):
+    data = None
+    h = dict(headers or {})
+    if body is not None:
+        data = json.dumps(body).encode('utf-8')
+        h.setdefault('Content-Type', 'application/json')
+    req = urllib.request.Request(url, method=method, data=data, headers=h)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            raw = r.read().decode('utf-8')
+            try:
+                return r.status, json.loads(raw)
+            except json.JSONDecodeError:
+                return r.status, raw
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode('utf-8', errors='replace')
+        try:
+            return e.code, json.loads(raw)
+        except json.JSONDecodeError:
+            return e.code, raw
+    except (urllib.error.URLError, TimeoutError, OSError) as e:
+        return 0, {'error': 'network: %s' % e}
+
+
+def _events_endpoint(host):
+    if EVENTS_ENDPOINT_ENV:
+        return EVENTS_ENDPOINT_ENV
+    if host:
+        return 'https://%s/api/events' % host
+    return 'https://arcticblue-event-tracker-deploy.vercel.app/api/events'
+
+
+def _ingest(new_events, host):
+    """Forward events into the existing /api/events gate. Returns a human
+    summary string + the raw counts dict (for isError decisions)."""
+    if not isinstance(new_events, list) or not new_events:
+        return 'No events were provided, so nothing was added.', {'errors': 0}, False
+
+    endpoint = _events_endpoint(host)
+    status, data = _http_json('POST', endpoint,
+                              headers={'X-API-Key': EVENTS_INGEST_SECRET},
+                              body={'new_events': new_events}, timeout=90)
+
+    if status != 200 or not isinstance(data, dict):
+        return ('The tracker rejected the batch (HTTP %s): %s'
+                % (status, data if isinstance(data, str) else json.dumps(data)[:400])), \
+               {'errors': 1}, True
+
+    counts = data.get('counts', {}) if isinstance(data, dict) else {}
+    lines = ['Tracker ingest complete: inserted=%s, rejected=%s, skipped(duplicate)=%s, errors=%s.'
+             % (counts.get('inserted', 0), counts.get('rejected', 0),
+                counts.get('skipped', 0), counts.get('errors', 0))]
+    for ev in (data.get('inserted') or []):
+        lines.append('  ADDED: %s' % ev.get('name'))
+    for ev in (data.get('rejected') or []):
+        lines.append('  REJECTED (not worthy): %s -- %s' % (ev.get('name'), ev.get('reason')))
+    for ev in (data.get('skipped') or []):
+        lines.append('  SKIPPED (already tracked): %s' % ev.get('name'))
+    for ev in (data.get('errors') or []):
+        lines.append('  ERROR: %s -- %s' % (ev.get('name'), ev.get('reason')))
+    gate = data.get('gate') or {}
+    lines.append('Worthiness gate: enabled=%s model=%s.'
+                 % (gate.get('enabled'), gate.get('model')))
+    is_error = bool(counts.get('errors'))
+    return '\n'.join(lines), counts, is_error
+
+
+# ── JSON-RPC dispatch ────────────────────────────────────────────────────
+def _result(msg_id, result):
+    return {'jsonrpc': '2.0', 'id': msg_id, 'result': result}
+
+
+def _error(msg_id, code, message):
+    return {'jsonrpc': '2.0', 'id': msg_id, 'error': {'code': code, 'message': message}}
+
+
+def _dispatch(msg, host):
+    """Handle ONE JSON-RPC message. Returns a response dict for requests, or
+    None for notifications (no id)."""
+    if not isinstance(msg, dict):
+        return _error(None, -32600, 'invalid request')
+    method = msg.get('method')
+    msg_id = msg.get('id')
+    params = msg.get('params') or {}
+    is_request = 'id' in msg and msg_id is not None
+
+    # Notifications (no id) get no response.
+    if not is_request:
+        return None
+
+    if method == 'initialize':
+        client_ver = params.get('protocolVersion') or PROTOCOL_VERSION
+        return _result(msg_id, {
+            'protocolVersion': client_ver,
+            'capabilities':    {'tools': {'listChanged': False}},
+            'serverInfo':      SERVER_INFO,
+        })
+
+    if method == 'ping':
+        return _result(msg_id, {})
+
+    if method == 'tools/list':
+        return _result(msg_id, {'tools': [ADD_EVENTS_TOOL]})
+
+    if method == 'tools/call':
+        name = params.get('name')
+        args = params.get('arguments') or {}
+        if name != 'add_events':
+            return _error(msg_id, -32602, 'unknown tool: %s' % name)
+        try:
+            summary, _counts, is_error = _ingest(args.get('new_events'), host)
+        except Exception as e:  # never crash the protocol on a tool fault
+            summary, is_error = 'add_events failed: %s' % e, True
+        return _result(msg_id, {
+            'content': [{'type': 'text', 'text': summary}],
+            'isError': is_error,
+        })
+
+    return _error(msg_id, -32601, 'method not found: %s' % method)
+
+
+# ── HTTP layer ───────────────────────────────────────────────────────────
+def _bearer_ok(handler):
+    if not MCP_BEARER_TOKEN:
+        return False
+    ah = handler.headers.get('Authorization', '') or ''
+    if not ah.lower().startswith('bearer '):
+        return False
+    return hmac.compare_digest(ah[7:].strip(), MCP_BEARER_TOKEN)
+
+
+def _send(handler, status, payload, ctype='application/json', extra_headers=None):
+    body = b''
+    if payload is not None:
+        body = (payload if isinstance(payload, (bytes, bytearray))
+                else json.dumps(payload).encode('utf-8'))
+    handler.send_response(status)
+    if payload is not None:
+        handler.send_header('Content-Type', ctype)
+    handler.send_header('Cache-Control', 'no-store')
+    handler.send_header('Access-Control-Allow-Origin', '*')
+    handler.send_header('Access-Control-Allow-Headers', 'Authorization, Content-Type, Mcp-Session-Id, MCP-Protocol-Version')
+    handler.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+    for k, v in (extra_headers or {}).items():
+        handler.send_header(k, v)
+    handler.end_headers()
+    if body:
+        handler.wfile.write(body)
+
+
+class handler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        _send(self, 204, None)
+
+    def do_GET(self):
+        # No server-initiated SSE stream offered at this endpoint.
+        _send(self, 405, {'error': 'method not allowed; POST JSON-RPC to this endpoint'},
+              extra_headers={'Allow': 'POST, OPTIONS'})
+
+    def do_POST(self):
+        try:
+            self._handle()
+        except Exception as e:
+            import traceback
+            _send(self, 500, _error(None, -32603, 'internal error: %s' % e))
+            try:
+                # best-effort log to function output
+                print(traceback.format_exc()[-1500:], flush=True)
+            except Exception:
+                pass
+
+    def _handle(self):
+        if not EVENTS_INGEST_SECRET:
+            return _send(self, 500, _error(None, -32603,
+                         'server not configured: EVENTS_INGEST_SECRET missing'))
+        if not _bearer_ok(self):
+            return _send(self, 401, _error(None, -32001, 'unauthorized: bad or missing Bearer token'),
+                         extra_headers={'WWW-Authenticate': 'Bearer'})
+
+        try:
+            length = int(self.headers.get('Content-Length', '0'))
+            raw    = self.rfile.read(length).decode('utf-8') if length else ''
+            msg    = json.loads(raw) if raw else None
+        except (ValueError, json.JSONDecodeError):
+            return _send(self, 200, _error(None, -32700, 'parse error'))
+
+        host = self.headers.get('Host', '')
+
+        # Batch (array) or single message.
+        if isinstance(msg, list):
+            responses = []
+            for one in msg:
+                r = _dispatch(one, host)
+                if r is not None:
+                    responses.append(r)
+            if not responses:
+                return _send(self, 202, None)        # all notifications
+            return _send(self, 200, responses)
+
+        if isinstance(msg, dict):
+            r = _dispatch(msg, host)
+            if r is None:
+                return _send(self, 202, None)         # a notification
+            return _send(self, 200, r)
+
+        return _send(self, 200, _error(None, -32600, 'invalid request'))

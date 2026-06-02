@@ -9,6 +9,9 @@
     },
     "api/events.py": {
       "maxDuration": 30
+    },
+    "api/mcp.py": {
+      "maxDuration": 120
     }
   },
   "headers": [
