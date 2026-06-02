@@ -20,17 +20,32 @@ BODY (any of):
   Max 50 events per request. Only known manual_events columns are stored;
   any other keys are ignored. `name` is required per event.
 
+WORTHINESS GATE (optional):
+  If OPENAI_API_KEY is set, every genuinely-new (non-duplicate) event is
+  judged by an OpenAI model BEFORE it is inserted. The judge sees who
+  ArcticBlue is (ARCTICBLUE_PROFILE), the worthiness rubric (WORTHINESS_RUBRIC),
+  the candidate event, and a sample of events already tracked. It returns
+  accept/reject + a reason. Rejected events are NOT inserted; the reason is
+  returned in the "rejected" array. If OPENAI_API_KEY is unset the gate is
+  skipped and every new event is inserted (original behavior).
+
 RESPONSE 200: {
   "inserted": [ { "id": <int>, "name": "..." }, ... ],
+  "rejected": [ { "name": "...", "reason": "...", "score": 0.1 }, ... ],
   "skipped":  [ { "name": "...", "reason": "duplicate" }, ... ],
   "errors":   [ { "name": "...", "reason": "..." }, ... ],
-  "counts":   { "inserted": N, "skipped": N, "errors": N }
+  "counts":   { "inserted": N, "rejected": N, "skipped": N, "errors": N },
+  "gate":     { "enabled": true, "model": "gpt-4o-mini" }
 }
 
 ENV:
   SUPABASE_URL                 (default project URL)
   SUPABASE_SERVICE_ROLE_KEY    (REQUIRED — server-side insert, bypasses RLS)
   EVENTS_INGEST_SECRET         (REQUIRED — shared secret the caller sends)
+  OPENAI_API_KEY               (optional — enables the worthiness gate)
+  OPENAI_MODEL                 (optional — default "gpt-4o-mini")
+  OPENAI_GATE_FAIL_OPEN        (optional — "true" (default) keeps an event if
+                                the judge errors; "false" drops it)
 """
 from http.server import BaseHTTPRequestHandler
 import json
@@ -52,6 +67,50 @@ INGEST_SECRET = _env('EVENTS_INGEST_SECRET')
 
 DEFAULT_CREATED_BY = _env('EVENTS_INGEST_CREATED_BY', 'dust@arcticblue.ai')
 MAX_EVENTS = 50
+
+# ── OpenAI worthiness gate ───────────────────────────────────────────
+# Optional. If OPENAI_API_KEY is unset the gate is SKIPPED and every new
+# (non-duplicate) event is inserted, exactly as the original endpoint did.
+OPENAI_API_KEY = _env('OPENAI_API_KEY')
+OPENAI_MODEL   = _env('OPENAI_MODEL', 'gpt-4o-mini')
+OPENAI_BASE    = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
+# On an OpenAI error/timeout: keep the event (fail-open, default) so a flaky
+# API never silently loses a real opportunity, or drop it (fail-closed).
+_GATE_FAIL_OPEN_RAW = _env('OPENAI_GATE_FAIL_OPEN', 'true')
+
+# ---- EDIT ME ---------------------------------------------------------
+# Who ArcticBlue is + what makes an event worth tracking. This text is the
+# judge's ENTIRE world view — tune it freely; no code change needed.
+ARCTICBLUE_PROFILE = (
+    "ArcticBlue AI (arcticblue.ai) is an AI company. This tracker collects "
+    "SPEAKING opportunities -- conferences, summits, panels, and industry "
+    "events where ArcticBlue could put a speaker on stage in front of the "
+    "right audience (enterprise leaders and AI/technology decision-makers)."
+)
+
+WORTHINESS_RUBRIC = (
+    "Decide whether a candidate event belongs in ArcticBlue's speaking tracker.\n"
+    "\n"
+    "ACCEPT when ALL of these hold:\n"
+    "  - It is a real conference / summit / panel / industry event (not a spam\n"
+    "    webinar blast, a product launch, or an unrelated social meetup).\n"
+    "  - There is, or plausibly could be, a SPEAKING slot (talk, panel,\n"
+    "    keynote, fireside) -- not sponsorship-only with zero stage time.\n"
+    "  - The topic overlaps AI, data, or enterprise technology (or ArcticBlue's\n"
+    "    focus areas) and the audience plausibly includes target decision-makers.\n"
+    "  - It is upcoming (a future date), or the date is unknown but the event\n"
+    "    is clearly real.\n"
+    "\n"
+    "REJECT when ANY of these hold:\n"
+    "  - Clearly off-topic industry with no AI / tech angle.\n"
+    "  - It already happened (a past date).\n"
+    "  - Pure pay-to-play sponsorship with NO speaking slot of any kind.\n"
+    "  - Obvious spam, a duplicate of an event already tracked, or missing both\n"
+    "    a usable name and any topic signal.\n"
+    "\n"
+    "When genuinely on the fence, lean ACCEPT -- a human reviews the tracker, "
+    "and missing a real opportunity costs more than a borderline extra row."
+)
 
 # Columns the caller is allowed to set. Mirrors the live manual_events table
 # (minus server-managed id / created_at). Anything outside this set is dropped.
@@ -160,6 +219,87 @@ def _coerce(ev):
         if sv:
             row[k] = sv
     return row
+
+
+GATE_FAIL_OPEN = _truthy(_GATE_FAIL_OPEN_RAW)
+
+
+def _gate_enabled():
+    return bool(OPENAI_API_KEY)
+
+
+def _evaluate_event(row, known_names):
+    """Ask OpenAI whether this candidate event is worth tracking.
+
+    Returns {'decision': 'accept'|'reject', 'score': float|None,
+             'reason': str, 'error': str|None}. If the gate is disabled
+    (no OPENAI_API_KEY) this auto-accepts. On an OpenAI error it honors
+    GATE_FAIL_OPEN (keep vs drop)."""
+    if not _gate_enabled():
+        return {'decision': 'accept', 'score': None, 'reason': 'gate disabled', 'error': None}
+
+    def _fallback(why, err):
+        return {
+            'decision': 'accept' if GATE_FAIL_OPEN else 'reject',
+            'score':    None,
+            'reason':   '%s (fail-%s)' % (why, 'open' if GATE_FAIL_OPEN else 'closed'),
+            'error':    (err or '')[:300],
+        }
+
+    # Only the fields that inform the judgment — keep the prompt compact.
+    fields = ('name', 'date_str', 'start_date', 'location', 'region', 'type',
+              'about', 'why', 'focus_areas', 'typical_attendees',
+              'speaking_route', 'pay_to_play', 'url')
+    candidate = {k: row[k] for k in fields if row.get(k)}
+    sample = sorted(known_names)[:80]  # so the judge can spot near-duplicates
+
+    system = (
+        ARCTICBLUE_PROFILE + "\n\n" + WORTHINESS_RUBRIC + "\n\n"
+        'Respond with ONLY a JSON object of the form '
+        '{"decision":"accept" or "reject","score":<0..1 confidence the event '
+        'is worthy>,"reason":"<=200 chars"}.'
+    )
+    user = json.dumps({
+        'candidate_event': candidate,
+        'events_already_tracked': sample,
+    }, ensure_ascii=False)
+
+    payload = {
+        'model': OPENAI_MODEL,
+        'messages': [
+            {'role': 'system', 'content': system},
+            {'role': 'user',   'content': user},
+        ],
+        'temperature': 0,
+        'max_tokens': 200,
+        'response_format': {'type': 'json_object'},
+    }
+    status, data = _http_json(
+        'POST', OPENAI_BASE + '/chat/completions',
+        headers={
+            'Authorization': 'Bearer ' + OPENAI_API_KEY,
+            'Content-Type':  'application/json',
+        },
+        body=payload, timeout=25)
+
+    if status != 200 or not isinstance(data, dict):
+        return _fallback('gate error %s' % status,
+                         data if isinstance(data, str) else json.dumps(data)[:300])
+    try:
+        content = data['choices'][0]['message']['content']
+        parsed  = json.loads(content)
+    except (KeyError, IndexError, TypeError, json.JSONDecodeError) as e:
+        return _fallback('gate parse error', str(e))
+
+    decision = str(parsed.get('decision', '')).strip().lower()
+    if decision not in ('accept', 'reject'):
+        decision = 'accept' if GATE_FAIL_OPEN else 'reject'
+    try:
+        score = round(float(parsed.get('score')), 3)
+    except (TypeError, ValueError):
+        score = None
+    reason = str(parsed.get('reason', '') or '')[:300]
+    return {'decision': decision, 'score': score, 'reason': reason, 'error': None}
 
 
 def _svc_headers():
@@ -309,7 +449,7 @@ class handler(BaseHTTPRequestHandler):
         catalog  = _catalog_names(self.headers.get('Host', ''))
         seen_this_run = set()
 
-        inserted, skipped, errors = [], [], []
+        inserted, rejected, skipped, errors = [], [], [], []
 
         for ev in items:
             row = _coerce(ev)
@@ -340,6 +480,18 @@ class handler(BaseHTTPRequestHandler):
                 skipped.append({'name': name, 'reason': 'duplicate'})
                 continue
 
+            # Worthiness gate (OpenAI). Runs ONLY on genuinely-new events, so
+            # a token is never spent judging a duplicate. No-ops if disabled.
+            verdict = _evaluate_event(row, existing | catalog)
+            if verdict['decision'] == 'reject':
+                rejected.append({
+                    'name':   name,
+                    'reason': verdict['reason'] or 'not worthy',
+                    'score':  verdict['score'],
+                })
+                seen_this_run.add(lname)  # don't re-judge same name in this batch
+                continue
+
             status, data = _insert_one(row)
             if status in (200, 201) and isinstance(data, list) and data:
                 inserted.append({'id': data[0].get('id'), 'name': name})
@@ -354,11 +506,14 @@ class handler(BaseHTTPRequestHandler):
 
         return _send(self, 200, {
             'inserted': inserted,
+            'rejected': rejected,
             'skipped':  skipped,
             'errors':   errors,
             'counts': {
                 'inserted': len(inserted),
+                'rejected': len(rejected),
                 'skipped':  len(skipped),
                 'errors':   len(errors),
             },
+            'gate': {'enabled': _gate_enabled(), 'model': OPENAI_MODEL if _gate_enabled() else None},
         })
