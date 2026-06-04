@@ -7,7 +7,7 @@ X-WR-CALNAME:ArcticBlue · Saved events
 X-WR-CALDESC:All saved events plus every manual addition. Updated daily.
 BEGIN:VEVENT
 UID:manual-21@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20270125
 DTEND;VALUE=DATE:20270128
 SUMMARY:Business Transformation World Summit + Agentic AI Summit 2027
@@ -17,7 +17,7 @@ URL:https://www.processexcellencenetwork.com/events-business-transformation-worl
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-20@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261203
 DTEND;VALUE=DATE:20261205
 SUMMARY:ISG AI Impact Summit Paris
@@ -27,7 +27,7 @@ URL:https://aiimpact.isg-one.com/paris
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-19@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261201
 DTEND;VALUE=DATE:20261202
 SUMMARY:Chief AI Officer Summit London 2026
@@ -37,7 +37,7 @@ URL:https://caio-london.re-work.co/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-18@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261125
 DTEND;VALUE=DATE:20261127
 SUMMARY:Enterprise AI Expo Oman 2026
@@ -47,7 +47,7 @@ URL:https://aienterpriseexpo.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-17@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261121
 SUMMARY:Microsoft Ignite 2026
@@ -57,7 +57,7 @@ URL:https://ignite.microsoft.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-16@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261119
 SUMMARY:The AI Leadership Summit — The Conference Board
@@ -67,7 +67,7 @@ URL:https://www.conference-board.org/events/ai-leadership
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-15@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261109
 DTEND;VALUE=DATE:20261113
 SUMMARY:Gartner IT Symposium/Xpo EMEA 2026
@@ -77,7 +77,7 @@ URL:https://www.gartner.com/en/conferences/emea/symposium-spain
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-14@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261104
 DTEND;VALUE=DATE:20261106
 SUMMARY:Agentic Transformation Summit Europe
@@ -87,7 +87,7 @@ URL:https://www.aidataanalytics.network/events-agentic-ai-summit
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-13@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261102
 DTEND;VALUE=DATE:20261104
 SUMMARY:Gartner Data & Analytics Summit Denver
@@ -97,7 +97,7 @@ URL:https://www.gartner.com/en/conferences/na/data-analytics-us
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-12@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261028
 DTEND;VALUE=DATE:20261030
 SUMMARY:ISG AI Impact Summit New York
@@ -107,7 +107,7 @@ URL:https://aiimpact.isg-one.com/newyork
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-11@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261026
 DTEND;VALUE=DATE:20261028
 SUMMARY:Corinium CDAO Fall + CAIO Fall 2026
@@ -117,7 +117,7 @@ URL:https://cdao-fall.coriniumintelligence.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-10@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261020
 DTEND;VALUE=DATE:20261023
 SUMMARY:SSOW Autumn 2026
@@ -127,7 +127,7 @@ URL:https://www.ssonetwork.com/events-ssow-autumn
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-9@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261019
 DTEND;VALUE=DATE:20261023
 SUMMARY:Gartner IT Symposium/Xpo 2026 (US)
@@ -137,7 +137,7 @@ URL:https://www.gartner.com/en/conferences/na/symposium-us
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-8@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20261007
 DTEND;VALUE=DATE:20261009
 SUMMARY:World Summit AI Amsterdam
@@ -147,7 +147,7 @@ URL:https://worldsummit.ai/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-6@arcticblue-event-tracker
-DTSTAMP:20260603T132243Z
+DTSTAMP:20260604T120911Z
 DTSTART;VALUE=DATE:20260612
 DTEND;VALUE=DATE:20260613
 SUMMARY:DDX Innovation & UX Conference New York
