@@ -6,8 +6,38 @@ METHOD:PUBLISH
 X-WR-CALNAME:ArcticBlue · Saved events
 X-WR-CALDESC:All saved events plus every manual addition. Updated daily.
 BEGIN:VEVENT
+UID:manual-37@arcticblue-event-tracker
+DTSTAMP:20260609T121206Z
+DTSTART;VALUE=DATE:20261209
+DTEND;VALUE=DATE:20261210
+SUMMARY:Leaders in AI Summit San Jose 2026
+LOCATION:San Jose\, CA\, USA
+DESCRIPTION:Institute for AI Transformation's Bay Area C-suite AI summit\; application-based format drawing enterprise AI decision-makers from Silicon Valley and national tech companies\; strong earned speaking route.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.leadersinaisummit.com/sanjose
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-36@arcticblue-event-tracker
+DTSTAMP:20260609T121206Z
+DTSTART;VALUE=DATE:20261001
+DTEND;VALUE=DATE:20261101
+SUMMARY:ITC USA 2026 (InsureTech Connect)
+LOCATION:Las Vegas\, NV\, USA
+DESCRIPTION:North America's largest InsureTech conference (7\,000+ insurance and enterprise tech executives) — adjacent enterprise AI buyer audience deploying AI across underwriting\, claims\, and distribution at scale.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://usa.insuretechconnect.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-35@arcticblue-event-tracker
+DTSTAMP:20260609T121206Z
+DTSTART;VALUE=DATE:20260921
+DTEND;VALUE=DATE:20260923
+SUMMARY:Gartner Data & Analytics Summit India 2026
+LOCATION:Mumbai\, India
+DESCRIPTION:Gartner's premier India/APAC CDAO forum — heads of AI\, data\, and analytics from top South Asian enterprises setting 2027 AI budgets\; strong APAC market access for ArcticBlue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.gartner.com/en/conferences/apac/data-analytics-india
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-34@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261119
 SUMMARY:Future: Enterprise & AI 2026
@@ -17,7 +47,7 @@ URL:https://www.conference-board.org/events/future-enterprise-and-ai
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-33@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261110
 DTEND;VALUE=DATE:20261113
 SUMMARY:Leaders in AI Executive Retreat 2026
@@ -27,7 +57,7 @@ URL:https://www.leadersinaisummit.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-32@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261119
 SUMMARY:Future: Enterprise & AI 2026
@@ -37,7 +67,7 @@ URL:https://www.conference-board.org/events/future-enterprise-and-ai
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-31@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261119
 SUMMARY:Millennium Alliance Enterprise AI HR Transformation Assembly — November 2026
@@ -47,7 +77,7 @@ URL:https://mill-all.com/assemblies/enterprise-ai-hr-transformation-assembly-nov
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-30@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261109
 DTEND;VALUE=DATE:20261111
 SUMMARY:Chief AI Officer Exchange Fall 2026
@@ -57,7 +87,7 @@ URL:https://www.aidataanalytics.network/events-chiefaiofficerexchangefall
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-29@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261021
 DTEND;VALUE=DATE:20261022
 SUMMARY:Leaders in AI Summit Dallas 2026
@@ -67,7 +97,7 @@ URL:https://www.leadersinaisummit.com/dallas
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-28@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261104
 DTEND;VALUE=DATE:20261106
 SUMMARY:Forrester Technology & Innovation Forum East 2026
@@ -77,7 +107,7 @@ URL:https://www.forrester.com/event/technology-innovation-east/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-27@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261103
 DTEND;VALUE=DATE:20261105
 SUMMARY:Millennium Alliance Digital Enterprise CIO Transformation Assembly Europe — November 2026
@@ -87,7 +117,7 @@ URL:https://mill-all.com/assemblies/digital-enterprise-cio-transformation-assemb
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-26@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261020
 DTEND;VALUE=DATE:20261022
 SUMMARY:AI LIVE: The London Summit
@@ -97,7 +127,7 @@ URL:https://www.bizclikmediagroup.com/ailive
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-25@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261028
 DTEND;VALUE=DATE:20261029
 SUMMARY:Chief AI Officer Summit Boston 2026
@@ -107,7 +137,7 @@ URL:https://world.aiacceleratorinstitute.com/location/caioboston/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-24@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261028
 DTEND;VALUE=DATE:20261029
 SUMMARY:Chief AI Officer Summit Boston 2026
@@ -117,7 +147,7 @@ URL:https://world.aiacceleratorinstitute.com/location/caioboston/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-23@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261020
 DTEND;VALUE=DATE:20261023
 SUMMARY:HR Technology Conference 2026
@@ -127,7 +157,7 @@ URL:https://www.hrtechnologyconference.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-22@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20260915
 DTEND;VALUE=DATE:20260917
 SUMMARY:Leaders in AI Summit Chicago 2026
@@ -137,7 +167,7 @@ URL:https://www.leadersinaisummit.com/chicago
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-21@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20270125
 DTEND;VALUE=DATE:20270128
 SUMMARY:Business Transformation World Summit + Agentic AI Summit 2027
@@ -147,7 +177,7 @@ URL:https://www.processexcellencenetwork.com/events-business-transformation-worl
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-20@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261203
 DTEND;VALUE=DATE:20261205
 SUMMARY:ISG AI Impact Summit Paris
@@ -157,7 +187,7 @@ URL:https://aiimpact.isg-one.com/paris
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-19@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261201
 DTEND;VALUE=DATE:20261202
 SUMMARY:Chief AI Officer Summit London 2026
@@ -167,7 +197,7 @@ URL:https://caio-london.re-work.co/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-18@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261125
 DTEND;VALUE=DATE:20261127
 SUMMARY:Enterprise AI Expo Oman 2026
@@ -177,7 +207,7 @@ URL:https://aienterpriseexpo.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-17@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261121
 SUMMARY:Microsoft Ignite 2026
@@ -187,7 +217,7 @@ URL:https://ignite.microsoft.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-16@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261119
 SUMMARY:The AI Leadership Summit — The Conference Board
@@ -197,7 +227,7 @@ URL:https://www.conference-board.org/events/ai-leadership
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-15@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261109
 DTEND;VALUE=DATE:20261113
 SUMMARY:Gartner IT Symposium/Xpo EMEA 2026
@@ -207,7 +237,7 @@ URL:https://www.gartner.com/en/conferences/emea/symposium-spain
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-14@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261104
 DTEND;VALUE=DATE:20261106
 SUMMARY:Agentic Transformation Summit Europe
@@ -217,7 +247,7 @@ URL:https://www.aidataanalytics.network/events-agentic-ai-summit
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-13@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261102
 DTEND;VALUE=DATE:20261104
 SUMMARY:Gartner Data & Analytics Summit Denver
@@ -227,7 +257,7 @@ URL:https://www.gartner.com/en/conferences/na/data-analytics-us
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-12@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261028
 DTEND;VALUE=DATE:20261030
 SUMMARY:ISG AI Impact Summit New York
@@ -237,7 +267,7 @@ URL:https://aiimpact.isg-one.com/newyork
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-11@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261026
 DTEND;VALUE=DATE:20261028
 SUMMARY:Corinium CDAO Fall + CAIO Fall 2026
@@ -247,7 +277,7 @@ URL:https://cdao-fall.coriniumintelligence.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-10@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261020
 DTEND;VALUE=DATE:20261023
 SUMMARY:SSOW Autumn 2026
@@ -257,7 +287,7 @@ URL:https://www.ssonetwork.com/events-ssow-autumn
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-9@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261019
 DTEND;VALUE=DATE:20261023
 SUMMARY:Gartner IT Symposium/Xpo 2026 (US)
@@ -267,7 +297,7 @@ URL:https://www.gartner.com/en/conferences/na/symposium-us
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-8@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20261007
 DTEND;VALUE=DATE:20261009
 SUMMARY:World Summit AI Amsterdam
@@ -277,7 +307,7 @@ URL:https://worldsummit.ai/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-6@arcticblue-event-tracker
-DTSTAMP:20260608T131337Z
+DTSTAMP:20260609T121206Z
 DTSTART;VALUE=DATE:20260612
 DTEND;VALUE=DATE:20260613
 SUMMARY:DDX Innovation & UX Conference New York
