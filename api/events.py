@@ -106,7 +106,12 @@ ARCTICBLUE_PROFILE = (
     "ArcticBlue AI (arcticblue.ai) is an AI company. This tracker collects "
     "SPEAKING opportunities -- conferences, summits, panels, and industry "
     "events where ArcticBlue could put a speaker on stage in front of the "
-    "right audience (enterprise leaders and AI/technology decision-makers)."
+    "right audience (enterprise leaders and AI/technology decision-makers).\n"
+    "ArcticBlue wants stage time in front of BUYERS -- in-house enterprise "
+    "leaders, operators, and AI/technology decision-makers who could become "
+    "clients -- NOT rooms full of other AI vendors, agencies, consultancies, "
+    "and sales reps selling to each other. Buyer-rich audiences are far more "
+    "valuable than vendor-heavy, sponsor-driven expos."
 )
 
 WORTHINESS_RUBRIC = (
@@ -122,10 +127,23 @@ WORTHINESS_RUBRIC = (
     "  - It is upcoming (a future date), or the date is unknown but the event\n"
     "    is clearly real.\n"
     "\n"
+    "BUYERS-OVER-SELLERS (the most important ranking signal):\n"
+    "  - Strongly PREFER events whose audience is buyer-rich -- in-house\n"
+    "    enterprise leaders, operators, practitioners, and end-user\n"
+    "    decision-makers who buy / adopt AI -- over vendor-heavy, sponsor-driven\n"
+    "    expos where most attendees are sales / business-development / vendors\n"
+    "    selling to each other.\n"
+    "  - A buyer-rich audience should raise the score; a vendor-heavy one should\n"
+    "    lower it. A high ticket price and senior job titles usually signal a\n"
+    "    buyer-rich room; a free or sponsor-funded expo floor usually signals a\n"
+    "    seller-heavy one.\n"
+    "\n"
     "REJECT when ANY of these hold:\n"
     "  - Clearly off-topic industry with no AI / tech angle.\n"
     "  - It already happened (a past date).\n"
     "  - Pure pay-to-play sponsorship with NO speaking slot of any kind.\n"
+    "  - A pure vendor-to-vendor lead-gen expo with little or no buyer / end-user\n"
+    "    audience (everyone in the room is there to sell).\n"
     "  - Obvious spam, a duplicate of an event already tracked, or missing both\n"
     "    a usable name and any topic signal.\n"
     "\n"
@@ -143,6 +161,9 @@ ALLOWED = {
     'speaking_route', 'contact_info', 'deadline', 'attendee_count',
     'pay_to_play', 'venue', 'city', 'country', 'seed', 'urgent',
     'external_id', 'start_date', 'end_date', 'created_by',
+    # Buyer-quality signals (require the 2026-06 migration; writes that hit a
+    # DB without these columns are stripped + retried, so ingest never breaks).
+    'pricing', 'audience_type',
 }
 BOOL_COLS = {'seed', 'urgent', 'paid'}
 
@@ -219,6 +240,39 @@ def _norm_tags(v):
     return out
 
 
+# ── Buyer/seller audience read ───────────────────────────────────────
+# ArcticBlue wants stage time in front of BUYERS (in-house enterprise leaders
+# who could become clients), not rooms full of other vendors selling to each
+# other. The gate returns a free-text audience label which we squeeze into one
+# of three canonical buckets so the UI can tag + filter on it consistently.
+_AUDIENCE_LABELS = ('Buyer-rich', 'Mixed', 'Vendor-heavy')
+
+
+def _norm_audience(v):
+    """Map free-text / case-insensitive audience input to one canonical label
+    ('Buyer-rich' | 'Mixed' | 'Vendor-heavy') or None when unknown/blank."""
+    if v is None:
+        return None
+    s = str(v).strip().lower()
+    if not s:
+        return None
+    # Exact canonical match first (cheap, case-insensitive).
+    for lab in _AUDIENCE_LABELS:
+        if s == lab.lower():
+            return lab
+    # Vendor-heavy: anyone there to sell (vendors/sellers/sponsors/exhibitors).
+    if any(w in s for w in ('vendor', 'seller', 'sell', 'sales', 'sponsor', 'exhibitor')):
+        return 'Vendor-heavy'
+    # Buyer-rich: end users / decision-makers / in-house enterprise buyers.
+    if any(w in s for w in ('buyer', 'buy', 'end user', 'end-user', 'enduser',
+                            'decision', 'in-house', 'in house', 'enterprise lead',
+                            'practitioner', 'client')):
+        return 'Buyer-rich'
+    if 'mixed' in s or 'balanced' in s or 'both' in s:
+        return 'Mixed'
+    return None
+
+
 # ── Duplicate detection ──────────────────────────────────────────────
 # Two keys guard against duplicates:
 #   1) exact lowercased name  -> catches identical re-submits.
@@ -261,6 +315,10 @@ def _coerce(ev):
             if ev.get(alias):
                 ev['speaking_route'] = ev[alias]
                 break
+    # Fold the buyer/seller audience label alias onto audience_type. The agent
+    # (and the gate) speak in terms of "audience"; the column is audience_type.
+    if not ev.get('audience_type') and ev.get('audience'):
+        ev['audience_type'] = ev['audience']
     row = {}
     for k, v in ev.items():
         if k not in ALLOWED or v is None:
@@ -290,32 +348,40 @@ def _evaluate_event(row, known_names):
     """Ask OpenAI whether this candidate event is worth tracking.
 
     Returns {'decision': 'accept'|'reject', 'score': float|None,
+             'audience': str|None, 'audience_note': str|None,
              'reason': str, 'error': str|None}. If the gate is disabled
     (no OPENAI_API_KEY) this auto-accepts. On an OpenAI error it honors
     GATE_FAIL_OPEN (keep vs drop)."""
     if not _gate_enabled():
-        return {'decision': 'accept', 'score': None, 'reason': 'gate disabled', 'error': None}
+        return {'decision': 'accept', 'score': None, 'audience': None,
+                'audience_note': None, 'reason': 'gate disabled', 'error': None}
 
     def _fallback(why, err):
         return {
-            'decision': 'accept' if GATE_FAIL_OPEN else 'reject',
-            'score':    None,
-            'reason':   '%s (fail-%s)' % (why, 'open' if GATE_FAIL_OPEN else 'closed'),
-            'error':    (err or '')[:300],
+            'decision':      'accept' if GATE_FAIL_OPEN else 'reject',
+            'score':         None,
+            'audience':      None,
+            'audience_note': None,
+            'reason':        '%s (fail-%s)' % (why, 'open' if GATE_FAIL_OPEN else 'closed'),
+            'error':         (err or '')[:300],
         }
 
     # Only the fields that inform the judgment — keep the prompt compact.
     fields = ('name', 'date_str', 'start_date', 'location', 'region', 'type',
-              'about', 'why', 'focus_areas', 'typical_attendees',
-              'speaking_route', 'pay_to_play', 'url')
+              'about', 'why', 'focus_areas', 'typical_attendees', 'attendee_count',
+              'pricing', 'speaking_route', 'pay_to_play', 'url')
     candidate = {k: row[k] for k in fields if row.get(k)}
     sample = sorted(known_names)[:80]  # so the judge can spot near-duplicates
 
     system = (
         ARCTICBLUE_PROFILE + "\n\n" + WORTHINESS_RUBRIC + "\n\n"
         'Respond with ONLY a JSON object of the form '
-        '{"decision":"accept" or "reject","score":<0..1 confidence the event '
-        'is worthy>,"reason":"<=200 chars"}.'
+        '{"decision":"accept" or "reject",'
+        '"score":<0..1 confidence the event is worthy, weighing buyer-richness>,'
+        '"audience":"Buyer-rich" or "Mixed" or "Vendor-heavy"'
+        ' (your read of who is actually in the room),'
+        '"audience_note":"<=120 chars on who attends and why that helps or hurts",'
+        '"reason":"<=200 chars"}.'
     )
     user = json.dumps({
         'candidate_event': candidate,
@@ -357,7 +423,10 @@ def _evaluate_event(row, known_names):
     except (TypeError, ValueError):
         score = None
     reason = str(parsed.get('reason', '') or '')[:300]
-    return {'decision': decision, 'score': score, 'reason': reason, 'error': None}
+    audience = _norm_audience(parsed.get('audience'))
+    audience_note = str(parsed.get('audience_note', '') or '')[:200] or None
+    return {'decision': decision, 'score': score, 'audience': audience,
+            'audience_note': audience_note, 'reason': reason, 'error': None}
 
 
 def _svc_headers():
@@ -524,11 +593,50 @@ def _catalog_names(host):
     return names
 
 
+# Columns that may not exist yet on older DBs (added by the 2026-06 migration).
+# If PostgREST rejects a write for one of these, we strip it and retry so the
+# whole row still lands — the feature just stays dark until the migration runs.
+_MIGRATION_COLS = ('pricing', 'audience_type')
+
+
+def _unknown_column(data):
+    """Return the column name PostgREST is complaining about (one of the
+    pending-migration columns) given an error body, else None.
+
+    Handles both shapes:
+      PGRST204  "Could not find the 'pricing' column of 'manual_events' ..."
+      42703     "column \"pricing\" of relation \"manual_events\" does not exist"
+    """
+    if not isinstance(data, dict):
+        return None
+    code = str(data.get('code') or '')
+    msg = str(data.get('message') or '') + ' ' + str(data.get('details') or '')
+    if code not in ('PGRST204', '42703') and 'column' not in msg.lower():
+        return None
+    low = msg.lower()
+    for col in _MIGRATION_COLS:
+        # Match 'pricing' / "pricing" / `pricing` however it's quoted.
+        if ("'%s'" % col) in low or ('"%s"' % col) in low or (' %s ' % col) in low:
+            return col
+    return None
+
+
 def _insert_one(row):
-    return _http_json(
-        'POST', SUPABASE_URL + '/rest/v1/manual_events',
-        headers=dict(_svc_headers(), **{'Prefer': 'return=representation'}),
-        body=row, timeout=20)
+    """POST a row, stripping any not-yet-migrated column the DB rejects and
+    retrying, so ingest never breaks before the migration runs."""
+    row = dict(row)
+    url = SUPABASE_URL + '/rest/v1/manual_events'
+    headers = dict(_svc_headers(), **{'Prefer': 'return=representation'})
+    for _ in range(len(_MIGRATION_COLS) + 1):
+        status, data = _http_json('POST', url, headers=headers, body=row, timeout=20)
+        if status in (200, 201):
+            return status, data
+        col = _unknown_column(data)
+        if col and col in row:
+            row.pop(col, None)
+            continue  # retry without the offending column
+        return status, data
+    return status, data
 
 
 def _send(handler, status, payload):
@@ -671,6 +779,14 @@ class handler(BaseHTTPRequestHandler):
                     seen_fps.add(fp)
                 continue
 
+            # Buyer/seller read from the gate. Persist the canonical audience
+            # label, and fall back to the gate's audience_note as the typical-
+            # attendees blurb when the caller didn't supply one.
+            if not row.get('audience_type') and verdict.get('audience'):
+                row['audience_type'] = verdict['audience']
+            if not row.get('typical_attendees') and verdict.get('audience_note'):
+                row['typical_attendees'] = verdict['audience_note']
+
             # Speaking-route enrichment: only when the caller didn't already
             # supply one, only for accepted events, and capped per request so a
             # big batch can't time out. Best-effort — never blocks the insert.
@@ -686,7 +802,9 @@ class handler(BaseHTTPRequestHandler):
             status, data = _insert_one(row)
             if status in (200, 201) and isinstance(data, list) and data:
                 inserted.append({'id': data[0].get('id'), 'name': name,
-                                 'speaking_route': row.get('speaking_route')})
+                                 'speaking_route': row.get('speaking_route'),
+                                 'audience_type': row.get('audience_type'),
+                                 'pricing': row.get('pricing')})
                 seen_names.add(lname)
                 existing_names.add(lname)
                 if fp:

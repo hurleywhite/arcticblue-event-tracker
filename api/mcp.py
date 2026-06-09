@@ -77,7 +77,17 @@ ADD_EVENTS_TOOL = {
         "`poc_linkedin`. Only do this when you actually know who it is — never "
         "guess a name.\n"
         "  - If you provide neither, the server will try to find an apply-to- "
-        "speak link automatically; that's fine."
+        "speak link automatically; that's fine.\n\n"
+        "BUYERS OVER SELLERS — the most important signal:\n"
+        "  ArcticBlue wants stage time in front of BUYERS (in-house enterprise "
+        "leaders / decision-makers who could become clients), NOT rooms full of "
+        "other AI vendors, agencies and sales reps selling to each other. For "
+        "each event, read who is actually in the room and set `audience` to one "
+        "of 'Buyer-rich', 'Mixed', or 'Vendor-heavy', and put a short note on "
+        "who attends in `typical_attendees`. High ticket prices and senior "
+        "buyer titles are buyer signals; sponsor-driven expos skew vendor-heavy. "
+        "Put the cost to ATTEND in `pricing` (e.g. '$2,495 delegate pass') when "
+        "you can find it."
     ),
     'inputSchema': {
         'type': 'object',
@@ -98,6 +108,9 @@ ADD_EVENTS_TOOL = {
                         'priority':   {'type': 'string', 'description': 'High | Medium | Low.'},
                         'why':        {'type': 'string', 'description': 'One sentence on why it fits ArcticBlue.'},
                         'url':        {'type': 'string', 'description': 'Verified event HOMEPAGE URL, else omit.'},
+                        'audience':   {'type': 'string', 'description': "Your read of who is in the room: 'Buyer-rich' (in-house enterprise buyers / decision-makers), 'Mixed', or 'Vendor-heavy' (mostly other vendors/agencies/sales reps selling to each other)."},
+                        'typical_attendees': {'type': 'string', 'description': 'Short note on who attends and their seniority/role mix, e.g. "Fortune 500 CIOs & Heads of Data".'},
+                        'pricing':    {'type': 'string', 'description': "Cost to ATTEND (delegate/ticket price), e.g. '$2,495 delegate pass' or 'Free'. Omit if unknown."},
                         'apply_url':  {'type': 'string', 'description': "Apply-to-speak / call-for-speakers / 'submit a speaker' page URL. NOT an attend/register/tickets link. Omit if none."},
                         'poc_name':   {'type': 'string', 'description': 'Name of the person who decides speakers — ONLY if you are confident who it is. Else omit.'},
                         'poc_email':  {'type': 'string', 'description': "That decision-maker's email, if known. Else omit."},
@@ -165,9 +178,15 @@ def _ingest(new_events, host):
              % (counts.get('inserted', 0), counts.get('rejected', 0),
                 counts.get('skipped', 0), counts.get('errors', 0))]
     for ev in (data.get('inserted') or []):
-        route = ev.get('speaking_route')
+        tags = []
+        if ev.get('audience_type'):
+            tags.append(ev['audience_type'])
+        if ev.get('pricing'):
+            tags.append(ev['pricing'])
+        if ev.get('speaking_route'):
+            tags.append(ev['speaking_route'])
         lines.append('  ADDED: %s%s' % (ev.get('name'),
-                                        ('  [%s]' % route) if route else ''))
+                                        ('  [%s]' % ' | '.join(tags)) if tags else ''))
     for ev in (data.get('rejected') or []):
         lines.append('  REJECTED (not worthy): %s -- %s' % (ev.get('name'), ev.get('reason')))
     for ev in (data.get('skipped') or []):

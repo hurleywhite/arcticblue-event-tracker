@@ -83,7 +83,8 @@ def _load_events_json():
     RICH_KEYS = (
         'about', 'focus_areas', 'typical_attendees', 'speaking_route',
         'contact_info', 'poc_email', 'deadline', 'attendee_count',
-        'pay_to_play', 'seed', 'urgent', 'venue', 'city', 'country',
+        'pay_to_play', 'pricing', 'audience_type', 'seed', 'urgent',
+        'venue', 'city', 'country',
         'region', 'notes', 'speaker', 'workflow_status', 'source',
         'external_id', 'start_date', 'end_date',
     )
@@ -341,7 +342,8 @@ def build():
     MODAL_FIELDS = (
         'about', 'focus_areas', 'typical_attendees', 'speaking_route',
         'contact_info', 'poc_email', 'deadline', 'attendee_count',
-        'pay_to_play', 'seed', 'urgent', 'venue', 'city', 'country',
+        'pay_to_play', 'pricing', 'audience_type', 'seed', 'urgent',
+        'venue', 'city', 'country',
         'notes', 'speaker', 'workflow_status', 'source', 'priority_full',
     )
 
@@ -637,6 +639,10 @@ def build():
     .badge.p-high {{ background: var(--ab-fg); color: #fff; }}
     .badge.p-medium {{ background: var(--ab-bg-3); color: var(--ab-fg-2); border: 1px solid var(--ab-rule); }}
     .badge.p-low {{ background: transparent; color: var(--ab-fg-3); border: 1px solid var(--ab-rule); }}
+    /* Buyer/seller read: green = buyers (what we want), amber = mixed, red = vendor fest. */
+    .badge.aud-buyer {{ background: #166534; color: #fff; }}
+    .badge.aud-mixed {{ background: #fef3c7; color: #92400e; border: 1px solid #f0c66b; }}
+    .badge.aud-vendor {{ background: #fee2e2; color: #991b1b; border: 1px solid #f3b1b1; }}
     .event-name {{
       font-family: var(--ab-sans); font-size: 1.1rem; font-weight: 700;
       line-height: 1.25; margin: 0; color: var(--ab-fg); letter-spacing: -0.01em;
@@ -1821,6 +1827,7 @@ def build():
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-saved">Saved only</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-urgent">Urgent only</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-speaker">Has speaker</label>
+          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-hidden">Show hidden</label>
           <div class="ops-months">
             <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
@@ -2004,6 +2011,14 @@ def build():
     if (p.indexOf('low')  === 0) return 'p-low';
     return 'p-medium';
   }}
+  // Buyer/seller read -> badge color. Buyer-rich (what ArcticBlue wants) is the
+  // "good" green-ish high tone; vendor-heavy is the cautionary low tone.
+  function audienceClass(a) {{
+    a = (a || '').toLowerCase();
+    if (a.indexOf('buyer') !== -1) return 'aud-buyer';
+    if (a.indexOf('vendor') !== -1 || a.indexOf('seller') !== -1) return 'aud-vendor';
+    return 'aud-mixed';
+  }}
   function field(label, val, html) {{
     if (val == null || String(val).trim() === '') return '';
     return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' +
@@ -2024,6 +2039,7 @@ def build():
     }}
     if (rec.status && !(rec.stage_tags && rec.stage_tags.length) && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
     if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
+    if (rec.audience_type) badges.push('<span class="badge ' + audienceClass(rec.audience_type) + '">' + esc(rec.audience_type) + '</span>');
     if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
     $badges.innerHTML = badges.join('');
@@ -2049,6 +2065,8 @@ def build():
     var grid = '';
     grid += field('Deadline', rec.deadline);
     grid += field('Attendee count', rec.attendee_count);
+    grid += field('Audience', rec.audience_type);
+    grid += field('Price to attend', rec.pricing);
     grid += field('Pay-to-play', rec.pay_to_play);
     grid += field('Venue', rec.venue);
     grid += field('Submission status', rec.submission_status);
@@ -2611,6 +2629,10 @@ def build():
           '<label><span class="key">Attendee count</span><input type="text" name="attendee_count" value="' + v('attendee_count') + '"></label>' +
         '</div>' +
         '<div class="row">' +
+          '<label><span class="key">Audience (buyers vs sellers)</span><select name="audience_type">' + optionRows(['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'], o.audience_type || '') + '</select></label>' +
+          '<label><span class="key">Price to attend</span><input type="text" name="pricing" value="' + v('pricing') + '"></label>' +
+        '</div>' +
+        '<div class="row">' +
           '<label><span class="key">Pay-to-play</span><select name="pay_to_play">' + optionRows(['', 'Yes', 'No', 'Unknown'], o.pay_to_play || '') + '</select></label>' +
           '<label><span class="key">Venue</span><input type="text" name="venue" value="' + v('venue') + '"></label>' +
         '</div>' +
@@ -2637,6 +2659,7 @@ def build():
       card.dataset.priority = mev.priority || '';
       card.dataset.track    = ''; // manual_events doesn't carry a track column
       card.dataset.speaker  = (mev.speaker || '');
+      card.dataset.audience = (mev.audience_type || '');
       var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
       card.dataset.month = manualMeta.key;
       card.dataset.monthLabel = manualMeta.label;
@@ -2680,10 +2703,18 @@ def build():
             (mev.paid !== null && mev.paid !== undefined ? 'Paid: ' + (mev.paid ? 'yes' : 'no') : '') +
           '</p>'
         : '';
+      // Buyer/seller read + ticket price — ArcticBlue wants buyer-rich rooms.
+      var audChip = mev.audience_type
+        ? '<span class="badge ' + audienceClass(mev.audience_type) + '">' + escapeHtml(mev.audience_type) + '</span>'
+        : '';
+      var priceLine = (mev.pricing && String(mev.pricing).trim())
+        ? '<p class="ops-meta">Price to attend: ' + escapeHtml(mev.pricing) + '</p>'
+        : '';
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<div class="ops-chips">' +
             '<span class="ops-chip badge-manual">Manual</span>' +
+            audChip +
           '</div>' +
           '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
         '</div>' +
@@ -2700,6 +2731,7 @@ def build():
         notesLine +
         addtlLine +
         submLine +
+        priceLine +
         feeLine +
         '<details class="ops-edit">' +
           '<summary>Edit / Delete</summary>' +
@@ -2814,6 +2846,8 @@ def build():
           contact_info:        (fd.get('contact_info') || '').toString().trim() || null,
           deadline:            (fd.get('deadline') || '').toString().trim() || null,
           attendee_count:      (fd.get('attendee_count') || '').toString().trim() || null,
+          audience_type:       (fd.get('audience_type') || '').toString().trim() || null,
+          pricing:             (fd.get('pricing') || '').toString().trim() || null,
           pay_to_play:         (fd.get('pay_to_play') || '').toString().trim() || null,
           venue:               (fd.get('venue') || '').toString().trim() || null,
           city:                (fd.get('city') || '').toString().trim() || null,
@@ -2839,7 +2873,7 @@ def build():
         }}
         var btn = form.querySelector('button.primary[type="submit"]');
         btn.disabled = true; btn.textContent = 'Saving…';
-        sb.from('manual_events').update(patch).eq('id', id).then(function (resp) {{
+        sbWriteRetry(patch, function (p) {{ return sb.from('manual_events').update(p).eq('id', id); }}).then(function (resp) {{
           btn.disabled = false; btn.textContent = 'Save changes';
           if (resp.error) {{
             if (resp.error.code === '23505' || /duplicate key value|unique/i.test(resp.error.message || '')) {{
@@ -3291,6 +3325,7 @@ def build():
       var $saved   = document.getElementById('ops-f-saved');
       var $urgent  = document.getElementById('ops-f-urgent');
       var $speaker = document.getElementById('ops-f-speaker');
+      var $buyers  = document.getElementById('ops-f-buyers');
       var $hidden  = document.getElementById('ops-f-hidden');
       if (!$search || !$opsGrid) return;
       var q = ($search.value || '').toLowerCase().trim();
@@ -3298,9 +3333,10 @@ def build():
       var fSaved   = !!($saved && $saved.checked);
       var fUrgent  = !!($urgent && $urgent.checked);
       var fSpeaker = !!($speaker && $speaker.checked);
+      var fBuyers  = !!($buyers && $buyers.checked);
       var showHidden = !!($hidden && $hidden.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-hidden',$hidden]].forEach(function (pair) {{
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-buyers',$buyers],['ops-f-hidden',$hidden]].forEach(function (pair) {{
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
@@ -3338,6 +3374,7 @@ def build():
         if (fSaved && !card.classList.contains('is-saved'))  on = false;
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
         if (fSpeaker && card.dataset.hasSpeaker !== '1')       on = false;
+        if (fBuyers && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
         if (!showHidden && card.classList.contains('is-hidden')) on = false;
         if (activeStages.length > 0) {{
           var cardStages = (card.dataset.statusTags || '').split('|').filter(Boolean);
@@ -3390,7 +3427,7 @@ def build():
     }}
 
     function wireFilters() {{
-      ['ops-search','ops-region','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-hidden'].forEach(function (id) {{
+      ['ops-search','ops-region','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-hidden'].forEach(function (id) {{
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -3667,6 +3704,37 @@ def build():
     // (events.json) is loaded once; manual_events is reloaded each time.
     var _knownNames = null;          // Set of lowercased names
     var _knownNameSource = {{}};      // map: name_lower → 'catalog' | 'manual'
+    // ── Strip-and-retry around not-yet-migrated columns ────────────────
+    // pricing / audience_type were added 2026-06. If this DB hasn't run the
+    // migration yet, PostgREST rejects the whole write. We detect that, drop
+    // the offending column, and retry so the save still lands (the buyer/price
+    // fields just stay blank until the migration runs).
+    var MIGRATION_COLS = ['pricing', 'audience_type'];
+    function unknownMigrationCol(err) {{
+      if (!err) return null;
+      var msg = ((err.message || '') + ' ' + (err.details || '')).toLowerCase();
+      var code = String(err.code || '');
+      if (code !== 'PGRST204' && code !== '42703' && msg.indexOf('column') === -1) return null;
+      for (var i = 0; i < MIGRATION_COLS.length; i++) {{
+        var c = MIGRATION_COLS[i];
+        if (msg.indexOf("'" + c + "'") !== -1 || msg.indexOf('"' + c + '"') !== -1 ||
+            msg.indexOf(' ' + c + ' ') !== -1) return c;
+      }}
+      return null;
+    }}
+    // runFn(payload) -> a Supabase thenable resolving to {{data, error}}.
+    function sbWriteRetry(payload, runFn) {{
+      return runFn(payload).then(function (resp) {{
+        var col = unknownMigrationCol(resp.error);
+        if (col && Object.prototype.hasOwnProperty.call(payload, col)) {{
+          var p2 = {{}};
+          for (var k in payload) {{ if (k !== col && Object.prototype.hasOwnProperty.call(payload, k)) p2[k] = payload[k]; }}
+          return sbWriteRetry(p2, runFn);
+        }}
+        return resp;
+      }});
+    }}
+
     function loadKnownNames() {{
       var p1 = fetch('events.json').then(function (r) {{ return r.json(); }}).then(function (d) {{
         return ((d && d.events) || []).map(function (e) {{ return (e.name || '').toLowerCase().trim(); }});
@@ -3798,6 +3866,8 @@ def build():
           contact_info:       (fd.get('contact_info') || '').toString().trim() || null,
           deadline:           (fd.get('deadline') || '').toString().trim() || null,
           attendee_count:     (fd.get('attendee_count') || '').toString().trim() || null,
+          audience_type:      (fd.get('audience_type') || '').toString().trim() || null,
+          pricing:            (fd.get('pricing') || '').toString().trim() || null,
           pay_to_play:        (fd.get('pay_to_play') || '').toString().trim() || null,
           venue:              (fd.get('venue') || '').toString().trim() || null,
           city:               (fd.get('city') || '').toString().trim() || null,
@@ -3831,7 +3901,7 @@ def build():
         }}
         var submitBtn = form.querySelector('button.primary[type="submit"]');
         submitBtn.disabled = true; submitBtn.textContent = 'Saving…';
-        sb.from('manual_events').insert(row).select().then(function (resp) {{
+        sbWriteRetry(row, function (p) {{ return sb.from('manual_events').insert(p).select(); }}).then(function (resp) {{
           submitBtn.disabled = false; submitBtn.textContent = 'Add event';
           if (resp.error) {{
             // 23505 = unique_violation. Hit when the DB unique index catches
@@ -5160,7 +5230,8 @@ def write_events_json(today_evs, upcoming, archived):
     RICH_KEYS = (
         'about', 'focus_areas', 'typical_attendees', 'speaking_route',
         'contact_info', 'poc_email', 'deadline', 'attendee_count',
-        'pay_to_play', 'seed', 'urgent', 'venue', 'city', 'country',
+        'pay_to_play', 'pricing', 'audience_type', 'seed', 'urgent',
+        'venue', 'city', 'country',
         'notes', 'speaker', 'workflow_status', 'source', 'external_id',
     )
 

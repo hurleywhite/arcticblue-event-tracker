@@ -134,5 +134,37 @@ nfp = ev._fingerprint(new)
 not_dup = (new.lower() in catalog_names) or (nfp and nfp in catalog_fps)
 check('genuinely-new event is NOT flagged', not not_dup)
 
+print('8) _norm_audience: free text -> Buyer-rich | Mixed | Vendor-heavy | None')
+check('exact Buyer-rich', ev._norm_audience('Buyer-rich') == 'Buyer-rich')
+check('case-insensitive vendor-heavy', ev._norm_audience('VENDOR-HEAVY') == 'Vendor-heavy')
+check('"buyers" -> Buyer-rich', ev._norm_audience('mostly enterprise buyers') == 'Buyer-rich')
+check('"decision-makers" -> Buyer-rich', ev._norm_audience('senior decision-makers') == 'Buyer-rich')
+check('"vendors selling" -> Vendor-heavy', ev._norm_audience('lots of vendors selling to each other') == 'Vendor-heavy')
+check('"sales reps" -> Vendor-heavy', ev._norm_audience('agencies and sales reps') == 'Vendor-heavy')
+check('"sponsors/exhibitors" -> Vendor-heavy', ev._norm_audience('sponsor-driven expo, exhibitors') == 'Vendor-heavy')
+check('"mixed" -> Mixed', ev._norm_audience('a mixed crowd') == 'Mixed')
+check('"balanced" -> Mixed', ev._norm_audience('balanced room') == 'Mixed')
+check('blank -> None', ev._norm_audience('') is None)
+check('None -> None', ev._norm_audience(None) is None)
+check('unknown text -> None', ev._norm_audience('hot dogs') is None)
+
+print('9) _coerce folds audience -> audience_type (column name)')
+ra = ev._coerce({'name': 'X', 'audience': 'Buyer-rich'})
+check('audience folded to audience_type', ra.get('audience_type') == 'Buyer-rich')
+check('audience itself dropped (not a column)', 'audience' not in ra)
+ra2 = ev._coerce({'name': 'X', 'audience_type': 'Mixed', 'audience': 'Buyer-rich'})
+check('explicit audience_type wins over alias', ra2.get('audience_type') == 'Mixed')
+check('pricing passes through _coerce', ev._coerce({'name': 'X', 'pricing': '$2,495'}).get('pricing') == '$2,495')
+
+print('10) _unknown_column: detects pending-migration columns in error bodies')
+check('PGRST204 pricing', ev._unknown_column(
+    {'code': 'PGRST204', 'message': "Could not find the 'pricing' column of 'manual_events' in the schema cache"}) == 'pricing')
+check('42703 audience_type', ev._unknown_column(
+    {'code': '42703', 'message': 'column "audience_type" of relation "manual_events" does not exist'}) == 'audience_type')
+check('unrelated column -> None', ev._unknown_column(
+    {'code': '42703', 'message': 'column "speaker" of relation "manual_events" does not exist'}) is None)
+check('unique violation -> None', ev._unknown_column({'code': '23505', 'message': 'duplicate key value'}) is None)
+check('non-dict -> None', ev._unknown_column('boom') is None)
+
 print('\n%d passed, %d failed' % (passed, failed))
 raise SystemExit(1 if failed else 0)
