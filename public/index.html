@@ -7734,19 +7734,17 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       var $stats = document.getElementById('ops-stats');
       if (!$stats) return;
       var total = (evs || []).length + (manualRows || []).length;
-      var saved = 0, urgent = 0, hidden = 0, withSpeaker = 0, inPipeline = 0, booked = 0;
+      var saved = 0, urgent = 0, hidden = 0, inPipeline = 0, booked = 0;
       (stateRows || []).forEach(function (r) {
         if (r.saved)  saved++;
         if (r.urgent) urgent++;
         if (r.hidden) hidden++;
-        if (r.speaker && r.speaker.trim()) withSpeaker++;
         var stages = stageTagsOf(r);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
       });
       // Manual events carry their own stage tags too — fold them in.
       (manualRows || []).forEach(function (m) {
-        if (m.speaker && (m.speaker + '').trim()) withSpeaker++;
         var stages = stageTagsOf(m);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
@@ -7755,7 +7753,6 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         '<div class="ops-stat"><span class="num">' + total + '</span><span class="lbl">Upcoming</span></div>' +
         '<div class="ops-stat saved"><span class="num">' + saved + '</span><span class="lbl">Saved</span></div>' +
         '<div class="ops-stat urgent"><span class="num">' + urgent + '</span><span class="lbl">Urgent</span></div>' +
-        '<div class="ops-stat"><span class="num">' + withSpeaker + '</span><span class="lbl">Speaker set</span></div>' +
         '<div class="ops-stat"><span class="num">' + inPipeline + '</span><span class="lbl">In pipeline</span></div>' +
         '<div class="ops-stat"><span class="num">' + booked + '</span><span class="lbl">Booked</span></div>' +
         '<div class="ops-stat"><span class="num">' + hidden + '</span><span class="lbl">Hidden</span></div>';
@@ -7763,8 +7760,27 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
     }
 
     function renderOps(email) {
-      $opsGrid.innerHTML = '<p style="grid-column:1/-1;color:var(--ab-fg-3);font-size:0.9rem;">Loading events…</p>';
-      Promise.all([
+      // Keep the reader's place across a re-render. A manual save AND the
+      // realtime postgres_changes echo both call renderOps(); without this the
+      // grid is wiped and the page snaps back to the top, so you "lose" the
+      // event you were just editing. Capture the scroll position + which card's
+      // editor is open, then restore both once the fresh grid is built.
+      var _prevScrollY = window.scrollY || window.pageYOffset || 0;
+      var _openKey = null;
+      var _openEd = $opsGrid.querySelector('.ops-card > details.ops-edit[open]');
+      if (_openEd) {
+        var _oc = _openEd.closest('.ops-card');
+        if (_oc) _openKey = _oc.dataset.manualId
+          ? ('m' + _oc.dataset.manualId)
+          : (_oc.dataset.eventNum ? ('e' + _oc.dataset.eventNum) : null);
+      }
+      // Only paint the "Loading…" placeholder on the first render. On a
+      // re-render, leave the current cards in place (no flash) until fresh
+      // data arrives and we swap them out below.
+      if (!$opsGrid.querySelector('.ops-card')) {
+        $opsGrid.innerHTML = '<p style="grid-column:1/-1;color:var(--ab-fg-3);font-size:0.9rem;">Loading events…</p>';
+      }
+      return Promise.all([
         fetch('events.json').then(function (r) { return r.json(); }),
         sb.from('event_state').select('*'),
         sb.from('manual_events').select('*').order('created_at', { ascending: false })
@@ -7802,6 +7818,20 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         _knownNames = Object.keys(_knownNameSource);
         // Mirror into the calendar view (uses the same data set)
         renderCalendar(evs, stateMap, manualRows);
+        // Put the reader back where they were (captured at the top): re-open
+        // the editor they had open and restore the scroll position so a save
+        // or realtime echo no longer snaps them to the top of the list.
+        if (_openKey) {
+          var _sel = _openKey.charAt(0) === 'm'
+            ? '.ops-card[data-manual-id="' + _openKey.slice(1) + '"]'
+            : '.ops-card[data-event-num="' + _openKey.slice(1) + '"]';
+          var _again = $opsGrid.querySelector(_sel);
+          if (_again) {
+            var _ed2 = _again.querySelector('details.ops-edit');
+            if (_ed2) _ed2.open = true;
+          }
+        }
+        window.scrollTo(0, _prevScrollY);
       });
     }
 
