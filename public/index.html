@@ -340,7 +340,9 @@
 
     /* ───────────── expanded pop-up (modal) ───────────── */
     .modal-overlay {
-      position: fixed; inset: 0; z-index: 200;
+      /* Above Leaflet's panes/controls (z-index up to ~1000), else the event
+         pop-up opens BEHIND the map view. */
+      position: fixed; inset: 0; z-index: 1200;
       background: rgba(10, 10, 10, 0.55);
       backdrop-filter: blur(3px);
       display: flex; align-items: flex-start; justify-content: center;
@@ -1056,6 +1058,21 @@
     .map-popup .map-ev { margin: 0 0 6px; font-size: 0.85rem; line-height: 1.35; }
     .map-popup .map-ev a { color: var(--ab-blue, #1d4ed8); cursor: pointer; text-decoration: underline; }
     .map-popup .map-ev .d { color: #666; font-family: var(--ab-mono); font-size: 0.72rem; }
+    .map-popup .map-city {
+      margin: 0 0 8px; font-family: var(--ab-mono); font-size: 0.68rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: #666;
+    }
+    /* Cluster-style pins: a colored badge with the event count. */
+    .map-pin {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%; border-radius: 50%;
+      color: #fff; font-family: var(--ab-mono); font-weight: 700;
+      font-size: 0.78rem; letter-spacing: -0.02em;
+      border: 2.5px solid #fff;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.35);
+      box-sizing: border-box;
+    }
+    .map-pin.single { font-size: 0; }  /* lone event: clean dot, no number */
     .calendar-month { margin-bottom: 32px; }
     .calendar-month-head {
       font-family: var(--ab-sans); font-weight: 700;
@@ -9372,23 +9389,55 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       });
       Object.keys(byCoord).forEach(function (key) {
         var g = byCoord[key];
+        var n = g.evs.length;
         var color = regionColor(g.evs[0].region);
-        var marker = L.circleMarker(g.ll, {
-          radius: Math.min(7 + g.evs.length * 1.5, 20),
-          color: color, fillColor: color, fillOpacity: 0.65, weight: 2
-        }).addTo(_opsMapLayer);
-        var items = g.evs.slice(0, 10).map(function (r, i) {
-          var label = escapeHtml(r.name || 'Event');
-          var link = (r.num != null)
-            ? '<a onclick="window.openEventByNum(' + Number(r.num) + ')">' + label + '</a>'
-            : label;
-          return '<p class="map-ev">' + link +
-                 (r.date_str ? ' <span class="d">' + escapeHtml(r.date_str) + '</span>' : '') + '</p>';
-        }).join('');
-        if (g.evs.length > 10) items += '<p class="map-ev">…and ' + (g.evs.length - 10) + ' more (see Grid)</p>';
-        marker.bindPopup('<div class="map-popup"><strong>' + g.evs.length +
-                         ' event' + (g.evs.length === 1 ? '' : 's') + '</strong>' +
-                         items + '</div>', { maxWidth: 340 });
+        // Cluster-style badge: a colored dot for one event, a count badge for
+        // several. Sized gently with the count so big hubs read as big.
+        var size = n === 1 ? 14 : Math.min(26 + n * 1.2, 44);
+        var icon = L.divIcon({
+          className: '',  // suppress Leaflet's default white square
+          html: '<div class="map-pin' + (n === 1 ? ' single' : '') +
+                '" style="background:' + color + '">' + (n === 1 ? '' : n) + '</div>',
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+          popupAnchor: [0, -size / 2]
+        });
+        var marker = L.marker(g.ll, { icon: icon }).addTo(_opsMapLayer);
+
+        // Popup built as a real DOM node so each event row gets a live click
+        // handler that opens the SAME detail pop-up as the cards — works for
+        // catalog AND manual events (both carry a full _modalRec).
+        var box = document.createElement('div');
+        box.className = 'map-popup';
+        var city = (g.evs[0].city || (g.evs[0].location || '').split(',')[0] || '').trim();
+        var head = document.createElement('p');
+        head.className = 'map-city';
+        head.textContent = (city ? city + ' · ' : '') + n + ' event' + (n === 1 ? '' : 's');
+        box.appendChild(head);
+        g.evs.slice(0, 12).forEach(function (r) {
+          var p = document.createElement('p');
+          p.className = 'map-ev';
+          var a = document.createElement('a');
+          a.textContent = r.name || 'Event';
+          a.addEventListener('click', function () {
+            if (typeof window.openEventModal === 'function') window.openEventModal(r);
+          });
+          p.appendChild(a);
+          if (r.date_str) {
+            var d = document.createElement('span');
+            d.className = 'd';
+            d.textContent = ' ' + r.date_str;
+            p.appendChild(d);
+          }
+          box.appendChild(p);
+        });
+        if (n > 12) {
+          var more = document.createElement('p');
+          more.className = 'map-ev';
+          more.textContent = '…and ' + (n - 12) + ' more (see Grid)';
+          box.appendChild(more);
+        }
+        marker.bindPopup(box, { maxWidth: 340 });
       });
       var note = document.getElementById('ops-map-note');
       if (note) {
