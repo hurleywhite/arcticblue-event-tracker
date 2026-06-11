@@ -1446,6 +1446,16 @@ def build():
     /* Calendar view */
     .ops-calendar {{ display: none; }}
     .ops-calendar.show {{ display: block; }}
+    /* Map view — Leaflet canvas, lazy-loaded on first open. */
+    .ops-map {{ display: none; }}
+    .ops-map.show {{ display: block; }}
+    #ops-map-canvas {{
+      height: 640px; border: 1px solid var(--ab-rule); border-radius: 10px;
+      background: var(--ab-bg-2);
+    }}
+    .map-popup .map-ev {{ margin: 0 0 6px; font-size: 0.85rem; line-height: 1.35; }}
+    .map-popup .map-ev a {{ color: var(--ab-blue, #1d4ed8); cursor: pointer; text-decoration: underline; }}
+    .map-popup .map-ev .d {{ color: #666; font-family: var(--ab-mono); font-size: 0.72rem; }}
     .calendar-month {{ margin-bottom: 32px; }}
     .calendar-month-head {{
       font-family: var(--ab-sans); font-weight: 700;
@@ -1895,6 +1905,7 @@ def build():
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="grid"     class="active" aria-selected="true">Grid</button>
           <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
+          <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
         </div>
         <div class="ops-toolbar">
           <button class="ab-btn ab-btn--emerald" id="add-event-btn">
@@ -1925,6 +1936,10 @@ def build():
         </div>
         <div class="ops-grid" id="ops-grid"></div>
         <div class="ops-calendar" id="ops-calendar"></div>
+        <div class="ops-map" id="ops-map">
+          <p class="ops-meta" id="ops-map-note" style="margin:0 0 8px;"></p>
+          <div id="ops-map-canvas"></div>
+        </div>
       </div>
 
     </div><!-- /panel-angela -->
@@ -3600,6 +3615,8 @@ def build():
       }});
       var $shown = document.getElementById('ops-shown');
       if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + $opsGrid.querySelectorAll('.ops-card').length;
+      // The map mirrors the grid's filters — keep its pins in sync.
+      if (currentView === 'map' && _opsMapLayer) renderOpsMap();
     }}
 
     function wireFilters() {{
@@ -3707,6 +3724,8 @@ def build():
         _knownNames = Object.keys(_knownNameSource);
         // Mirror into the calendar view (uses the same data set)
         renderCalendar(evs, stateMap, manualRows);
+        // And the map, when it's the active view (realtime echo / saves).
+        if (currentView === 'map' && _opsMapLayer) renderOpsMap();
         // Put the reader back where they were (captured at the top): re-open
         // the editor they had open and restore the scroll position so a save
         // or realtime echo no longer snaps them to the top of the list.
@@ -4226,7 +4245,7 @@ def build():
     var currentView = 'grid';
 
     function setView(name) {{
-      if (name !== 'grid' && name !== 'calendar') name = 'grid';
+      if (name !== 'grid' && name !== 'calendar' && name !== 'map') name = 'grid';
       currentView = name;
       document.querySelectorAll('.view-toggle button[data-view]').forEach(function (b) {{
         var on = b.dataset.view === name;
@@ -4235,8 +4254,11 @@ def build():
       }});
       var g = document.getElementById('ops-grid');
       var c = document.getElementById('ops-calendar');
+      var m = document.getElementById('ops-map');
       if (g) g.style.display = (name === 'grid') ? '' : 'none';
       if (c) c.classList.toggle('show', name === 'calendar');
+      if (m) m.classList.toggle('show', name === 'map');
+      if (name === 'map') openOpsMap();
       try {{ localStorage.setItem(VIEW_KEY, name); }} catch (e) {{}}
     }}
 
@@ -4249,8 +4271,167 @@ def build():
       }});
       try {{
         var saved = localStorage.getItem(VIEW_KEY);
-        if (saved === 'grid' || saved === 'calendar') setView(saved);
+        if (saved === 'grid' || saved === 'calendar' || saved === 'map') setView(saved);
       }} catch (e) {{}}
+    }}
+
+    // ── Map view ─────────────────────────────────────────────────────
+    // City-level pins (Leaflet + OpenStreetMap, lazy-loaded). Coordinates come
+    // from a static lookup keyed by substrings of city/venue/location text —
+    // venue names ("Javits Center") resolve to their city. Events whose
+    // location matches nothing (Remote, TBD, Podcast) are counted in a note
+    // above the map rather than dropped silently.
+    var CITY_COORDS = [
+      // [substring key, lat, lng] — checked in order, first hit wins, so put
+      // longer/more-specific keys before short generic ones.
+      ['excel london', 51.508, 0.029], ['olympia london', 51.496, -0.210],
+      ['intercontinental london', 51.502, 0.003], ['88 wood street', 51.516, -0.094],
+      ['new york', 40.7128, -74.006], ['nyc', 40.7128, -74.006],
+      ['javits', 40.7578, -74.0021], ['pier sixty', 40.7466, -74.0086],
+      ['583 park', 40.7651, -73.9683], ['marriott marquis', 40.7589, -73.9851],
+      ['las vegas', 36.1699, -115.1398], ['venetian', 36.1212, -115.1697],
+      ['mandalay bay', 36.0921, -115.1761],
+      ['san francisco', 37.7749, -122.4194], ['moscone', 37.7842, -122.4016],
+      ['sandy springs', 33.9304, -84.3733], ['atlanta', 33.749, -84.388],
+      ['marina bay sands', 1.2834, 103.8607], ['singapore', 1.3521, 103.8198],
+      ['san jose', 37.3382, -121.8863], ['santa clara', 37.3541, -121.9552],
+      ['mccormick', 41.8512, -87.6093], ['chicago', 41.8781, -87.6298],
+      ['paris', 48.8566, 2.3522], ['taets', 52.4338, 4.8167],
+      ['amsterdam', 52.3676, 4.9041], ['hynes', 42.3471, -71.0859],
+      ['cambridge', 42.3736, -71.1097], ['boston', 42.3601, -71.0589],
+      ['dubai exhibition', 25.2048, 55.2708], ['grand hyatt dubai', 25.2285, 55.3273],
+      ['dubai', 25.2048, 55.2708],
+      ['miami beach', 25.7907, -80.13], ['biltmore', 25.7409, -80.2784],
+      ['miami', 25.7617, -80.1918],
+      ['barcelona', 41.3851, 2.1734], ['washington', 38.9072, -77.0369],
+      ['national harbor', 38.7826, -77.0164], ['nashville', 36.1627, -86.7816],
+      ['san diego', 32.7157, -117.1611],
+      ['kay bailey', 32.7757, -96.8003], ['frisco', 33.1507, -96.8236],
+      ['dallas', 32.7767, -96.797],
+      ['los angeles', 34.0522, -118.2437], ['austin', 30.2672, -97.7431],
+      ['doha', 25.2854, 51.531],
+      ['messe berlin', 52.5005, 13.2697], ['maritim', 52.5108, 13.3806],
+      ['berlin', 52.52, 13.405],
+      ['cape town', -33.9249, 18.4241], ['zurich', 47.3769, 8.5417],
+      ['aspen', 39.1911, -106.8175], ['disney', 28.3658, -81.5494],
+      ['orlando', 28.5383, -81.3792], ['munich', 48.1351, 11.582],
+      ['hoboken', 40.744, -74.0324], ['riyadh', 24.7136, 46.6753],
+      ['fort lauderdale', 26.1224, -80.1373], ['abu dhabi', 24.4539, 54.3773],
+      ['vancouver', 49.2827, -123.1207], ['rome', 41.9028, 12.4964],
+      ['bahrain', 26.0667, 50.5577],
+      ['yonge street', 43.6606, -79.3787], ['george campus', 43.6606, -79.3787],
+      ['toronto', 43.6532, -79.3832],
+      ['palexpo', 46.2381, 6.1153], ['geneva', 46.2044, 6.1432],
+      ['anaheim', 33.8366, -117.9143], ['sao paulo', -23.5505, -46.6333],
+      ['notary hotel', 39.9526, -75.1652], ['philadelphia', 39.9526, -75.1652],
+      ['ifema', 40.4683, -3.6166], ['madrid', 40.4168, -3.7038],
+      ['meo arena', 38.7684, -9.0938], ['lisbon', 38.7223, -9.1393],
+      ['brussels', 50.8503, 4.3517], ['stockholm', 59.3293, 18.0686],
+      ['san mateo', 37.563, -122.3255], ['berkeley', 37.8715, -122.273],
+      ['denver', 39.7392, -104.9903], ['half moon bay', 37.4636, -122.4286],
+      ['menlo park', 37.4529, -122.1817], ['phoenix', 33.4484, -112.074],
+      ['baltimore', 39.2904, -76.6122], ['muscat', 23.588, 58.3829],
+      ['oman', 23.588, 58.3829], ['cannes', 43.5528, 7.0174],
+      ['oxford', 51.752, -1.2577], ['oslo', 59.9139, 10.7522],
+      ['leesburg', 39.1157, -77.5636], ['dublin', 53.3498, -6.2603],
+      ['hong kong', 22.3193, 114.1694], ['dana point', 33.4669, -117.698],
+      ['loudoun', 39.09, -77.64],
+      ['venezuela', 10.4806, -66.9036], ['bachelor', 39.5806, -106.5347],
+      ['london', 51.5074, -0.1278]
+    ];
+
+    function geoOf(rec) {{
+      var hay = ((rec.city || '') + ' ' + (rec.venue || '') + ' ' +
+                 (rec.location || '')).toLowerCase();
+      if (!hay.trim()) return null;
+      for (var i = 0; i < CITY_COORDS.length; i++) {{
+        if (hay.indexOf(CITY_COORDS[i][0]) !== -1) {{
+          return [CITY_COORDS[i][1], CITY_COORDS[i][2]];
+        }}
+      }}
+      return null;
+    }}
+
+    var _leafletLoading = null;
+    function loadLeaflet() {{
+      if (window.L) return Promise.resolve();
+      if (_leafletLoading) return _leafletLoading;
+      _leafletLoading = new Promise(function (resolve, reject) {{
+        var css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(css);
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        s.onload = resolve;
+        s.onerror = function () {{ _leafletLoading = null; reject(new Error('leaflet load failed')); }};
+        document.head.appendChild(s);
+      }});
+      return _leafletLoading;
+    }}
+
+    var _opsMap = null, _opsMapLayer = null;
+    function openOpsMap() {{
+      loadLeaflet().then(function () {{
+        if (!_opsMap) {{
+          _opsMap = L.map('ops-map-canvas', {{ worldCopyJump: true }})
+            .setView([30, -20], 2);
+          L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
+            attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
+          }}).addTo(_opsMap);
+          _opsMapLayer = L.layerGroup().addTo(_opsMap);
+        }}
+        renderOpsMap();
+        // The container was display:none at init — force a size recalc.
+        setTimeout(function () {{ _opsMap.invalidateSize(); }}, 50);
+      }}).catch(function () {{
+        var note = document.getElementById('ops-map-note');
+        if (note) note.textContent = 'Map could not load (offline or blocked CDN). Use Grid or Calendar instead.';
+      }});
+    }}
+
+    function renderOpsMap() {{
+      if (!_opsMapLayer) return;
+      _opsMapLayer.clearLayers();
+      // Use the cards as the data source so the map honors the SAME filters
+      // as the grid (price, buyer-rich, months, search, ...).
+      var byCoord = {{}};
+      var unplaced = 0, placed = 0;
+      $opsGrid.querySelectorAll('.ops-card').forEach(function (card) {{
+        if (card.style.display === 'none') return;  // filtered out
+        var rec = card._modalRec || {{}};
+        var ll = geoOf(rec);
+        if (!ll) {{ unplaced++; return; }}
+        placed++;
+        var key = ll[0].toFixed(3) + ',' + ll[1].toFixed(3);
+        (byCoord[key] = byCoord[key] || {{ ll: ll, evs: [] }}).evs.push(rec);
+      }});
+      Object.keys(byCoord).forEach(function (key) {{
+        var g = byCoord[key];
+        var color = regionColor(g.evs[0].region);
+        var marker = L.circleMarker(g.ll, {{
+          radius: Math.min(7 + g.evs.length * 1.5, 20),
+          color: color, fillColor: color, fillOpacity: 0.65, weight: 2
+        }}).addTo(_opsMapLayer);
+        var items = g.evs.slice(0, 10).map(function (r, i) {{
+          var label = escapeHtml(r.name || 'Event');
+          var link = (r.num != null)
+            ? '<a onclick="window.openEventByNum(' + Number(r.num) + ')">' + label + '</a>'
+            : label;
+          return '<p class="map-ev">' + link +
+                 (r.date_str ? ' <span class="d">' + escapeHtml(r.date_str) + '</span>' : '') + '</p>';
+        }}).join('');
+        if (g.evs.length > 10) items += '<p class="map-ev">…and ' + (g.evs.length - 10) + ' more (see Grid)</p>';
+        marker.bindPopup('<div class="map-popup"><strong>' + g.evs.length +
+                         ' event' + (g.evs.length === 1 ? '' : 's') + '</strong>' +
+                         items + '</div>', {{ maxWidth: 340 }});
+      }});
+      var note = document.getElementById('ops-map-note');
+      if (note) {{
+        note.textContent = placed + ' events on the map' +
+          (unplaced ? ' · ' + unplaced + ' without a mappable location (Remote / TBD / Podcast)' : '') +
+          ' — pins follow the filters above; click a pin for details.';
+      }}
     }}
 
     // ── Calendar rendering ──────────────────────────────────────────
