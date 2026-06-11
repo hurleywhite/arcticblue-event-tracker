@@ -8098,6 +8098,18 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
                 var stagePills = pillHost.querySelectorAll('.ops-tag.stage');
                 stagePills.forEach(function (p) { p.remove(); });
                 if (tags.length) pillHost.insertAdjacentHTML('afterbegin', renderStagePills(tags));
+                // Re-evaluate the legacy tag: it's hidden while it repeats a
+                // stage pill, so toggling that stage must show/hide it too.
+                var legacyVal = (card.dataset.status || '').trim();
+                var legacyEl = pillHost.querySelector('.ops-tag.status.legacy');
+                var isDup = legacyVal && tags.some(function (k) { return k.toLowerCase() === legacyVal.toLowerCase(); });
+                if (legacyEl && isDup) legacyEl.remove();
+                if (!legacyEl && legacyVal && !isDup) {
+                  var ls = statusStyle(legacyVal);
+                  pillHost.insertAdjacentHTML('beforeend',
+                    '<span class="ops-tag status legacy"' + (ls ? ' style="' + ls + '"' : '') +
+                    ' title="Legacy status detail">' + escapeHtml(legacyVal) + '</span>');
+                }
               }
               applyFilters();
               flashOk();
@@ -8158,7 +8170,33 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
             // filter chip rows + status group color see the change without
             // waiting for the next renderOps.
             var f = sel.dataset.field;
-            if (f === 'status')            card.dataset.status   = sel.value || '';
+            if (f === 'status') {
+              card.dataset.status = sel.value || '';
+              // Refresh the visible legacy tag immediately (re-renders are
+              // paused while the editor is open). Same rule as renderOpsTags:
+              // show it unless it exactly repeats a stage pill.
+              var host = card.querySelector('.ops-tags');
+              if (!host) {
+                host = document.createElement('div');
+                host.className = 'ops-tags';
+                var det = card.querySelector('details.ops-edit');
+                if (det) card.insertBefore(host, det);
+              }
+              var oldLegacy = host.querySelector('.ops-tag.status.legacy');
+              if (oldLegacy) oldLegacy.remove();
+              var v = (sel.value || '').trim();
+              if (v) {
+                var dupPill = Array.prototype.some.call(
+                  host.querySelectorAll('.ops-tag.stage'),
+                  function (p) { return p.textContent.trim().toLowerCase() === v.toLowerCase(); });
+                if (!dupPill) {
+                  var lstyle = statusStyle(v);
+                  host.insertAdjacentHTML('beforeend',
+                    '<span class="ops-tag status legacy"' + (lstyle ? ' style="' + lstyle + '"' : '') +
+                    ' title="Legacy status detail">' + escapeHtml(v) + '</span>');
+                }
+              }
+            }
             if (f === 'priority_override') card.dataset.priority = sel.value || '';
             if (f === 'track')             card.dataset.track    = sel.value || '';
             if (f === 'attend_verdict')    card.dataset.attend   = sel.value || '';
