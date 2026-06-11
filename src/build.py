@@ -2608,10 +2608,16 @@ def build():
       }}
       // Legacy single status — kept as a small muted detail so nothing
       // Angela typed is lost, but visually demoted beneath the stages.
+      // Suppressed when it merely repeats a stage pill already shown
+      // (status "Booked" + stage Booked was rendering "Booked" twice).
       if (st.status) {{
-        var style = statusStyle(st.status);
-        var styleAttr = style ? ' style="' + style + '"' : '';
-        tags.push('<span class="ops-tag status legacy"' + styleAttr + ' title="Legacy status detail">' + escapeHtml(st.status) + '</span>');
+        var _legacyLow = String(st.status).trim().toLowerCase();
+        var dupOfStage = stages.some(function (k) {{ return k.toLowerCase() === _legacyLow; }});
+        if (!dupOfStage) {{
+          var style = statusStyle(st.status);
+          var styleAttr = style ? ' style="' + style + '"' : '';
+          tags.push('<span class="ops-tag status legacy"' + styleAttr + ' title="Legacy status detail">' + escapeHtml(st.status) + '</span>');
+        }}
       }}
       if (tags.length === 0) return '';
       return '<div class="ops-tags">' + tags.join('') + '</div>';
