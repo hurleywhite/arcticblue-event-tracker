@@ -85,9 +85,19 @@ ADD_EVENTS_TOOL = {
         "each event, read who is actually in the room and set `audience` to one "
         "of 'Buyer-rich', 'Mixed', or 'Vendor-heavy', and put a short note on "
         "who attends in `typical_attendees`. High ticket prices and senior "
-        "buyer titles are buyer signals; sponsor-driven expos skew vendor-heavy. "
-        "Put the cost to ATTEND in `pricing` (e.g. '$2,495 delegate pass') when "
-        "you can find it."
+        "buyer titles are buyer signals; sponsor-driven expos skew vendor-heavy.\n\n"
+        "ALSO CAPTURE when you can find them (all optional):\n"
+        "  - `pricing`: the cost to ATTEND (e.g. '$2,495 delegate pass'). If "
+        "the event prices buyers and vendors differently (end-user rate vs "
+        "vendor/supplier rate), note BOTH tiers — that split is itself a "
+        "strong signal that buyers will be in the room.\n"
+        "  - `past_speakers`: 3-8 notable past or announced speakers as "
+        "'Title, Company' (e.g. 'CIO, UnitedHealth; CDO, Pfizer'). Senior "
+        "titles at well-known end-user companies = buyer-rich signal.\n"
+        "  - `meeting_formats`: any built-in way to actually MEET people — "
+        "guaranteed / hosted 1:1 meetings, curated roundtables, or an "
+        "attendee app where you can book meetings with other attendees "
+        "ahead of time (e.g. 'Guaranteed 1:1s; roundtables; Brella app')."
     ),
     'inputSchema': {
         'type': 'object',
@@ -110,7 +120,9 @@ ADD_EVENTS_TOOL = {
                         'url':        {'type': 'string', 'description': 'Verified event HOMEPAGE URL, else omit.'},
                         'audience':   {'type': 'string', 'description': "Your read of who is in the room: 'Buyer-rich' (in-house enterprise buyers / decision-makers), 'Mixed', or 'Vendor-heavy' (mostly other vendors/agencies/sales reps selling to each other)."},
                         'typical_attendees': {'type': 'string', 'description': 'Short note on who attends and their seniority/role mix, e.g. "Fortune 500 CIOs & Heads of Data".'},
-                        'pricing':    {'type': 'string', 'description': "Cost to ATTEND (delegate/ticket price), e.g. '$2,495 delegate pass' or 'Free'. Omit if unknown."},
+                        'pricing':    {'type': 'string', 'description': "Cost to ATTEND (delegate/ticket price), e.g. '$2,495 delegate pass' or 'Free'. If buyers and vendors pay different rates, note both tiers. Omit if unknown."},
+                        'past_speakers': {'type': 'string', 'description': "Notable past or announced speakers as 'Title, Company' pairs, e.g. 'CIO, UnitedHealth; Chief Data Officer, Pfizer'. Omit if unknown."},
+                        'meeting_formats': {'type': 'string', 'description': "Built-in meeting mechanisms: guaranteed/hosted 1:1 meetings, roundtables, or an attendee app for pre-booking meetings. Omit if none found."},
                         'apply_url':  {'type': 'string', 'description': "Apply-to-speak / call-for-speakers / 'submit a speaker' page URL. NOT an attend/register/tickets link. Omit if none."},
                         'poc_name':   {'type': 'string', 'description': 'Name of the person who decides speakers — ONLY if you are confident who it is. Else omit.'},
                         'poc_email':  {'type': 'string', 'description': "That decision-maker's email, if known. Else omit."},

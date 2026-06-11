@@ -156,6 +156,18 @@ ra2 = ev._coerce({'name': 'X', 'audience_type': 'Mixed', 'audience': 'Buyer-rich
 check('explicit audience_type wins over alias', ra2.get('audience_type') == 'Mixed')
 check('pricing passes through _coerce', ev._coerce({'name': 'X', 'pricing': '$2,495'}).get('pricing') == '$2,495')
 
+print("9b) _coerce folds speaker-lineup + meeting aliases")
+rs = ev._coerce({'name': 'X', 'speakers': 'CIO, UnitedHealth'})
+check('speakers folded to past_speakers', rs.get('past_speakers') == 'CIO, UnitedHealth')
+check('speakers itself dropped', 'speakers' not in rs)
+rs2 = ev._coerce({'name': 'X', 'speaker': 'Thor'})
+check("'speaker' (ArcticBlue's own) NOT folded", rs2.get('past_speakers') is None and rs2.get('speaker') == 'Thor')
+rm = ev._coerce({'name': 'X', 'guaranteed_meetings': '1:1s; roundtables'})
+check('guaranteed_meetings folded to meeting_formats', rm.get('meeting_formats') == '1:1s; roundtables')
+check('attend_verdict + postmortem pass through', ev._coerce(
+    {'name': 'X', 'attend_verdict': 'Worth attending', 'postmortem': '3 leads'}
+).get('attend_verdict') == 'Worth attending')
+
 print('10) _unknown_column: detects pending-migration columns in error bodies')
 check('PGRST204 pricing', ev._unknown_column(
     {'code': 'PGRST204', 'message': "Could not find the 'pricing' column of 'manual_events' in the schema cache"}) == 'pricing')

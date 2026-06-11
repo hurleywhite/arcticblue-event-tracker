@@ -83,7 +83,8 @@ def _load_events_json():
     RICH_KEYS = (
         'about', 'focus_areas', 'typical_attendees', 'speaking_route',
         'contact_info', 'poc_email', 'deadline', 'attendee_count',
-        'pay_to_play', 'pricing', 'audience_type', 'seed', 'urgent',
+        'pay_to_play', 'pricing', 'audience_type', 'past_speakers',
+        'meeting_formats', 'attend_verdict', 'postmortem', 'seed', 'urgent',
         'venue', 'city', 'country',
         'region', 'notes', 'speaker', 'workflow_status', 'source',
         'external_id', 'start_date', 'end_date',
@@ -260,6 +261,24 @@ def render_event_card(ev, archived=False):
     else:
         name_html = (f'{nm} <span class="event-no-link" '
                      f'title="No verified URL on file for this event">·</span>')
+    # Attending signals (Verma): who's in the room, what a ticket costs, and
+    # whether the event has built-in meeting mechanisms. Only rendered when
+    # the catalog actually knows them.
+    aud = str(ev.get('audience_type') or '').strip()
+    sig = []
+    if aud:
+        low = aud.lower()
+        aud_cls = ('aud-buyer' if 'buyer' in low
+                   else 'aud-vendor' if ('vendor' in low or 'seller' in low)
+                   else 'aud-mixed')
+        sig.append(f'<span class="badge {aud_cls}">{e(aud)}</span>')
+    if ev.get('pricing'):
+        sig.append(f'<span class="attend-sig" title="Price to attend">'
+                   f'{e(str(ev["pricing"]))}</span>')
+    if ev.get('meeting_formats'):
+        sig.append(f'<span class="attend-sig" title="{e(str(ev["meeting_formats"]))}">'
+                   f'1:1 meetings</span>')
+    signals_html = (f'<p class="attend-signals">{"".join(sig)}</p>' if sig else '')
     return f'''
     <article class="event is-clickable{extra_class}"
              data-num="{e(str(num))}"
@@ -274,6 +293,7 @@ def render_event_card(ev, archived=False):
       </header>
       <h3 class="event-name">{name_html}</h3>
       <p class="event-loc"><span class="event-region">{e(region)}</span> · {e(ev['location'])}</p>
+      {signals_html}
       {f'<p class="event-why">{e(why)}</p>' if why else ''}
       <footer class="event-foot">
         <span class="event-type">{e(typ)}</span>
@@ -342,7 +362,8 @@ def build():
     MODAL_FIELDS = (
         'about', 'focus_areas', 'typical_attendees', 'speaking_route',
         'contact_info', 'poc_email', 'deadline', 'attendee_count',
-        'pay_to_play', 'pricing', 'audience_type', 'seed', 'urgent',
+        'pay_to_play', 'pricing', 'audience_type', 'past_speakers',
+        'meeting_formats', 'attend_verdict', 'postmortem', 'seed', 'urgent',
         'venue', 'city', 'country',
         'notes', 'speaker', 'workflow_status', 'source', 'priority_full',
     )
@@ -643,6 +664,24 @@ def build():
     .badge.aud-buyer {{ background: #166534; color: #fff; }}
     .badge.aud-mixed {{ background: #fef3c7; color: #92400e; border: 1px solid #f0c66b; }}
     .badge.aud-vendor {{ background: #fee2e2; color: #991b1b; border: 1px solid #f3b1b1; }}
+    /* Attending signals row on cards: ticket price + meeting mechanisms. */
+    .attend-signals {{ display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 8px; }}
+    .attend-sig {{
+      font-family: var(--ab-mono); font-size: 0.66rem; letter-spacing: 0.06em;
+      padding: 3px 9px; border-radius: 2px; font-weight: 600;
+      background: var(--ab-bg-3); color: var(--ab-fg-2); border: 1px solid var(--ab-rule);
+    }}
+    /* Worth-attending verdict chip (Thor's post-mortems). */
+    .badge.attend-yes {{ background: #1d4ed8; color: #fff; }}
+    .badge.attend-no  {{ background: transparent; color: #991b1b; border: 1px solid #f3b1b1; }}
+    /* One-click "Apply to speak" button on ops cards — the booking shortcut. */
+    .ops-apply-btn {{
+      display: inline-block; font-family: var(--ab-mono); font-size: 0.7rem;
+      letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
+      padding: 5px 11px; border-radius: 3px; margin: 0 0 8px;
+      background: var(--ab-blue, #1d4ed8); color: #fff !important; text-decoration: none;
+    }}
+    .ops-apply-btn:hover {{ opacity: 0.85; }}
     .event-name {{
       font-family: var(--ab-sans); font-size: 1.1rem; font-weight: 700;
       line-height: 1.25; margin: 0; color: var(--ab-fg); letter-spacing: -0.01em;
@@ -1824,10 +1863,20 @@ def build():
             <option value="MENA">MENA</option>
             <option value="Global">Global</option>
           </select>
+          <select id="ops-price" aria-label="Filter by ticket price" title="Higher ticket price usually means higher-clientele buyers in the room">
+            <option value="">Any ticket price</option>
+            <option value="free">Free</option>
+            <option value="lt1000">Under $1,000</option>
+            <option value="1000-2500">$1,000 – $2,500</option>
+            <option value="gte2500">$2,500+ (high clientele)</option>
+            <option value="known">Price known</option>
+          </select>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-saved">Saved only</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-urgent">Urgent only</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-speaker">Has speaker</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
+          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-meetings">Has 1:1 meetups</label>
+          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-worth">Worth attending</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-hidden">Show hidden</label>
           <div class="ops-months">
             <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
@@ -2019,6 +2068,32 @@ def build():
     if (a.indexOf('vendor') !== -1 || a.indexOf('seller') !== -1) return 'aud-vendor';
     return 'aud-mixed';
   }}
+  // Numeric ticket price from a free-text pricing string ('$2,495 delegate
+  // pass' -> 2495, 'Free' -> 0, unknown -> null). Used by the price filter;
+  // when several numbers appear (buyer vs vendor tiers) the HIGHEST wins,
+  // since the top tier is the high-clientele signal Verma filters on.
+  function priceNumOf(p) {{
+    if (p == null) return null;
+    var s = String(p).toLowerCase();
+    if (!s.trim()) return null;
+    if (/\\bfree\\b|\\bcomplimentary\\b|\\bno cost\\b/.test(s)) return 0;
+    var m = s.replace(/,/g, '').match(/\\d{{2,6}}(?:\\.\\d+)?/g);
+    if (!m) return null;
+    return Math.max.apply(null, m.map(parseFloat));
+  }}
+  // First http(s) URL inside a speaking_route blob ('Apply to speak:
+  // https://x.io/cfp') -> the URL, else null. Powers the Apply button.
+  function speakingRouteUrl(t) {{
+    if (!t) return null;
+    var m = String(t).match(/https?:\\/\\/[^\\s)\\]'"<>]+/);
+    return m ? m[0] : null;
+  }}
+  function attendClass(v) {{
+    v = (v || '').toLowerCase();
+    if (v.indexOf('worth') === 0 || v.indexOf('yes') === 0) return 'attend-yes';
+    if (v.indexOf('not') === 0 || v.indexOf('no') === 0) return 'attend-no';
+    return 'p-medium';
+  }}
   function field(label, val, html) {{
     if (val == null || String(val).trim() === '') return '';
     return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' +
@@ -2040,6 +2115,8 @@ def build():
     if (rec.status && !(rec.stage_tags && rec.stage_tags.length) && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
     if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
     if (rec.audience_type) badges.push('<span class="badge ' + audienceClass(rec.audience_type) + '">' + esc(rec.audience_type) + '</span>');
+    if (rec.meeting_formats) badges.push('<span class="badge p-medium" title="' + esc(rec.meeting_formats) + '">1:1 meetings</span>');
+    if (rec.attend_verdict) badges.push('<span class="badge ' + attendClass(rec.attend_verdict) + '">' + esc(rec.attend_verdict) + '</span>');
     if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
     $badges.innerHTML = badges.join('');
@@ -2059,6 +2136,8 @@ def build():
     html += field('About', rec.about);
     html += field('Focus areas', rec.focus_areas);
     html += field('Typical attendees', rec.typical_attendees);
+    html += field('Past / announced speakers', rec.past_speakers);
+    html += field('Meetings & networking', rec.meeting_formats);
     html += field('Speaking route', rec.speaking_route);
 
     // Short facts in a 2-up grid
@@ -2067,6 +2146,7 @@ def build():
     grid += field('Attendee count', rec.attendee_count);
     grid += field('Audience', rec.audience_type);
     grid += field('Price to attend', rec.pricing);
+    grid += field('Worth attending?', rec.attend_verdict);
     grid += field('Pay-to-play', rec.pay_to_play);
     grid += field('Venue', rec.venue);
     grid += field('Submission status', rec.submission_status);
@@ -2083,6 +2163,7 @@ def build():
     if (contactBits.length) html += field('Point of contact', contactBits.join(' · '), true);
     html += field('Contact info', rec.contact_info);
     html += field('Additional contacts', rec.additional_contacts);
+    html += field('Post-mortem (ROI)', rec.postmortem);
     html += field('Notes', rec.notes);
 
     $body.innerHTML = html || '<p class="modal-nolink">No extra detail on file for this event yet.</p>';
@@ -2105,6 +2186,12 @@ def build():
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }}
   window.openEventModal = openEventModal;
+  // Shared helpers — the ops tab lives in a SEPARATE closure, so these must
+  // ride on window or buildManualCard's calls throw ReferenceError.
+  window.audienceClass = audienceClass;
+  window.priceNumOf = priceNumOf;
+  window.speakingRouteUrl = speakingRouteUrl;
+  window.attendClass = attendClass;
   window.closeEventModal = closeModal;
   window.openEventByNum = function (num) {{ openEventModal(CATALOG[String(num)]); }};
 
@@ -2448,7 +2535,15 @@ def build():
     function upsertEventState(num, patch, email) {{
       patch.event_num = num;
       patch.updated_by = email;
-      return sb.from('event_state').upsert(patch, {{ onConflict: 'event_num' }}).then(function (resp) {{
+      // sbWriteRetry strips not-yet-migrated columns (attend_verdict,
+      // postmortem) and retries, so saves never break pre-migration.
+      return sbWriteRetry(patch, function (p) {{
+        return sb.from('event_state').upsert(p, {{ onConflict: 'event_num' }});
+      }}).then(function (resp) {{
+        if (!resp.error && resp.strippedMigrationCols) {{
+          status('Saved — but ' + resp.strippedMigrationCols.join(', ') +
+                 ' could not be stored until the DB migration runs.', 'warn');
+        }}
         return resp.error || null;
       }});
     }}
@@ -2531,12 +2626,30 @@ def build():
       card.dataset.priority = (st.priority_override || ev.priority || '');
       card.dataset.track    = (st.track || '');
       card.dataset.speaker  = (st.speaker || '');
+      // Attending signals (catalog fields; verdict is ops-editable state)
+      card.dataset.audience = (ev.audience_type || '');
+      var _pn = priceNumOf(ev.pricing);
+      card.dataset.price    = (_pn == null ? '' : String(_pn));
+      card.dataset.meetings = (ev.meeting_formats ? '1' : '');
+      card.dataset.attend   = (st.attend_verdict || '');
       if (st.saved)  card.classList.add('is-saved');
       if (st.hidden) card.classList.add('is-hidden');
       if (st.urgent) card.classList.add('is-urgent');
 
       var metaLine = (st.updated_by && st.updated_at)
         ? '<p class="ops-meta" title="' + escapeHtml(st.updated_by) + '">Last edit · ' + escapeHtml(firstNameFromEmail(st.updated_by)) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
+        : '';
+
+      // Attending-signal strip + one-click apply (the booking shortcut).
+      var sigBits = [];
+      if (ev.audience_type) sigBits.push('<span class="badge ' + audienceClass(ev.audience_type) + '">' + escapeHtml(ev.audience_type) + '</span>');
+      if (st.attend_verdict) sigBits.push('<span class="badge ' + attendClass(st.attend_verdict) + '">' + escapeHtml(st.attend_verdict) + '</span>');
+      if (ev.pricing) sigBits.push('<span class="attend-sig" title="Price to attend">' + escapeHtml(ev.pricing) + '</span>');
+      if (ev.meeting_formats) sigBits.push('<span class="attend-sig" title="' + escapeHtml(ev.meeting_formats) + '">1:1 meetings</span>');
+      var sigRow = sigBits.length ? '<p class="attend-signals">' + sigBits.join('') + '</p>' : '';
+      var applyUrl = speakingRouteUrl(ev.speaking_route);
+      var applyBtn = applyUrl
+        ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a> '
         : '';
 
       card.innerHTML =
@@ -2555,6 +2668,8 @@ def build():
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>' +
+        sigRow +
+        applyBtn +
         renderOpsTags(st) +
         '<details class="ops-edit">' +
           '<summary>Edit ops</summary>' +
@@ -2576,6 +2691,12 @@ def build():
             '<label><span class="key">Notes</span>' +
               '<textarea data-field="notes" placeholder="Anything Angela should know…">' + escapeHtml(st.notes || '') + '</textarea>' +
             '</label>' +
+            '<label><span class="key">Worth attending?</span>' +
+              '<select data-field="attend_verdict">' + optionRows(['', 'Worth attending', 'Maybe', 'Not worth it'], st.attend_verdict) + '</select>' +
+            '</label>' +
+            '<label><span class="key">Post-mortem (ROI: contacts · meetings · sales vs cost)</span>' +
+              '<textarea data-field="postmortem" placeholder="After the event: contacts made, client meetings, sales — was it worth the ticket + travel?">' + escapeHtml(st.postmortem || '') + '</textarea>' +
+            '</label>' +
             '<details class="ops-edit"><summary>Legacy status (detail)</summary>' +
               '<div class="ops-form" style="margin-top:8px;">' +
                 '<label><span class="key">Legacy status</span>' +
@@ -2594,6 +2715,8 @@ def build():
         if (st.notes)   rec.notes = st.notes;
         if (st.status)  rec.workflow_status = st.status;
         if (st.priority_override) rec.priority = st.priority_override;
+        if (st.attend_verdict) rec.attend_verdict = st.attend_verdict;
+        if (st.postmortem) rec.postmortem = st.postmortem;
         rec.stage_tags = opsStages;
       }}
       card._modalRec = rec;
@@ -2632,6 +2755,12 @@ def build():
           '<label><span class="key">Audience (buyers vs sellers)</span><select name="audience_type">' + optionRows(['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'], o.audience_type || '') + '</select></label>' +
           '<label><span class="key">Price to attend</span><input type="text" name="pricing" value="' + v('pricing') + '"></label>' +
         '</div>' +
+        '<label><span class="key">Past / announced speakers (Title, Company)</span><textarea name="past_speakers" placeholder="e.g. CIO, UnitedHealth; Chief Data Officer, Pfizer">' + v('past_speakers') + '</textarea></label>' +
+        '<label><span class="key">Meetings &amp; networking (guaranteed 1:1s, roundtables, attendee app)</span><input type="text" name="meeting_formats" value="' + v('meeting_formats') + '" placeholder="e.g. Hosted 1:1 meetings; roundtables; Brella app"></label>' +
+        '<div class="row">' +
+          '<label><span class="key">Worth attending?</span><select name="attend_verdict">' + optionRows(['', 'Worth attending', 'Maybe', 'Not worth it'], o.attend_verdict || '') + '</select></label>' +
+          '<label><span class="key">Post-mortem (ROI)</span><input type="text" name="postmortem" value="' + v('postmortem') + '" placeholder="Contacts / meetings / sales vs cost"></label>' +
+        '</div>' +
         '<div class="row">' +
           '<label><span class="key">Pay-to-play</span><select name="pay_to_play">' + optionRows(['', 'Yes', 'No', 'Unknown'], o.pay_to_play || '') + '</select></label>' +
           '<label><span class="key">Venue</span><input type="text" name="venue" value="' + v('venue') + '"></label>' +
@@ -2660,6 +2789,10 @@ def build():
       card.dataset.track    = ''; // manual_events doesn't carry a track column
       card.dataset.speaker  = (mev.speaker || '');
       card.dataset.audience = (mev.audience_type || '');
+      var _mpn = priceNumOf(mev.pricing);
+      card.dataset.price    = (_mpn == null ? '' : String(_mpn));
+      card.dataset.meetings = (mev.meeting_formats ? '1' : '');
+      card.dataset.attend   = (mev.attend_verdict || '');
       var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
       card.dataset.month = manualMeta.key;
       card.dataset.monthLabel = manualMeta.label;
@@ -2707,14 +2840,29 @@ def build():
       var audChip = mev.audience_type
         ? '<span class="badge ' + audienceClass(mev.audience_type) + '">' + escapeHtml(mev.audience_type) + '</span>'
         : '';
+      var attendChip = mev.attend_verdict
+        ? '<span class="badge ' + attendClass(mev.attend_verdict) + '">' + escapeHtml(mev.attend_verdict) + '</span>'
+        : '';
+      var meetChip = mev.meeting_formats
+        ? '<span class="attend-sig" title="' + escapeHtml(mev.meeting_formats) + '">1:1 meetings</span>'
+        : '';
       var priceLine = (mev.pricing && String(mev.pricing).trim())
         ? '<p class="ops-meta">Price to attend: ' + escapeHtml(mev.pricing) + '</p>'
+        : '';
+      var speakersLine = (mev.past_speakers && String(mev.past_speakers).trim())
+        ? '<p class="ops-meta" title="Past / announced speakers">Speakers: ' + escapeHtml(mev.past_speakers) + '</p>'
+        : '';
+      var mApplyUrl = speakingRouteUrl(mev.speaking_route);
+      var mApplyBtn = mApplyUrl
+        ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a> '
         : '';
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<div class="ops-chips">' +
             '<span class="ops-chip badge-manual">Manual</span>' +
             audChip +
+            attendChip +
+            meetChip +
           '</div>' +
           '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
         '</div>' +
@@ -2732,7 +2880,9 @@ def build():
         addtlLine +
         submLine +
         priceLine +
+        speakersLine +
         feeLine +
+        mApplyBtn +
         '<details class="ops-edit">' +
           '<summary>Edit / Delete</summary>' +
           '<form class="ops-form manual-edit">' +
@@ -2848,6 +2998,10 @@ def build():
           attendee_count:      (fd.get('attendee_count') || '').toString().trim() || null,
           audience_type:       (fd.get('audience_type') || '').toString().trim() || null,
           pricing:             (fd.get('pricing') || '').toString().trim() || null,
+          past_speakers:       (fd.get('past_speakers') || '').toString().trim() || null,
+          meeting_formats:     (fd.get('meeting_formats') || '').toString().trim() || null,
+          attend_verdict:      (fd.get('attend_verdict') || '').toString().trim() || null,
+          postmortem:          (fd.get('postmortem') || '').toString().trim() || null,
           pay_to_play:         (fd.get('pay_to_play') || '').toString().trim() || null,
           venue:               (fd.get('venue') || '').toString().trim() || null,
           city:                (fd.get('city') || '').toString().trim() || null,
@@ -2884,7 +3038,12 @@ def build():
             status('Save failed: ' + resp.error.message, 'error');
             return;
           }}
-          flashOk('Manual event saved');
+          if (resp.strippedMigrationCols) {{
+            status('Saved — but ' + resp.strippedMigrationCols.join(', ') +
+                   ' could not be stored until the DB migration runs.', 'warn');
+          }} else {{
+            flashOk('Manual event saved');
+          }}
           loadKnownNames();
           renderOps(email);
         }});
@@ -2991,6 +3150,7 @@ def build():
             if (f === 'status')            card.dataset.status   = sel.value || '';
             if (f === 'priority_override') card.dataset.priority = sel.value || '';
             if (f === 'track')             card.dataset.track    = sel.value || '';
+            if (f === 'attend_verdict')    card.dataset.attend   = sel.value || '';
             applyFilters();
             flashOk();
           }});
@@ -3326,6 +3486,9 @@ def build():
       var $urgent  = document.getElementById('ops-f-urgent');
       var $speaker = document.getElementById('ops-f-speaker');
       var $buyers  = document.getElementById('ops-f-buyers');
+      var $meet    = document.getElementById('ops-f-meetings');
+      var $worth   = document.getElementById('ops-f-worth');
+      var $price   = document.getElementById('ops-price');
       var $hidden  = document.getElementById('ops-f-hidden');
       if (!$search || !$opsGrid) return;
       var q = ($search.value || '').toLowerCase().trim();
@@ -3334,9 +3497,12 @@ def build():
       var fUrgent  = !!($urgent && $urgent.checked);
       var fSpeaker = !!($speaker && $speaker.checked);
       var fBuyers  = !!($buyers && $buyers.checked);
+      var fMeet    = !!($meet && $meet.checked);
+      var fWorth   = !!($worth && $worth.checked);
+      var fPrice   = $price ? ($price.value || '') : '';
       var showHidden = !!($hidden && $hidden.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-buyers',$buyers],['ops-f-hidden',$hidden]].forEach(function (pair) {{
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-buyers',$buyers],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-hidden',$hidden]].forEach(function (pair) {{
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
@@ -3375,6 +3541,16 @@ def build():
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
         if (fSpeaker && card.dataset.hasSpeaker !== '1')       on = false;
         if (fBuyers && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
+        if (fMeet && card.dataset.meetings !== '1') on = false;
+        if (fWorth && (card.dataset.attend || '').toLowerCase().indexOf('worth attending') !== 0) on = false;
+        if (fPrice) {{
+          var pn = card.dataset.price === '' || card.dataset.price == null ? null : parseFloat(card.dataset.price);
+          if (fPrice === 'known'        && pn == null)               on = false;
+          if (fPrice === 'free'         && pn !== 0)                 on = false;
+          if (fPrice === 'lt1000'       && !(pn != null && pn > 0 && pn < 1000)) on = false;
+          if (fPrice === '1000-2500'    && !(pn != null && pn >= 1000 && pn < 2500)) on = false;
+          if (fPrice === 'gte2500'      && !(pn != null && pn >= 2500)) on = false;
+        }}
         if (!showHidden && card.classList.contains('is-hidden')) on = false;
         if (activeStages.length > 0) {{
           var cardStages = (card.dataset.statusTags || '').split('|').filter(Boolean);
@@ -3427,7 +3603,7 @@ def build():
     }}
 
     function wireFilters() {{
-      ['ops-search','ops-region','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-hidden'].forEach(function (id) {{
+      ['ops-search','ops-region','ops-price','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-hidden'].forEach(function (id) {{
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -3441,6 +3617,7 @@ def build():
       if (!$stats) return;
       var total = (evs || []).length + (manualRows || []).length;
       var saved = 0, urgent = 0, hidden = 0, inPipeline = 0, booked = 0;
+      var buyerRich = 0, worthIt = 0;
       (stateRows || []).forEach(function (r) {{
         if (r.saved)  saved++;
         if (r.urgent) urgent++;
@@ -3448,12 +3625,18 @@ def build():
         var stages = stageTagsOf(r);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
+        if ((r.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
+      }});
+      (evs || []).forEach(function (ev) {{
+        if (((ev.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
       }});
       // Manual events carry their own stage tags too — fold them in.
       (manualRows || []).forEach(function (m) {{
         var stages = stageTagsOf(m);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
+        if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
+        if ((m.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
       }});
       $stats.innerHTML =
         '<div class="ops-stat"><span class="num">' + total + '</span><span class="lbl">Upcoming</span></div>' +
@@ -3461,6 +3644,8 @@ def build():
         '<div class="ops-stat urgent"><span class="num">' + urgent + '</span><span class="lbl">Urgent</span></div>' +
         '<div class="ops-stat"><span class="num">' + inPipeline + '</span><span class="lbl">In pipeline</span></div>' +
         '<div class="ops-stat"><span class="num">' + booked + '</span><span class="lbl">Booked</span></div>' +
+        '<div class="ops-stat"><span class="num">' + buyerRich + '</span><span class="lbl">Buyer-rich</span></div>' +
+        '<div class="ops-stat"><span class="num">' + worthIt + '</span><span class="lbl">Worth attending</span></div>' +
         '<div class="ops-stat"><span class="num">' + hidden + '</span><span class="lbl">Hidden</span></div>';
       $stats.removeAttribute('hidden');
     }}
@@ -3709,7 +3894,8 @@ def build():
     // migration yet, PostgREST rejects the whole write. We detect that, drop
     // the offending column, and retry so the save still lands (the buyer/price
     // fields just stay blank until the migration runs).
-    var MIGRATION_COLS = ['pricing', 'audience_type'];
+    var MIGRATION_COLS = ['pricing', 'audience_type', 'past_speakers',
+                          'meeting_formats', 'attend_verdict', 'postmortem'];
     function unknownMigrationCol(err) {{
       if (!err) return null;
       var msg = ((err.message || '') + ' ' + (err.details || '')).toLowerCase();
@@ -3723,14 +3909,18 @@ def build():
       return null;
     }}
     // runFn(payload) -> a Supabase thenable resolving to {{data, error}}.
-    function sbWriteRetry(payload, runFn) {{
+    // The final resp carries strippedMigrationCols so callers can warn that
+    // those values were NOT saved (DB migration still pending).
+    function sbWriteRetry(payload, runFn, _stripped) {{
+      _stripped = _stripped || [];
       return runFn(payload).then(function (resp) {{
         var col = unknownMigrationCol(resp.error);
         if (col && Object.prototype.hasOwnProperty.call(payload, col)) {{
           var p2 = {{}};
           for (var k in payload) {{ if (k !== col && Object.prototype.hasOwnProperty.call(payload, k)) p2[k] = payload[k]; }}
-          return sbWriteRetry(p2, runFn);
+          return sbWriteRetry(p2, runFn, _stripped.concat([col]));
         }}
+        if (_stripped.length) resp.strippedMigrationCols = _stripped;
         return resp;
       }});
     }}
@@ -3868,6 +4058,10 @@ def build():
           attendee_count:     (fd.get('attendee_count') || '').toString().trim() || null,
           audience_type:      (fd.get('audience_type') || '').toString().trim() || null,
           pricing:            (fd.get('pricing') || '').toString().trim() || null,
+          past_speakers:      (fd.get('past_speakers') || '').toString().trim() || null,
+          meeting_formats:    (fd.get('meeting_formats') || '').toString().trim() || null,
+          attend_verdict:     (fd.get('attend_verdict') || '').toString().trim() || null,
+          postmortem:         (fd.get('postmortem') || '').toString().trim() || null,
           pay_to_play:        (fd.get('pay_to_play') || '').toString().trim() || null,
           venue:              (fd.get('venue') || '').toString().trim() || null,
           city:               (fd.get('city') || '').toString().trim() || null,
@@ -4464,7 +4658,10 @@ def build():
     }}
 
     // ── CSV import/export ───────────────────────────────────────────
-    var CSV_COLUMNS = ['event_num','status_tags','status','speaker','priority_override','track','saved','hidden','urgent','notes'];
+    var CSV_COLUMNS = ['event_num','status_tags','status','speaker','priority_override','track','saved','hidden','urgent','notes','attend_verdict','postmortem'];
+    // Optional on import: older CSVs predate these. When the column is absent
+    // we leave the existing DB value untouched instead of wiping it.
+    var CSV_OPTIONAL = ['status_tags','attend_verdict','postmortem'];
 
     function toCsvCell(v) {{
       if (v === null || v === undefined) return '';
@@ -4643,12 +4840,8 @@ def build():
         reader.onload = function () {{
           var text = String(reader.result || '');
           var parsed = parseCsv(text);
-          // status_tags is OPTIONAL on import — older CSVs predate it. When
-          // the column is absent we leave existing DB stage tags untouched
-          // rather than wiping them to empty.
-          var hasStageCol = parsed.headers.indexOf('status_tags') !== -1;
-          // Validate headers (status_tags excluded from the required set)
-          var missing = CSV_COLUMNS.filter(function (c) {{ return c !== 'status_tags' && parsed.headers.indexOf(c) === -1; }});
+          // Validate headers (optional columns excluded from the required set)
+          var missing = CSV_COLUMNS.filter(function (c) {{ return CSV_OPTIONAL.indexOf(c) === -1 && parsed.headers.indexOf(c) === -1; }});
           var $prev = panel.querySelector('#csv-preview');
           if (parsed.rows.length === 0) {{
             $prev.innerHTML = '<p class="alert error">CSV looks empty.</p>';
@@ -4662,7 +4855,8 @@ def build():
           var coerced = parsed.rows.map(function (row) {{
             var out = {{}};
             CSV_COLUMNS.forEach(function (c) {{
-              if (c === 'status_tags' && !hasStageCol) return; // leave undefined → untouched
+              // Optional columns absent from this CSV stay undefined → untouched
+              if (CSV_OPTIONAL.indexOf(c) !== -1 && parsed.headers.indexOf(c) === -1) return;
               out[c] = coerceCsvValue(c, row[c]);
             }});
             return out;
@@ -4693,13 +4887,15 @@ def build():
               var toUpsert = diff.added.concat(diff.updated).map(function (r) {{
                 var row = {{}};
                 CSV_COLUMNS.forEach(function (c) {{
-                  if (c === 'status_tags' && !hasStageCol) return; // preserve DB value
+                  if (r[c] === undefined) return; // optional column absent — preserve DB value
                   row[c] = r[c];
                 }});
                 row.updated_by = email;
                 return row;
               }});
               if (toUpsert.length === 0) {{ btn.disabled = false; btn.textContent = 'Nothing to apply'; return; }}
+              // NOTE: bulk upsert can't strip-and-retry per row; pre-migration
+              // CSVs simply shouldn't include attend_verdict/postmortem columns.
               sb.from('event_state').upsert(toUpsert, {{ onConflict: 'event_num' }}).then(function (resp2) {{
                 if (resp2.error) {{ btn.disabled = false; btn.textContent = 'Retry'; status('Apply failed: ' + resp2.error.message, 'error'); return; }}
                 $prev2.innerHTML = '<p class="alert"><strong>Applied:</strong> ' + diff.added.length + ' new + ' + diff.updated.length + ' updated. Refreshing grid…</p>';
@@ -4930,9 +5126,15 @@ def build():
           priority:   ev.priority || null,
           why:        ev.why      || null,
           url:        ev.url      || null,
+          // Attending signals, when the search results carry them. The agent
+          // says "audience"; the column is audience_type.
+          pricing:         ev.pricing || null,
+          audience_type:   ev.audience_type || ev.audience || null,
+          past_speakers:   ev.past_speakers || ev.speakers || null,
+          meeting_formats: ev.meeting_formats || ev.guaranteed_meetings || null,
           created_by: email
         }};
-        return sb.from('manual_events').insert(row).select().then(function (resp) {{
+        return sbWriteRetry(row, function (p) {{ return sb.from('manual_events').insert(p).select(); }}).then(function (resp) {{
           if (resp.error) {{
             if (resp.error.code === '23505') return {{ ok: false, reason: 'duplicate' }};
             return {{ ok: false, reason: resp.error.message }};
@@ -5008,6 +5210,14 @@ def build():
             'style="flex:1;font-family:var(--ab-mono);font-size:0.85rem;padding:10px 12px;border:1px solid var(--ab-rule-strong);border-radius:6px;background:var(--ab-bg-2);color:var(--ab-fg);">' +
           '<button type="button" class="primary" id="subscribe-copy-btn" style="white-space:nowrap;font-family:var(--ab-sans);font-weight:600;font-size:0.9rem;padding:10px 16px;border-radius:6px;border:0;background:var(--ab-fg);color:var(--ab-bg);cursor:pointer;">Copy link</button>' +
         '</div>' +
+        // One-click Google Calendar subscribe — opens Google Calendar with the
+        // feed pre-filled, so the whole tracker lands in the shared calendar
+        // and stays in sync automatically.
+        '<a href="https://calendar.google.com/calendar/render?cid=' +
+          encodeURIComponent('webcal://' + window.location.host + '/calendar.ics') +
+          '" target="_blank" rel="noopener" class="primary" id="subscribe-gcal-btn" ' +
+          'style="display:inline-block;margin-bottom:12px;font-family:var(--ab-sans);font-weight:600;font-size:0.9rem;padding:10px 16px;border-radius:6px;background:#1a73e8;color:#fff;text-decoration:none;">' +
+          'Add to Google Calendar (one click)</a>' +
         '<details open style="border-top:1px solid var(--ab-rule);padding-top:12px;">' +
           '<summary style="cursor:pointer;font-family:var(--ab-mono);font-size:0.72rem;color:var(--ab-fg-3);letter-spacing:0.08em;text-transform:uppercase;">Paste it here</summary>' +
           '<div style="display:grid;gap:10px;margin-top:10px;font-size:0.9rem;color:var(--ab-fg-2);line-height:1.55;">' +
@@ -5230,7 +5440,8 @@ def write_events_json(today_evs, upcoming, archived):
     RICH_KEYS = (
         'about', 'focus_areas', 'typical_attendees', 'speaking_route',
         'contact_info', 'poc_email', 'deadline', 'attendee_count',
-        'pay_to_play', 'pricing', 'audience_type', 'seed', 'urgent',
+        'pay_to_play', 'pricing', 'audience_type', 'past_speakers',
+        'meeting_formats', 'attend_verdict', 'postmortem', 'seed', 'urgent',
         'venue', 'city', 'country',
         'notes', 'speaker', 'workflow_status', 'source', 'external_id',
     )

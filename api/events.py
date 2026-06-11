@@ -137,6 +137,11 @@ WORTHINESS_RUBRIC = (
     "    lower it. A high ticket price and senior job titles usually signal a\n"
     "    buyer-rich room; a free or sponsor-funded expo floor usually signals a\n"
     "    seller-heavy one.\n"
+    "  - Senior past/announced speakers (C-suite titles at well-known end-user\n"
+    "    companies, not vendor CEOs pitching) are a strong buyer signal.\n"
+    "  - Built-in meeting mechanisms -- guaranteed 1:1 meetings, hosted\n"
+    "    roundtables, or an attendee app for pre-booking meetings -- raise the\n"
+    "    score: they make it easy to actually talk to buyers in the room.\n"
     "\n"
     "REJECT when ANY of these hold:\n"
     "  - Clearly off-topic industry with no AI / tech angle.\n"
@@ -161,9 +166,11 @@ ALLOWED = {
     'speaking_route', 'contact_info', 'deadline', 'attendee_count',
     'pay_to_play', 'venue', 'city', 'country', 'seed', 'urgent',
     'external_id', 'start_date', 'end_date', 'created_by',
-    # Buyer-quality signals (require the 2026-06 migration; writes that hit a
-    # DB without these columns are stripped + retried, so ingest never breaks).
-    'pricing', 'audience_type',
+    # Buyer-quality + attending signals (require the 2026-06 migration; writes
+    # that hit a DB without these columns are stripped + retried, so ingest
+    # never breaks).
+    'pricing', 'audience_type', 'past_speakers', 'meeting_formats',
+    'attend_verdict', 'postmortem',
 }
 BOOL_COLS = {'seed', 'urgent', 'paid'}
 
@@ -319,6 +326,19 @@ def _coerce(ev):
     # (and the gate) speak in terms of "audience"; the column is audience_type.
     if not ev.get('audience_type') and ev.get('audience'):
         ev['audience_type'] = ev['audience']
+    # Fold speaker-lineup aliases onto past_speakers (the column). NOTE:
+    # 'speaker' (singular) is NOT an alias — that's ArcticBlue's own speaker.
+    if not ev.get('past_speakers'):
+        for alias in ('speakers', 'speaker_lineup', 'upcoming_speakers'):
+            if ev.get(alias):
+                ev['past_speakers'] = ev[alias]
+                break
+    # Fold meeting-mechanism aliases onto meeting_formats.
+    if not ev.get('meeting_formats'):
+        for alias in ('guaranteed_meetings', 'meetups', 'networking_formats'):
+            if ev.get(alias):
+                ev['meeting_formats'] = ev[alias]
+                break
     row = {}
     for k, v in ev.items():
         if k not in ALLOWED or v is None:
@@ -369,7 +389,8 @@ def _evaluate_event(row, known_names):
     # Only the fields that inform the judgment — keep the prompt compact.
     fields = ('name', 'date_str', 'start_date', 'location', 'region', 'type',
               'about', 'why', 'focus_areas', 'typical_attendees', 'attendee_count',
-              'pricing', 'speaking_route', 'pay_to_play', 'url')
+              'pricing', 'past_speakers', 'meeting_formats', 'speaking_route',
+              'pay_to_play', 'url')
     candidate = {k: row[k] for k in fields if row.get(k)}
     sample = sorted(known_names)[:80]  # so the judge can spot near-duplicates
 
@@ -596,7 +617,8 @@ def _catalog_names(host):
 # Columns that may not exist yet on older DBs (added by the 2026-06 migration).
 # If PostgREST rejects a write for one of these, we strip it and retry so the
 # whole row still lands — the feature just stays dark until the migration runs.
-_MIGRATION_COLS = ('pricing', 'audience_type')
+_MIGRATION_COLS = ('pricing', 'audience_type', 'past_speakers',
+                   'meeting_formats', 'attend_verdict', 'postmortem')
 
 
 def _unknown_column(data):
