@@ -3616,12 +3616,11 @@ def build():
       var $stats = document.getElementById('ops-stats');
       if (!$stats) return;
       var total = (evs || []).length + (manualRows || []).length;
-      var saved = 0, urgent = 0, hidden = 0, inPipeline = 0, booked = 0;
+      var saved = 0, urgent = 0, inPipeline = 0, booked = 0;
       var buyerRich = 0, worthIt = 0;
       (stateRows || []).forEach(function (r) {{
         if (r.saved)  saved++;
         if (r.urgent) urgent++;
-        if (r.hidden) hidden++;
         var stages = stageTagsOf(r);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
@@ -3645,8 +3644,7 @@ def build():
         '<div class="ops-stat"><span class="num">' + inPipeline + '</span><span class="lbl">In pipeline</span></div>' +
         '<div class="ops-stat"><span class="num">' + booked + '</span><span class="lbl">Booked</span></div>' +
         '<div class="ops-stat"><span class="num">' + buyerRich + '</span><span class="lbl">Buyer-rich</span></div>' +
-        '<div class="ops-stat"><span class="num">' + worthIt + '</span><span class="lbl">Worth attending</span></div>' +
-        '<div class="ops-stat"><span class="num">' + hidden + '</span><span class="lbl">Hidden</span></div>';
+        '<div class="ops-stat"><span class="num">' + worthIt + '</span><span class="lbl">Worth attending</span></div>';
       $stats.removeAttribute('hidden');
     }}
 
