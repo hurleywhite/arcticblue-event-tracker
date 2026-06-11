@@ -1062,16 +1062,20 @@
       margin: 0 0 8px; font-family: var(--ab-mono); font-size: 0.68rem;
       letter-spacing: 0.1em; text-transform: uppercase; color: #666;
     }
-    /* Cluster-style pins: a colored badge with the event count. */
+    /* Cluster-style pins: one consistent brand blue everywhere (region data
+       is too patchy to color-code by); a soft halo gives them depth. */
     .map-pin {
       display: flex; align-items: center; justify-content: center;
       width: 100%; height: 100%; border-radius: 50%;
+      background: #2773c2;
       color: #fff; font-family: var(--ab-mono); font-weight: 700;
       font-size: 0.78rem; letter-spacing: -0.02em;
       border: 2.5px solid #fff;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.35);
+      box-shadow: 0 0 0 4px rgba(39, 115, 194, 0.25), 0 2px 6px rgba(0,0,0,0.3);
       box-sizing: border-box;
+      transition: transform 0.1s ease;
     }
+    .map-pin:hover { transform: scale(1.12); }
     .map-pin.single { font-size: 0; }  /* lone event: clean dot, no number */
     .calendar-month { margin-bottom: 32px; }
     .calendar-month-head {
@@ -9390,14 +9394,14 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       Object.keys(byCoord).forEach(function (key) {
         var g = byCoord[key];
         var n = g.evs.length;
-        var color = regionColor(g.evs[0].region);
-        // Cluster-style badge: a colored dot for one event, a count badge for
-        // several. Sized gently with the count so big hubs read as big.
+        // Cluster-style badge: one consistent brand color everywhere — the
+        // region data is too patchy to color-code by (same metro area was
+        // getting blue AND gray pins). Size alone carries the count signal.
         var size = n === 1 ? 14 : Math.min(26 + n * 1.2, 44);
         var icon = L.divIcon({
           className: '',  // suppress Leaflet's default white square
-          html: '<div class="map-pin' + (n === 1 ? ' single' : '') +
-                '" style="background:' + color + '">' + (n === 1 ? '' : n) + '</div>',
+          html: '<div class="map-pin' + (n === 1 ? ' single' : '') + '">' +
+                (n === 1 ? '' : n) + '</div>',
           iconSize: [size, size],
           iconAnchor: [size / 2, size / 2],
           popupAnchor: [0, -size / 2]
