@@ -178,5 +178,47 @@ check('unrelated column -> None', ev._unknown_column(
 check('unique violation -> None', ev._unknown_column({'code': '23505', 'message': 'duplicate key value'}) is None)
 check('non-dict -> None', ev._unknown_column('boom') is None)
 
+print('11) api/enrich.py: merge_missing fills ONLY empty fields')
+ENRICH = os.path.join(HERE, '..', 'api', 'enrich.py')
+spec2 = importlib.util.spec_from_file_location('enrich_mod', ENRICH)
+en = importlib.util.module_from_spec(spec2)
+spec2.loader.exec_module(en)
+
+row = {'name': 'Web Summit Lisbon', 'venue': 'MEO Arena', 'pricing': None,
+       'url': '', 'pay_to_play': '', 'past_speakers': None,
+       'meeting_formats': '', 'audience_type': None, 'typical_attendees': None,
+       'attendee_count': None, 'deadline': None}
+facts = {'official_url': 'https://websummit.com/', 'venue': 'WRONG VENUE',
+         'pricing': '€995 general / €1,950 executive', 'pay_to_play': 'no',
+         'past_speakers': ['CTO, Siemens', 'CIO, ING'],
+         'meeting_formats': 'Attendee app with 1:1 meeting booking',
+         'audience': 'mixed crowd', 'attendee_count': '70,000+'}
+p = en.merge_missing(row, facts)
+check('existing venue NOT overwritten', 'venue' not in p)
+check('pricing filled', p.get('pricing') == '€995 general / €1,950 executive')
+check('url filled (name token matches domain)', p.get('url') == 'https://websummit.com/')
+check('pay_to_play normalized to No', p.get('pay_to_play') == 'No')
+check('speakers list joined', p.get('past_speakers') == 'CTO, Siemens; CIO, ING')
+check('audience normalized to Mixed', p.get('audience_type') == 'Mixed')
+check('attendee_count filled', p.get('attendee_count') == '70,000+')
+
+# Hallucinated homepage: domain shares no token with the event name -> dropped.
+p2 = en.merge_missing({'name': 'Quantum Robotics Forum', 'url': ''},
+                      {'official_url': 'https://eventbrite.com/e/12345'})
+check('mismatched homepage domain dropped', 'url' not in p2)
+
+check('has_gaps true when fields missing', en.has_gaps({'name': 'X', 'url': None}))
+check('has_gaps false when all filled', not en.has_gaps(
+    {c: 'x' for c in en.GAP_COLUMNS}))
+
+print('12) events.py inline fact merge: fill-only-missing + audience normalize')
+rowi = {'name': 'X', 'venue': 'Set Already', 'pricing': ''}
+fi = {'venue': 'New Venue', 'pricing': '$1,500', 'audience': 'mostly buyers'}
+pi = ev._merge_missing_facts(rowi, fi)
+check('inline: existing venue kept', 'venue' not in pi)
+check('inline: pricing filled', pi.get('pricing') == '$1,500')
+check('inline: audience normalized', pi.get('audience_type') == 'Buyer-rich')
+check('inline: gap detector', ev._row_has_fact_gaps({'name': 'X'}))
+
 print('\n%d passed, %d failed' % (passed, failed))
 raise SystemExit(1 if failed else 0)

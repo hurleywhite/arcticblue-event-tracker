@@ -89,6 +89,19 @@ except ValueError:
 # in-chat agent can name the field naturally.
 _ROUTE_ALIASES = ('apply_url', 'cfp_url', 'submit_speaker_url', 'speaker_url')
 
+# ── Perplexity fact enrichment (optional) ────────────────────────────
+# For newly-inserted events missing venue / pricing / pay-to-play / speakers /
+# meeting formats, one Perplexity research call fills the blanks at insert
+# time. Capped per request (the 60s function budget is shared with the gate +
+# Exa); whatever this misses, the nightly /api/enrich sweep picks up.
+PPLX_API_KEY = _env('PERPLEXITY_API_KEY')
+PPLX_MODEL   = _env('PERPLEXITY_MODEL', 'sonar')
+PPLX_BASE    = _env('PERPLEXITY_BASE_URL', 'https://api.perplexity.ai').rstrip('/')
+try:
+    PPLX_INLINE_MAX = int(_env('EVENTS_PPLX_MAX', '3') or '3')
+except ValueError:
+    PPLX_INLINE_MAX = 3
+
 # ── OpenAI worthiness gate ───────────────────────────────────────────
 # Optional. If OPENAI_API_KEY is unset the gate is SKIPPED and every new
 # (non-duplicate) event is inserted, exactly as the original endpoint did.
@@ -589,6 +602,83 @@ def _find_speaking_route(name, home_url):
     return None
 
 
+# ── Perplexity fact research (insert-time; see also api/enrich.py) ───
+_PPLX_SYSTEM = (
+    "You research business conferences. Given ONE specific event, return ONLY "
+    "a raw JSON object — no prose, no markdown fences — with any of these "
+    "keys you can verify for THIS exact event edition: "
+    '"venue", "pricing" (cost to ATTEND; if buyers and vendors pay different '
+    'rates state both tiers), "pay_to_play" ("Yes"|"No"|"Unknown" — speaking '
+    'tied to paid sponsorship?), "past_speakers" (3-8 "Title, Company" pairs, '
+    'semicolon-separated), "meeting_formats" (guaranteed/hosted 1:1 meetings, '
+    'roundtables, or an attendee app for pre-booking meetings), "audience" '
+    '("Buyer-rich"|"Mixed"|"Vendor-heavy"), "typical_attendees" (one short '
+    'who-attends line), "attendee_count", "deadline" (CFP deadline). '
+    "OMIT every key you are not confident about. Never invent facts."
+)
+# Insert-time fillable columns <- Perplexity fact key.
+_FACT_COLS = (('venue', 'venue'), ('pricing', 'pricing'),
+              ('pay_to_play', 'pay_to_play'), ('past_speakers', 'past_speakers'),
+              ('meeting_formats', 'meeting_formats'),
+              ('audience_type', 'audience'),
+              ('typical_attendees', 'typical_attendees'),
+              ('attendee_count', 'attendee_count'), ('deadline', 'deadline'))
+
+
+def _perplexity_facts(row):
+    """One research call for a new event. Returns a facts dict (maybe {})."""
+    if not PPLX_API_KEY:
+        return {}
+    known = {k: row[k] for k in ('name', 'date_str', 'location', 'url') if row.get(k)}
+    status, data = _http_json(
+        'POST', PPLX_BASE + '/chat/completions',
+        headers={'Authorization': 'Bearer ' + PPLX_API_KEY},
+        body={'model': PPLX_MODEL,
+              'messages': [{'role': 'system', 'content': _PPLX_SYSTEM},
+                           {'role': 'user', 'content': json.dumps(known, ensure_ascii=False)}],
+              'temperature': 0.1, 'max_tokens': 700},
+        timeout=25)
+    if status != 200 or not isinstance(data, dict):
+        return {}
+    try:
+        content = data['choices'][0]['message']['content']
+    except (KeyError, IndexError, TypeError):
+        return {}
+    m = re.search(r'\{.*\}', content or '', re.S)
+    if not m:
+        return {}
+    try:
+        facts = json.loads(m.group(0))
+    except json.JSONDecodeError:
+        return {}
+    return facts if isinstance(facts, dict) else {}
+
+
+def _merge_missing_facts(row, facts):
+    """Patch of ONLY the row's empty columns from researched facts — values a
+    human (or the gate) already set are never touched."""
+    patch = {}
+    for col, key in _FACT_COLS:
+        if (row.get(col) or '') and str(row.get(col)).strip():
+            continue
+        v = facts.get(key)
+        if not v:
+            continue
+        if col == 'audience_type':
+            v = _norm_audience(v)
+            if not v:
+                continue
+        elif isinstance(v, list):
+            v = '; '.join(str(x) for x in v)
+        patch[col] = str(v).strip()[:600]
+    return patch
+
+
+def _row_has_fact_gaps(row):
+    return any(not (row.get(col) and str(row.get(col)).strip())
+               for col, _k in _FACT_COLS)
+
+
 def _existing_manual_names():
     status, rows = _http_json(
         'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name',
@@ -752,6 +842,7 @@ class handler(BaseHTTPRequestHandler):
 
         inserted, rejected, skipped, errors = [], [], [], []
         enrich_used = 0  # how many Exa speaking-route lookups we've spent
+        pplx_used   = 0  # how many Perplexity fact lookups we've spent
 
         for ev in items:
             row = _coerce(ev)
@@ -821,6 +912,18 @@ class handler(BaseHTTPRequestHandler):
                 if route:
                     row['speaking_route'] = 'Apply to speak: ' + route
 
+            # Perplexity fact enrichment: fill venue / pricing / pay-to-play /
+            # speakers / meeting formats the caller didn't supply. Capped per
+            # request; the nightly /api/enrich sweep covers whatever's left.
+            if PPLX_API_KEY and pplx_used < PPLX_INLINE_MAX and _row_has_fact_gaps(row):
+                pplx_used += 1
+                try:
+                    facts = _perplexity_facts(row)
+                    for col, val in _merge_missing_facts(row, facts).items():
+                        row[col] = val
+                except Exception:
+                    pass  # enrichment is best-effort, never blocks the insert
+
             status, data = _insert_one(row)
             if status in (200, 201) and isinstance(data, list) and data:
                 inserted.append({'id': data[0].get('id'), 'name': name,
@@ -851,5 +954,6 @@ class handler(BaseHTTPRequestHandler):
                 'errors':   len(errors),
             },
             'gate': {'enabled': _gate_enabled(), 'model': OPENAI_MODEL if _gate_enabled() else None},
-            'enrich': {'enabled': bool(EXA_API_KEY), 'lookups_used': enrich_used},
+            'enrich': {'enabled': bool(EXA_API_KEY), 'lookups_used': enrich_used,
+                       'perplexity': bool(PPLX_API_KEY), 'facts_lookups_used': pplx_used},
         })

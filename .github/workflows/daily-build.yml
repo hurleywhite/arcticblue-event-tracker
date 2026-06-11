@@ -25,17 +25,45 @@ jobs:
         with:
           python-version: "3.11"
 
+      # Fill missing catalog fields (url / venue / pay-to-play / apply link /
+      # pricing / speakers / meeting formats) via Perplexity + Exa. Caps at
+      # --limit events per night so cost stays bounded; the queue rotates
+      # daily and newly-added events are picked up automatically. Exits 0
+      # immediately when the secrets aren't configured.
+      - name: Enrich catalog gaps (Perplexity + Exa)
+        env:
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+        run: python3 scripts/enrich_catalog.py --limit 10
+
       - name: Run build.py
         run: python3 src/build.py
 
-      - name: Commit regenerated public/ if changed
+      - name: Commit regenerated output if changed
         run: |
-          if [ -z "$(git status --porcelain public/)" ]; then
+          if [ -z "$(git status --porcelain public/ data/)" ]; then
             echo "No changes — nothing to commit."
             exit 0
           fi
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/
+          git add public/ data/
           git commit -m "chore: daily auto-build $(date -u +%Y-%m-%d)"
           git push
+
+      # Same sweep for the manual events living in Supabase — the deployed
+      # /api/enrich endpoint holds the service-role key, so the workflow only
+      # needs the ingest secret. Skips quietly when the secret isn't set.
+      - name: Enrich manual events via /api/enrich
+        env:
+          EVENTS_INGEST_SECRET: ${{ secrets.EVENTS_INGEST_SECRET }}
+        run: |
+          if [ -z "$EVENTS_INGEST_SECRET" ]; then
+            echo "EVENTS_INGEST_SECRET not set — skipping manual-event enrichment."
+            exit 0
+          fi
+          curl -s -X POST "https://arcticblue-event-tracker-deploy.vercel.app/api/enrich" \
+            -H "X-API-Key: $EVENTS_INGEST_SECRET" \
+            -H "Content-Type: application/json" \
+            -d '{"limit": 6}' | head -c 3000
+          echo

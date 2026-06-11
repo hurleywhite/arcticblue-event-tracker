@@ -12,6 +12,9 @@
     },
     "api/mcp.py": {
       "maxDuration": 120
+    },
+    "api/enrich.py": {
+      "maxDuration": 120
     }
   },
   "headers": [
