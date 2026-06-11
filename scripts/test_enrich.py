@@ -178,6 +178,23 @@ check('unrelated column -> None', ev._unknown_column(
 check('unique violation -> None', ev._unknown_column({'code': '23505', 'message': 'duplicate key value'}) is None)
 check('non-dict -> None', ev._unknown_column('boom') is None)
 
+print("10b) _derive_dates: Angela's numeric shorthand dates")
+check('11/9-11/12 (no year, future) -> Nov 2026',
+      ev._derive_dates('11/9-11/12') == ('2026-11-09', '2026-11-12'))
+check('4/28 - 4/30/27 (explicit short year)',
+      ev._derive_dates('4/28 - 4/30/27') == ('2027-04-28', '2027-04-30'))
+check('12/30 - 1/2 wraps the year',
+      ev._derive_dates('12/30 - 1/2') == ('2026-12-30', '2027-01-02'))
+check('7/8-7/9 same month range', ev._derive_dates('7/8-7/9') == ('2026-07-08', '2026-07-09'))
+check('9/29 single date', ev._derive_dates('9/29') == ('2026-09-29', '2026-09-29'))
+check('4/28-30 short same-month form', ev._derive_dates('4/28-30')[1] is not None
+      and ev._derive_dates('4/28-30')[0].endswith('-04-28')
+      and ev._derive_dates('4/28-30')[1].endswith('-04-30'))
+check('month-name formats still win: April 14, 2026',
+      ev._derive_dates('April 14, 2026') == ('2026-04-14', '2026-04-14'))
+check('13/45 nonsense -> no dates', ev._derive_dates('13/45') == (None, None))
+check('TBD -> no dates', ev._derive_dates('TBD') == (None, None))
+
 print('11) api/enrich.py: merge_missing fills ONLY empty fields')
 ENRICH = os.path.join(HERE, '..', 'api', 'enrich.py')
 spec2 = importlib.util.spec_from_file_location('enrich_mod', ENRICH)

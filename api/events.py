@@ -49,6 +49,7 @@ ENV:
                                 the judge errors; "false" drops it)
 """
 from http.server import BaseHTTPRequestHandler
+from datetime import date as _dt_date
 import json
 import os
 import re
@@ -236,6 +237,53 @@ def _derive_dates(text):
         d1 = int(m3.group(2))
         if mn and ok_day(d1):
             d = _iso(int(m3.group(3)), mn, d1)
+            return (d, d)
+
+    # Numeric shorthand (Angela's spreadsheet habit): "4/28", "4/28-4/30",
+    # "11/9 - 11/12/26", "4/28-30". Missing year is forward-looking: current
+    # year, rolled to next year when the date passed more than ~6 weeks ago.
+    def yr(t):
+        if not t:
+            return None
+        y = int(t)
+        return y + 2000 if y < 100 else y
+
+    def infer_year(mo, d):
+        today = _dt_date.today()
+        try:
+            cand = _dt_date(today.year, mo, d)
+        except ValueError:
+            return today.year
+        return today.year + 1 if (today - cand).days > 45 else today.year
+
+    def ok_md(mo, d):
+        return 1 <= mo <= 12 and ok_day(d)
+
+    n1 = re.search(r'(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\s*[–—-]\s*'
+                   r'(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?', s)
+    if n1:
+        a1, a2 = int(n1.group(1)), int(n1.group(2))
+        b1, b2 = int(n1.group(4)), int(n1.group(5))
+        if ok_md(a1, a2) and ok_md(b1, b2):
+            ya = yr(n1.group(3)) or yr(n1.group(6)) or infer_year(a1, a2)
+            yb = yr(n1.group(6)) or ya
+            if yb == ya and b1 < a1:
+                yb = ya + 1  # 12/30 - 1/2 wraps the year
+            return (_iso(ya, a1, a2), _iso(yb, b1, b2))
+
+    n2 = re.search(r'(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\s*[–—-]\s*(\d{1,2})(?!\d*/)', s)
+    if n2:
+        c1, c2, c3 = int(n2.group(1)), int(n2.group(2)), int(n2.group(4))
+        if ok_md(c1, c2) and ok_day(c3):
+            yc = yr(n2.group(3)) or infer_year(c1, c2)
+            return (_iso(yc, c1, c2), _iso(yc, c1, c3))
+
+    n3 = re.search(r'(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?', s)
+    if n3:
+        e1, e2 = int(n3.group(1)), int(n3.group(2))
+        if ok_md(e1, e2):
+            ye = yr(n3.group(3)) or infer_year(e1, e2)
+            d = _iso(ye, e1, e2)
             return (d, d)
 
     return (None, None)

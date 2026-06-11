@@ -7447,13 +7447,18 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       return ['Identified'];
     }
 
-    // Resolve the stage list for an ops/manual row: prefer the stored
-    // status_tags array; fall back to deriving from the legacy status.
+    // Resolve the stage list for an ops/manual row. The stored status_tags
+    // array is AUTHORITATIVE — including when it's empty: an empty array
+    // means "no stages" (the user cleared them, or the import mapped the
+    // status to attend-intent instead). We only fall back to deriving from
+    // the legacy status text when the column itself is absent (pre-migration
+    // data). Falling back on empty-array made cleared checkboxes "revert":
+    // un-check -> save [] -> re-render re-derived the stage from the legacy
+    // status string ("Attending?" even re-derived as Booked).
     function stageTagsOf(st) {
       if (!st) return [];
-      var norm = normalizeStageTags(st.status_tags);
-      if (norm.length) return norm;
-      return legacyToStages(st.status);
+      if (st.status_tags == null) return legacyToStages(st.status);
+      return normalizeStageTags(st.status_tags);
     }
 
     // Pick the single most meaningful stage (for the calendar tint).
@@ -8577,7 +8582,9 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         // is folded — we only hide it from view.
         var mkey = card.dataset.month || 'tbd';
         if (on) { monthMatched[mkey] = (monthMatched[mkey] || 0) + 1; shown++; }
-        card.style.display = (on && !opsCollapsedMonths[mkey]) ? '' : 'none';
+        // An active search overrides month collapsing — a match inside a
+        // folded month must be visible or the event looks like it's missing.
+        card.style.display = (on && (!opsCollapsedMonths[mkey] || q)) ? '' : 'none';
       });
       // Month dividers: hide a header whose month matched nothing; otherwise
       // reflect the collapsed state + the matched count.
@@ -8585,7 +8592,7 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
         var mkey = h.dataset.month || 'tbd';
         var n = monthMatched[mkey] || 0;
         h.style.display = n ? '' : 'none';
-        var collapsed = !!opsCollapsedMonths[mkey];
+        var collapsed = !!opsCollapsedMonths[mkey] && !q;  // search overrides collapse
         h.classList.toggle('collapsed', collapsed);
         h.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
         var cnt = h.querySelector('[data-mh-count]');
@@ -9823,6 +9830,60 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           return out;
         }
       }
+
+      // 4-6. Numeric shorthand — Angela's spreadsheet habit: "4/28",
+      // "4/28-4/30", "11/9 - 11/12/26", "4/28-30". A missing year is
+      // forward-looking: assume the current year, roll to next year when the
+      // date passed more than ~6 weeks ago.
+      function yr(t) {
+        if (!t) return null;
+        var y = parseInt(t, 10);
+        return y < 100 ? y + 2000 : y;
+      }
+      function inferYear(mo, d) {
+        var now = new Date();
+        var y = now.getFullYear();
+        if (now - new Date(y, mo - 1, d) > 45 * 86400000) y += 1;
+        return y;
+      }
+      function okMD(mo, d) { return mo >= 1 && mo <= 12 && d >= 1 && d <= 31; }
+      // 4. "M/D - M/D" with optional years on either side
+      var n1 = s.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\s*[–—-]\s*(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+      if (n1) {
+        var a1 = parseInt(n1[1], 10), a2 = parseInt(n1[2], 10);
+        var b1 = parseInt(n1[4], 10), b2 = parseInt(n1[5], 10);
+        if (okMD(a1, a2) && okMD(b1, b2)) {
+          var ya = yr(n1[3]) || yr(n1[6]) || inferYear(a1, a2);
+          var yb = yr(n1[6]) || ya;
+          if (yb === ya && (b1 < a1)) yb = ya + 1;  // 12/30 - 1/2 wraps year
+          out.start_date = iso(ya, a1, a2);
+          out.end_date   = iso(yb, b1, b2);
+          return out;
+        }
+      }
+      // 5. "M/D - D" (same month) with optional year
+      var n2 = s.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\s*[–—-]\s*(\d{1,2})(?!\d*\/)/);
+      if (n2) {
+        var c1 = parseInt(n2[1], 10), c2 = parseInt(n2[2], 10), c3 = parseInt(n2[4], 10);
+        if (okMD(c1, c2) && c3 >= 1 && c3 <= 31) {
+          var yc = yr(n2[3]) || inferYear(c1, c2);
+          out.start_date = iso(yc, c1, c2);
+          out.end_date   = iso(yc, c1, c3);
+          return out;
+        }
+      }
+      // 6. Single "M/D" with optional year
+      var n3 = s.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+      if (n3) {
+        var e1 = parseInt(n3[1], 10), e2 = parseInt(n3[2], 10);
+        if (okMD(e1, e2)) {
+          var ye = yr(n3[3]) || inferYear(e1, e2);
+          var de = iso(ye, e1, e2);
+          out.start_date = de;
+          out.end_date   = de;
+          return out;
+        }
+      }
       return out;
     }
 
@@ -9832,8 +9893,41 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
     }
 
     // ── Realtime subscription ───────────────────────────────────────
+    // The echo triggers a FULL grid rebuild. If the user is mid-edit (typing
+    // into an open editor), rebuilding would throw away their unsaved input —
+    // so while an editor is focused we just mark the refresh as pending and
+    // flush it the moment the editor closes / loses focus.
+    var _opsEchoPending = false;
+    function gridHasActiveEditor() {
+      if (!$opsGrid) return false;
+      var ed = $opsGrid.querySelector('details.ops-edit[open]');
+      return !!(ed && document.activeElement && ed.contains(document.activeElement));
+    }
+    function opsEchoRender(email) {
+      if (gridHasActiveEditor()) { _opsEchoPending = true; return; }
+      _opsEchoPending = false;
+      renderOps(email);
+    }
+    function wireEchoFlush(email) {
+      if ($opsGrid.dataset.echoWired) return;
+      $opsGrid.dataset.echoWired = '1';
+      function maybeFlush() {
+        if (!_opsEchoPending) return;
+        // Wait a tick so focus has settled (toggle/focusout fire pre-move).
+        setTimeout(function () {
+          if (_opsEchoPending && !gridHasActiveEditor()) {
+            _opsEchoPending = false;
+            renderOps(email);
+          }
+        }, 150);
+      }
+      $opsGrid.addEventListener('toggle', maybeFlush, true);
+      $opsGrid.addEventListener('focusout', maybeFlush);
+    }
+
     var realtimeChannel = null;
     function setupRealtime(email) {
+      wireEchoFlush(email);
       if (realtimeChannel) {
         try { realtimeChannel.unsubscribe(); } catch (e) {}
         realtimeChannel = null;
@@ -9841,10 +9935,10 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       try {
         realtimeChannel = sb.channel('ops-realtime-' + Math.random().toString(36).slice(2,8))
           .on('postgres_changes', { event: '*', schema: 'public', table: 'event_state' }, function () {
-            renderOps(email);
+            opsEchoRender(email);
           })
           .on('postgres_changes', { event: '*', schema: 'public', table: 'manual_events' }, function () {
-            renderOps(email);
+            opsEchoRender(email);
           })
           .subscribe();
       } catch (e) {
