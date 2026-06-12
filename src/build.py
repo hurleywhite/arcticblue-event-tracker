@@ -3800,6 +3800,11 @@ def build():
       // event you were just editing. Capture the scroll position + which card's
       // editor is open, then restore both once the fresh grid is built.
       var _prevScrollY = window.scrollY || window.pageYOffset || 0;
+      // Carry any open toolbar panel (Add form / Find events / Calendar sync /
+      // Spreadsheet) across the rebuild — re-inserting the SAME node keeps its
+      // listeners and any half-typed input. Without this, the initial data
+      // load (or a teammate's edit) silently wiped an open panel.
+      var _panel = $opsGrid.querySelector(':scope > .add-event-card');
       var _openKey = null;
       var _openEd = $opsGrid.querySelector('.ops-card > details.ops-edit[open]');
       if (_openEd) {{
@@ -3867,6 +3872,8 @@ def build():
             if (_ed2) _ed2.open = true;
           }}
         }}
+        // Re-seat the open toolbar panel (detached by the rebuild above).
+        if (_panel) $opsGrid.insertBefore(_panel, $opsGrid.firstChild);
         window.scrollTo(0, _prevScrollY);
       }});
     }}
