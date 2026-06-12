@@ -336,8 +336,15 @@ def enrich_one(row):
 
 
 def has_gaps(row):
-    return any(row.get(c) is None or str(row.get(c) or '').strip() == ''
-               for c in GAP_COLUMNS)
+    # A junk value ("Unknown", "N/A") counts as a gap: it gets wiped and the
+    # field becomes researchable again (self-healing for early stored junk).
+    return any(_junk(row.get(c)) for c in GAP_COLUMNS)
+
+
+def junk_wipe(row):
+    """Columns currently holding a junk non-answer -> explicit nulls."""
+    return {c: None for c in GAP_COLUMNS
+            if str(row.get(c) or '').strip() and _junk(row.get(c))}
 
 
 # ── HTTP plumbing ────────────────────────────────────────────────────
@@ -410,7 +417,13 @@ class handler(BaseHTTPRequestHandler):
 
         results, errors = [], []
         for row in picked:
-            patch = enrich_one(row)
+            # Self-heal: wipe stored junk ("Unknown"/"N/A") so the field is
+            # cleared AND researchable; the fresh research may refill it.
+            wipe = junk_wipe(row)
+            row_clean = dict(row)
+            for c in wipe:
+                row_clean[c] = None
+            patch = dict(wipe, **enrich_one(row_clean))
             if not patch:
                 results.append({'id': row.get('id'), 'name': row.get('name'),
                                 'filled': []})
@@ -422,7 +435,8 @@ class handler(BaseHTTPRequestHandler):
                 body=patch, timeout=20)
             if st in (200, 204):
                 results.append({'id': row.get('id'), 'name': row.get('name'),
-                                'filled': sorted(patch.keys())})
+                                'filled': sorted(k for k, v in patch.items() if v is not None),
+                                'cleared_junk': sorted(k for k, v in patch.items() if v is None)})
             else:
                 errors.append({'id': row.get('id'), 'name': row.get('name'),
                                'status': st,

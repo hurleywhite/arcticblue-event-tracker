@@ -239,6 +239,11 @@ check('inline junk facts dropped too', pi3 == {})
 check('has_gaps true when fields missing', en.has_gaps({'name': 'X', 'url': None}))
 check('has_gaps false when all filled', not en.has_gaps(
     {c: 'x' for c in en.GAP_COLUMNS}))
+check('has_gaps true when a field holds junk', en.has_gaps(
+    dict({c: 'x' for c in en.GAP_COLUMNS}, pricing='Unknown')))
+check('junk_wipe nulls only the junk columns', en.junk_wipe(
+    {'pricing': 'Unknown', 'venue': 'Moscone Center', 'deadline': 'TBD'}) ==
+    {'pricing': None, 'deadline': None})
 
 print('12) events.py inline fact merge: fill-only-missing + audience normalize')
 rowi = {'name': 'X', 'venue': 'Set Already', 'pricing': ''}
