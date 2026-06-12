@@ -231,6 +231,13 @@ p3 = en.merge_missing({'name': 'X'}, {'pricing': 'Unknown', 'venue': 'N/A',
                                       'deadline': 'not announced yet',
                                       'pay_to_play': 'Unknown'})
 check('junk "Unknown"-style facts all dropped', p3 == {})
+p3b = en.merge_missing({'name': 'X'}, {'deadline': 'Not yet announced',
+                                       'venue': 'Not published in the provided results',
+                                       'pricing': 'Likely passed (event June 2-3)'})
+check('broadened junk variants dropped too', p3b == {})
+check('real deadline still passes', en.merge_missing(
+    {'name': 'X'}, {'deadline': 'September 1, 2026'}).get('deadline') == 'September 1, 2026')
+check('"Rolling Review" deadline kept (informative)', not en._junk('Rolling Review'))
 check('real value still passes junk filter',
       en.merge_missing({'name': 'X'}, {'venue': 'Moscone Center'}).get('venue') == 'Moscone Center')
 pi3 = ev._merge_missing_facts({'name': 'X'}, {'pricing': 'Unknown', 'venue': 'N/A'})

@@ -295,6 +295,8 @@ def _norm_p2p(v):
 # field as filled so it's never researched again. Treat them as empty.
 _JUNK_PREFIXES = ('unknown', 'n/a', 'na', 'none', 'not available', 'not verified',
                   'not specified', 'not publicly', 'not announced', 'not found',
+                  'not yet', 'not published', 'not listed', 'not disclosed',
+                  'no deadline', 'no public', 'no cfp', 'likely passed',
                   'unclear', 'tbd', 'to be', 'varies', 'unavailable')
 
 

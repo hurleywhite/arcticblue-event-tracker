@@ -706,6 +706,8 @@ def _perplexity_facts(row):
 # Storing those pollutes the UI and blocks future re-research — drop them.
 _JUNK_PREFIXES = ('unknown', 'n/a', 'na', 'none', 'not available', 'not verified',
                   'not specified', 'not publicly', 'not announced', 'not found',
+                  'not yet', 'not published', 'not listed', 'not disclosed',
+                  'no deadline', 'no public', 'no cfp', 'likely passed',
                   'unclear', 'tbd', 'to be', 'varies', 'unavailable')
 
 

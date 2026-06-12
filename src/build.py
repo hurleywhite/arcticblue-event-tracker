@@ -674,6 +674,9 @@ def build():
     /* Worth-attending verdict chip (Thor's post-mortems). */
     .badge.attend-yes {{ background: #1d4ed8; color: #fff; }}
     .badge.attend-no  {{ background: transparent; color: #991b1b; border: 1px solid #f3b1b1; }}
+    /* CFP deadline on the card face; red when urgent or within ~30 days. */
+    .deadline-line {{ font-weight: 600; }}
+    .deadline-line.deadline-soon {{ color: #b91c1c !important; font-weight: 700; }}
     /* One-click "Apply to speak" button on ops cards — the booking shortcut. */
     .ops-apply-btn {{
       display: inline-block; font-family: var(--ab-mono); font-size: 0.7rem;
@@ -2655,6 +2658,23 @@ def build():
       return {{ key: 'tbd', label: 'Date TBD', sort: 99999999 }};
     }}
 
+    // CFP-deadline line for the card face. Red when the text says URGENT or
+    // a parseable date is within ~30 days (or already passed — either way it
+    // needs Angela's attention NOW, not buried in the pop-up).
+    function deadlineLine(d) {{
+      if (d == null || !String(d).trim()) return '';
+      var txt = String(d).trim();
+      var cls = '';
+      if (/urgent|immediately|asap/i.test(txt)) {{
+        cls = ' deadline-soon';
+      }} else {{
+        var iso = null;
+        try {{ iso = deriveDatesFromText(txt).start_date; }} catch (e) {{}}
+        if (iso && (new Date(iso) - new Date()) / 86400000 <= 30) cls = ' deadline-soon';
+      }}
+      return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
+    }}
+
     function buildOpsCard(ev, st, email) {{
       var card = document.createElement('article');
       card.className = 'ops-card';
@@ -2715,6 +2735,7 @@ def build():
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>' +
+        deadlineLine(ev.deadline) +
         sigRow +
         applyBtn +
         renderOpsTags(st) +
@@ -2935,6 +2956,7 @@ def build():
         notesLine +
         addtlLine +
         submLine +
+        deadlineLine(mev.deadline) +
         priceLine +
         speakersLine +
         feeLine +
