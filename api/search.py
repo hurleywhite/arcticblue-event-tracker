@@ -379,7 +379,11 @@ class handler(BaseHTTPRequestHandler):
         tracked = _tracked_names(self.headers.get('Host', ''))
         tracked_fps = {fp for fp in (_fingerprint(n) for n in tracked) if fp}
         tracked_lows = {n.lower() for n in tracked}
-        prompt = _build_prompt(count, types, quarters, regions, tracked)
+        # Over-ask: the model often returns tracked events despite the
+        # exclusion list and the hard filter then thins results. Asking for
+        # double (same single API call) keeps the NEW-event yield near count.
+        ask = min(count * 2, 25)
+        prompt = _build_prompt(ask, types, quarters, regions, tracked)
         engine = 'perplexity' if PPLX_API_KEY else 'dust'
         if engine == 'perplexity':
             try:
@@ -424,6 +428,7 @@ class handler(BaseHTTPRequestHandler):
                     ev['url'] = u
             cleaned.append(ev)
 
+        cleaned = cleaned[:count]  # trim the over-ask back to what was requested
         return _send(self, 200, {
             'events':   cleaned,
             'count':    len(cleaned),
