@@ -1223,6 +1223,24 @@
     .ab-btn--indigo:hover   { background: #e0e7ff; }
     .ab-btn--rose     { background: #fff1f2; color: #be123c; }
     .ab-btn--rose:hover     { background: #ffe4e6; }
+    /* Hierarchy: ONE solid primary (Add event); everything else is a quiet
+       ghost that keeps its color identity in the text/icon only. */
+    .ab-btn.ab-btn--primary { background: #047857; color: #fff; font-weight: 600; }
+    .ab-btn.ab-btn--primary:hover { background: #065f46; }
+    .ab-btn.ab-btn--ghost { background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); }
+    .ab-btn.ab-btn--ghost:hover { background: var(--ab-bg-3); }
+    /* Toolbar clusters: what ADDS events vs what SYNCS them out. */
+    .ops-toolbar-group {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 10px 6px 12px;
+      border: 1px solid var(--ab-rule); border-radius: 12px;
+      background: var(--ab-bg-2);
+    }
+    .ops-toolbar-label {
+      font-family: var(--ab-mono); font-size: 0.62rem;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ab-fg-3); margin-right: 2px; user-select: none;
+    }
 
     .ops-toolbar .ops-count {
       font-family: var(--ab-mono); font-size: 0.74rem;
@@ -6980,30 +6998,32 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
           <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
         </div>
         <div class="ops-toolbar">
-          <button class="ab-btn ab-btn--emerald" id="add-event-btn">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-            Add event
-          </button>
-          <button class="ab-btn ab-btn--blue" id="paste-email-btn">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
-            Paste email
-          </button>
-          <button class="ab-btn ab-btn--purple" id="search-dust-btn">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            Find events
-          </button>
-          <button class="ab-btn ab-btn--amber" id="csv-btn">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"/><path d="M3 10h18"/><path d="M10 6v12"/></svg>
-            CSV import/export
-          </button>
-          <button class="ab-btn ab-btn--indigo" id="ical-btn">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-            Download .ics
-          </button>
-          <button class="ab-btn ab-btn--rose" id="ical-subscribe-btn">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
-            Subscribe in calendar app
-          </button>
+          <div class="ops-toolbar-group" role="group" aria-label="Add events">
+            <span class="ops-toolbar-label">Add</span>
+            <button class="ab-btn ab-btn--primary" id="add-event-btn">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              Add event
+            </button>
+            <button class="ab-btn ab-btn--ghost ab-btn--blue" id="paste-email-btn" title="Paste an event email — name, dates and contacts are pre-filled for you">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+              Paste email
+            </button>
+            <button class="ab-btn ab-btn--ghost ab-btn--purple" id="search-dust-btn" title="Ask the AI to find new speaking events matching your criteria">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/><path d="m5.6 5.6 1.5 1.5"/><path d="m16.9 16.9 1.5 1.5"/><path d="m5.6 18.4 1.5-1.5"/><path d="m16.9 7.1 1.5-1.5"/><circle cx="12" cy="12" r="4"/></svg>
+              Find events (AI)
+            </button>
+          </div>
+          <div class="ops-toolbar-group" role="group" aria-label="Sync and export">
+            <span class="ops-toolbar-label">Sync</span>
+            <button class="ab-btn ab-btn--ghost ab-btn--rose" id="ical-subscribe-btn" title="One auto-updating feed for Google Calendar, Apple Calendar or Outlook — plus a one-time .ics download">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
+              Calendar sync
+            </button>
+            <button class="ab-btn ab-btn--ghost ab-btn--amber" id="csv-btn" title="Download the tracker as a spreadsheet, or upload an edited one">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"/><path d="M3 10h18"/><path d="M10 6v12"/></svg>
+              Spreadsheet
+            </button>
+          </div>
           <span class="ops-count" id="ops-count"></span>
         </div>
         <div class="ops-grid" id="ops-grid"></div>
@@ -10649,41 +10669,41 @@ Some large Technology companies have done segments on the podcast (Synthesia, Ro
       panel.id = 'subscribe-panel';
       panel.className = 'add-event-card';
       panel.innerHTML =
-        '<h3>Subscribe in your calendar app</h3>' +
-        '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
-          'This URL auto-updates daily with every saved event + every manual event. ' +
-          'Once subscribed, your calendar app refreshes on its own — no need to re-download.' +
+        '<h3>Calendar sync</h3>' +
+        '<p style="margin:0 0 14px;color:var(--ab-fg-2);font-size:0.9rem;">' +
+          'One live feed of every saved ★ and manual event. Subscribe once — ' +
+          'your calendar updates itself from then on.' +
         '</p>' +
+        // HERO: one-click Google Calendar subscribe — the team's shared
+        // calendar lives in Google, so this is the 95% path.
+        '<a href="https://calendar.google.com/calendar/render?cid=' +
+          encodeURIComponent('webcal://' + window.location.host + '/calendar.ics') +
+          '" target="_blank" rel="noopener" class="primary" id="subscribe-gcal-btn" ' +
+          'style="display:block;text-align:center;margin-bottom:14px;font-family:var(--ab-sans);font-weight:600;font-size:1rem;padding:13px 18px;border-radius:8px;background:#1a73e8;color:#fff;text-decoration:none;">' +
+          'Add to Google Calendar — one click</a>' +
         '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">' +
           '<input type="text" id="subscribe-url" readonly value="' + escapeHtml(feedUrl) + '" ' +
             'style="flex:1;font-family:var(--ab-mono);font-size:0.85rem;padding:10px 12px;border:1px solid var(--ab-rule-strong);border-radius:6px;background:var(--ab-bg-2);color:var(--ab-fg);">' +
           '<button type="button" class="primary" id="subscribe-copy-btn" style="white-space:nowrap;font-family:var(--ab-sans);font-weight:600;font-size:0.9rem;padding:10px 16px;border-radius:6px;border:0;background:var(--ab-fg);color:var(--ab-bg);cursor:pointer;">Copy link</button>' +
         '</div>' +
-        // One-click Google Calendar subscribe — opens Google Calendar with the
-        // feed pre-filled, so the whole tracker lands in the shared calendar
-        // and stays in sync automatically.
-        '<a href="https://calendar.google.com/calendar/render?cid=' +
-          encodeURIComponent('webcal://' + window.location.host + '/calendar.ics') +
-          '" target="_blank" rel="noopener" class="primary" id="subscribe-gcal-btn" ' +
-          'style="display:inline-block;margin-bottom:12px;font-family:var(--ab-sans);font-weight:600;font-size:0.9rem;padding:10px 16px;border-radius:6px;background:#1a73e8;color:#fff;text-decoration:none;">' +
-          'Add to Google Calendar (one click)</a>' +
-        '<details open style="border-top:1px solid var(--ab-rule);padding-top:12px;">' +
-          '<summary style="cursor:pointer;font-family:var(--ab-mono);font-size:0.72rem;color:var(--ab-fg-3);letter-spacing:0.08em;text-transform:uppercase;">Paste it here</summary>' +
+        '<details style="border-top:1px solid var(--ab-rule);padding-top:12px;">' +
+          '<summary style="cursor:pointer;font-family:var(--ab-mono);font-size:0.72rem;color:var(--ab-fg-3);letter-spacing:0.08em;text-transform:uppercase;">Other calendar apps (Apple · Outlook)</summary>' +
           '<div style="display:grid;gap:10px;margin-top:10px;font-size:0.9rem;color:var(--ab-fg-2);line-height:1.55;">' +
-            '<div><strong>Apple Calendar (Mac):</strong> File → New Calendar Subscription → paste → Subscribe → choose auto-refresh.</div>' +
+            '<div><strong>Apple Calendar (Mac):</strong> File → New Calendar Subscription → paste the link above → Subscribe → choose auto-refresh.</div>' +
             '<div><strong>Apple Calendar (iPhone/iPad):</strong> Settings → Calendar → Accounts → Add Account → Other → Add Subscribed Calendar → paste.</div>' +
-            '<div><strong>Google Calendar:</strong> Left sidebar → Other calendars → + → From URL → paste → Add calendar.</div>' +
             '<div><strong>Outlook (web):</strong> Calendar → Add calendar → Subscribe from web → paste.</div>' +
           '</div>' +
         '</details>' +
-        '<div class="add-actions" style="margin-top:14px;">' +
+        '<div class="add-actions" style="margin-top:14px;align-items:center;">' +
           '<button type="button" class="secondary" id="subscribe-close-btn">Close</button>' +
+          '<a id="subscribe-download-btn" style="cursor:pointer;font-size:0.85rem;color:var(--ab-fg-3);text-decoration:underline;margin-left:auto;" title="A one-time snapshot file — does NOT stay in sync; prefer the live feed above">Download one-time .ics file instead</a>' +
         '</div>' +
         '<p class="ops-meta" style="margin-top:10px;">Tip: the feed is empty until at least one event is starred ★ saved, or you add a manual event.</p>';
 
       $opsGrid.insertBefore(panel, $opsGrid.firstChild);
 
       panel.querySelector('#subscribe-close-btn').addEventListener('click', function () { panel.remove(); });
+      panel.querySelector('#subscribe-download-btn').addEventListener('click', function () { exportSavedAsIcs(); });
 
       var copyBtn = panel.querySelector('#subscribe-copy-btn');
       copyBtn.addEventListener('click', function () {
