@@ -5398,7 +5398,7 @@ def build():
       panel.id = 'search-panel';
       panel.className = 'add-event-card';
       panel.innerHTML =
-        '<h3>Find events via Dust</h3>' +
+        '<h3>Find events (AI search)</h3>' +
         '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
           'The <strong>ArcticBlueEventSpeaking</strong> agent will find upcoming in-person AI events matching your criteria.' +
         '</p>' +
@@ -5423,7 +5423,7 @@ def build():
           '<button type="button" class="primary" id="search-run-btn">Find events</button>' +
           '<button type="button" class="secondary" id="search-cancel-btn">Close</button>' +
         '</div>' +
-        '<p class="ops-meta" id="search-meta" style="margin-top:10px;">Dust replies usually take 10\\u201360 seconds.</p>' +
+        '<p class="ops-meta" id="search-meta" style="margin-top:10px;">AI search usually takes 10\\u201320 seconds.</p>' +
         '<div id="search-results" style="margin-top:12px;"></div>';
 
       $opsGrid.insertBefore(panel, $opsGrid.firstChild);
@@ -5441,7 +5441,7 @@ def build():
         var criteria = {{ count: count, types: getTypes(), quarters: getQuarters(), regions: getRegions() }};
         var runBtn = panel.querySelector('#search-run-btn');
         var meta   = panel.querySelector('#search-meta');
-        runBtn.disabled = true; runBtn.textContent = 'Asking Dust\\u2026';
+        runBtn.disabled = true; runBtn.textContent = 'Searching\\u2026';
         meta.textContent = 'Asking ArcticBlueEventSpeaking for ' + count + ' events. This can take 10\\u201360 seconds.';
 
         sb.auth.getSession().then(function (r) {{
@@ -5480,7 +5480,7 @@ def build():
       var events = (data.events || []);
       var $r = panel.querySelector('#search-results');
       if (events.length === 0) {{
-        $r.innerHTML = '<p class="alert">Dust returned no events for these criteria. Try widening the types or quarters.</p>';
+        $r.innerHTML = '<p class="alert">No events found for these criteria. Try widening the types or quarters.</p>';
         return;
       }}
 

@@ -1,5 +1,11 @@
-"""POST /api/search — search the ArcticBlueEventSpeaking Dust agent for
-upcoming in-person AI events matching criteria.
+"""POST /api/search — find upcoming in-person AI events matching criteria.
+
+ENGINE: Perplexity (sonar, web-grounded) when PERPLEXITY_API_KEY is set —
+~1 cheap call and ~10s instead of a metered 30-90s Dust agent run. Falls
+back to the legacy ArcticBlueEventSpeaking Dust agent when only
+DUST_API_KEY is configured. Either way, added events still pass the
+OpenAI worthiness gate + auto-enrichment, so curation does not depend on
+the finder.
 
 Why this exists separately from /api/vet:
   /api/vet takes a single candidate (URL or pasted text) and returns one
@@ -42,6 +48,10 @@ def _env(k, d=''):
 
 SUPABASE_URL          = _env('SUPABASE_URL', 'https://efkvhlmfdwlobvdmvqiq.supabase.co').rstrip('/')
 SUPABASE_PUBLISHABLE  = _env('SUPABASE_PUBLISHABLE_KEY')
+
+PPLX_API_KEY = _env('PERPLEXITY_API_KEY')
+PPLX_MODEL   = _env('PERPLEXITY_MODEL', 'sonar')
+PPLX_BASE    = _env('PERPLEXITY_BASE_URL', 'https://api.perplexity.ai').rstrip('/')
 
 DUST_API_KEY     = _env('DUST_API_KEY')
 DUST_WORKSPACE   = _env('DUST_WORKSPACE_ID', 'G5QCSmfJhK')
@@ -189,7 +199,8 @@ def _extract_json_array(text):
 SEARCH_PROMPT = """You're sourcing in-person AI events for ArcticBlue (applied-AI
 consultancy that does enterprise + halo events). Find {count} upcoming
 events that match the criteria below. Prefer well-known, reputable
-events with verified websites.
+events with verified websites, and STRONGLY prefer buyer-rich audiences
+(in-house enterprise decision-makers) over vendor-to-vendor sales expos.
 
 Criteria
 - Quarters to include:  {quarters_str}
@@ -206,6 +217,8 @@ For each event return a JSON object with this exact schema:
   "priority":  "<High | Medium | Low>",
   "why":       "<one sentence on why this is or isn't a fit for ArcticBlue>",
   "url":       "<the event's homepage URL if verified, else null>",
+  "audience":  "<Buyer-rich | Mixed | Vendor-heavy — are attendees mostly in-house enterprise buyers, or vendors selling?>",
+  "pricing":   "<cost to attend if known, else null>",
   "recommend": "<yes | maybe | no>",
   "reasoning": "<one or two sentences explaining the recommendation>"
 }}
@@ -226,6 +239,24 @@ def _build_prompt(count, types, quarters, regions):
         quarters_str = fmt(quarters),
         regions_str  = fmt(regions),
     )
+
+
+def _perplexity_search(prompt):
+    """One web-grounded sonar call; returns the reply text. Raises on error."""
+    status, data = _http_json(
+        'POST', f'{PPLX_BASE}/chat/completions',
+        headers={'Authorization': f'Bearer {PPLX_API_KEY}'},
+        body={'model': PPLX_MODEL,
+              'messages': [
+                  {'role': 'system', 'content':
+                   'You research business conferences using web search. '
+                   'Follow the output format instructions exactly.'},
+                  {'role': 'user', 'content': prompt}],
+              'temperature': 0.2, 'max_tokens': 2400},
+        timeout=70)
+    if status != 200 or not isinstance(data, dict):
+        raise RuntimeError(f'perplexity returned {status}: {str(data)[:300]}')
+    return data['choices'][0]['message']['content']
 
 
 def _send(handler, status, payload):
@@ -257,8 +288,8 @@ class handler(BaseHTTPRequestHandler):
             })
 
     def _handle(self):
-        if not DUST_API_KEY:
-            return _send(self, 500, {'error': 'server not configured: DUST_API_KEY missing'})
+        if not (PPLX_API_KEY or DUST_API_KEY):
+            return _send(self, 500, {'error': 'server not configured: need PERPLEXITY_API_KEY (preferred) or DUST_API_KEY'})
         if not SUPABASE_PUBLISHABLE:
             return _send(self, 500, {'error': 'server not configured: SUPABASE_PUBLISHABLE_KEY missing'})
 
@@ -294,20 +325,26 @@ class handler(BaseHTTPRequestHandler):
             return _send(self, 403, {'error': f'forbidden: {who}'})
         caller_email = who
 
-        # Call Dust
         prompt = _build_prompt(count, types, quarters, regions)
-        try:
-            conv_id = _dust_start(prompt, caller_email)
-            reply   = _dust_poll(conv_id)
-        except TimeoutError as e:
-            return _send(self, 504, {'error': f'dust timeout: {e}'})
-        except Exception as e:
-            err_str = str(e)
-            if 'rate_limit' in err_str.lower():
-                return _send(self, 429, {'error': 'Dust rate-limited. Try again in 1-2 minutes.'})
-            return _send(self, 502, {'error': f'dust call failed: {e}'})
-
-        agent_text = _agent_text(reply)
+        engine = 'perplexity' if PPLX_API_KEY else 'dust'
+        if engine == 'perplexity':
+            try:
+                agent_text = _perplexity_search(prompt)
+            except Exception as e:
+                return _send(self, 502, {'error': f'perplexity call failed: {e}'})
+            reply = {'status': 'succeeded'}
+        else:
+            try:
+                conv_id = _dust_start(prompt, caller_email)
+                reply   = _dust_poll(conv_id)
+            except TimeoutError as e:
+                return _send(self, 504, {'error': f'dust timeout: {e}'})
+            except Exception as e:
+                err_str = str(e)
+                if 'rate_limit' in err_str.lower():
+                    return _send(self, 429, {'error': 'Dust rate-limited. Try again in 1-2 minutes.'})
+                return _send(self, 502, {'error': f'dust call failed: {e}'})
+            agent_text = _agent_text(reply)
         events     = _extract_json_array(agent_text) or []
 
         # Sanitize each event — drop URLs that are clearly hallucinated
@@ -330,6 +367,7 @@ class handler(BaseHTTPRequestHandler):
             'count':    len(cleaned),
             'raw':      agent_text[:8000],
             'status':   reply.get('status'),
+            'engine':   engine,
             'caller':   caller_email,
             'criteria': {
                 'count':    count,
