@@ -1629,6 +1629,9 @@ def build():
     .ab-btn.ab-btn--primary:hover {{ background: #065f46; }}
     .ab-btn.ab-btn--ghost {{ background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); }}
     .ab-btn.ab-btn--ghost:hover {{ background: var(--ab-bg-3); }}
+    /* Pressed state while a feature's panel is open — click again to close. */
+    .ab-btn.is-open {{ box-shadow: 0 0 0 2px currentColor; }}
+    .ab-btn.ab-btn--primary.is-open {{ box-shadow: 0 0 0 2px #047857, 0 0 0 4px #d1fae5; }}
     /* Toolbar clusters: what ADDS events vs what SYNCS them out. */
     .ops-toolbar-group {{
       display: inline-flex; align-items: center; gap: 8px;
@@ -1649,6 +1652,8 @@ def build():
     }}
 
     .add-event-card {{
+      /* When a panel scrolls into view, clear the sticky header + tab bar. */
+      scroll-margin-top: 130px;
       grid-column: 1 / -1;
       padding: 24px;
       border: 1px dashed var(--ab-blue); border-radius: 10px;
@@ -5726,28 +5731,84 @@ def build():
         if (typeof currentView !== 'undefined' && currentView !== 'grid') setView('grid');
       }}
 
+      // ── Panel discipline ────────────────────────────────────────────
+      // Every toolbar feature is a strict toggle: click opens it, click
+      // again closes it. Only ONE panel at a time (opening one closes the
+      // rest), the opened panel scrolls into view (it injects at the top of
+      // the grid — invisible if you'd scrolled down), and the button shows a
+      // pressed state while its panel is open.
+      var PANELS = [
+        ['add-event-card',  $addBtn],
+        ['search-panel',    $searchBtn],
+        ['csv-panel',       $csvBtn],
+        ['subscribe-panel', $subBtn]
+      ];
+      function closeOtherPanels(keepId) {{
+        PANELS.forEach(function (p) {{
+          if (p[0] === keepId) return;
+          var el = document.getElementById(p[0]);
+          if (el) el.remove();
+        }});
+      }}
+      function revealPanel(id) {{
+        setTimeout(function () {{
+          var el = document.getElementById(id);
+          if (el && el.scrollIntoView) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+        }}, 60);
+      }}
+      function syncToolbarState() {{
+        PANELS.forEach(function (p) {{
+          if (p[1]) p[1].classList.toggle('is-open', !!document.getElementById(p[0]));
+        }});
+        // Paste email lives inside the Add-event card — light it up too.
+        if ($pasteBtn) {{
+          var sec = document.getElementById('paste-email-section');
+          $pasteBtn.classList.toggle('is-open', !!(sec && sec.hasAttribute('open')));
+        }}
+      }}
+      // Panels also close via their own Close buttons / after a save — watch
+      // the grid so button states stay truthful no matter how a panel left.
+      try {{
+        new MutationObserver(syncToolbarState)
+          .observe($opsGrid, {{ childList: true, subtree: false }});
+      }} catch (e) {{}}
+
       $addBtn.addEventListener('click', function () {{
         ensureGridView();
         var existing = document.getElementById('add-event-card');
-        if (existing) {{ existing.remove(); return; }}
+        if (existing) {{ existing.remove(); syncToolbarState(); return; }}
+        closeOtherPanels('add-event-card');
         openAddForm({{}});
+        revealPanel('add-event-card');
+        syncToolbarState();
       }});
       if ($pasteBtn) {{
         $pasteBtn.addEventListener('click', function () {{
           ensureGridView();
+          var existing = document.getElementById('add-event-card');
+          if (existing) {{ existing.remove(); syncToolbarState(); return; }}
+          closeOtherPanels('add-event-card');
           openAddForm({{ expandPaste: true }});
+          revealPanel('add-event-card');
+          syncToolbarState();
         }});
       }}
       if ($searchBtn) {{
         $searchBtn.addEventListener('click', function () {{
           ensureGridView();
-          openSearchPanel(email);
+          closeOtherPanels('search-panel');
+          openSearchPanel(email);   // self-toggles when already open
+          revealPanel('search-panel');
+          syncToolbarState();
         }});
       }}
       if ($csvBtn) {{
         $csvBtn.addEventListener('click', function () {{
           ensureGridView();
+          closeOtherPanels('csv-panel');
           openCsvPanel(email);
+          revealPanel('csv-panel');
+          syncToolbarState();
         }});
       }}
       if ($icalBtn) {{
@@ -5756,7 +5817,10 @@ def build():
       if ($subBtn) {{
         $subBtn.addEventListener('click', function () {{
           ensureGridView();
+          closeOtherPanels('subscribe-panel');
           openSubscribePanel();
+          revealPanel('subscribe-panel');
+          syncToolbarState();
         }});
       }}
     }}
