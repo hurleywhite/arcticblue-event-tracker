@@ -202,6 +202,13 @@ events that match the criteria below. Prefer well-known, reputable
 events with verified websites, and STRONGLY prefer buyer-rich audiences
 (in-house enterprise decision-makers) over vendor-to-vendor sales expos.
 
+ALREADY TRACKED — do NOT return any of these, nor trivial rewordings of
+them. (A different city/region edition of a series IS welcome — e.g. a
+Singapore edition when only the London one is tracked.) Use this list as a
+TASTE PROFILE: suggest events of similar caliber and audience that are
+missing from it:
+{tracked_str}
+
 Criteria
 - Quarters to include:  {quarters_str}
 - Event types to include: {types_str}
@@ -229,16 +236,60 @@ CRITICAL: do not invent URLs. If you don't have a verified URL for an event, set
 """
 
 
-def _build_prompt(count, types, quarters, regions):
+def _build_prompt(count, types, quarters, regions, tracked):
     def fmt(arr):
         if not arr: return 'no preference'
         return ', '.join(arr)
+    tracked_str = '; '.join(tracked) if tracked else '(list unavailable)'
     return SEARCH_PROMPT.format(
         count        = max(1, min(int(count or 10), 25)),
         types_str    = fmt(types),
         quarters_str = fmt(quarters),
         regions_str  = fmt(regions),
+        tracked_str  = tracked_str,
     )
+
+
+# ── Tracker awareness ────────────────────────────────────────────────
+# The search must NOT re-suggest events already tracked, and should use the
+# existing list as a taste profile. Names come from the public catalog
+# (events.json on this same deployment) + manual_events (public read via RLS).
+_DEDUPE_STOP = {
+    'the', 'a', 'an', 'and', 'or', 'of', 'for', 'to', 'in', 'on', 'at', 'by', 'with',
+    'summit', 'summits', 'conference', 'conferences', 'expo', 'forum', 'event', 'events',
+}
+_YEAR_RE = re.compile(r'^(?:19|20)\d{2}$')
+
+
+def _fingerprint(name):
+    """Order-independent dedupe key (mirrors api/events.py). '' = no key."""
+    s = re.sub(r'[^a-z0-9]+', ' ', (name or '').lower())
+    toks = [t for t in s.split() if t not in _DEDUPE_STOP and not _YEAR_RE.match(t)]
+    return ' '.join(sorted(set(toks)))
+
+
+def _tracked_names(host):
+    """Every event name currently in the tracker (catalog + manual). Failures
+    just shrink the list — the client-side dedupe badge is the last resort."""
+    names = []
+    if host:
+        status, data = _http_json('GET', f'https://{host}/events.json', timeout=12)
+        if status == 200 and isinstance(data, dict):
+            for e in (data.get('events') or []):
+                n = (e.get('name') or '').strip()
+                if n:
+                    names.append(n)
+    status, rows = _http_json(
+        'GET', f'{SUPABASE_URL}/rest/v1/manual_events?select=name',
+        headers={'apikey': SUPABASE_PUBLISHABLE,
+                 'Authorization': f'Bearer {SUPABASE_PUBLISHABLE}'},
+        timeout=12)
+    if status == 200 and isinstance(rows, list):
+        for r in rows:
+            n = (r.get('name') or '').strip()
+            if n:
+                names.append(n)
+    return names
 
 
 def _perplexity_search(prompt):
@@ -325,7 +376,10 @@ class handler(BaseHTTPRequestHandler):
             return _send(self, 403, {'error': f'forbidden: {who}'})
         caller_email = who
 
-        prompt = _build_prompt(count, types, quarters, regions)
+        tracked = _tracked_names(self.headers.get('Host', ''))
+        tracked_fps = {fp for fp in (_fingerprint(n) for n in tracked) if fp}
+        tracked_lows = {n.lower() for n in tracked}
+        prompt = _build_prompt(count, types, quarters, regions, tracked)
         engine = 'perplexity' if PPLX_API_KEY else 'dust'
         if engine == 'perplexity':
             try:
@@ -348,10 +402,18 @@ class handler(BaseHTTPRequestHandler):
         events     = _extract_json_array(agent_text) or []
 
         # Sanitize each event — drop URLs that are clearly hallucinated
-        # patterns (placeholders, .example, etc.) just in case.
+        # patterns (placeholders, .example, etc.), and HARD-FILTER anything
+        # already tracked (exact name or reworded fingerprint match) so the
+        # model ignoring the exclusion list can't produce repeats.
         cleaned = []
+        dupes_filtered = 0
         for ev in events:
             if not isinstance(ev, dict): continue
+            nm = (ev.get('name') or '').strip()
+            fp = _fingerprint(nm)
+            if nm.lower() in tracked_lows or (fp and fp in tracked_fps):
+                dupes_filtered += 1
+                continue
             url = ev.get('url')
             if isinstance(url, str):
                 u = url.strip()
@@ -365,6 +427,7 @@ class handler(BaseHTTPRequestHandler):
         return _send(self, 200, {
             'events':   cleaned,
             'count':    len(cleaned),
+            'dupes_filtered': dupes_filtered,
             'raw':      agent_text[:8000],
             'status':   reply.get('status'),
             'engine':   engine,

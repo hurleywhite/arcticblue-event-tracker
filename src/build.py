@@ -5466,7 +5466,8 @@ def build():
               meta.textContent = 'Find failed (' + st + '): ' + (data && data.error || 'unknown error');
               return;
             }}
-            meta.textContent = 'Found ' + (data.events || []).length + ' events in ' + dur + 's.';
+            meta.textContent = 'Found ' + (data.events || []).length + ' new events in ' + dur + 's' +
+              (data.dupes_filtered ? ' (' + data.dupes_filtered + ' already-tracked filtered out)' : '') + '.';
             renderSearchResults(panel, data, email);
           }}).catch(function (err) {{
             runBtn.disabled = false; runBtn.textContent = 'Find more';
