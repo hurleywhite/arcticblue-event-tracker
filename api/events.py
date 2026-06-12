@@ -702,6 +702,18 @@ def _perplexity_facts(row):
     return facts if isinstance(facts, dict) else {}
 
 
+# The model sometimes answers "Unknown"/"N/A" instead of omitting a key.
+# Storing those pollutes the UI and blocks future re-research — drop them.
+_JUNK_PREFIXES = ('unknown', 'n/a', 'na', 'none', 'not available', 'not verified',
+                  'not specified', 'not publicly', 'not announced', 'not found',
+                  'unclear', 'tbd', 'to be', 'varies', 'unavailable')
+
+
+def _junk_fact(v):
+    s = str(v or '').strip().lower()
+    return (not s) or any(s.startswith(p) for p in _JUNK_PREFIXES)
+
+
 def _merge_missing_facts(row, facts):
     """Patch of ONLY the row's empty columns from researched facts — values a
     human (or the gate) already set are never touched."""
@@ -718,6 +730,13 @@ def _merge_missing_facts(row, facts):
                 continue
         elif isinstance(v, list):
             v = '; '.join(str(x) for x in v)
+        if col != 'audience_type' and _junk_fact(v):
+            continue
+        if col == 'pay_to_play':
+            v = ('Yes' if str(v).strip().lower().startswith('yes')
+                 else 'No' if str(v).strip().lower().startswith('no') else None)
+            if not v:
+                continue
         patch[col] = str(v).strip()[:600]
     return patch
 

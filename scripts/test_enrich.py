@@ -224,6 +224,18 @@ p2 = en.merge_missing({'name': 'Quantum Robotics Forum', 'url': ''},
                       {'official_url': 'https://eventbrite.com/e/12345'})
 check('mismatched homepage domain dropped', 'url' not in p2)
 
+# "Unknown"/"N/A"-style answers must be dropped, not stored.
+p3 = en.merge_missing({'name': 'X'}, {'pricing': 'Unknown', 'venue': 'N/A',
+                                      'meeting_formats': 'Not verified',
+                                      'attendee_count': 'TBD',
+                                      'deadline': 'not announced yet',
+                                      'pay_to_play': 'Unknown'})
+check('junk "Unknown"-style facts all dropped', p3 == {})
+check('real value still passes junk filter',
+      en.merge_missing({'name': 'X'}, {'venue': 'Moscone Center'}).get('venue') == 'Moscone Center')
+pi3 = ev._merge_missing_facts({'name': 'X'}, {'pricing': 'Unknown', 'venue': 'N/A'})
+check('inline junk facts dropped too', pi3 == {})
+
 check('has_gaps true when fields missing', en.has_gaps({'name': 'X', 'url': None}))
 check('has_gaps false when all filled', not en.has_gaps(
     {c: 'x' for c in en.GAP_COLUMNS}))

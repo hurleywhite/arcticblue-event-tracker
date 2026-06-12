@@ -254,11 +254,26 @@ def _norm_p2p(v):
     s = str(v or '').strip().lower()
     if s.startswith('yes'):
         return 'Yes'
-    if s.startswith('no') and not s.startswith('not sure'):
+    if s.startswith('no') and not s.startswith('not'):
         return 'No'
-    if s:
-        return 'Unknown'
+    # "Unknown" adds nothing and would block future re-research — omit.
     return None
+
+
+# Despite "OMIT every key you are not confident about", the model sometimes
+# answers "Unknown" / "N/A" / "not verified". Storing those pollutes the UI
+# (a meeting_formats of "Unknown" renders a 1:1-meetings chip) and marks the
+# field as filled so it's never researched again. Treat them as empty.
+_JUNK_PREFIXES = ('unknown', 'n/a', 'na', 'none', 'not available', 'not verified',
+                  'not specified', 'not publicly', 'not announced', 'not found',
+                  'unclear', 'tbd', 'to be', 'varies', 'unavailable')
+
+
+def _junk(v):
+    s = str(v or '').strip().lower()
+    if not s:
+        return True
+    return any(s.startswith(p) for p in _JUNK_PREFIXES)
 
 
 def merge_missing(row, facts):
@@ -270,13 +285,13 @@ def merge_missing(row, facts):
         v = row.get(col)
         return v is None or str(v).strip() == ''
 
-    if empty('url') and facts.get('official_url'):
+    if empty('url') and not _junk(facts.get('official_url')):
         u = str(facts['official_url']).strip()
         if u.startswith('http') and _name_matches_domain(row.get('name'), u):
             patch['url'] = u
-    if empty('venue') and facts.get('venue'):
+    if empty('venue') and not _junk(facts.get('venue')):
         patch['venue'] = str(facts['venue']).strip()[:200]
-    if empty('pricing') and facts.get('pricing'):
+    if empty('pricing') and not _junk(facts.get('pricing')):
         patch['pricing'] = str(facts['pricing']).strip()[:300]
     if empty('pay_to_play'):
         p = _norm_p2p(facts.get('pay_to_play'))
@@ -286,18 +301,19 @@ def merge_missing(row, facts):
         v = facts['past_speakers']
         if isinstance(v, list):
             v = '; '.join(str(x) for x in v)
-        patch['past_speakers'] = str(v).strip()[:600]
-    if empty('meeting_formats') and facts.get('meeting_formats'):
+        if not _junk(v):
+            patch['past_speakers'] = str(v).strip()[:600]
+    if empty('meeting_formats') and not _junk(facts.get('meeting_formats')):
         patch['meeting_formats'] = str(facts['meeting_formats']).strip()[:300]
     if empty('audience_type'):
         a = _norm_audience(facts.get('audience'))
         if a:
             patch['audience_type'] = a
-    if empty('typical_attendees') and facts.get('typical_attendees'):
+    if empty('typical_attendees') and not _junk(facts.get('typical_attendees')):
         patch['typical_attendees'] = str(facts['typical_attendees']).strip()[:300]
-    if empty('attendee_count') and facts.get('attendee_count'):
+    if empty('attendee_count') and not _junk(facts.get('attendee_count')):
         patch['attendee_count'] = str(facts['attendee_count']).strip()[:60]
-    if empty('deadline') and facts.get('deadline'):
+    if empty('deadline') and not _junk(facts.get('deadline')):
         patch['deadline'] = str(facts['deadline']).strip()[:120]
     return patch
 
