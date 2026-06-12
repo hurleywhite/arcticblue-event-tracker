@@ -54,7 +54,7 @@ PPLX_BASE    = _env('PERPLEXITY_BASE_URL', 'https://api.perplexity.ai').rstrip('
 # Columns we try to fill, and the Perplexity-fact key each maps from.
 GAP_COLUMNS = ('url', 'venue', 'pay_to_play', 'speaking_route', 'pricing',
                'past_speakers', 'meeting_formats', 'audience_type',
-               'typical_attendees', 'deadline')
+               'typical_attendees', 'attendee_count', 'deadline')
 
 
 def _http_json(method, url, headers=None, body=None, timeout=20):
