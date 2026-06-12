@@ -2774,6 +2774,15 @@ def build():
     // boolean or null — used for the Seed? / Urgent? dropdowns.
     function triBool(s) {{ s = (s == null ? '' : String(s)); return s === 'true' ? true : (s === 'false' ? false : null); }}
 
+    // A pasted "example.com" without a scheme renders as a BROKEN relative
+    // link on cards — normalize to https:// on save.
+    function normUrl(v) {{
+      v = (v == null ? '' : String(v)).trim();
+      if (!v) return null;
+      if (!/^https?:\\/\\//i.test(v)) v = 'https://' + v.replace(/^\\/+/, '');
+      return v;
+    }}
+
     // Shared markup for the ArcticScout rich detail fields, used by BOTH the
     // "Add event" form (pass {{}}) and the per-card "Edit" form (pass mev).
     // External_id is intentionally omitted — it's a system provenance id.
@@ -3035,7 +3044,7 @@ def build():
           notes:               (fd.get('notes') || '').toString().trim() || null,
           speaking_fee:        (fd.get('speaking_fee') || '').toString().trim() || null,
           paid:                paidRaw === 'true' ? true : (paidRaw === 'false' ? false : null),
-          url:                 (fd.get('url') || '').toString().trim() || null,
+          url:                 normUrl(fd.get('url')),
           about:               (fd.get('about') || '').toString().trim() || null,
           focus_areas:         (fd.get('focus_areas') || '').toString().trim() || null,
           typical_attendees:   (fd.get('typical_attendees') || '').toString().trim() || null,
@@ -4135,7 +4144,7 @@ def build():
           type:       (fd.get('type') || '').toString().trim() || null,
           priority:   (fd.get('priority') || '').toString().trim() || null,
           why:        (fd.get('why') || '').toString().trim() || null,
-          url:        (fd.get('url') || '').toString().trim() || null,
+          url:        normUrl(fd.get('url')),
           speaker:    (fd.get('speaker') || '').toString().trim() || null,
           status_tags:        normalizeStageTags(fd.getAll('status_tags')),
           about:              (fd.get('about') || '').toString().trim() || null,
