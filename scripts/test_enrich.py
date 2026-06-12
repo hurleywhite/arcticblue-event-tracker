@@ -245,6 +245,23 @@ check('junk_wipe nulls only the junk columns', en.junk_wipe(
     {'pricing': 'Unknown', 'venue': 'Moscone Center', 'deadline': 'TBD'}) ==
     {'pricing': None, 'deadline': None})
 
+print('11b) find_homepage: Exa fallback with domain guard + aggregator blocklist')
+en.EXA_API_KEY = 'test-key'
+en._exa_search = lambda q, include_domains=None, num=8: [
+    {'url': 'https://www.eventbrite.com/e/superai-2026', 'title': 'SuperAI 2026 Tickets'},
+    {'url': 'https://en.wikipedia.org/wiki/SuperAI', 'title': 'SuperAI'},
+    {'url': 'https://superai.com/', 'title': 'SuperAI 2026 — Singapore'},
+]
+check('skips aggregators, returns matching official domain',
+      en.find_homepage('SuperAI 2026') == 'https://superai.com/')
+en._exa_search = lambda q, include_domains=None, num=8: [
+    {'url': 'https://random-conference-site.com/', 'title': 'Some Other Event'},
+]
+check('no domain match -> None (never guesses)',
+      en.find_homepage('Quantum Robotics Forum') is None)
+en.EXA_API_KEY = ''
+check('EXA disabled -> None', en.find_homepage('SuperAI 2026') is None)
+
 print('12) events.py inline fact merge: fill-only-missing + audience normalize')
 rowi = {'name': 'X', 'venue': 'Set Already', 'pricing': ''}
 fi = {'venue': 'New Venue', 'pricing': '$1,500', 'audience': 'mostly buyers'}

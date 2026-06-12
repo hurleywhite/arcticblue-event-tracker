@@ -147,6 +147,35 @@ def _exa_search(query, include_domains=None, num=8):
     return out
 
 
+# Domains that are never an event's own homepage — listing/social/aggregator
+# sites that often outrank the real site in search.
+_AGGREGATOR_DOMAINS = {
+    'eventbrite.com', 'linkedin.com', 'facebook.com', 'instagram.com',
+    'twitter.com', 'x.com', 'youtube.com', 'wikipedia.org', 'medium.com',
+    'reddit.com', 'meetup.com', 'lu.ma', '10times.com', 'allevents.in',
+    'eventslooped.com', 'conferenceindex.org', 'clocate.com', 'tradefairdates.com',
+}
+
+
+def find_homepage(name, location=None):
+    """Exa fallback for the event's official homepage when Perplexity didn't
+    return one. Same safety rule as everywhere: only accept a URL whose domain
+    matches a distinctive token of the event name — a wrong link is worse
+    than none. Returns a URL or None."""
+    if not (EXA_API_KEY and name):
+        return None
+    q = '%s official website' % name
+    if location:
+        q += ' %s' % str(location).split(',')[0]
+    for r in _exa_search(q, num=8):
+        dom = _domain_of(r['url'])
+        if not dom or dom in _AGGREGATOR_DOMAINS:
+            continue
+        if _name_matches_domain(name, r['url']):
+            return r['url']
+    return None
+
+
 def find_speaking_route(name, home_url):
     """Apply-to-speak link ON the event's own registrable domain, else None."""
     if not (EXA_API_KEY and name):
@@ -320,10 +349,18 @@ def merge_missing(row, facts):
 
 def enrich_one(row):
     """Research one event dict and return the fill-only-missing patch.
-    Exa apply-link uses the row's url (or the freshly-found official_url)."""
+    Homepage: Perplexity first, Exa search as fallback (same domain guard).
+    Exa apply-link uses the row's url (or the freshly-found one)."""
     facts = perplexity_facts(row)
     patch = merge_missing(row, facts)
     home = row.get('url') or patch.get('url')
+    if not home:
+        try:
+            home = find_homepage(row.get('name'), row.get('location'))
+        except Exception:
+            home = None
+        if home:
+            patch['url'] = home
     if not (row.get('speaking_route') or '').strip() and home:
         route = None
         try:
@@ -403,6 +440,26 @@ class handler(BaseHTTPRequestHandler):
         except (TypeError, ValueError):
             limit = 6
 
+        # ── Candidates mode: research caller-supplied events, return patches,
+        # write NOTHING. Lets the nightly workflow enrich data/events.json
+        # (the catalog) using THIS function's API keys — the repo only needs
+        # the ingest secret, not the Perplexity/Exa keys.
+        if isinstance(body.get('candidates'), list):
+            cands = [c for c in body['candidates'] if isinstance(c, dict)][:6]
+            patches = []
+            for cand in cands:
+                wipe = junk_wipe(cand)
+                cand_clean = dict(cand)
+                for c in wipe:
+                    cand_clean[c] = None
+                p = dict(wipe, **enrich_one(cand_clean))
+                patches.append({'name': cand.get('name'), 'patch': p})
+            return _send(self, 200, {
+                'mode': 'candidates', 'patches': patches,
+                'engines': {'perplexity': bool(PPLX_API_KEY),
+                            'exa': bool(EXA_API_KEY)},
+            })
+
         status, rows = _http_json(
             'GET', SUPABASE_URL + '/rest/v1/manual_events?select=*&order=id.desc',
             headers=_svc_headers(), timeout=20)
@@ -411,8 +468,10 @@ class handler(BaseHTTPRequestHandler):
                                      'status': status})
         gappy = [r for r in rows if has_gaps(r)]
         # Rotate the queue daily so the same un-enrichable heads don't eat the
-        # whole budget every night.
+        # whole budget every night — but events with NO website link always
+        # jump the queue (a link unlocks the apply-link lookup too).
         random.Random(date.today().toordinal()).shuffle(gappy)
+        gappy.sort(key=lambda r: 0 if not (r.get('url') or '').strip() else 1)
         picked = gappy[:limit]
 
         results, errors = [], []

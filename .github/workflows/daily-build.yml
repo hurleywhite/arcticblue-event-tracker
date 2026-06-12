@@ -36,6 +36,15 @@ jobs:
           EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
         run: python3 scripts/enrich_catalog.py --limit 10
 
+      # Same sweep but THROUGH the deployed /api/enrich (candidates mode) —
+      # the API keys live in Vercel, the repo only needs the ingest secret.
+      # Link-less events jump the queue. Skips quietly when the secret or the
+      # local keys above already handled it.
+      - name: Enrich catalog gaps via /api/enrich (remote keys)
+        env:
+          EVENTS_INGEST_SECRET: ${{ secrets.EVENTS_INGEST_SECRET }}
+        run: python3 scripts/enrich_catalog_remote.py --limit 10
+
       - name: Run build.py
         run: python3 src/build.py
 
