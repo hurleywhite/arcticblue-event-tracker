@@ -427,7 +427,13 @@
    "priority_full": "Low (Halo; UN/policy primary audience; strong international prestige; valuable for global AI governance brand positioning)",
    "why": "ITU's flagship global AI summit drawing 5,000+ senior policymakers and enterprise AI leaders across 4 days in Geneva; AI governance thought leadership and international prestige positioning alongside world governments and Fortune 500 AI executives.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "Palexpo International Exhibition and Convention Center",
+   "meeting_formats": "Hosted exhibition, live demos, interactive zones, workshops, and premium access to Centre Stage/VIP experiences",
+   "audience_type": "Mixed",
+   "typical_attendees": "Government officials, industry leaders, academics, civil society, technical community, policymakers, UN agencies, and researchers",
+   "attendee_count": "1,000+ speakers; 200+ exhibitors",
+   "deadline": "1 September 2026"
   },
   {
    "num": 28,
@@ -604,7 +610,7 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "Foundry/IDG's flagship CIO awards conference honoring 100 IT innovators alongside 300+ senior CIOs; AI, cybersecurity, and digital transformation agenda; strong partner speaking route for enterprise AI solution providers.",
-   "url": null,
+   "url": "https://www.cio.com/cio-100/",
    "status": "upcoming"
   },
   {
@@ -649,8 +655,12 @@
    "priority": "High",
    "priority_full": "High",
    "why": "World's largest tech event (201,000+ visitors) — seed target now confirmed IN WINDOW for this session; AI, enterprise transformation, and sovereign AI themes; 1,000+ speakers including AWS CEO Matt Garman.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://onegiantleap.com",
+   "status": "upcoming",
+   "venue": "Riyadh Exhibition and Convention Center in Malham",
+   "audience_type": "Mixed",
+   "typical_attendees": "Technology professionals, entrepreneurs, investors, policymakers, students, and public visitors interested in innovation and emerging technologies",
+   "attendee_count": "201,000+"
   },
   {
    "num": 54,
@@ -829,8 +839,17 @@
    "priority": "High",
    "priority_full": "High",
    "why": "UK's leading free-to-attend data, analytics, and AI conference with 8,000+ enterprise practitioners — open earned speaking model, AI deployment and data governance tracks directly aligned with ArcticBlue's data-foundations messaging in the London market.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://www.bigdataldn.com",
+   "status": "upcoming",
+   "venue": "Olympia London, London, UK",
+   "pricing": "Free to attend (all 15 conference theatres are free on a first-come-first-served basis)",
+   "pay_to_play": "No",
+   "past_speakers": "Engineers from Google, AWS, TikTok, Spotify; Senior data leaders from Snowflake, Databricks",
+   "meeting_formats": "Exhibitor happy hours (select stands, Wed 5pm), relaxed networking at exhibitor stands, direct engagement with technology vendors and consultants",
+   "audience_type": "Mixed",
+   "typical_attendees": "Senior data leaders, architects, hands-on engineers, strategists, and practitioners in data, analytics, and AI",
+   "attendee_count": "UK's largest data event (exact number not specified, but des",
+   "speaking_route": "Apply to speak: https://www.bigdataldn.com/en-gb/blog/event-news/call-for-papers-2025.html"
   },
   {
    "num": 56,
@@ -889,8 +908,14 @@
    "priority": "High",
    "priority_full": "High",
    "why": "Forrester's flagship EMEA enterprise technology event at 88 Wood Street; CIOs, CTOs, and digital transformation leaders making 2027 AI investment decisions — highest-density European CIO/CTO buyer audience outside Gartner events.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://www.forrester.com/event/technology-innovation-emea/",
+   "status": "upcoming",
+   "venue": "88 Wood Street, London EC2, London, UK",
+   "pricing": "Client: £699 GBP; Non-client: £799 GBP",
+   "pay_to_play": "Yes",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Technology executives, architecture and delivery leaders, and data, AI, and analytics professionals",
+   "attendee_count": "Intimate gathering"
   },
   {
    "num": 89,
@@ -980,7 +1005,12 @@
    "priority_full": "High",
    "why": "10th anniversary — 10,000+ attendees, 300+ speakers including CDOs from Home Depot, Colgate-Palmolive, Schneider Electric; dedicated ADOPT AI enterprise track; strong European platform for ArcticBlue's EU presence building.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "Taets Art & Event Park",
+   "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Enterprise leaders, big tech, startups, investors, researchers, policymakers, and ethical experts",
+   "attendee_count": "15,000+"
   },
   {
    "num": 58,
@@ -1143,7 +1173,12 @@
    "priority_full": "High",
    "why": "Corinium's US flagship CDAO conference in Boston; 150+ CDOs, CAIOs, and data AI leaders; sponsorship includes speaking and 1:1 meetings — directly adjacent to AIAI Boston cluster (Oct 28-29, same hotel) for maximum Boston AI week ROI.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "Renaissance Boston Seaport District Hotel",
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Chief Data Officers, Chief Analytics Officers, senior data, analytics, and AI leaders",
+   "attendee_count": "400+"
   },
   {
    "num": 62,
@@ -1474,7 +1509,11 @@
    "priority_full": "Medium",
    "why": "World Summit AI's Gulf edition — ideal for ArcticBlue's active GCC client base (Gulf Air, BBK, Tamkeen); sovereign AI and enterprise adoption focus at the heart of the Gulf's AI investment surge.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "Doha Exhibition & Convention Center (DECC) – Halls 4 and 5",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Enterprise leaders, big tech, startups, researchers, policymakers, investors, and AI experts",
+   "attendee_count": "15,000+"
   },
   {
    "num": 25,
@@ -4364,7 +4403,6 @@
    "typical_attendees": "Founders, entrepreneurs, investors, and executives interested in post-exit stories and AI transformation",
    "speaking_route": "Submitted speaker package. Organizer will contact if chosen.",
    "contact_info": "Connor — connor@pef.xyz",
-   "deadline": "TBD",
    "pay_to_play": "No",
    "seed": false,
    "urgent": false,
@@ -4373,7 +4411,10 @@
    "country": "USA",
    "region": "Podcast",
    "external_id": "aff35422-ab8e-4989-8e8d-0ea239c80b88",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "meeting_formats": "Open Mic & Networking; 5+ breakout rooms; 10-minute presentations followed by 15-minute networking sessions moderated by the speaker",
+   "attendee_count": "500+",
+   "url": "pef.co/"
   },
   {
    "num": 200,
