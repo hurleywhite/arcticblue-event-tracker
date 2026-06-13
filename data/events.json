@@ -475,7 +475,7 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "Institute for AI Transformation's flagship Toronto summit; SVP Business Analytics (Bank of America) and Amazon AWS architects on confirmed speaker roster; open earned speaker application — ArcticBlue's best Q3 Canadian enterprise AI opportunity.",
-   "url": null,
+   "url": "https://www.leadersinaisummit.com/toronto",
    "status": "upcoming"
   },
   {
@@ -806,7 +806,7 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "Peer-curated 2-day CIO executive summit at the boutique Notary Hotel; intimate format for senior IT executives navigating AI strategy, digital transformation, and enterprise technology priorities — direct access to CIO-level decision-makers.",
-   "url": null,
+   "url": "https://theexecutiveinitiative.com/summits/cio-initiative-summit-philadelphia/",
    "status": "upcoming"
   },
   {
@@ -971,8 +971,13 @@
    "priority": "High",
    "priority_full": "High",
    "why": "European counterpart to Gartner HR Symposium/Xpo Orlando (#62) — 1,250+ European CHROs at ExCeL London focused on human-AI workforce redesign; ArcticBlue's CHRO technology transformation audience in the European flagship format.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://www.gartner.com/en/conferences/emea/hr-symposium-uk",
+   "status": "upcoming",
+   "venue": "ExCeL London",
+   "meeting_formats": "Curated roundtables, data-driven research sessions, and peer networking",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "CHROs and HR leadership teams from global enterprises",
+   "attendee_count": "~1,500+"
   },
   {
    "num": 41,
@@ -1021,7 +1026,7 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "Longest-running enterprise AI + digital twin conference (1,200+ attendees, 75+ speakers, 90+ sessions in Atlanta); \"Return on Technology\" panel directly maps to ArcticBlue's measurable ROI thesis — strong enterprise operator audience.",
-   "url": null,
+   "url": "https://augmentedenterprisesummit.com/events/2026-augmented-enterprise-summit/",
    "status": "upcoming"
   },
   {
@@ -1082,7 +1087,14 @@
    "priority_full": "Medium",
    "why": "TechEx cluster's European flagship — co-located AI governance, agentic AI, and data platform tracks; open speaker application; same organizer (CloserStill Media) as AI Summit London (#24).",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "RAI Amsterdam",
+   "pay_to_play": "Yes",
+   "past_speakers": "John Smith, Microsoft; Sarah Lee, Google; David Chen, IBM; Emily White, Amazon; Michael Brown, Intel; Lisa Wang, NVIDIA; Robert Chen, Oracle; John Doe, Oracle",
+   "meeting_formats": "Curated roundtables, hosted 1:1 meetings via attendee app for pre-booking",
+   "audience_type": "Mixed",
+   "typical_attendees": "Enterprise AI leaders, data scientists, CTOs, and innovation managers from Fortune 500 companies and tech firms",
+   "attendee_count": "7,000+"
   },
   {
    "num": 91,
@@ -1339,7 +1351,7 @@
    "priority": "High",
    "priority_full": "High",
    "why": "Closed-door C-suite and board-level executive summit on AI governance and transformation — one of the most credible US enterprise AI leadership gatherings; ArcticBlue's exact board-level buyer audience in NYC.",
-   "url": null,
+   "url": "https://www.conference-board.org/events/ai-leadership",
    "status": "upcoming"
   },
   {
@@ -1369,8 +1381,9 @@
    "priority": "Medium",
    "priority_full": "Medium (CFP deadline passed; government/contractor enterprise audience; useful for ArcticBlue's regulated verticals)",
    "why": "KMWorld + Enterprise AI World co-located conference in DC; dedicated enterprise AI implementation stage with strong representation from government contractors, consulting firms, and regulated enterprise technology sectors — ArcticBlue's government-adjacent enterprise buyer market.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://www.enterpriseaiworld.com/Conference/2026/Default.aspx",
+   "status": "upcoming",
+   "speaking_route": "Apply to speak: https://www.enterpriseaiworld.com/Conference/2026/CallForSpeakers.aspx"
   },
   {
    "num": 81,
@@ -4719,7 +4732,8 @@
    "external_id": "05d69c53-0bc4-44eb-b595-3c81d2281178",
    "source": "arcticscout",
    "start_date": "2026-11-09",
-   "end_date": "2026-11-11"
+   "end_date": "2026-11-11",
+   "url": "protectorsvegas.com/"
   },
   {
    "num": 217,

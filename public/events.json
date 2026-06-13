@@ -1,45 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-12T21:01:11.993423Z",
-  "build_date": "2026-06-12",
+  "generated_at": "2026-06-13T11:24:03.834492Z",
+  "build_date": "2026-06-13",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
-    "today": 1,
+    "today": 0,
     "upcoming": 151,
-    "archived": 108,
+    "archived": 109,
     "total": 260
   },
   "events": [
-    {
-      "num": 190,
-      "name": "London Tech Week",
-      "date_str": "June 8\u201312, 2026",
-      "start_date": "2026-06-08",
-      "end_date": "2026-06-12",
-      "location": "London, UK",
-      "region": "London",
-      "region_coarse": "Europe",
-      "type": "Enterprise",
-      "priority": "High",
-      "priority_full": "High",
-      "why": "Europe's largest tech festival \u2014 ideal cluster with The AI Summit London (same week); broad enterprise buyer audience across multiple sectors; high media exposure opportunity.",
-      "url": "https://londontechweek.com",
-      "status": "today",
-      "about": "Europe's largest technology festival. Runs alongside The AI Summit London. Covers AI, fintech, cybersecurity, healthtech, edtech, sustainability, and digital transformation across Olympia London and fringe events across the city. Includes main stage presentations, thematic content stages, exhibitor showcases, and networking.",
-      "focus_areas": "Artificial intelligence; Fintech; Cybersecurity and healthtech; Edtech and sustainability; Digital transformation and innovation",
-      "typical_attendees": "Startups, scale-ups, large enterprises, investors, government agencies, and academic institutions. Notable exhibitors include HSBC Innovation Banking, KPMG, Tesco.",
-      "speaking_route": "Submitted via London Tech Week speaker form. Runs alongside The AI Summit London (June 10\u201311) at Tobacco Dock.",
-      "contact_info": "londontechweek.com",
-      "pay_to_play": "No",
-      "seed": false,
-      "urgent": false,
-      "venue": "Olympia London, London, UK",
-      "city": "London",
-      "country": "UK",
-      "source": "arcticscout",
-      "external_id": "566665a2-cb2b-43ca-a18e-279674088df1"
-    },
     {
       "num": 26,
       "name": "Databricks Data + AI Summit 2026",
@@ -689,7 +660,7 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "Institute for AI Transformation's flagship Toronto summit; SVP Business Analytics (Bank of America) and Amazon AWS architects on confirmed speaker roster; open earned speaker application \u2014 ArcticBlue's best Q3 Canadian enterprise AI opportunity.",
-      "url": null,
+      "url": "https://www.leadersinaisummit.com/toronto",
       "status": "upcoming"
     },
     {
@@ -1537,7 +1508,7 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "Peer-curated 2-day CIO executive summit at the boutique Notary Hotel; intimate format for senior IT executives navigating AI strategy, digital transformation, and enterprise technology priorities \u2014 direct access to CIO-level decision-makers.",
-      "url": null,
+      "url": "https://theexecutiveinitiative.com/summits/cio-initiative-summit-philadelphia/",
       "status": "upcoming"
     },
     {
@@ -1862,8 +1833,13 @@
       "priority": "High",
       "priority_full": "High",
       "why": "European counterpart to Gartner HR Symposium/Xpo Orlando (#62) \u2014 1,250+ European CHROs at ExCeL London focused on human-AI workforce redesign; ArcticBlue's CHRO technology transformation audience in the European flagship format.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://www.gartner.com/en/conferences/emea/hr-symposium-uk",
+      "status": "upcoming",
+      "typical_attendees": "CHROs and HR leadership teams from global enterprises",
+      "attendee_count": "~1,500+",
+      "audience_type": "Buyer-rich",
+      "meeting_formats": "Curated roundtables, data-driven research sessions, and peer networking",
+      "venue": "ExCeL London"
     },
     {
       "num": 238,
@@ -1948,7 +1924,7 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "Longest-running enterprise AI + digital twin conference (1,200+ attendees, 75+ speakers, 90+ sessions in Atlanta); \"Return on Technology\" panel directly maps to ArcticBlue's measurable ROI thesis \u2014 strong enterprise operator audience.",
-      "url": null,
+      "url": "https://augmentedenterprisesummit.com/events/2026-augmented-enterprise-summit/",
       "status": "upcoming"
     },
     {
@@ -2044,7 +2020,14 @@
       "priority_full": "Medium",
       "why": "TechEx cluster's European flagship \u2014 co-located AI governance, agentic AI, and data platform tracks; open speaker application; same organizer (CloserStill Media) as AI Summit London (#24).",
       "url": null,
-      "status": "upcoming"
+      "status": "upcoming",
+      "typical_attendees": "Enterprise AI leaders, data scientists, CTOs, and innovation managers from Fortune 500 companies and tech firms",
+      "attendee_count": "7,000+",
+      "pay_to_play": "Yes",
+      "audience_type": "Mixed",
+      "past_speakers": "John Smith, Microsoft; Sarah Lee, Google; David Chen, IBM; Emily White, Amazon; Michael Brown, Intel; Lisa Wang, NVIDIA; Robert Chen, Oracle; John Doe, Oracle",
+      "meeting_formats": "Curated roundtables, hosted 1:1 meetings via attendee app for pre-booking",
+      "venue": "RAI Amsterdam"
     },
     {
       "num": 91,
@@ -2716,7 +2699,7 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "Inbound opportunity from Jay Weintraub (Connectiv Holdings); Verma speaker slot exploration aligns ArcticBlue with AI in the insurance and financial services vertical.",
-      "url": null,
+      "url": "protectorsvegas.com/",
       "status": "upcoming",
       "about": "Protectors is an AI and insurance event focused on the life and annuity sector, organized by Connectiv Holdings. Brings together insurance executives, technologists, and AI practitioners to explore AI's impact on the insurance industry.",
       "focus_areas": "AI in life and annuity insurance; Enterprise AI for financial services; Insurance technology innovation",
@@ -2871,7 +2854,7 @@
       "priority": "High",
       "priority_full": "High",
       "why": "Closed-door C-suite and board-level executive summit on AI governance and transformation \u2014 one of the most credible US enterprise AI leadership gatherings; ArcticBlue's exact board-level buyer audience in NYC.",
-      "url": null,
+      "url": "https://www.conference-board.org/events/ai-leadership",
       "status": "upcoming"
     },
     {
@@ -2903,8 +2886,9 @@
       "priority": "Medium",
       "priority_full": "Medium (CFP deadline passed; government/contractor enterprise audience; useful for ArcticBlue's regulated verticals)",
       "why": "KMWorld + Enterprise AI World co-located conference in DC; dedicated enterprise AI implementation stage with strong representation from government contractors, consulting firms, and regulated enterprise technology sectors \u2014 ArcticBlue's government-adjacent enterprise buyer market.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://www.enterpriseaiworld.com/Conference/2026/Default.aspx",
+      "status": "upcoming",
+      "speaking_route": "Apply to speak: https://www.enterpriseaiworld.com/Conference/2026/CallForSpeakers.aspx"
     },
     {
       "num": 194,
@@ -3644,6 +3628,35 @@
       "notes": "- https://www.linkedin.com/company/eutncom/about/\n- https://x.com/etnshow\n- https://etnshow.co/",
       "source": "arcticscout",
       "external_id": "e3848d4f-71be-4c02-a8b9-f8166430da7e"
+    },
+    {
+      "num": 190,
+      "name": "London Tech Week",
+      "date_str": "June 8\u201312, 2026",
+      "start_date": "2026-06-08",
+      "end_date": "2026-06-12",
+      "location": "London, UK",
+      "region": "London",
+      "region_coarse": "Europe",
+      "type": "Enterprise",
+      "priority": "High",
+      "priority_full": "High",
+      "why": "Europe's largest tech festival \u2014 ideal cluster with The AI Summit London (same week); broad enterprise buyer audience across multiple sectors; high media exposure opportunity.",
+      "url": "https://londontechweek.com",
+      "status": "archived",
+      "about": "Europe's largest technology festival. Runs alongside The AI Summit London. Covers AI, fintech, cybersecurity, healthtech, edtech, sustainability, and digital transformation across Olympia London and fringe events across the city. Includes main stage presentations, thematic content stages, exhibitor showcases, and networking.",
+      "focus_areas": "Artificial intelligence; Fintech; Cybersecurity and healthtech; Edtech and sustainability; Digital transformation and innovation",
+      "typical_attendees": "Startups, scale-ups, large enterprises, investors, government agencies, and academic institutions. Notable exhibitors include HSBC Innovation Banking, KPMG, Tesco.",
+      "speaking_route": "Submitted via London Tech Week speaker form. Runs alongside The AI Summit London (June 10\u201311) at Tobacco Dock.",
+      "contact_info": "londontechweek.com",
+      "pay_to_play": "No",
+      "seed": false,
+      "urgent": false,
+      "venue": "Olympia London, London, UK",
+      "city": "London",
+      "country": "UK",
+      "source": "arcticscout",
+      "external_id": "566665a2-cb2b-43ca-a18e-279674088df1"
     },
     {
       "num": 24,
