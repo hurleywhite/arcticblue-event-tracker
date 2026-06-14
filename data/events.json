@@ -419,7 +419,8 @@
    "audience_type": "Mixed",
    "typical_attendees": "Government officials, industry leaders, academics, civil society, technical community, policymakers, UN agencies, and researchers",
    "attendee_count": "1,000+ speakers; 200+ exhibitors",
-   "deadline": "1 September 2026"
+   "deadline": "1 September 2026",
+   "pricing": "Free for ITU Member State delegations (and Resolution 99), UN agencies, UN accredited NGOs, and those under 18; discounted for ITU Sector Members, Associates, Academia members, and students; paid passes available for other attendees, including Discovery Pass CHF 50, Gold Pass CHF 890, Leaders Pass C"
   },
   {
    "num": 28,
@@ -657,7 +658,12 @@
    "priority_full": "High",
    "why": "Data Science Connect's flagship enterprise AI event at Pier Sixty in ArcticBlue's home market NYC; dedicated enterprise AI deployment focus with open speaker application — strong same-city pipeline event for enterprise AI buyers.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "Pier Sixty NYC | Chelsea Piers",
+   "pricing": "All-Access Pass (IN-PERSON): $499 early bird / $999 standard",
+   "meeting_formats": "general and breakout sessions; panels; roundtables; networking receptions; private networking app; invite-only executive dinners",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Fortune 500 decision-makers, senior data and AI leaders, and leading solution/service providers"
   },
   {
    "num": 88,
@@ -911,7 +917,7 @@
    "priority": "High",
    "priority_full": "High",
    "why": "Gartner/Evanta's annual gathering of Global CIOs — highest-concentration of C-suite technology leaders in a private resort setting; peer-driven discussions on agentic AI, enterprise operating models, and strategic AI investment planning for 2027.",
-   "url": null,
+   "url": "https://www.evanta.com/cio/global/global-cio-executive-summit-8435",
    "status": "upcoming"
   },
   {
@@ -941,8 +947,14 @@
    "priority": "High",
    "priority_full": "High",
    "why": "The only dedicated global enterprise agentic AI summit; KPMG as AI Leadership Sponsor; 1,500+ attendees from Fortune 500 (Amazon, Walmart, GM, JPMorgan); open earned-speaker application for enterprise practitioners — ArcticBlue's highest-value Q4 enterprise target.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://gotoagentic.ai/",
+   "status": "upcoming",
+   "venue": "Private winery estate in Loudoun County, Virginia",
+   "pricing": "$595 full access (Oct 5–7); increases to $695 on June 1",
+   "meeting_formats": "VIP roundtables; evening receptions; attendee networking via premium experiences",
+   "audience_type": "Mixed",
+   "typical_attendees": "C-suite executives, senior practitioners, AI researchers, and investors from Fortune 500 companies, government agencies, and high-growth startups",
+   "attendee_count": "1,500+"
   },
   {
    "num": 74,
@@ -1136,7 +1148,8 @@
    "priority_full": "Medium",
    "why": "Re:Work's dedicated enterprise AI-in-finance event just across the Hudson from ArcticBlue's NYC base; 2-day practitioner summit for AI and ML leaders in financial services with a Suggest a Speaker route actively available.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "W Hoboken"
   },
   {
    "num": 60,
@@ -1290,8 +1303,12 @@
    "priority": "High",
    "priority_full": "High",
    "why": "European edition of \"The World's Most Important Gathering of CIOs\" — 5,000+ European CIOs in Barcelona; ideal platform for ArcticBlue's EU market expansion and enterprise AI positioning with European CIO buyers alongside EU AI Act discussions.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://www.gartner.com/en/conferences/emea/symposium-spain",
+   "status": "upcoming",
+   "venue": "International Barcelona Convention Centre",
+   "meeting_formats": "Book a meeting",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "CIOs, IT executives, and enterprise technology decision-makers"
   },
   {
    "num": 64,
@@ -1441,8 +1458,12 @@
    "priority": "High",
    "priority_full": "High",
    "why": "Year-end AIAI London flagship — CAIO, Agentic AI, and GenAI co-located at The O2; largest European CAIO audience event of Q4; ArcticBlue's strongest European earned speaking opportunity to close the year.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://agenticaialliance.com/location/agenticailondon/register",
+   "status": "upcoming",
+   "venue": "InterContinental - The O2, 1 Waterview Drive, London",
+   "audience_type": "Mixed",
+   "typical_attendees": "Technical builders, developers, and senior leaders",
+   "attendee_count": "400+"
   },
   {
    "num": 95,
@@ -4361,7 +4382,8 @@
    "external_id": "7af201f1-c83e-423b-9ccb-e5c5ea512240",
    "source": "arcticscout",
    "start_date": "2026-02-13",
-   "end_date": "2026-02-13"
+   "end_date": "2026-02-13",
+   "url": "https://summer.gwu.edu/6-week"
   },
   {
    "num": 203,
@@ -5035,7 +5057,8 @@
    "external_id": "988e5553-6d5d-41f7-9b16-c04c03c650cd",
    "source": "arcticscout",
    "start_date": "2026-06-07",
-   "end_date": "2026-06-11"
+   "end_date": "2026-06-11",
+   "url": "https://www.bahrain.bh/wps/portal/en/BNP/BahrainCalendar/!ut/p/z1/pZJdT8IwFIb_ijdcLud069rtckr4MCHooMB6Q8aoUGXdGGPov7fcmIjBYexdm_c9efL0gIQFSJM2epPWujDpzt4TyZZk6OMgeEB86lIXn2dhzO5HBEd9D-bfA2Qq0AaGUTzudQlSAvKWPl45Ed7W_wqE05Ahc92IupO-h-PW_gwkyDLTa0gUcfnKc6mDay9waIrcCTNGHOX7VDGuQu6zczozdVlvIVmZcplWHSzqraoOHcyOh7rIVXV3UFWjM3W3Oeq1uvZ-Sf4TTf4uZn5maXHfNuNiQihED1nQ71HKgpj7HBILya9CDq3_RqsTCFNUuV2XyR9tDhAe237IrqB-3e9lZM0XplbvNSz-qX6iDJS5ECIPvA_nLQ5O05ftrtl8Al0En9c!/dz/d5/L3dJdyEvd0ZNQUFzQUsvNE5sRS9aNl8zMThFR0pLMDE5NDBBMDZQNDFUN1VDMjAwMw!!/"
   },
   {
    "num": 229,

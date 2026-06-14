@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-13T11:24:03.834492Z",
-  "build_date": "2026-06-13",
+  "generated_at": "2026-06-14T11:35:31.210144Z",
+  "build_date": "2026-06-14",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -568,6 +568,7 @@
       "typical_attendees": "Government officials, industry leaders, academics, civil society, technical community, policymakers, UN agencies, and researchers",
       "deadline": "1 September 2026",
       "attendee_count": "1,000+ speakers; 200+ exhibitors",
+      "pricing": "Free for ITU Member State delegations (and Resolution 99), UN agencies, UN accredited NGOs, and those under 18; discounted for ITU Sector Members, Associates, Academia members, and students; paid passes available for other attendees, including Discovery Pass CHF 50, Gold Pass CHF 890, Leaders Pass C",
       "audience_type": "Mixed",
       "meeting_formats": "Hosted exhibition, live demos, interactive zones, workshops, and premium access to Centre Stage/VIP experiences",
       "venue": "Palexpo International Exhibition and Convention Center"
@@ -1210,7 +1211,12 @@
       "priority_full": "High",
       "why": "Data Science Connect's flagship enterprise AI event at Pier Sixty in ArcticBlue's home market NYC; dedicated enterprise AI deployment focus with open speaker application \u2014 strong same-city pipeline event for enterprise AI buyers.",
       "url": null,
-      "status": "upcoming"
+      "status": "upcoming",
+      "typical_attendees": "Fortune 500 decision-makers, senior data and AI leaders, and leading solution/service providers",
+      "pricing": "All-Access Pass (IN-PERSON): $499 early bird / $999 standard",
+      "audience_type": "Buyer-rich",
+      "meeting_formats": "general and breakout sessions; panels; roundtables; networking receptions; private networking app; invite-only executive dinners",
+      "venue": "Pier Sixty NYC | Chelsea Piers"
     },
     {
       "num": 250,
@@ -1711,7 +1717,7 @@
       "priority": "High",
       "priority_full": "High",
       "why": "Gartner/Evanta's annual gathering of Global CIOs \u2014 highest-concentration of C-suite technology leaders in a private resort setting; peer-driven discussions on agentic AI, enterprise operating models, and strategic AI investment planning for 2027.",
-      "url": null,
+      "url": "https://www.evanta.com/cio/global/global-cio-executive-summit-8435",
       "status": "upcoming"
     },
     {
@@ -1772,8 +1778,14 @@
       "priority": "High",
       "priority_full": "High",
       "why": "The only dedicated global enterprise agentic AI summit; KPMG as AI Leadership Sponsor; 1,500+ attendees from Fortune 500 (Amazon, Walmart, GM, JPMorgan); open earned-speaker application for enterprise practitioners \u2014 ArcticBlue's highest-value Q4 enterprise target.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://gotoagentic.ai/",
+      "status": "upcoming",
+      "typical_attendees": "C-suite executives, senior practitioners, AI researchers, and investors from Fortune 500 companies, government agencies, and high-growth startups",
+      "attendee_count": "1,500+",
+      "pricing": "$595 full access (Oct 5\u20137); increases to $695 on June 1",
+      "audience_type": "Mixed",
+      "meeting_formats": "VIP roundtables; evening receptions; attendee networking via premium experiences",
+      "venue": "Private winery estate in Loudoun County, Virginia"
     },
     {
       "num": 74,
@@ -2176,7 +2188,8 @@
       "priority_full": "Medium",
       "why": "Re:Work's dedicated enterprise AI-in-finance event just across the Hudson from ArcticBlue's NYC base; 2-day practitioner summit for AI and ML leaders in financial services with a Suggest a Speaker route actively available.",
       "url": null,
-      "status": "upcoming"
+      "status": "upcoming",
+      "venue": "W Hoboken"
     },
     {
       "num": 246,
@@ -2654,8 +2667,12 @@
       "priority": "High",
       "priority_full": "High",
       "why": "European edition of \"The World's Most Important Gathering of CIOs\" \u2014 5,000+ European CIOs in Barcelona; ideal platform for ArcticBlue's EU market expansion and enterprise AI positioning with European CIO buyers alongside EU AI Act discussions.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://www.gartner.com/en/conferences/emea/symposium-spain",
+      "status": "upcoming",
+      "typical_attendees": "CIOs, IT executives, and enterprise technology decision-makers",
+      "audience_type": "Buyer-rich",
+      "meeting_formats": "Book a meeting",
+      "venue": "International Barcelona Convention Centre"
     },
     {
       "num": 196,
@@ -3144,8 +3161,12 @@
       "priority": "High",
       "priority_full": "High",
       "why": "Year-end AIAI London flagship \u2014 CAIO, Agentic AI, and GenAI co-located at The O2; largest European CAIO audience event of Q4; ArcticBlue's strongest European earned speaking opportunity to close the year.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://agenticaialliance.com/location/agenticailondon/register",
+      "status": "upcoming",
+      "typical_attendees": "Technical builders, developers, and senior leaders",
+      "attendee_count": "400+",
+      "audience_type": "Mixed",
+      "venue": "InterContinental - The O2, 1 Waterview Drive, London"
     },
     {
       "num": 266,
@@ -3748,7 +3769,7 @@
       "priority": "High",
       "priority_full": "High",
       "why": "",
-      "url": null,
+      "url": "https://www.bahrain.bh/wps/portal/en/BNP/BahrainCalendar/!ut/p/z1/pZJdT8IwFIb_ijdcLud069rtckr4MCHooMB6Q8aoUGXdGGPov7fcmIjBYexdm_c9efL0gIQFSJM2epPWujDpzt4TyZZk6OMgeEB86lIXn2dhzO5HBEd9D-bfA2Qq0AaGUTzudQlSAvKWPl45Ed7W_wqE05Ahc92IupO-h-PW_gwkyDLTa0gUcfnKc6mDay9waIrcCTNGHOX7VDGuQu6zczozdVlvIVmZcplWHSzqraoOHcyOh7rIVXV3UFWjM3W3Oeq1uvZ-Sf4TTf4uZn5maXHfNuNiQihED1nQ71HKgpj7HBILya9CDq3_RqsTCFNUuV2XyR9tDhAe237IrqB-3e9lZM0XplbvNSz-qX6iDJS5ECIPvA_nLQ5O05ftrtl8Al0En9c!/dz/d5/L3dJdyEvd0ZNQUFzQUsvNE5sRS9aNl8zMThFR0pLMDE5NDBBMDZQNDFUN1VDMjAwMw!!/",
       "status": "archived",
       "seed": false,
       "urgent": false,
@@ -6608,7 +6629,7 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "University audience pipeline; builds next-generation brand awareness and early relationships with future enterprise decision-makers. Low time commitment with high goodwill value.",
-      "url": null,
+      "url": "https://summer.gwu.edu/6-week",
       "status": "archived",
       "about": "George Washington University student engagement session on AI and entrepreneurship, delivered remotely via Zoom. Includes a business contest sponsorship component for student teams.",
       "focus_areas": "AI literacy for students; Entrepreneurship and AI; Future of work and technology",
