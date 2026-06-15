@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-14T11:35:31.210144Z",
-  "build_date": "2026-06-14",
+  "generated_at": "2026-06-15T15:23:06.624798Z",
+  "build_date": "2026-06-15",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
-    "today": 0,
-    "upcoming": 151,
+    "today": 2,
+    "upcoming": 149,
     "archived": 109,
     "total": 260
   },
@@ -25,7 +25,7 @@
       "priority_full": "High",
       "why": "World's largest data and AI conference at Moscone; 800+ sessions on LLM deployment, agentic AI, and enterprise data infrastructure \u2014 ArcticBlue's data-layer buyer audience.",
       "url": "https://www.databricks.com/dataaisummit",
-      "status": "upcoming",
+      "status": "today",
       "about": "Databricks' flagship annual conference at Moscone Center. Global data and AI community gathering for deep technical and business sessions on AI, data engineering, and ML operations at enterprise scale.",
       "focus_areas": "Enterprise AI and data lakehouse architecture; LLM and agentic AI in production; Data governance for AI; AI-driven analytics at enterprise scale; MLOps and AI operations",
       "typical_attendees": "CDOs, Head of Data, Data Engineers, AI Engineers, VP Analytics, enterprise data architects; large multi-industry enterprise audience",
@@ -54,7 +54,7 @@
       "priority_full": "Medium",
       "why": "Personal contact. Thor has advised before.\n\nAdvisory and programming are typically coordinated through the Columbia Business School Entrepreneurship team and the Eugene Lang Entrepreneurship Center.",
       "url": "https://business.columbia.edu/lang/student-and-alumni-programming/launch/summer-startup-track",
-      "status": "upcoming",
+      "status": "today",
       "about": "The Summer Startup Track (SST) at Columbia Business School pairs rising second-year students advancing their ventures over the summer with dedicated entrepreneurial advisors, peer cohorts, and industry leaders. The program culminates in a pitch competition for taxable grants of up to $10,000 \n\nSummer Startup Track (SST) fosters a culture of innovation and entrepreneurship for rising second-year Columbia Business School students who are dedicated to advancing their ventures over the summer. The program provides tailored advisory, a network of peers, talks with industry leaders, and a pitch competition for a limited number of grants (taxable*) of up to $10k at the end of the summer. \n\nSummer Startup Track is stage agnostic and committed to supporting student founders regardless of whether they are in ideation, MVP, or post-launch stages. The program is designed to create an active and engaged community of aspiring entrepreneurs, meeting founders where they are to help them reach the next stage in their startup journeys.",
       "speaking_route": "Personal contact. Thor has advised before.\n\nGabriel Mejia: gm2576@gsb.columbia.edu\nDirector, The Eugene Lang Entrepreneurship Center\nColumbia Business School",
       "seed": false,
@@ -1800,7 +1800,7 @@
       "priority": "High",
       "priority_full": "High (strong GCC client alignment; same exhibitor model as Gartner IT Symposium Orlando #43)",
       "why": "Gartner's premier GCC/Middle East CIO conference (390+ attendees confirmed) at the Grand Hyatt Dubai \u2014 ArcticBlue's active GCC client base (Gulf Air, BBK, Tamkeen) makes this the highest-priority regional CIO touchpoint for Q4 business development.",
-      "url": null,
+      "url": "https://www.gartner.com/en/conferences/emea/cio-uae",
       "status": "upcoming"
     },
     {
@@ -1920,8 +1920,17 @@
       "priority": "Medium",
       "priority_full": "Medium (CHRO/ops audience strong fit; speaking access requires Workday customer/partner relationship)",
       "why": "Workday's flagship enterprise conference (10,000+ attendees) with agentic AI, CHRO workforce transformation, and enterprise AI readiness as the 2026 theme \u2014 direct access to CHROs, CFOs, and enterprise operations leaders deploying AI in Workday's ecosystem.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://rising.workday.com/us.html",
+      "status": "upcoming",
+      "typical_attendees": "HR, finance, and technology leaders; Workday customers, partners, and enterprise decision-makers",
+      "speaking_route": "Apply to speak: https://rising.workday.com/cfp.html",
+      "deadline": "Early Bird pricing ends June 16, 11:59 p.m. PT",
+      "attendee_count": "15,000+",
+      "pricing": "Early Bird: $2,095; Advanced: $2,295; Standard: $2,495; Global Digital Essentials Pass: Free; Global Digital All-Access Pass: A$299",
+      "audience_type": "Buyer-rich",
+      "past_speakers": "Aneel Bhusri, Workday; Carl Eschenbach, Workday; Chano Fernandez, Workday; Barbara Larson, Workday; Alicia Torres, Workday",
+      "meeting_formats": "Attendee app for pre-booking meetings; in-person networking and community sessions",
+      "venue": "Mandalay Bay Convention Center"
     },
     {
       "num": 59,
@@ -1952,8 +1961,11 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "CDM Media's boutique West Coast CDO/CAIO summit (free for qualified senior executives); direct peer access to LA-market CDOs and CAIOs in an intimate 50-100 person format \u2014 extends ArcticBlue's West Coast enterprise AI presence.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://cdodinners.us/",
+      "status": "upcoming",
+      "typical_attendees": "Chief Data Officers, Chief AI Officers, and other senior data/AI executives",
+      "audience_type": "Buyer-rich",
+      "venue": "Los Angeles, California, USA"
     },
     {
       "num": 77,
@@ -1968,8 +1980,14 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "1 in 3 C-Suite leaders in fintech at the world's #1 financial services event; AI-powered banking and payments transformation is center stage \u2014 direct access to CIOs, COOs, and digital transformation leaders from global banks and FinTech enterprises.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://us.money2020.com",
+      "status": "upcoming",
+      "typical_attendees": "Senior leaders from banks, payments, tech, retail, startups, fintech, financial services, and policy",
+      "speaking_route": "Apply to speak: https://us.money2020.com/agenda/call-for-content",
+      "attendee_count": "5,000+",
+      "audience_type": "Mixed",
+      "meeting_formats": "attendee app for pre-booking meetings; networking sessions; strategic conferences",
+      "venue": "The Venetian Las Vegas"
     },
     {
       "num": 221,
@@ -2443,8 +2461,12 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "Spain's leading enterprise data and AI trade fair at IFEMA Madrid; same brand family as seed event Big Data & AI World London; gateway to 5,000+ Iberian and Southern European enterprise technology leaders.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://www.techshowmadrid.es/big-data-ai-world",
+      "status": "upcoming",
+      "typical_attendees": "Chief Data Officers, Head of Analytics, data management leaders, data scientists and engineers, plus business users such as marketing, BI and CX professionals",
+      "attendee_count": "27,000+",
+      "audience_type": "Mixed",
+      "venue": "IFEMA MADRID"
     },
     {
       "num": 92,
@@ -3725,8 +3747,14 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "Asia's premier AI event (10,000+ attendees) with enterprise adoption at center stage; anchor of Singapore AI Week; Fortune 500 representation from OpenAI, NVIDIA, Google, Salesforce, Palantir; open speaker application.",
-      "url": null,
-      "status": "archived"
+      "url": "https://superai.com",
+      "status": "archived",
+      "typical_attendees": "AI leaders, frontier technologists, investors, researchers, builders, startups, and enterprise/industry attendees",
+      "attendee_count": "10,000+",
+      "pricing": "Super Early Bird Pre-sale was available for 2026; the exact 2026 attendee price is not stated in the provided results.",
+      "audience_type": "Mixed",
+      "meeting_formats": "NEXT Hackathon; city-wide Singapore AI Week satellite events including networking mixers, investor roundtables, demo days, and workshops",
+      "venue": "Marina Bay Sands, Singapore"
     },
     {
       "num": 169,
@@ -6840,12 +6868,13 @@
       "priority": "Low",
       "priority_full": "Low",
       "why": "Middle East academic and enterprise audience; potential relationship-building with Gulf region academic and business networks for future ArcticBlue engagements.",
-      "url": null,
+      "url": "https://kuicbdt.com/",
       "status": "archived",
       "about": "Academic and practitioner conference on the intersection of business strategy and digital technology, hosted in Bahrain. Covers AI, digital transformation, and innovation across the Gulf region.",
       "focus_areas": "Digital transformation; AI and business strategy; Gulf region technology leadership",
       "typical_attendees": "Academics, enterprise technology leaders, government stakeholders in the GCC region",
       "speaking_route": "Reached out personally to conference organizers.",
+      "deadline": "2025-11-19",
       "seed": false,
       "urgent": false,
       "venue": "Bahrain",

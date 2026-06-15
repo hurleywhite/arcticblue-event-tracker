@@ -310,8 +310,14 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "Asia's premier AI event (10,000+ attendees) with enterprise adoption at center stage; anchor of Singapore AI Week; Fortune 500 representation from OpenAI, NVIDIA, Google, Salesforce, Palantir; open speaker application.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://superai.com",
+   "status": "upcoming",
+   "venue": "Marina Bay Sands, Singapore",
+   "pricing": "Super Early Bird Pre-sale was available for 2026; the exact 2026 attendee price is not stated in the provided results.",
+   "meeting_formats": "NEXT Hackathon; city-wide Singapore AI Week satellite events including networking mixers, investor roundtables, demo days, and workshops",
+   "audience_type": "Mixed",
+   "typical_attendees": "AI leaders, frontier technologists, investors, researchers, builders, startups, and enterprise/industry attendees",
+   "attendee_count": "10,000+"
   },
   {
    "num": 26,
@@ -968,7 +974,7 @@
    "priority": "High",
    "priority_full": "High (strong GCC client alignment; same exhibitor model as Gartner IT Symposium Orlando #43)",
    "why": "Gartner's premier GCC/Middle East CIO conference (390+ attendees confirmed) at the Grand Hyatt Dubai — ArcticBlue's active GCC client base (Gulf Air, BBK, Tamkeen) makes this the highest-priority regional CIO touchpoint for Q4 business development.",
-   "url": null,
+   "url": "https://www.gartner.com/en/conferences/emea/cio-uae",
    "status": "upcoming"
   },
   {
@@ -1023,8 +1029,17 @@
    "priority": "Medium",
    "priority_full": "Medium (CHRO/ops audience strong fit; speaking access requires Workday customer/partner relationship)",
    "why": "Workday's flagship enterprise conference (10,000+ attendees) with agentic AI, CHRO workforce transformation, and enterprise AI readiness as the 2026 theme — direct access to CHROs, CFOs, and enterprise operations leaders deploying AI in Workday's ecosystem.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://rising.workday.com/us.html",
+   "status": "upcoming",
+   "venue": "Mandalay Bay Convention Center",
+   "pricing": "Early Bird: $2,095; Advanced: $2,295; Standard: $2,495; Global Digital Essentials Pass: Free; Global Digital All-Access Pass: A$299",
+   "past_speakers": "Aneel Bhusri, Workday; Carl Eschenbach, Workday; Chano Fernandez, Workday; Barbara Larson, Workday; Alicia Torres, Workday",
+   "meeting_formats": "Attendee app for pre-booking meetings; in-person networking and community sessions",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "HR, finance, and technology leaders; Workday customers, partners, and enterprise decision-makers",
+   "attendee_count": "15,000+",
+   "deadline": "Early Bird pricing ends June 16, 11:59 p.m. PT",
+   "speaking_route": "Apply to speak: https://rising.workday.com/cfp.html"
   },
   {
    "num": 59,
@@ -1053,8 +1068,11 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "CDM Media's boutique West Coast CDO/CAIO summit (free for qualified senior executives); direct peer access to LA-market CDOs and CAIOs in an intimate 50-100 person format — extends ArcticBlue's West Coast enterprise AI presence.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://cdodinners.us/",
+   "status": "upcoming",
+   "venue": "Los Angeles, California, USA",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Chief Data Officers, Chief AI Officers, and other senior data/AI executives"
   },
   {
    "num": 77,
@@ -1068,8 +1086,14 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "1 in 3 C-Suite leaders in fintech at the world's #1 financial services event; AI-powered banking and payments transformation is center stage — direct access to CIOs, COOs, and digital transformation leaders from global banks and FinTech enterprises.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://us.money2020.com",
+   "status": "upcoming",
+   "venue": "The Venetian Las Vegas",
+   "meeting_formats": "attendee app for pre-booking meetings; networking sessions; strategic conferences",
+   "audience_type": "Mixed",
+   "typical_attendees": "Senior leaders from banks, payments, tech, retail, startups, fintech, financial services, and policy",
+   "attendee_count": "5,000+",
+   "speaking_route": "Apply to speak: https://us.money2020.com/agenda/call-for-content"
   },
   {
    "num": 43,
@@ -1228,8 +1252,12 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "Spain's leading enterprise data and AI trade fair at IFEMA Madrid; same brand family as seed event Big Data & AI World London; gateway to 5,000+ Iberian and Southern European enterprise technology leaders.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://www.techshowmadrid.es/big-data-ai-world",
+   "status": "upcoming",
+   "venue": "IFEMA MADRID",
+   "audience_type": "Mixed",
+   "typical_attendees": "Chief Data Officers, Head of Analytics, data management leaders, data scientists and engineers, plus business users such as marketing, BI and CX professionals",
+   "attendee_count": "27,000+"
   },
   {
    "num": 92,
@@ -4356,7 +4384,9 @@
    "external_id": "0231b797-2e43-461a-ad8f-353a271db130",
    "source": "arcticscout",
    "start_date": "2025-11-26",
-   "end_date": "2025-11-27"
+   "end_date": "2025-11-27",
+   "deadline": "2025-11-19",
+   "url": "https://kuicbdt.com/"
   },
   {
    "num": 202,
