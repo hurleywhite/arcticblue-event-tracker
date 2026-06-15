@@ -1157,6 +1157,9 @@ def build():
     }}
 
     .ops-card.is-hidden {{ opacity: 0.55; background: var(--ab-bg-2); }}
+    /* Past events: dimmed when revealed via "Show past" (default: filtered out). */
+    .ops-card.is-past {{ opacity: 0.6; }}
+    .ops-card.is-past:hover {{ opacity: 1; }}
     .ops-card.is-urgent {{ border-color: var(--ab-red); }}
     .ops-card.is-saved.is-urgent {{ border-color: var(--ab-red); box-shadow: inset 4px 0 0 var(--ab-blue); }}
 
@@ -1934,6 +1937,7 @@ def build():
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-meetings">Has 1:1 meetups</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-worth">Worth attending</label>
+          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-past">Show past</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-hidden">Show hidden</label>
           <div class="ops-months">
             <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
@@ -2572,6 +2576,34 @@ def build():
       return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
     }}
 
+    // ── Past-event detection (client-side, uses the REAL current date) ──
+    // An event is "past" once its END date is before today. Computed live so
+    // a just-ended event hides immediately — not only after the next daily
+    // build. Undated / TBD / ongoing events are NEVER past (no end date to
+    // compare). Catalog + manual cards both use this so behavior is uniform.
+    function eventEndIso(o) {{
+      if (!o) return null;
+      if (o.end_date)   return String(o.end_date).slice(0, 10);
+      if (o.start_date) return String(o.start_date).slice(0, 10);
+      if (o.date_str) {{
+        try {{
+          var d = deriveDatesFromText(o.date_str);
+          if (d.end_date)   return d.end_date;
+          if (d.start_date) return d.start_date;
+        }} catch (e) {{}}
+      }}
+      return null;
+    }}
+    function isPastEvent(o) {{
+      var iso = eventEndIso(o);
+      if (!iso || !/^\\d{{4}}-\\d{{2}}-\\d{{2}}/.test(iso)) return false;  // undated -> not past
+      var now = new Date();
+      var todayIso = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
+      return iso < todayIso;  // strictly before today; an event ending today is NOT past
+    }}
+
     function formatStamp(iso) {{
       if (!iso) return '';
       var d = new Date(iso);
@@ -2724,6 +2756,9 @@ def build():
       card.dataset.price    = (_pn == null ? '' : String(_pn));
       card.dataset.meetings = (ev.meeting_formats ? '1' : '');
       card.dataset.attend   = (st.attend_verdict || '');
+      var _opsPast = isPastEvent(ev);
+      card.dataset.past = _opsPast ? '1' : '';
+      if (_opsPast) card.classList.add('is-past');
       if (st.saved)  card.classList.add('is-saved');
       if (st.hidden) card.classList.add('is-hidden');
       if (st.urgent) card.classList.add('is-urgent');
@@ -2895,6 +2930,9 @@ def build():
       card.dataset.price    = (_mpn == null ? '' : String(_mpn));
       card.dataset.meetings = (mev.meeting_formats ? '1' : '');
       card.dataset.attend   = (mev.attend_verdict || '');
+      var _manPast = isPastEvent(mev);
+      card.dataset.past = _manPast ? '1' : '';
+      if (_manPast) card.classList.add('is-past');
       var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
       card.dataset.month = manualMeta.key;
       card.dataset.monthLabel = manualMeta.label;
@@ -3630,6 +3668,7 @@ def build():
       var $meet    = document.getElementById('ops-f-meetings');
       var $worth   = document.getElementById('ops-f-worth');
       var $price   = document.getElementById('ops-price');
+      var $past    = document.getElementById('ops-f-past');
       var $hidden  = document.getElementById('ops-f-hidden');
       if (!$search || !$opsGrid) return;
       var q = ($search.value || '').toLowerCase().trim();
@@ -3641,9 +3680,10 @@ def build():
       var fMeet    = !!($meet && $meet.checked);
       var fWorth   = !!($worth && $worth.checked);
       var fPrice   = $price ? ($price.value || '') : '';
+      var showPast   = !!($past && $past.checked);
       var showHidden = !!($hidden && $hidden.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-buyers',$buyers],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-hidden',$hidden]].forEach(function (pair) {{
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-buyers',$buyers],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-past',$past],['ops-f-hidden',$hidden]].forEach(function (pair) {{
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
@@ -3692,6 +3732,7 @@ def build():
           if (fPrice === '1000-2500'    && !(pn != null && pn >= 1000 && pn < 2500)) on = false;
           if (fPrice === 'gte2500'      && !(pn != null && pn >= 2500)) on = false;
         }}
+        if (!showPast && card.dataset.past === '1') on = false;
         if (!showHidden && card.classList.contains('is-hidden')) on = false;
         if (activeStages.length > 0) {{
           var cardStages = (card.dataset.statusTags || '').split('|').filter(Boolean);
@@ -3748,7 +3789,7 @@ def build():
     }}
 
     function wireFilters() {{
-      ['ops-search','ops-region','ops-price','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-hidden'].forEach(function (id) {{
+      ['ops-search','ops-region','ops-price','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden'].forEach(function (id) {{
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -3760,7 +3801,9 @@ def build():
     function renderStats(evs, stateRows, manualRows) {{
       var $stats = document.getElementById('ops-stats');
       if (!$stats) return;
-      var total = (evs || []).length + (manualRows || []).length;
+      // The "Upcoming" headline excludes events that already happened.
+      var total = (evs || []).filter(function (e) {{ return !isPastEvent(e); }}).length +
+                  (manualRows || []).filter(function (m) {{ return !isPastEvent(m); }}).length;
       var saved = 0, urgent = 0, inPipeline = 0, booked = 0;
       var buyerRich = 0, worthIt = 0;
       (stateRows || []).forEach(function (r) {{
