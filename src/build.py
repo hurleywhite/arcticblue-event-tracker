@@ -823,8 +823,8 @@ def build():
     }}
     /* Editable modal — one-tap quick-action bar at the top of the body. */
     .modal-quickbar {{
-      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-      gap: 10px; margin: 0 0 20px; padding-bottom: 16px;
+      display: flex; flex-direction: column; align-items: stretch;
+      gap: 12px; margin: 0 0 20px; padding-bottom: 16px;
       border-bottom: 1px solid var(--ab-rule);
     }}
     .qa-row {{ display: flex; flex-wrap: wrap; gap: 8px; }}
@@ -839,8 +839,9 @@ def build():
     .modal-quickbar .qa.on {{
       background: #166534; color: #fff; border-color: #166534;
     }}
-    /* Primary edit affordance — top-right of the action row (Angela-style). */
+    /* Primary edit affordance — sits at the top-right above the action row. */
     .qa-edit {{
+      align-self: flex-end;
       display: inline-flex; align-items: center; gap: 6px; min-height: 34px;
       font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
       padding: 0 16px; border-radius: 8px; cursor: pointer; white-space: nowrap;
@@ -2269,9 +2270,9 @@ def build():
     // "Edit event" sits at the top-right of the action row (like Angela's app)
     // and reveals the inline edit fields below.
     return '<div class="modal-quickbar">' +
-      '<div class="qa-row">' + b.join('') + '</div>' +
       '<button type="button" class="qa-edit" data-edittoggle aria-expanded="false">' +
         '<span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event</button>' +
+      '<div class="qa-row">' + b.join('') + '</div>' +
       '</div>';
   }}
   function wireQuickBar(rec) {{
