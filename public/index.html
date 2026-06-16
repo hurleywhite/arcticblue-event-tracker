@@ -1573,14 +1573,8 @@
             <option value="gte2500">$2,500+ (high clientele)</option>
             <option value="known">Price known</option>
           </select>
-          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-saved">Saved only</label>
-          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-urgent">Urgent only</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-speaker">Has speaker</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
-          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-meetings">Has 1:1 meetups</label>
-          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-worth">Worth attending</label>
-          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-past">Show past</label>
-          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-hidden">Show hidden</label>
           <div class="ops-months">
             <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
               Months <span class="mb-caret" aria-hidden="true">&#9660;</span>
@@ -1899,10 +1893,20 @@
     h += meRow('Speaker', '<input type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
     h += meRow('Worth attending?', '<select data-edit="attend_verdict">' + verdicts.map(function (v) { return opt(v, rec.attend_verdict); }).join('') + '</select>');
     h += meRow('Priority', '<select data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) { return opt(v, curPri); }).join('') + '</select>');
-    if (!isCat) {
-      h += meRow('Why it fits', '<textarea data-edit="why" rows="2">' + esc(rec.why || '') + '</textarea>');
-      h += meRow('Deadline', '<input type="text" data-edit="deadline" value="' + esc(rec.deadline || '') + '" placeholder="e.g. July 10, 2026">');
-    }
+    // Descriptive fields — editable for BOTH catalog and manual events. For a
+    // catalog event these write override columns on event_state (needs the
+    // scripts/2026-06_event_state_overrides.sql migration); manual_events
+    // already has every column.
+    var p2p = ['', 'Yes', 'No', 'Both'];
+    h += meRow('Why it fits ArcticBlue', '<textarea data-edit="why" rows="3">' + esc(rec.why || '') + '</textarea>');
+    h += meRow('About', '<textarea data-edit="about" rows="3">' + esc(rec.about || '') + '</textarea>');
+    h += meRow('Focus areas', '<textarea data-edit="focus_areas" rows="2">' + esc(rec.focus_areas || '') + '</textarea>');
+    h += meRow('Typical attendees', '<textarea data-edit="typical_attendees" rows="2">' + esc(rec.typical_attendees || '') + '</textarea>');
+    h += meRow('Speaking route', '<textarea data-edit="speaking_route" rows="2">' + esc(rec.speaking_route || '') + '</textarea>');
+    h += meRow('Pay-to-play', '<select data-edit="pay_to_play">' + p2p.map(function (v) { return opt(v, rec.pay_to_play); }).join('') + '</select>');
+    h += meRow('Venue', '<input type="text" data-edit="venue" value="' + esc(rec.venue || '') + '">');
+    h += meRow('Contact info', '<input type="text" data-edit="contact_info" value="' + esc(rec.contact_info || '') + '">');
+    h += meRow('Deadline', '<input type="text" data-edit="deadline" value="' + esc(rec.deadline || '') + '" placeholder="e.g. July 10, 2026">');
     h += meRow('Notes', '<textarea data-edit="notes" rows="2" placeholder="Internal notes…">' + esc(rec.notes || '') + '</textarea>');
     h += '</div></div>';
     return h;
@@ -2615,7 +2619,7 @@
         applyBtn +
         renderOpsTags(st) +
         '<details class="ops-edit">' +
-          '<summary>Edit ops</summary>' +
+          '<summary>Edit</summary>' +
           '<div class="ops-form">' +
             '<label><span class="key">Pipeline stages</span>' +
               stageCheckboxes(opsStages) +
@@ -2660,6 +2664,12 @@
         if (st.priority_override) rec.priority = st.priority_override;
         if (st.attend_verdict) rec.attend_verdict = st.attend_verdict;
         if (st.postmortem) rec.postmortem = st.postmortem;
+        // Descriptive-field overrides edited in the pop-up — they live in
+        // event_state and win over the read-only catalog value when set.
+        ['why', 'about', 'focus_areas', 'typical_attendees', 'speaking_route',
+         'pay_to_play', 'venue', 'contact_info', 'deadline'].forEach(function (f) {
+          if (st[f] != null && String(st[f]).trim() !== '') rec[f] = st[f];
+        });
         rec.stage_tags = opsStages;
       }
       rec.saved  = !!(st && st.saved);
@@ -2847,7 +2857,7 @@
         feeLine +
         mApplyBtn +
         '<details class="ops-edit">' +
-          '<summary>Edit / Delete</summary>' +
+          '<summary>Edit</summary>' +
           '<form class="ops-form manual-edit">' +
             '<label><span class="key">Name</span>' +
               '<input type="text" name="name" value="' + escapeHtml(mev.name || '') + '" required></label>' +
