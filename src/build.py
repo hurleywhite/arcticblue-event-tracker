@@ -768,14 +768,54 @@ def build():
     }}
     @keyframes modalRise {{ from {{ transform: translateY(8px); opacity: 0.6; }} to {{ transform: translateY(0); opacity: 1; }} }}
     .modal-scroll {{ padding: 30px 32px 26px; max-height: 86vh; overflow-y: auto; }}
+    /* Fixed top-right toolbar — Edit event + close sit in the SAME spot for
+       every event (consistent placement, no floating). */
+    .modal-topbar {{
+      position: absolute; top: 12px; right: 14px; z-index: 3;
+      display: flex; align-items: center; gap: 8px;
+    }}
     .modal-close {{
-      position: absolute; top: 10px; right: 12px; z-index: 1;
+      flex-shrink: 0;
       width: 34px; height: 34px; border: none; background: var(--ab-bg-3);
       border-radius: 50%; cursor: pointer; font-size: 1.4rem; line-height: 1;
       color: var(--ab-fg-2); transition: background 0.15s, color 0.15s;
     }}
     .modal-close:hover {{ background: var(--ab-fg); color: #fff; }}
-    .modal-head {{ border-bottom: 1px solid var(--ab-rule); padding-bottom: 16px; margin-bottom: 18px; padding-right: 30px; }}
+    .modal-edit-toggle {{
+      display: inline-flex; align-items: center; gap: 6px; height: 34px;
+      padding: 0 15px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+      font-family: var(--ab-sans); font-size: 0.84rem; font-weight: 600;
+      border: 1px solid var(--ab-rule-strong); background: #fff; color: var(--ab-fg);
+      transition: all 0.12s;
+    }}
+    .modal-edit-toggle:hover {{ border-color: var(--ab-fg-3); }}
+    .modal-edit-toggle.on {{ background: var(--ab-fg); color: #fff; border-color: var(--ab-fg); }}
+    .modal-edit-toggle .met-ic {{ font-size: 0.92em; }}
+    /* Editing-mode field: same label/position, value slot becomes an input. */
+    .modal-field.is-editing .v input,
+    .modal-field.is-editing .v select,
+    .modal-field.is-editing .v textarea {{
+      width: 100%; box-sizing: border-box; font-family: var(--ab-sans);
+      font-size: 0.92rem; padding: 8px 10px; border: 1px solid var(--ab-rule-strong);
+      border-radius: 6px; background: #fff; color: var(--ab-fg); line-height: 1.5;
+    }}
+    .modal-field.is-editing .v textarea {{ resize: vertical; }}
+    .modal-field.is-editing .v input:focus,
+    .modal-field.is-editing .v select:focus,
+    .modal-field.is-editing .v textarea:focus {{
+      outline: none; border-color: var(--ab-fg); box-shadow: 0 0 0 2px var(--ab-bg-3);
+    }}
+    .modal-edit-note {{
+      font-family: var(--ab-mono); font-size: 0.66rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--ab-fg-3); margin: 0;
+    }}
+    .modal-head {{
+      border-bottom: 1px solid var(--ab-rule); padding-bottom: 16px; margin-bottom: 18px;
+      padding-right: 30px; display: flex; align-items: flex-start; gap: 16px;
+    }}
+    .modal-head-main {{ flex: 1; min-width: 0; }}
+    .modal-head-side {{ flex-shrink: 0; }}
+    .modal-badges {{ padding-right: 158px; }}  /* clear the top-right toolbar */
     .modal-badges {{ display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }}
     .modal-badges .badge {{ position: static; }}
     .modal-date {{
@@ -839,9 +879,8 @@ def build():
     .modal-quickbar .qa.on {{
       background: #166534; color: #fff; border-color: #166534;
     }}
-    /* Primary edit affordance — sits at the top-right above the action row. */
+    /* Primary edit affordance — top-right of the modal header, same spot always. */
     .qa-edit {{
-      align-self: flex-end;
       display: inline-flex; align-items: center; gap: 6px; min-height: 34px;
       font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
       padding: 0 16px; border-radius: 8px; cursor: pointer; white-space: nowrap;
@@ -892,6 +931,34 @@ def build():
     }}
     .me-stage:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
     .me-stage.on {{ background: #166534; color: #fff; border-color: #166534; }}
+    /* Edit form controls — full-width, sit right under their .modal-field label
+       so the form reads like the read-only view. */
+    .modal-editform .modal-field {{ margin-bottom: 14px; }}
+    .me-input {{
+      width: 100%; box-sizing: border-box; font-family: var(--ab-sans); font-size: 0.92rem;
+      padding: 8px 11px; border: 1px solid var(--ab-rule-strong); border-radius: 7px;
+      background: var(--ab-bg); color: var(--ab-fg); line-height: 1.5;
+    }}
+    textarea.me-input {{ resize: vertical; }}
+    .me-input:focus {{ outline: none; border-color: var(--ab-fg); box-shadow: 0 0 0 2px var(--ab-bg-3); }}
+    /* "Interested" picker — roster name chips you toggle on. */
+    .me-ints {{ display: flex; flex-wrap: wrap; gap: 7px; }}
+    .me-int {{
+      display: inline-flex; align-items: center; cursor: pointer; user-select: none;
+      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
+      padding: 5px 12px; border-radius: 999px;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2);
+    }}
+    .me-int input {{ position: absolute; opacity: 0; width: 0; height: 0; }}
+    .me-int:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
+    .me-int.on {{ background: var(--ab-blue); color: #fff; border-color: var(--ab-blue); }}
+    /* Read-only "interested" chips in the detail view. */
+    .int-chip {{
+      display: inline-block; margin: 0 6px 4px 0; padding: 3px 10px; border-radius: 999px;
+      font-family: var(--ab-sans); font-size: 0.8rem; font-weight: 600;
+      background: rgba(39,115,194,0.12); color: var(--ab-blue); border: 1px solid rgba(39,115,194,0.3);
+    }}
+    .ops-interested {{ color: var(--ab-blue) !important; font-weight: 600; }}
     @media (max-width: 560px) {{
       .me-row {{ grid-template-columns: 1fr; gap: 4px; }}
     }}
@@ -2150,13 +2217,19 @@ def build():
   <!-- ── Expanded pop-up (modal) for a single event ─────────────────── -->
   <div id="event-modal" class="modal-overlay" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
+      <div class="modal-topbar">
+        <button type="button" class="modal-edit-toggle" id="modal-edit-toggle" hidden><span class="met-ic" aria-hidden="true">✎</span> <span class="met-label">Edit event</span></button>
+        <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
+      </div>
       <div class="modal-scroll">
         <div class="modal-head">
-          <div class="modal-badges" id="modal-badges"></div>
-          <p class="modal-date" id="modal-date"></p>
-          <h2 class="modal-title" id="modal-title"></h2>
-          <p class="modal-loc" id="modal-loc"></p>
+          <div class="modal-head-main">
+            <div class="modal-badges" id="modal-badges"></div>
+            <p class="modal-date" id="modal-date"></p>
+            <h2 class="modal-title" id="modal-title"></h2>
+            <p class="modal-loc" id="modal-loc"></p>
+          </div>
+          <div class="modal-head-side" id="modal-head-side"></div>
         </div>
         <div class="modal-body" id="modal-body"></div>
         <div class="modal-actions" id="modal-actions"></div>
@@ -2241,7 +2314,11 @@ def build():
   var $loc     = document.getElementById('modal-loc');
   var $body    = document.getElementById('modal-body');
   var $actions = document.getElementById('modal-actions');
+  var $editToggle = document.getElementById('modal-edit-toggle');
   var lastFocus = null;
+  // In-place editing: when on, the SAME fields render as inputs in their place.
+  var _editing = false, _curRec = null;
+  var AB_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
 
   function esc(s) {{
     return String(s == null ? '' : s)
@@ -2313,13 +2390,9 @@ def build():
     b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Mark Submitted') + '</button>');
     b.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
     b.push('<button type="button" class="qa' + (att ? ' on' : '') + '" data-qa="attending">' + (att ? '✓ Attending' : 'Attending') + '</button>');
-    // "Edit event" sits at the top-right of the action row (like Angela's app)
-    // and reveals the inline edit fields below.
-    return '<div class="modal-quickbar">' +
-      '<button type="button" class="qa-edit" data-edittoggle aria-expanded="false">' +
-        '<span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event</button>' +
-      '<div class="qa-row">' + b.join('') + '</div>' +
-      '</div>';
+    // Fast one-tap actions. (The "Edit event" toggle lives in the modal header,
+    // top-right, in the same spot for every event.)
+    return '<div class="modal-quickbar"><div class="qa-row">' + b.join('') + '</div></div>';
   }}
   function wireQuickBar(rec) {{
     var bar = $body.querySelector('.modal-quickbar');
@@ -2355,101 +2428,102 @@ def build():
     }});
   }}
 
-  // Inline editor INSIDE the pop-up: change a field right here, it saves to the
-  // right table (event_state by num / manual_events by id) via window.opsWrite.
-  // Catalog events can only edit their ops state (stage/speaker/verdict/priority/
-  // notes); manual events can edit their core fields too.
-  function meRow(label, control) {{
-    return '<div class="me-row"><span class="me-key">' + label + '</span>' + control + '</div>';
-  }}
-  function editBarHtml(rec) {{
+  // The ArcticBlue speaker roster — drives the "Interested" picker.
+  var AB_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
+
+  // Edit form — mirrors the READ-ONLY field layout (same .modal-field rows /
+  // labels / spacing) so edit mode looks just like view mode, only editable.
+  // Each control saves to the right table (event_state by num / manual_events
+  // by id) via window.opsWrite. Catalog edits write override columns.
+  function editFormHtml(rec) {{
     if (!rec || !rec._table || rec._key == null) return '';
     var isCat = rec._table === 'event_state';
     function opt(v, cur) {{
       return '<option value="' + esc(v) + '"' + (String(cur || '') === v ? ' selected' : '') + '>' + (v || '—') + '</option>';
+    }}
+    function ef(label, control) {{
+      return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' + control + '</div>';
+    }}
+    function inp(f, val, ph) {{
+      return '<input class="me-input" type="text" data-edit="' + f + '" value="' + esc(val || '') + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>';
+    }}
+    function ta(f, val, rows) {{
+      return '<textarea class="me-input" data-edit="' + f + '" rows="' + (rows || 3) + '">' + esc(val || '') + '</textarea>';
     }}
     var stages = rec.stage_tags || [];
     var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Declined'];
     var chips = order.map(function (s) {{
       return '<button type="button" class="me-stage' + (stages.indexOf(s) !== -1 ? ' on' : '') + '" data-stage="' + esc(s) + '">' + esc(s) + '</button>';
     }}).join('');
+    var interested = rec.interested || [];
+    var intChips = AB_ROSTER.map(function (n) {{
+      return '<label class="me-int' + (interested.indexOf(n) !== -1 ? ' on' : '') + '"><input type="checkbox" data-interested="' + esc(n) + '"' + (interested.indexOf(n) !== -1 ? ' checked' : '') + '>' + esc(n) + '</label>';
+    }}).join('');
     var verdicts = ['', 'Worth attending', 'Maybe', 'Not worth it'];
     var pris = ['', 'High', 'Medium', 'Low'];
-    var curPri = isCat ? (rec.priority_override || rec.priority || '') : (rec.priority || '');
-    var h = '<div class="modal-edit" hidden><div class="me-edithead">Editing — changes save instantly</div><div class="me-grid">';
-    if (!isCat) {{
-      h += meRow('Name', '<input type="text" data-edit="name" value="' + esc(rec.name || '') + '">');
-      h += meRow('Date', '<input type="text" data-edit="date_str" value="' + esc(rec.date_str || '') + '" placeholder="e.g. Sept 14–16, 2026">');
-      h += meRow('Location', '<input type="text" data-edit="location" value="' + esc(rec.location || '') + '">');
-      h += meRow('Website', '<input type="url" data-edit="url" value="' + esc(rec.url || '') + '" placeholder="https://">');
-    }}
-    h += meRow('Pipeline', '<div class="me-stages">' + chips + '</div>');
-    h += meRow('Speaker', '<input type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
-    h += meRow('Worth attending?', '<select data-edit="attend_verdict">' + verdicts.map(function (v) {{ return opt(v, rec.attend_verdict); }}).join('') + '</select>');
-    h += meRow('Priority', '<select data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) {{ return opt(v, curPri); }}).join('') + '</select>');
-    // Descriptive fields — editable for BOTH catalog and manual events. For a
-    // catalog event these write override columns on event_state (needs the
-    // scripts/2026-06_event_state_overrides.sql migration); manual_events
-    // already has every column.
     var p2p = ['', 'Yes', 'No', 'Both'];
-    h += meRow('Why it fits ArcticBlue', '<textarea data-edit="why" rows="3">' + esc(rec.why || '') + '</textarea>');
-    h += meRow('About', '<textarea data-edit="about" rows="3">' + esc(rec.about || '') + '</textarea>');
-    h += meRow('Focus areas', '<textarea data-edit="focus_areas" rows="2">' + esc(rec.focus_areas || '') + '</textarea>');
-    h += meRow('Typical attendees', '<textarea data-edit="typical_attendees" rows="2">' + esc(rec.typical_attendees || '') + '</textarea>');
-    h += meRow('Speaking route', '<textarea data-edit="speaking_route" rows="2">' + esc(rec.speaking_route || '') + '</textarea>');
-    h += meRow('Pay-to-play', '<select data-edit="pay_to_play">' + p2p.map(function (v) {{ return opt(v, rec.pay_to_play); }}).join('') + '</select>');
-    h += meRow('Venue', '<input type="text" data-edit="venue" value="' + esc(rec.venue || '') + '">');
-    h += meRow('Contact info', '<input type="text" data-edit="contact_info" value="' + esc(rec.contact_info || '') + '">');
-    h += meRow('Deadline', '<input type="text" data-edit="deadline" value="' + esc(rec.deadline || '') + '" placeholder="e.g. July 10, 2026">');
-    h += meRow('Notes', '<textarea data-edit="notes" rows="2" placeholder="Internal notes…">' + esc(rec.notes || '') + '</textarea>');
-    h += '</div></div>';
+    var curPri = isCat ? (rec.priority_override || rec.priority || '') : (rec.priority || '');
+    var h = '';
+    if (!isCat) {{
+      h += ef('Event name', inp('name', rec.name));
+      h += ef('Date', inp('date_str', rec.date_str, 'e.g. Sept 14–16, 2026'));
+      h += ef('Location', inp('location', rec.location));
+      h += ef('Website', inp('url', rec.url, 'https://'));
+    }}
+    h += ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
+    h += ef('ArcticBlue speaker', '<input class="me-input" type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
+    h += ef('Interested — wants Angela to apply', '<div class="me-ints">' + intChips + '</div>');
+    h += ef('Worth attending?', '<select class="me-input" data-edit="attend_verdict">' + verdicts.map(function (v) {{ return opt(v, rec.attend_verdict); }}).join('') + '</select>');
+    h += ef('Priority', '<select class="me-input" data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) {{ return opt(v, curPri); }}).join('') + '</select>');
+    h += ef('Why it fits ArcticBlue', ta('why', rec.why));
+    h += ef('About', ta('about', rec.about));
+    h += ef('Focus areas', ta('focus_areas', rec.focus_areas, 2));
+    h += ef('Typical attendees', ta('typical_attendees', rec.typical_attendees, 2));
+    h += ef('Speaking route', ta('speaking_route', rec.speaking_route, 2));
+    h += ef('Pay-to-play', '<select class="me-input" data-edit="pay_to_play">' + p2p.map(function (v) {{ return opt(v, rec.pay_to_play); }}).join('') + '</select>');
+    h += ef('Venue', inp('venue', rec.venue));
+    h += ef('Contact info', inp('contact_info', rec.contact_info));
+    h += ef('Deadline', inp('deadline', rec.deadline, 'e.g. July 10, 2026'));
+    h += ef('Notes', ta('notes', rec.notes, 2));
     return h;
   }}
-  function wireEditBar(rec) {{
-    var box = $body.querySelector('.modal-edit');
+  function wireEditForm(rec) {{
+    var box = $body.querySelector('.modal-editform');
     if (!box || !window.opsWrite) return;
-    // Top-right "Edit event" button toggles the inline fields open/closed.
-    var toggle = $body.querySelector('[data-edittoggle]');
-    if (toggle) {{
-      toggle.addEventListener('click', function () {{
-        var open = box.hasAttribute('hidden');
-        if (open) {{
-          box.removeAttribute('hidden');
-          toggle.classList.add('on');
-          toggle.setAttribute('aria-expanded', 'true');
-          toggle.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✓</span> Done';
-          box.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
-        }} else {{
-          box.setAttribute('hidden', '');
-          toggle.classList.remove('on');
-          toggle.setAttribute('aria-expanded', 'false');
-          toggle.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event';
-        }}
-      }});
-    }}
     box.querySelectorAll('.me-stage').forEach(function (btn) {{
       btn.addEventListener('click', function () {{
         var s = btn.dataset.stage;
         var tags = (rec.stage_tags || []).slice();
         var i = tags.indexOf(s);
         if (i === -1) tags.push(s); else tags.splice(i, 1);
-        var order = window.opsStageOrder || [];
-        if (order.length) tags = order.filter(function (x) {{ return tags.indexOf(x) !== -1; }});
+        var ord = window.opsStageOrder || [];
+        if (ord.length) tags = ord.filter(function (x) {{ return tags.indexOf(x) !== -1; }});
         rec.stage_tags = tags;
         btn.classList.toggle('on');
         window.opsWrite(rec._table, rec._key, {{ status_tags: tags }});
+      }});
+    }});
+    box.querySelectorAll('[data-interested]').forEach(function (cb) {{
+      cb.addEventListener('change', function () {{
+        var list = (rec.interested || []).slice();
+        var n = cb.dataset.interested;
+        var i = list.indexOf(n);
+        if (cb.checked && i === -1) list.push(n);
+        else if (!cb.checked && i !== -1) list.splice(i, 1);
+        list = AB_ROSTER.filter(function (x) {{ return list.indexOf(x) !== -1; }});
+        rec.interested = list;
+        var lbl = cb.closest('.me-int'); if (lbl) lbl.classList.toggle('on', cb.checked);
+        window.opsWrite(rec._table, rec._key, {{ interested: list }});
       }});
     }});
     box.querySelectorAll('[data-edit]').forEach(function (el) {{
       el.addEventListener('change', function () {{
         var field = el.dataset.edit;
         var val = (el.value == null ? '' : String(el.value)).trim();
-        // Never blank out a manual event's name by accident.
         if (field === 'name' && !val) {{ el.value = rec.name || ''; return; }}
         var out = val === '' ? null : val;
         if (field === 'url' && out && !/^https?:\\/\\//i.test(out)) out = 'https://' + out;
         var patch = {{}}; patch[field] = out;
-        // Reflect locally so re-opening the pop-up shows the new value.
         if (field === 'priority_override') rec.priority = out;
         else rec[field] = out;
         window.opsWrite(rec._table, rec._key, patch);
@@ -2490,14 +2564,20 @@ def build():
 
     var html = '';
     html += quickBarHtml(rec);
-    html += editBarHtml(rec);
-    html += field('Why it fits ArcticBlue', rec.why);
-    html += field('About', rec.about);
-    html += field('Focus areas', rec.focus_areas);
-    html += field('Typical attendees', rec.typical_attendees);
-    html += field('Past / announced speakers', rec.past_speakers);
-    html += field('Meetings & networking', rec.meeting_formats);
-    html += field('Speaking route', rec.speaking_route);
+
+    // Read-only view. The edit form below mirrors this exact layout.
+    var v = '';
+    if (rec.interested && rec.interested.length) {{
+      v += field('Interested — wants Angela to apply',
+        rec.interested.map(function (n) {{ return '<span class="int-chip">' + esc(n) + '</span>'; }}).join(''), true);
+    }}
+    v += field('Why it fits ArcticBlue', rec.why);
+    v += field('About', rec.about);
+    v += field('Focus areas', rec.focus_areas);
+    v += field('Typical attendees', rec.typical_attendees);
+    v += field('Past / announced speakers', rec.past_speakers);
+    v += field('Meetings & networking', rec.meeting_formats);
+    v += field('Speaking route', rec.speaking_route);
 
     // Short facts in a 2-up grid
     var grid = '';
@@ -2510,24 +2590,52 @@ def build():
     grid += field('Venue', rec.venue);
     grid += field('Submission status', rec.submission_status);
     grid += field('Speaking fee', rec.speaking_fee);
-    if (grid) html += '<div class="modal-grid">' + grid + '</div>';
+    if (grid) v += '<div class="modal-grid">' + grid + '</div>';
 
-    html += field('ArcticBlue speaker', rec.speaker);
+    v += field('ArcticBlue speaker', rec.speaker);
 
     // Contacts
     var contactBits = [];
     if (rec.poc_name)  contactBits.push(esc(rec.poc_name));
     if (rec.poc_email) contactBits.push('<a href="mailto:' + esc(rec.poc_email) + '">' + esc(rec.poc_email) + '</a>');
     if (rec.poc_linkedin) contactBits.push('<a href="' + esc(rec.poc_linkedin) + '" target="_blank" rel="noopener">LinkedIn ↗</a>');
-    if (contactBits.length) html += field('Point of contact', contactBits.join(' · '), true);
-    html += field('Contact info', rec.contact_info);
-    html += field('Additional contacts', rec.additional_contacts);
-    html += field('Post-mortem (ROI)', rec.postmortem);
-    html += field('Notes', rec.notes);
+    if (contactBits.length) v += field('Point of contact', contactBits.join(' · '), true);
+    v += field('Contact info', rec.contact_info);
+    v += field('Additional contacts', rec.additional_contacts);
+    v += field('Post-mortem (ROI)', rec.postmortem);
+    v += field('Notes', rec.notes);
 
-    $body.innerHTML = html || '<p class="modal-nolink">No extra detail on file for this event yet.</p>';
+    html += '<div class="modal-view">' + (v || '<p class="modal-nolink">No extra detail on file for this event yet.</p>') + '</div>';
+    var editForm = editFormHtml(rec);
+    if (editForm) html += '<div class="modal-editform" hidden>' + editForm + '</div>';
+
+    $body.innerHTML = html;
     wireQuickBar(rec);
-    wireEditBar(rec);
+    wireEditForm(rec);
+
+    // "Edit event" toggle — header top-right, same spot for every event. It
+    // swaps the read-only view for the (identically-laid-out) edit form.
+    var $side = document.getElementById('modal-head-side');
+    if ($side) {{
+      $side.innerHTML = editForm
+        ? '<button type="button" class="qa-edit" id="modal-edit-toggle" aria-expanded="false"><span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event</button>'
+        : '';
+      var et = document.getElementById('modal-edit-toggle');
+      if (et) et.addEventListener('click', function () {{
+        var view = $body.querySelector('.modal-view');
+        var form = $body.querySelector('.modal-editform');
+        if (!form) return;
+        if (form.hasAttribute('hidden')) {{
+          form.removeAttribute('hidden'); if (view) view.setAttribute('hidden', '');
+          et.classList.add('on'); et.setAttribute('aria-expanded', 'true');
+          et.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✓</span> Done';
+        }} else {{
+          form.setAttribute('hidden', ''); if (view) view.removeAttribute('hidden');
+          et.classList.remove('on'); et.setAttribute('aria-expanded', 'false');
+          et.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event';
+        }}
+      }});
+    }}
 
     // Editing now lives in the top-right "Edit event" toggle; the footer just
     // links out to the event website.
@@ -3110,6 +3218,7 @@ def build():
         '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>' +
         deadlineLine(ev.deadline) +
         sigRow +
+        (st.interested && st.interested.length ? '<p class="ops-meta ops-interested">★ Interested: ' + escapeHtml(st.interested.join(', ')) + '</p>' : '') +
         applyBtn +
         renderOpsTags(st) +
         '<details class="ops-edit">' +
@@ -3164,6 +3273,7 @@ def build():
          'pay_to_play', 'venue', 'contact_info', 'deadline'].forEach(function (f) {{
           if (st[f] != null && String(st[f]).trim() !== '') rec[f] = st[f];
         }});
+        if (st.interested && st.interested.length) rec.interested = st.interested;
         rec.stage_tags = opsStages;
       }}
       rec.saved  = !!(st && st.saved);
@@ -3339,6 +3449,7 @@ def build():
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(mev.region || '') + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
+        (mev.interested && mev.interested.length ? '<p class="ops-meta ops-interested">★ Interested: ' + escapeHtml(mev.interested.join(', ')) + '</p>' : '') +
         tagsHtml +
         pocLine +
         (mev.why  ? '<p class="event-why" style="font-size:0.85rem;color:var(--ab-fg-2);margin:0 0 8px;">' + escapeHtml(mev.why) + '</p>' : '') +
