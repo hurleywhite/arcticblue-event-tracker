@@ -846,6 +846,44 @@ def build():
       background: var(--ab-bg-3); color: var(--ab-fg); border: 1px solid var(--ab-rule-strong);
     }}
     .modal-edit-btn:hover {{ background: var(--ab-bg-2); border-color: var(--ab-fg-3); }}
+    /* Inline editor inside the pop-up — change fields right here. */
+    .modal-edit {{
+      margin: 0 0 20px; padding: 14px 16px; border-radius: 10px;
+      background: var(--ab-bg-2); border: 1px solid var(--ab-rule);
+    }}
+    .modal-edit > summary {{
+      cursor: pointer; font-family: var(--ab-mono); font-size: 0.72rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3);
+      list-style: none; user-select: none;
+    }}
+    .modal-edit > summary::-webkit-details-marker {{ display: none; }}
+    .modal-edit[open] > summary {{ margin-bottom: 12px; }}
+    .me-grid {{ display: grid; gap: 11px; }}
+    .me-row {{ display: grid; grid-template-columns: 130px 1fr; gap: 10px; align-items: center; }}
+    .me-key {{
+      font-family: var(--ab-mono); font-size: 0.68rem; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--ab-fg-3); padding-top: 2px; align-self: start;
+    }}
+    .me-row input, .me-row select, .me-row textarea {{
+      width: 100%; font-family: var(--ab-sans); font-size: 0.9rem;
+      padding: 8px 10px; border: 1px solid var(--ab-rule-strong); border-radius: 6px;
+      background: var(--ab-bg); color: var(--ab-fg); box-sizing: border-box;
+    }}
+    .me-row textarea {{ resize: vertical; line-height: 1.45; }}
+    .me-row input:focus, .me-row select:focus, .me-row textarea:focus {{
+      outline: none; border-color: var(--ab-fg); box-shadow: 0 0 0 2px var(--ab-bg-3);
+    }}
+    .me-stages {{ display: flex; flex-wrap: wrap; gap: 6px; }}
+    .me-stage {{
+      font-family: var(--ab-sans); font-size: 0.78rem; font-weight: 600;
+      padding: 5px 11px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2);
+    }}
+    .me-stage:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
+    .me-stage.on {{ background: #166534; color: #fff; border-color: #166534; }}
+    @media (max-width: 560px) {{
+      .me-row {{ grid-template-columns: 1fr; gap: 4px; }}
+    }}
     @media (max-width: 560px) {{
       .modal-scroll {{ padding: 26px 20px 22px; }}
       .modal-title {{ font-size: 1.3rem; }}
@@ -1804,39 +1842,8 @@ def build():
     </div>
   </nav>
 
-  <div class="tabs" role="tablist" aria-label="View selector">
-    <div class="tabs-inner">
-      <button class="tab active" role="tab" data-tab="angela"   aria-selected="true"  aria-controls="panel-angela">Event Tracker <span class="tab-badge">live</span></button>
-      <button class="tab"        role="tab" data-tab="everyone" aria-selected="false" aria-controls="panel-everyone">Public view</button>
-    </div>
-  </div>
-
   <main class="wrap">
-    <div class="panel" id="panel-everyone" role="tabpanel" data-tab="everyone" hidden>
-    <section class="hero">
-      <p class="eyebrow">ArcticBlue Labs · Internal</p>
-      <h1>In-person AI events <em>worth showing up for</em>.</h1>
-      <p class="lede">A live tracker of every enterprise and halo AI event between now and end of 2026 — sorted by priority, location, and speaking route. Today's, upcoming, and yesterday's events are managed automatically.</p>
-
-      <dl class="kpi-row">
-        <div class="kpi">
-          <dt class="kpi-num">{len(events)}</dt>
-          <dd class="kpi-label">Events tracked</dd>
-        </div>
-        <div class="kpi">
-          <dt class="kpi-num">{upcoming_count}</dt>
-          <dd class="kpi-label">Upcoming</dd>
-        </div>
-        <div class="kpi">
-          <dt class="kpi-num">{archived_count}</dt>
-          <dd class="kpi-label">Archived</dd>
-        </div>
-        <div class="kpi">
-          <dt class="kpi-num">5<span class="plus">+</span></dt>
-          <dd class="kpi-label">Regions</dd>
-        </div>
-      </dl>
-    </section>'''
+'''
 
     # Today / Up-next callout
     if today_evs:
@@ -1926,8 +1933,6 @@ def build():
     </details>''' if archived else ''
 
     foot = f'''
-    </div><!-- /panel-everyone -->
-
     <div class="panel" id="panel-angela" role="tabpanel" data-tab="angela" aria-labelledby="tab-angela">
 
       <!-- Preloaded ArcticBlue speakers — referenced by every speaker input
@@ -2115,31 +2120,13 @@ def build():
   <script type="application/json" id="catalog-data">{catalog_json}</script>
 
 <script>
-// ── Tab switcher (For Everyone / For Angela) ──────────────────────────
+// ── Sole view: the Event Tracker is the only panel (Public view retired). ──
 (function () {{
-  var TAB_KEY = 'ab.tracker.activeTab';
-  var tabs = document.querySelectorAll('.tab[data-tab]');
-  var panels = document.querySelectorAll('.panel[data-tab]');
-  function show(name) {{
-    tabs.forEach(function (t) {{
-      var on = t.dataset.tab === name;
-      t.classList.toggle('active', on);
-      t.setAttribute('aria-selected', on ? 'true' : 'false');
-    }});
-    panels.forEach(function (p) {{
-      var on = p.dataset.tab === name;
-      if (on) {{ p.removeAttribute('hidden'); }} else {{ p.setAttribute('hidden', ''); }}
-    }});
-    try {{ localStorage.setItem(TAB_KEY, name); }} catch (e) {{}}
-  }}
-  tabs.forEach(function (t) {{
-    t.addEventListener('click', function () {{ show(t.dataset.tab); }});
-  }});
-  // Restore last-used tab
-  try {{
-    var saved = localStorage.getItem(TAB_KEY);
-    if (saved === 'angela' || saved === 'everyone') show(saved);
-  }} catch (e) {{}}
+  // Defensive: ensure the tracker panel is visible even if an old build left a
+  // stale "activeTab" in localStorage that once hid it.
+  var panel = document.getElementById('panel-angela');
+  if (panel) panel.removeAttribute('hidden');
+  try {{ localStorage.removeItem('ab.tracker.activeTab'); }} catch (e) {{}}
 }})();
 
 (function () {{
@@ -2316,6 +2303,79 @@ def build():
     }});
   }}
 
+  // Inline editor INSIDE the pop-up: change a field right here, it saves to the
+  // right table (event_state by num / manual_events by id) via window.opsWrite.
+  // Catalog events can only edit their ops state (stage/speaker/verdict/priority/
+  // notes); manual events can edit their core fields too.
+  function meRow(label, control) {{
+    return '<div class="me-row"><span class="me-key">' + label + '</span>' + control + '</div>';
+  }}
+  function editBarHtml(rec) {{
+    if (!rec || !rec._table || rec._key == null) return '';
+    var isCat = rec._table === 'event_state';
+    function opt(v, cur) {{
+      return '<option value="' + esc(v) + '"' + (String(cur || '') === v ? ' selected' : '') + '>' + (v || '—') + '</option>';
+    }}
+    var stages = rec.stage_tags || [];
+    var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Declined'];
+    var chips = order.map(function (s) {{
+      return '<button type="button" class="me-stage' + (stages.indexOf(s) !== -1 ? ' on' : '') + '" data-stage="' + esc(s) + '">' + esc(s) + '</button>';
+    }}).join('');
+    var verdicts = ['', 'Worth attending', 'Maybe', 'Not worth it'];
+    var pris = ['', 'High', 'Medium', 'Low'];
+    var curPri = isCat ? (rec.priority_override || rec.priority || '') : (rec.priority || '');
+    var h = '<details class="modal-edit" open><summary>✎ Edit fields — changes save instantly</summary><div class="me-grid">';
+    if (!isCat) {{
+      h += meRow('Name', '<input type="text" data-edit="name" value="' + esc(rec.name || '') + '">');
+      h += meRow('Date', '<input type="text" data-edit="date_str" value="' + esc(rec.date_str || '') + '" placeholder="e.g. Sept 14–16, 2026">');
+      h += meRow('Location', '<input type="text" data-edit="location" value="' + esc(rec.location || '') + '">');
+      h += meRow('Website', '<input type="url" data-edit="url" value="' + esc(rec.url || '') + '" placeholder="https://">');
+    }}
+    h += meRow('Pipeline', '<div class="me-stages">' + chips + '</div>');
+    h += meRow('Speaker', '<input type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
+    h += meRow('Worth attending?', '<select data-edit="attend_verdict">' + verdicts.map(function (v) {{ return opt(v, rec.attend_verdict); }}).join('') + '</select>');
+    h += meRow('Priority', '<select data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) {{ return opt(v, curPri); }}).join('') + '</select>');
+    if (!isCat) {{
+      h += meRow('Why it fits', '<textarea data-edit="why" rows="2">' + esc(rec.why || '') + '</textarea>');
+      h += meRow('Deadline', '<input type="text" data-edit="deadline" value="' + esc(rec.deadline || '') + '" placeholder="e.g. July 10, 2026">');
+    }}
+    h += meRow('Notes', '<textarea data-edit="notes" rows="2" placeholder="Internal notes…">' + esc(rec.notes || '') + '</textarea>');
+    h += '</div></details>';
+    return h;
+  }}
+  function wireEditBar(rec) {{
+    var box = $body.querySelector('.modal-edit');
+    if (!box || !window.opsWrite) return;
+    box.querySelectorAll('.me-stage').forEach(function (btn) {{
+      btn.addEventListener('click', function () {{
+        var s = btn.dataset.stage;
+        var tags = (rec.stage_tags || []).slice();
+        var i = tags.indexOf(s);
+        if (i === -1) tags.push(s); else tags.splice(i, 1);
+        var order = window.opsStageOrder || [];
+        if (order.length) tags = order.filter(function (x) {{ return tags.indexOf(x) !== -1; }});
+        rec.stage_tags = tags;
+        btn.classList.toggle('on');
+        window.opsWrite(rec._table, rec._key, {{ status_tags: tags }});
+      }});
+    }});
+    box.querySelectorAll('[data-edit]').forEach(function (el) {{
+      el.addEventListener('change', function () {{
+        var field = el.dataset.edit;
+        var val = (el.value == null ? '' : String(el.value)).trim();
+        // Never blank out a manual event's name by accident.
+        if (field === 'name' && !val) {{ el.value = rec.name || ''; return; }}
+        var out = val === '' ? null : val;
+        if (field === 'url' && out && !/^https?:\\/\\//i.test(out)) out = 'https://' + out;
+        var patch = {{}}; patch[field] = out;
+        // Reflect locally so re-opening the pop-up shows the new value.
+        if (field === 'priority_override') rec.priority = out;
+        else rec[field] = out;
+        window.opsWrite(rec._table, rec._key, patch);
+      }});
+    }});
+  }}
+
   function openEventModal(rec) {{
     if (!rec) return;
     var badges = [];
@@ -2349,6 +2409,7 @@ def build():
 
     var html = '';
     html += quickBarHtml(rec);
+    html += editBarHtml(rec);
     html += field('Why it fits ArcticBlue', rec.why);
     html += field('About', rec.about);
     html += field('Focus areas', rec.focus_areas);
@@ -2385,10 +2446,11 @@ def build():
 
     $body.innerHTML = html || '<p class="modal-nolink">No extra detail on file for this event yet.</p>';
     wireQuickBar(rec);
+    wireEditBar(rec);
 
     var actHtml = '';
     if (rec._table && rec._key != null) {{
-      actHtml += '<button type="button" class="modal-edit-btn" id="modal-edit-event">✎ Edit all fields</button>';
+      actHtml += '<button type="button" class="modal-edit-btn" id="modal-edit-event">More fields ↗</button>';
     }}
     if (rec.url) {{
       actHtml += '<a class="modal-visit" href="' + esc(rec.url) + '" target="_blank" rel="noopener">Visit event website ↗</a>';
@@ -2882,18 +2944,34 @@ def build():
     // CFP-deadline line for the card face. Red when the text says URGENT or
     // a parseable date is within ~30 days (or already passed — either way it
     // needs Angela's attention NOW, not buried in the pop-up).
+    // True when a CFP/apply deadline is coming up within the next ~month (or the
+    // text literally says urgent). Drives BOTH the red card styling and the
+    // "Urgent" stat/filter — an event whose deadline is days away needs
+    // attention NOW. A deadline already long past is not "coming up".
+    function isDeadlineSoon(d) {{
+      if (d == null || !String(d).trim()) return false;
+      var txt = String(d).trim();
+      if (/urgent|immediately|asap/i.test(txt)) return true;
+      var iso = null;
+      try {{ iso = deriveDatesFromText(txt).start_date; }} catch (e) {{}}
+      if (!iso) return false;
+      var days = (new Date(iso) - new Date()) / 86400000;
+      return days <= 30 && days >= -1;
+    }}
     function deadlineLine(d) {{
       if (d == null || !String(d).trim()) return '';
       var txt = String(d).trim();
-      var cls = '';
-      if (/urgent|immediately|asap/i.test(txt)) {{
-        cls = ' deadline-soon';
-      }} else {{
-        var iso = null;
-        try {{ iso = deriveDatesFromText(txt).start_date; }} catch (e) {{}}
-        if (iso && (new Date(iso) - new Date()) / 86400000 <= 30) cls = ' deadline-soon';
-      }}
+      var cls = isDeadlineSoon(d) ? ' deadline-soon' : '';
       return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
+    }}
+    // True when an event is happening within the next ~month (and hasn't ended).
+    // A "coming up" event is urgent — it's the last call to apply / book / show.
+    function isStartingSoon(ev) {{
+      if (!ev || isPastEvent(ev)) return false;
+      var iso = ev.start_date;
+      if (!iso) return false;
+      var days = (new Date(iso + 'T00:00:00') - new Date()) / 86400000;
+      return days <= 30;
     }}
 
     function buildOpsCard(ev, st, email) {{
@@ -2925,7 +3003,11 @@ def build():
       if (_opsPast) card.classList.add('is-past');
       if (st.saved)  card.classList.add('is-saved');
       if (st.hidden) card.classList.add('is-hidden');
-      if (st.urgent) card.classList.add('is-urgent');
+      // Urgent = manually flagged, OR a CFP/apply deadline within the month,
+      // OR the event itself is coming up within the next month.
+      var _soon = (isDeadlineSoon(ev.deadline) || isStartingSoon(ev)) && !_opsPast;
+      if (_soon) card.dataset.deadlineSoon = '1';
+      if (st.urgent || _soon) card.classList.add('is-urgent');
 
       var metaLine = (st.updated_by && st.updated_at)
         ? '<p class="ops-meta" title="' + escapeHtml(st.updated_by) + '">Last edit · ' + escapeHtml(firstNameFromEmail(st.updated_by)) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
@@ -3101,6 +3183,9 @@ def build():
       var _manPast = isPastEvent(mev);
       card.dataset.past = _manPast ? '1' : '';
       if (_manPast) card.classList.add('is-past');
+      // Urgent = deadline within the month OR the event itself coming up soon.
+      var _manSoon = (isDeadlineSoon(mev.deadline) || isStartingSoon(mev)) && !_manPast;
+      if (_manSoon) {{ card.dataset.deadlineSoon = '1'; card.classList.add('is-urgent'); }}
       var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
       card.dataset.month = manualMeta.key;
       card.dataset.monthLabel = manualMeta.label;
@@ -3984,26 +4069,32 @@ def build():
       // The "Upcoming" headline excludes events that already happened.
       var total = (evs || []).filter(function (e) {{ return !isPastEvent(e); }}).length +
                   (manualRows || []).filter(function (m) {{ return !isPastEvent(m); }}).length;
+      var stByNum = {{}};
+      (stateRows || []).forEach(function (r) {{ stByNum[r.event_num] = r; }});
       var saved = 0, urgent = 0, inPipeline = 0, booked = 0;
       var buyerRich = 0, worthIt = 0;
       (stateRows || []).forEach(function (r) {{
         if (r.saved)  saved++;
-        if (r.urgent) urgent++;
         var stages = stageTagsOf(r);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
         if ((r.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
       }});
+      // Urgent = a CFP/apply deadline coming up within the next month (or a
+      // manually-flagged urgent event). Counted per upcoming event.
       (evs || []).forEach(function (ev) {{
         if (((ev.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
+        var st = stByNum[ev.num] || {{}};
+        if (!isPastEvent(ev) && (st.urgent || isDeadlineSoon(ev.deadline) || isStartingSoon(ev))) urgent++;
       }});
-      // Manual events carry their own stage tags too — fold them in.
+      // Manual events carry their own stage tags + deadlines — fold them in.
       (manualRows || []).forEach(function (m) {{
         var stages = stageTagsOf(m);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if ((m.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
+        if (!isPastEvent(m) && (isDeadlineSoon(m.deadline) || isStartingSoon(m))) urgent++;
       }});
       // Each tile is a one-click filter (data-stat). 'all' clears everything.
       function tile(key, num, label, cls) {{
@@ -6327,7 +6418,9 @@ def build():
 </html>
 '''
 
-    html = head + today_section + upcoming_section + archive_section + foot
+    # Public catalog sections (today/upcoming/archive) were retired with the
+    # Public view — the Event Tracker is now the sole, fully client-rendered view.
+    html = head + foot
     OUT_SHIP.parent.mkdir(parents=True, exist_ok=True)
     OUT_SHIP.write_text(html, encoding='utf-8')
     print(f'WROTE {OUT_SHIP}  ({len(html):,} bytes)')
