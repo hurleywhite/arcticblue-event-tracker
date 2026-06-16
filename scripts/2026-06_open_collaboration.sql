@@ -32,6 +32,13 @@ drop policy if exists me_open_all on public.manual_events;
 create policy me_open_all on public.manual_events
   for all using (true) with check (true);
 
+-- Roster cleanup: remove Patrick (he was the speaker on event #177, which is
+-- why he showed up as a filter chip). Carlos + Jim are added in the app's
+-- speaker suggestion list, not here -- they'll appear as filter chips once
+-- they're actually assigned to an event.
+update public.event_state set speaker = null
+where event_num = 177 and speaker = 'Patrick';
+
 -- Sanity: list the live policies (expect es_open_all + es_read, me_open_all + me_read).
 select tablename, policyname, cmd
 from pg_policies
