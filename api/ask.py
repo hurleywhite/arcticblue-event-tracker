@@ -155,13 +155,61 @@ _SYSTEM = (
     "their dates/locations; just give the gist or the reasoning.\n"
     "- When ranking what to attend/skip, weigh: buyer-rich audience, 'Worth "
     "attending' verdict, priority, fit (why), and upcoming date (ignore past "
-    "events unless asked). Never invent events not in the data."
+    "events unless asked). Never invent events not in the data.\n"
+    "- If the question names a teammate or asks who should go, use the TEAM "
+    "COVERAGE notes to match the right person to each event by region/theme, "
+    "and prefer events that fit that person's coverage."
 )
+
+# Who covers what — used to answer "which event should <person> attend?" or
+# "where should I send someone in September?" by matching people to events by
+# region/theme. Distilled from the ArcticBlue Obsidian notes (team-roles);
+# edit here as the team or their focus areas change.
+_TEAM_CONTEXT = (
+    "TEAM COVERAGE — ArcticBlue people and the regions/themes each best fits, "
+    "for matching the right person to an event:\n"
+    "- Thor (CEO, co-founder) — keynote speaker; travels everywhere; flagship "
+    "stages, AI-strategy/defensibility themes, health-tech.\n"
+    "- Verma (co-founder) — travels everywhere; specialises in REGULATED "
+    "industries: insurance, healthcare / health-tech, and finance (e.g. ITC, "
+    "HLTH, JPM Healthcare, Money20/20, AWS re:Invent).\n"
+    "- Jerome — Europe / EMEA enterprise sales (London, Zurich, UK); European "
+    "events route to him.\n"
+    "- Carlos — Latin America / South America (the Americas patch).\n"
+    "- Jim — international governments / public sector / sovereign-AI events.\n"
+    "- Scott — partnerships (alliance, ecosystem, partner / co-marketing "
+    "events).\n"
+    "- Joe — facilitator lead and speaker; US / West Coast and general.\n"
+    "Guidance: match each event to the person whose coverage best fits its "
+    "region and theme (a São Paulo summit → Carlos; a government / sovereign-AI "
+    "forum → Jim; a partnership / alliance event → Scott; a European event → "
+    "Jerome; an insurance / health / finance event → Verma). Thor and Verma are "
+    "the catch-alls for anything high-profile or outside the others' areas."
+)
+
+# Concise, non-sensitive company background (distilled from the ArcticBlue
+# Obsidian overview — positioning + target buyers only; no client names or
+# figures). Helps the assistant judge which events are a real fit. Override at
+# runtime with the ARCTICBLUE_CONTEXT env var.
+_COMPANY_CONTEXT = (os.environ.get('ARCTICBLUE_CONTEXT') or (
+    "ArcticBlue AI is an enterprise-AI consulting and product studio (New York "
+    "& San Francisco) that helps enterprise leadership teams de-risk and scale "
+    "AI via sprint-based prototyping, synthetic user research, vendor "
+    "feasibility tests, and executive AI-literacy workshops. Sweet-spot "
+    "industries: insurance, healthcare, fintech, enterprise SaaS, retail / "
+    "eCommerce, telco, and media. The best events are dense with in-house "
+    "enterprise BUYERS (CxOs, heads of data / AI, transformation leaders) in "
+    "those industries — not vendor-to-vendor expos."
+)).strip()
 
 
 def _ask_openai(question, history, events):
     messages = [{'role': 'system',
                  'content': _SYSTEM.format(today=date.today().isoformat())}]
+    messages.append({'role': 'system', 'content': _TEAM_CONTEXT})
+    if _COMPANY_CONTEXT:
+        messages.append({'role': 'system',
+                         'content': 'ARCTICBLUE CONTEXT:\n' + _COMPANY_CONTEXT})
     messages.append({'role': 'system',
                      'content': 'EVENTS (JSON):\n' + json.dumps(events, ensure_ascii=False)})
     for h in (history or [])[-6:]:

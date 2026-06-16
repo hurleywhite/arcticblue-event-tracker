@@ -3711,6 +3711,9 @@ def build():
           speakers.push(t);
         }});
       }}
+      // Always surface the full ArcticBlue speaker roster as filter chips —
+      // even teammates not yet assigned to any event (Carlos, Jim, Scott…).
+      ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'].forEach(add);
       (stateRows  || []).forEach(function (r) {{ add(r.speaker); }});
       (manualRows || []).forEach(function (m) {{ add(m.speaker); }});
 
