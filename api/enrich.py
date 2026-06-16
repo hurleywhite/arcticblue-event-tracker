@@ -307,6 +307,52 @@ def _junk(v):
     return any(s.startswith(p) for p in _JUNK_PREFIXES)
 
 
+_MONTHS = {m: i for i, m in enumerate(
+    ['january', 'february', 'march', 'april', 'may', 'june', 'july',
+     'august', 'september', 'october', 'november', 'december'], 1)}
+_MONTHS.update({m[:3]: i for m, i in list(_MONTHS.items())})
+
+
+def _parse_concrete_date(s):
+    """A date if the string names a concrete day (ISO / 'Sep 1, 2026' /
+    '1 September 2026'), else None. Used to sanity-check deadlines."""
+    if not s:
+        return None
+    s = str(s)
+    m = re.search(r'(\d{4})-(\d{2})-(\d{2})', s)
+    if m:
+        try:
+            return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        except ValueError:
+            return None
+    m = re.search(r'([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})', s)
+    if m and m.group(1).lower() in _MONTHS:
+        try:
+            return date(int(m.group(3)), _MONTHS[m.group(1).lower()], int(m.group(2)))
+        except ValueError:
+            return None
+    m = re.search(r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})', s)
+    if m and m.group(2).lower() in _MONTHS:
+        try:
+            return date(int(m.group(3)), _MONTHS[m.group(2).lower()], int(m.group(1)))
+        except ValueError:
+            return None
+    return None
+
+
+def _deadline_sane(deadline, start_iso):
+    """False when the deadline resolves to a concrete date AFTER the event
+    starts (a CFP deadline can't fall after the event). Unparseable / rolling
+    deadlines pass (we can't disprove them)."""
+    dl = _parse_concrete_date(deadline)
+    if not dl or not start_iso:
+        return True
+    try:
+        return dl <= date.fromisoformat(str(start_iso)[:10])
+    except ValueError:
+        return True
+
+
 def merge_missing(row, facts):
     """Build a patch of ONLY the row's empty columns from researched facts.
     Pure function — shared with scripts/enrich_catalog.py and unit-tested."""
@@ -345,7 +391,9 @@ def merge_missing(row, facts):
     if empty('attendee_count') and not _junk(facts.get('attendee_count')):
         patch['attendee_count'] = str(facts['attendee_count']).strip()[:60]
     if empty('deadline') and not _junk(facts.get('deadline')):
-        patch['deadline'] = str(facts['deadline']).strip()[:120]
+        dl = str(facts['deadline']).strip()[:120]
+        if _deadline_sane(dl, row.get('start_date')):
+            patch['deadline'] = dl
     return patch
 
 
