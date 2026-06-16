@@ -416,6 +416,31 @@
       font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-mute);
       align-self: center;
     }
+    /* Editable modal — one-tap quick-action bar at the top of the body. */
+    .modal-quickbar {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin: 0 0 20px; padding-bottom: 16px;
+      border-bottom: 1px solid var(--ab-rule);
+    }
+    .modal-quickbar .qa {
+      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
+      padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
+      color: var(--ab-fg-2); transition: all 0.12s;
+    }
+    .modal-quickbar .qa:hover { border-color: var(--ab-fg-3); color: var(--ab-fg); }
+    .modal-quickbar .qa.on {
+      background: #166534; color: #fff; border-color: #166534;
+    }
+    .modal-quickbar .qa[data-qa="saved"].on { background: var(--ab-blue); border-color: var(--ab-blue); }
+    .modal-quickbar .qa[data-qa="hidden"].on { background: var(--ab-fg-3); border-color: var(--ab-fg-3); }
+    .modal-edit-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--ab-sans); font-weight: 600; font-size: 0.9rem;
+      padding: 10px 16px; border-radius: 5px; cursor: pointer;
+      background: var(--ab-bg-3); color: var(--ab-fg); border: 1px solid var(--ab-rule-strong);
+    }
+    .modal-edit-btn:hover { background: var(--ab-bg-2); border-color: var(--ab-fg-3); }
     @media (max-width: 560px) {
       .modal-scroll { padding: 26px 20px 22px; }
       .modal-title { font-size: 1.3rem; }
@@ -7228,6 +7253,61 @@ Advisory and programming are typically coordinated through the Columbia Business
            '<span class="v">' + (html ? val : esc(val)) + '</span></div>';
   }
 
+  // ── Editable modal: one-tap quick actions ──────────────────────────
+  // Renders only when the modal was opened from an editable ops/manual card
+  // (rec._table + rec._key present). Each button writes a single field via
+  // window.opsWrite (bridged from the ops closure). Save/Hide are catalog-
+  // only (manual_events has no saved/hidden column).
+  function quickBarHtml(rec) {
+    if (!rec || !rec._table || rec._key == null) return '';
+    var stages = rec.stage_tags || [];
+    function has(s) { return stages.indexOf(s) !== -1; }
+    var isCat = rec._table === 'event_state';
+    var att = (rec.attend_verdict || '').indexOf('Worth') === 0;
+    var b = [];
+    if (isCat) {
+      b.push('<button type="button" class="qa' + (rec.saved ? ' on' : '') + '" data-qa="saved">' + (rec.saved ? '★ Saved' : '☆ Save') + '</button>');
+      b.push('<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unhide' : 'Hide') + '</button>');
+    }
+    b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Mark Submitted') + '</button>');
+    b.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
+    b.push('<button type="button" class="qa' + (att ? ' on' : '') + '" data-qa="attending">' + (att ? '✓ Attending' : 'Attending') + '</button>');
+    return '<div class="modal-quickbar">' + b.join('') + '</div>';
+  }
+  function wireQuickBar(rec) {
+    var bar = $body.querySelector('.modal-quickbar');
+    if (!bar) return;
+    bar.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-qa]') : null;
+      if (!btn || !window.opsWrite) return;
+      var qa = btn.dataset.qa;
+      var patch = {};
+      if (qa === 'saved') { rec.saved = !rec.saved; patch.saved = rec.saved; }
+      else if (qa === 'hidden') { rec.hidden = !rec.hidden; patch.hidden = rec.hidden; }
+      else if (qa === 'attending') {
+        var on = (rec.attend_verdict || '').indexOf('Worth') === 0;
+        rec.attend_verdict = on ? null : 'Worth attending';
+        patch.attend_verdict = rec.attend_verdict;
+      } else if (qa === 'submitted' || qa === 'booked') {
+        var stage = qa === 'submitted' ? 'Submitted' : 'Booked';
+        var tags = (rec.stage_tags || []).slice();
+        var idx = tags.indexOf(stage);
+        if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
+        var order = window.opsStageOrder || [];
+        if (order.length) tags = order.filter(function (s) { return tags.indexOf(s) !== -1; });
+        rec.stage_tags = tags;
+        patch.status_tags = tags;
+      } else { return; }
+      // Optimistic: re-render the modal with the updated rec, preserving the
+      // scroll position so quick edits don't jump the reader.
+      var scEl = overlay.querySelector('.modal-scroll');
+      var sc = scEl ? scEl.scrollTop : 0;
+      window.opsWrite(rec._table, rec._key, patch);
+      openEventModal(rec);
+      if (scEl) scEl.scrollTop = sc;
+    });
+  }
+
   function openEventModal(rec) {
     if (!rec) return;
     var badges = [];
@@ -7260,6 +7340,7 @@ Advisory and programming are typically coordinated through the Columbia Business
     $loc.innerHTML = regionTxt + (regionTxt && locTxt ? ' · ' : '') + locTxt;
 
     var html = '';
+    html += quickBarHtml(rec);
     html += field('Why it fits ArcticBlue', rec.why);
     html += field('About', rec.about);
     html += field('Focus areas', rec.focus_areas);
@@ -7295,12 +7376,24 @@ Advisory and programming are typically coordinated through the Columbia Business
     html += field('Notes', rec.notes);
 
     $body.innerHTML = html || '<p class="modal-nolink">No extra detail on file for this event yet.</p>';
+    wireQuickBar(rec);
 
-    if (rec.url) {
-      $actions.innerHTML = '<a class="modal-visit" href="' + esc(rec.url) + '" target="_blank" rel="noopener">Visit event website ↗</a>';
-    } else {
-      $actions.innerHTML = '<span class="modal-nolink">No verified website URL on file.</span>';
+    var actHtml = '';
+    if (rec._table && rec._key != null) {
+      actHtml += '<button type="button" class="modal-edit-btn" id="modal-edit-event">✎ Edit all fields</button>';
     }
+    if (rec.url) {
+      actHtml += '<a class="modal-visit" href="' + esc(rec.url) + '" target="_blank" rel="noopener">Visit event website ↗</a>';
+    } else if (rec._table && rec._key != null) {
+      actHtml += '<button type="button" class="modal-edit-btn" id="modal-add-link">+ Add a website link</button>';
+    } else {
+      actHtml += '<span class="modal-nolink">No verified website URL on file.</span>';
+    }
+    $actions.innerHTML = actHtml;
+    var editBtn = document.getElementById('modal-edit-event');
+    if (editBtn) editBtn.addEventListener('click', function () { if (window.opsOpenEditor) window.opsOpenEditor(rec._table, rec._key); });
+    var addLinkBtn = document.getElementById('modal-add-link');
+    if (addLinkBtn) addLinkBtn.addEventListener('click', function () { if (window.opsOpenEditor) window.opsOpenEditor(rec._table, rec._key); });
 
     lastFocus = document.activeElement;
     overlay.removeAttribute('hidden');
@@ -7907,6 +8000,10 @@ Advisory and programming are typically coordinated through the Columbia Business
         if (st.postmortem) rec.postmortem = st.postmortem;
         rec.stage_tags = opsStages;
       }
+      rec.saved  = !!(st && st.saved);
+      rec.hidden = !!(st && st.hidden);
+      // Editing context for the modal's quick-actions / Edit Event button.
+      rec._table = 'event_state'; rec._key = ev.num;
       card._modalRec = rec;
       return card;
     }
@@ -8157,6 +8254,8 @@ Advisory and programming are typically coordinated through the Columbia Business
       for (var mk in mev) { if (Object.prototype.hasOwnProperty.call(mev, mk)) mrec[mk] = mev[mk]; }
       mrec.workflow_status = mev.status || null;
       mrec.stage_tags = manualStages;
+      // Editing context for the modal's quick-actions / Edit Event button.
+      mrec._table = 'manual_events'; mrec._key = mev.id;
       card._modalRec = mrec;
       return card;
     }
@@ -11064,6 +11163,45 @@ Advisory and programming are typically coordinated through the Columbia Business
       if ($opsEmail) $opsEmail.textContent = n || 'Team';
       return n || 'Team';
     }
+
+    // ── Bridge for the detail modal (which lives in a separate closure) ──
+    // The modal's quick-action buttons + "Edit Event" call these. opsWrite
+    // routes a patch to the right table; opsOpenEditor expands the source
+    // card's full edit form.
+    var _STAGE_ORDER = ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Declined'];
+    window.opsStageOrder = _STAGE_ORDER;
+    window.opsWrite = function (table, key, patch) {
+      var who = getCollabName() || 'Team';
+      patch.updated_by = who;
+      var run;
+      if (table === 'manual_events') {
+        run = sbWriteRetry(patch, function (p) { return sb.from('manual_events').update(p).eq('id', key); });
+      } else {
+        var pp = dict_assign({ event_num: key }, patch);
+        run = sbWriteRetry(pp, function (p) { return sb.from('event_state').upsert(p, { onConflict: 'event_num' }); });
+      }
+      return run.then(function (resp) {
+        if (resp && resp.error) { status('Save failed: ' + resp.error.message, 'error'); }
+        else { flashOk('Saved'); renderOps(who); }
+        return resp;
+      });
+    };
+    function dict_assign(a, b) { for (var k in b) { if (Object.prototype.hasOwnProperty.call(b, k)) a[k] = b[k]; } return a; }
+    window.opsOpenEditor = function (table, key) {
+      if (window.closeEventModal) window.closeEventModal();
+      if (typeof currentView !== 'undefined' && currentView !== 'grid') setView('grid');
+      setTimeout(function () {
+        var sel = table === 'manual_events'
+          ? '.ops-card[data-manual-id="' + key + '"]'
+          : '.ops-card[data-event-num="' + key + '"]';
+        var card = $opsGrid.querySelector(sel);
+        if (card) {
+          var ed = card.querySelector('details.ops-edit');
+          if (ed) ed.open = true;
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 70);
+    };
 
     // route() — no auth. Always show the collaborative tracker.
     function route() {
