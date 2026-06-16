@@ -1639,6 +1639,23 @@ def build():
     .ab-btn.ab-btn--primary:hover {{ background: #065f46; }}
     .ab-btn.ab-btn--ghost {{ background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); }}
     .ab-btn.ab-btn--ghost:hover {{ background: var(--ab-bg-3); }}
+    /* Ask AI — a gentle gradient accent so it reads as the smart assistant. */
+    .ab-btn.ab-btn--ask {{
+      background: linear-gradient(90deg, #eef2ff, #faf5ff); color: #6d28d9;
+      border: 1px solid #ddd6fe; font-weight: 600;
+    }}
+    .ab-btn.ab-btn--ask:hover {{ background: linear-gradient(90deg, #e0e7ff, #f3e8ff); }}
+    /* Chat panel */
+    .ask-log {{ display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; margin: 4px 0 12px; }}
+    .ask-msg {{ padding: 10px 13px; border-radius: 10px; font-size: 0.92rem; line-height: 1.5; max-width: 85%; white-space: pre-wrap; }}
+    .ask-msg.user {{ align-self: flex-end; background: var(--ab-fg); color: var(--ab-bg); }}
+    .ask-msg.ai   {{ align-self: flex-start; background: var(--ab-bg-3); color: var(--ab-fg); border: 1px solid var(--ab-rule); }}
+    .ask-msg.ai a {{ color: var(--ab-blue, #1d4ed8); }}
+    .ask-examples {{ display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }}
+    .ask-chip {{ font-size: 0.8rem; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
+    .ask-chip:hover {{ background: var(--ab-bg-3); color: var(--ab-fg); }}
+    .ask-inputrow {{ display: flex; gap: 8px; }}
+    .ask-inputrow input {{ flex: 1; padding: 11px 13px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font-family: var(--ab-sans); font-size: 0.95rem; background: var(--ab-bg); color: var(--ab-fg); }}
     /* Pressed state while a feature's panel is open — click again to close. */
     .ab-btn.is-open {{ box-shadow: 0 0 0 2px currentColor; }}
     .ab-btn.ab-btn--primary.is-open {{ box-shadow: 0 0 0 2px #047857, 0 0 0 4px #d1fae5; }}
@@ -1994,6 +2011,10 @@ def build():
               Spreadsheet
             </button>
           </div>
+          <button class="ab-btn ab-btn--ask" id="ask-ai-btn" title="Ask anything about these events — e.g. 'which events should I attend in September?'">
+            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/><path d="m5.6 5.6 1.5 1.5"/><path d="m16.9 16.9 1.5 1.5"/><path d="m5.6 18.4 1.5-1.5"/><path d="m16.9 7.1 1.5-1.5"/><circle cx="12" cy="12" r="4"/></svg>
+            Ask AI
+          </button>
           <span class="ops-count" id="ops-count"></span>
         </div>
         <div class="ops-grid" id="ops-grid"></div>
@@ -5669,6 +5690,100 @@ def build():
     }}
 
 
+    // ── Ask AI — chat over the tracked events (OpenAI via /api/ask) ──
+    var _askHistory = [];
+    function _mdToHtml(s) {{
+      // Tiny, safe markdown → HTML: escape first, then bold + links + bullets.
+      var h = escapeHtml(s);
+      h = h.replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>');
+      h = h.replace(/(https?:\\/\\/[^\\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+      h = h.replace(/^\\s*[-*]\\s+(.*)$/gm, '• $1');
+      return h;
+    }}
+    function openAskPanel() {{
+      var existing = document.getElementById('ask-panel');
+      if (existing) {{ existing.remove(); return; }}
+      var panel = document.createElement('div');
+      panel.id = 'ask-panel';
+      panel.className = 'add-event-card';
+      panel.innerHTML =
+        '<h3>Ask AI about your events</h3>' +
+        '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
+          'Answers come from this tracker\\u2019s own data \\u2014 statuses, dates, audience, verdicts and all.</p>' +
+        '<div class="ask-log" id="ask-log"></div>' +
+        '<div class="ask-examples" id="ask-examples">' +
+          ['Which events should I attend in September?',
+           'What\\u2019s booked for Thor?',
+           'Best buyer-rich events in Q4?',
+           'Which CFP deadlines are closing soon?'].map(function (q) {{
+            return '<button type="button" class="ask-chip">' + escapeHtml(q) + '</button>';
+          }}).join('') +
+        '</div>' +
+        '<div class="ask-inputrow">' +
+          '<input type="text" id="ask-input" placeholder="Ask anything about these events\\u2026" autocomplete="off">' +
+          '<button type="button" class="primary" id="ask-send">Ask</button>' +
+        '</div>' +
+        '<div class="add-actions" style="margin-top:12px;">' +
+          '<button type="button" class="secondary" id="ask-close">Close</button>' +
+        '</div>';
+      $opsGrid.insertBefore(panel, $opsGrid.firstChild);
+
+      var log = panel.querySelector('#ask-log');
+      var input = panel.querySelector('#ask-input');
+      var sendBtn = panel.querySelector('#ask-send');
+
+      function addMsg(role, text, isHtml) {{
+        var m = document.createElement('div');
+        m.className = 'ask-msg ' + (role === 'user' ? 'user' : 'ai');
+        if (isHtml) m.innerHTML = text; else m.textContent = text;
+        log.appendChild(m);
+        log.scrollTop = log.scrollHeight;
+        return m;
+      }}
+      // Replay prior history when re-opening.
+      _askHistory.forEach(function (h) {{
+        addMsg(h.role, h.role === 'assistant' ? _mdToHtml(h.content) : h.content, h.role === 'assistant');
+      }});
+
+      function ask(q) {{
+        q = (q || '').trim();
+        if (!q) return;
+        addMsg('user', q);
+        _askHistory.push({{ role: 'user', content: q }});
+        input.value = '';
+        sendBtn.disabled = true; sendBtn.textContent = 'Thinking\\u2026';
+        var thinking = addMsg('ai', 'Thinking\\u2026');
+        fetch('/api/ask', {{
+          method: 'POST',
+          headers: {{ 'Content-Type': 'application/json' }},
+          body: JSON.stringify({{ question: q, history: _askHistory.slice(0, -1) }})
+        }}).then(function (r) {{ return r.json().then(function (j) {{ return [r.status, j]; }}); }})
+          .then(function (pair) {{
+            sendBtn.disabled = false; sendBtn.textContent = 'Ask';
+            var st = pair[0], data = pair[1];
+            if (st !== 200 || !data.answer) {{
+              thinking.textContent = 'Sorry \\u2014 ' + ((data && data.error) || 'the assistant is unavailable right now.');
+              return;
+            }}
+            thinking.innerHTML = _mdToHtml(data.answer);
+            log.scrollTop = log.scrollHeight;
+            _askHistory.push({{ role: 'assistant', content: data.answer }});
+          }}).catch(function () {{
+            sendBtn.disabled = false; sendBtn.textContent = 'Ask';
+            thinking.textContent = 'Network error \\u2014 please try again.';
+          }});
+      }}
+
+      sendBtn.addEventListener('click', function () {{ ask(input.value); }});
+      input.addEventListener('keydown', function (e) {{ if (e.key === 'Enter') ask(input.value); }});
+      panel.querySelectorAll('.ask-chip').forEach(function (c) {{
+        c.addEventListener('click', function () {{ ask(c.textContent); }});
+      }});
+      panel.querySelector('#ask-close').addEventListener('click', function () {{ panel.remove(); }});
+      setTimeout(function () {{ input.focus(); }}, 50);
+    }}
+
+
     // ── + Add event / Paste email orchestration ─────────────────────
     // Opens an inline panel that surfaces the public feed URL + a 1-click
     // copy button + paste-instructions for the three common calendar apps.
@@ -5745,6 +5860,7 @@ def build():
       var $csvBtn    = document.getElementById('csv-btn');
       var $icalBtn   = document.getElementById('ical-btn');
       var $subBtn    = document.getElementById('ical-subscribe-btn');
+      var $askBtn    = document.getElementById('ask-ai-btn');
       if (!$addBtn) return;
       // Clone-replace to clear listeners from any prior route() call
       var freshAdd = $addBtn.cloneNode(true); $addBtn.parentNode.replaceChild(freshAdd, $addBtn); $addBtn = freshAdd;
@@ -5752,6 +5868,7 @@ def build():
       if ($searchBtn) {{ var fs2 = $searchBtn.cloneNode(true); $searchBtn.parentNode.replaceChild(fs2, $searchBtn); $searchBtn = fs2; }}
       if ($csvBtn)    {{ var fc = $csvBtn.cloneNode(true);    $csvBtn.parentNode.replaceChild(fc, $csvBtn);       $csvBtn    = fc; }}
       if ($icalBtn)   {{ var fi = $icalBtn.cloneNode(true);   $icalBtn.parentNode.replaceChild(fi, $icalBtn);     $icalBtn   = fi; }}
+      if ($askBtn)    {{ var fk = $askBtn.cloneNode(true);    $askBtn.parentNode.replaceChild(fk, $askBtn);       $askBtn    = fk; }}
       if ($subBtn)    {{ var fs = $subBtn.cloneNode(true);    $subBtn.parentNode.replaceChild(fs, $subBtn);       $subBtn    = fs; }}
 
       function openAddForm(opts) {{
@@ -5795,7 +5912,8 @@ def build():
         ['add-event-card',  $addBtn],
         ['search-panel',    $searchBtn],
         ['csv-panel',       $csvBtn],
-        ['subscribe-panel', $subBtn]
+        ['subscribe-panel', $subBtn],
+        ['ask-panel',       $askBtn]
       ];
       function closeOtherPanels(keepId) {{
         PANELS.forEach(function (p) {{
@@ -5874,6 +5992,15 @@ def build():
           closeOtherPanels('subscribe-panel');
           openSubscribePanel();
           revealPanel('subscribe-panel');
+          syncToolbarState();
+        }});
+      }}
+      if ($askBtn) {{
+        $askBtn.addEventListener('click', function () {{
+          ensureGridView();
+          closeOtherPanels('ask-panel');
+          openAskPanel();
+          revealPanel('ask-panel');
           syncToolbarState();
         }});
       }}
