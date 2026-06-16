@@ -82,6 +82,24 @@ def _http_json(method, url, headers=None, body=None, timeout=20):
         return 0, {'error': f'network: {e}'}
 
 
+def _same_origin(handler):
+    """True if the request came from our own deployment (Origin or Referer
+    host == the request Host). Lightweight abuse guard for the open app."""
+    host = (handler.headers.get('Host', '') or '').strip().lower()
+    if not host:
+        return False
+    for h in ('Origin', 'Referer'):
+        v = (handler.headers.get(h, '') or '').strip().lower()
+        if v:
+            try:
+                from urllib.parse import urlsplit
+                if urlsplit(v).netloc == host:
+                    return True
+            except ValueError:
+                pass
+    return False
+
+
 def _verify_editor(access_token):
     if not access_token:
         return False, 'missing Authorization bearer token'
@@ -368,13 +386,19 @@ class handler(BaseHTTPRequestHandler):
         quarters = _list(body.get('quarters'))
         regions  = _list(body.get('regions'))
 
-        # Auth
+        # Auth. The tracker is now open (no login), so a Supabase editor token
+        # is OPTIONAL — if present we record who, otherwise we allow the call
+        # but require it to originate from our own site (Origin/Referer match)
+        # to curb random cross-site abuse of this metered endpoint.
         auth_header = self.headers.get('Authorization', '')
         token = auth_header[7:].strip() if auth_header.lower().startswith('bearer ') else ''
-        ok, who = _verify_editor(token)
-        if not ok:
-            return _send(self, 403, {'error': f'forbidden: {who}'})
-        caller_email = who
+        caller_email = 'anonymous'
+        if token:
+            ok, who = _verify_editor(token)
+            if ok:
+                caller_email = who
+        if caller_email == 'anonymous' and not _same_origin(self):
+            return _send(self, 403, {'error': 'forbidden: call from the tracker site'})
 
         tracked = _tracked_names(self.headers.get('Host', ''))
         tracked_fps = {fp for fp in (_fingerprint(n) for n in tracked) if fp}

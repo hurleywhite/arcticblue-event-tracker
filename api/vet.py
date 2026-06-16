@@ -75,6 +75,24 @@ def _http_json(method, url, headers=None, body=None, timeout=20):
         return 0, {'error': f'network: {e}'}
 
 
+def _same_origin(handler):
+    """True if the request came from our own deployment (Origin/Referer host
+    == request Host). Lightweight abuse guard for the now-open app."""
+    host = (handler.headers.get('Host', '') or '').strip().lower()
+    if not host:
+        return False
+    for h in ('Origin', 'Referer'):
+        v = (handler.headers.get(h, '') or '').strip().lower()
+        if v:
+            try:
+                from urllib.parse import urlsplit
+                if urlsplit(v).netloc == host:
+                    return True
+            except ValueError:
+                pass
+    return False
+
+
 def _verify_editor(access_token):
     """Resolve a Supabase access_token → email → allow-list check.
     Returns (ok, email_or_error_message)."""
@@ -381,13 +399,17 @@ class handler(BaseHTTPRequestHandler):
         if url and not URL_RE.match(url):
             return _send(self, 400, {'error': 'url must start with http:// or https://'})
 
-        # Auth — must be an allow-listed editor
+        # Auth. Open app (no login): editor token OPTIONAL. Anonymous calls
+        # are allowed but must come from our own site (Origin/Referer guard).
         auth_header = self.headers.get('Authorization', '')
         token = auth_header[7:].strip() if auth_header.lower().startswith('bearer ') else ''
-        ok, who = _verify_editor(token)
-        if not ok:
-            return _send(self, 403, {'error': f'forbidden: {who}'})
-        caller_email = who
+        caller_email = 'anonymous'
+        if token:
+            ok, who = _verify_editor(token)
+            if ok:
+                caller_email = who
+        if caller_email == 'anonymous' and not _same_origin(self):
+            return _send(self, 403, {'error': 'forbidden: call from the tracker site'})
 
         # If we have a URL, scrape it via Exa first
         exa_meta = None

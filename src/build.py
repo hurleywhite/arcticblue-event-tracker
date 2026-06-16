@@ -970,6 +970,9 @@ def build():
       color: var(--ab-fg-2); letter-spacing: 0.04em;
     }}
     .angela-header .who strong {{ color: var(--ab-fg); font-weight: 600; }}
+    .angela-header .collab-note {{
+      font-family: var(--ab-sans); font-size: 0.8rem; color: var(--ab-fg-3);
+    }}
     .angela-header button {{
       font-family: var(--ab-mono); font-size: 0.72rem;
       letter-spacing: 0.08em; text-transform: uppercase;
@@ -978,6 +981,10 @@ def build():
       color: var(--ab-fg-2); cursor: pointer;
     }}
     .angela-header button:hover {{ color: var(--ab-fg); border-color: var(--ab-fg-3); }}
+    .angela-header button.inline {{
+      border: 0; background: none; padding: 0 0 0 8px; text-transform: none;
+      font-size: 0.72rem; color: var(--ab-blue, #1d4ed8); text-decoration: underline;
+    }}
 
     .alert {{
       max-width: 560px; margin: 32px auto;
@@ -1719,13 +1726,13 @@ def build():
 
   <div class="tabs" role="tablist" aria-label="View selector">
     <div class="tabs-inner">
-      <button class="tab active" role="tab" data-tab="everyone" aria-selected="true" aria-controls="panel-everyone">For Everyone</button>
-      <button class="tab"        role="tab" data-tab="angela"   aria-selected="false" aria-controls="panel-angela">For Angela <span class="tab-badge">ops</span></button>
+      <button class="tab active" role="tab" data-tab="angela"   aria-selected="true"  aria-controls="panel-angela">Event Tracker <span class="tab-badge">live</span></button>
+      <button class="tab"        role="tab" data-tab="everyone" aria-selected="false" aria-controls="panel-everyone">Public view</button>
     </div>
   </div>
 
   <main class="wrap">
-    <div class="panel" id="panel-everyone" role="tabpanel" data-tab="everyone">
+    <div class="panel" id="panel-everyone" role="tabpanel" data-tab="everyone" hidden>
     <section class="hero">
       <p class="eyebrow">ArcticBlue Labs · Internal</p>
       <h1>In-person AI events <em>worth showing up for</em>.</h1>
@@ -1841,7 +1848,7 @@ def build():
     foot = f'''
     </div><!-- /panel-everyone -->
 
-    <div class="panel" id="panel-angela" role="tabpanel" data-tab="angela" hidden aria-labelledby="tab-angela">
+    <div class="panel" id="panel-angela" role="tabpanel" data-tab="angela" aria-labelledby="tab-angela">
 
       <!-- Preloaded ArcticBlue speakers — referenced by every speaker input
            (manual form + ops-card inline editor) via list="ab-speakers".
@@ -1881,11 +1888,11 @@ def build():
         <button class="inline" id="signout-unauth">Sign out</button>
       </div>
 
-      <!-- State 5 · signed in and authorized — the ops UI -->
+      <!-- The collaborative tracker — open to everyone, no login. -->
       <div id="angela-ops" hidden>
         <div class="angela-header">
-          <span class="who">Signed in as <strong id="ops-email"></strong></span>
-          <button id="signout-ops">Sign out</button>
+          <span class="who">Editing as <strong id="ops-email">Team</strong> <button type="button" id="change-name" class="inline">change</button></span>
+          <span class="collab-note">Live &amp; shared — every edit is visible to the whole team instantly.</span>
         </div>
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-stats" id="ops-stats" hidden></div>
@@ -4166,15 +4173,12 @@ def build():
           fillMeta.textContent = 'Fetching page via Exa.ai, then asking the Dust agent to structure it. Usually 10\\u201340 seconds.';
           sb.auth.getSession().then(function (r) {{
             var token = r && r.data && r.data.session && r.data.session.access_token;
-            if (!token) {{
-              fillBtn.disabled = false; fillBtn.textContent = 'Fill from URL';
-              fillMeta.textContent = 'Sign-in expired. Refresh and try again.';
-              return;
-            }}
+            var _vh = {{ 'Content-Type': 'application/json' }};
+            if (token) _vh['Authorization'] = 'Bearer ' + token;
             var t0 = Date.now();
             fetch('/api/vet', {{
               method:  'POST',
-              headers: {{ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }},
+              headers: _vh,
               body:    JSON.stringify({{ url: url }})
             }}).then(function (res) {{
               return res.json().then(function (j) {{ return [res.status, j]; }});
@@ -5489,15 +5493,12 @@ def build():
 
         sb.auth.getSession().then(function (r) {{
           var token = r && r.data && r.data.session && r.data.session.access_token;
-          if (!token) {{
-            runBtn.disabled = false; runBtn.textContent = 'Find events';
-            meta.textContent = 'Sign-in expired. Refresh and try again.';
-            return;
-          }}
+          var _sh = {{ 'Content-Type': 'application/json' }};
+          if (token) _sh['Authorization'] = 'Bearer ' + token;
           var t0 = Date.now();
           fetch('/api/search', {{
             method:  'POST',
-            headers: {{ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }},
+            headers: _sh,
             body:    JSON.stringify(criteria)
           }}).then(function (res) {{
             return res.json().then(function (j) {{ return [res.status, j]; }});
@@ -5876,72 +5877,65 @@ def build():
       }}
     }}
 
-    function route(session) {{
-      if (!session || !session.user || !session.user.email) {{
-        showOnly($signin);
-        // Drop any active realtime channel from a previous session
-        if (realtimeChannel) {{
-          try {{ realtimeChannel.unsubscribe(); }} catch (e) {{}}
-          realtimeChannel = null;
-        }}
-        return;
+    // ── Collaborator identity (no login) ─────────────────────────────
+    // The whole team shares this tracker without signing in. We capture a
+    // display name once (localStorage) purely so edits are attributed
+    // ("Last edit · Thor"). It's not security — just courtesy.
+    function getCollabName() {{
+      var n = '';
+      try {{ n = (localStorage.getItem('ab.collab.name') || '').trim(); }} catch (e) {{}}
+      return n;
+    }}
+    function setCollabName(n) {{
+      n = (n || '').trim();
+      try {{ localStorage.setItem('ab.collab.name', n); }} catch (e) {{}}
+      if ($opsEmail) $opsEmail.textContent = n || 'Team';
+    }}
+    function ensureCollabName() {{
+      var n = getCollabName();
+      if (!n) {{
+        n = (window.prompt('Your name (so teammates can see who edited what):', '') || '').trim();
+        setCollabName(n);
       }}
-      var email = session.user.email.toLowerCase();
-      sb.from('allowed_editors').select('email').then(function (r) {{
-        var allow = (r.data || []).map(function (x) {{ return (x.email || '').toLowerCase(); }});
-        if (allow.indexOf(email) === -1) {{
-          $unauthEmail.textContent = email;
-          showOnly($unauth);
-          return;
-        }}
-        $opsEmail.textContent = firstNameFromEmail(email);
-        $opsEmail.setAttribute('title', email);
-        showOnly($ops);
-        wireViewToggle();
-        wireFilters();
-        buildStageFilters();
-        buildStatusFilters();
-        buildExtraFilters();
-        renderOps(email);
-        wireAddEvent(email);
-        setupRealtime(email);
+      if ($opsEmail) $opsEmail.textContent = n || 'Team';
+      return n || 'Team';
+    }}
+
+    // route() — no auth. Always show the collaborative tracker.
+    function route() {{
+      var who = getCollabName() || 'Team';
+      if ($opsEmail) $opsEmail.textContent = who;
+      showOnly($ops);
+      wireViewToggle();
+      wireFilters();
+      buildStageFilters();
+      buildStatusFilters();
+      buildExtraFilters();
+      renderOps(who);
+      wireAddEvent(who);
+      setupRealtime(who);
+      // Ask for a name on first edit-intent if we still don't have one.
+      if (!getCollabName()) {{
+        try {{
+          $opsGrid.addEventListener('click', function onceAsk() {{
+            ensureCollabName();
+            $opsGrid.removeEventListener('click', onceAsk);
+          }}, {{ once: true }});
+        }} catch (e) {{}}
+      }}
+    }}
+
+    var $changeName = document.getElementById('change-name');
+    if ($changeName) {{
+      $changeName.addEventListener('click', function () {{
+        var cur = getCollabName();
+        var n = (window.prompt('Your name:', cur) || '').trim();
+        if (n) setCollabName(n);
       }});
     }}
 
-    $signinForm.addEventListener('submit', function (ev) {{
-      ev.preventDefault();
-      var email = ($signinEmail.value || '').trim().toLowerCase();
-      if (!email) return;
-      $signinSubmit.disabled = true;
-      $signinSubmit.textContent = 'Sending…';
-      sb.auth.signInWithOtp({{
-        email: email,
-        options: {{ emailRedirectTo: window.location.origin + window.location.pathname }}
-      }}).then(function (r) {{
-        $signinSubmit.disabled = false;
-        $signinSubmit.textContent = 'Send magic link';
-        if (r.error) {{
-          alert('Sign-in failed: ' + r.error.message);
-          return;
-        }}
-        $sentTo.textContent = email;
-        showOnly($sent);
-      }});
-    }});
-
-    function signOut() {{
-      sb.auth.signOut().then(function () {{ route(null); }});
-    }}
-    if ($signoutUnauth) $signoutUnauth.addEventListener('click', signOut);
-    if ($signoutOps)    $signoutOps.addEventListener('click', signOut);
-
-    // Initial routing + react to auth-state changes (magic-link callback fires this)
-    sb.auth.getSession().then(function (r) {{
-      route(r.data ? r.data.session : null);
-    }});
-    sb.auth.onAuthStateChange(function (event, session) {{
-      route(session);
-    }});
+    // Open immediately — no session wait, no magic link.
+    route();
   }});
 }})();
 </script>
