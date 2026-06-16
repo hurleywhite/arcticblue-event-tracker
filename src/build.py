@@ -1860,6 +1860,8 @@ def build():
         <option value="Jerome"></option>
         <option value="Scott"></option>
         <option value="Verma"></option>
+        <option value="Carlos"></option>
+        <option value="Jim"></option>
       </datalist>
 
       <!-- State 1 · loading session -->
@@ -4068,7 +4070,7 @@ def build():
           '</label>' +
         '</div>' +
         '<label><span class="key">ArcticBlue speaker</span>' +
-          '<input type="text" name="speaker" list="ab-speakers" placeholder="Thor, Joe, Jerome, Scott, Verma…">' +
+          '<input type="text" name="speaker" list="ab-speakers" placeholder="Thor, Joe, Jerome, Scott, Verma, Carlos, Jim…">' +
         '</label>' +
         '<label><span class="key">Pipeline stages</span>' +
           stageCheckboxes([], 'status_tags') +
