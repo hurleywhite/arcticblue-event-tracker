@@ -377,21 +377,6 @@
       "source": "arcticscout"
     },
     {
-      "num": 82,
-      "name": "Responsible AI Summit North America 2026",
-      "date_str": "June 23–24, 2026",
-      "start_date": "2026-06-23",
-      "end_date": "2026-06-24",
-      "location": "DoubleTree by Hilton Chicago – Magnificent Mile, Chicago, IL, USA",
-      "region": "Americas",
-      "type": "Enterprise",
-      "priority": "High",
-      "priority_full": "High",
-      "why": "North America's premier closed-door enterprise AI governance summit with leaders from Walmart, Citi, Capital One, and AstraZeneca — direct match for ArcticBlue's AI governance, risk, and responsible deployment audience.",
-      "url": null,
-      "status": "upcoming"
-    },
-    {
       "num": 83,
       "name": "GITEX AI Europe 2026",
       "date_str": "June 30–July 1, 2026",
@@ -485,21 +470,6 @@
       "status": "upcoming"
     },
     {
-      "num": 67,
-      "name": "CDOIQ Symposium 2026",
-      "date_str": "July 21–23, 2026",
-      "start_date": "2026-07-21",
-      "end_date": "2026-07-23",
-      "location": "Hyatt Regency Cambridge, Cambridge, MA, USA",
-      "region": "Americas",
-      "type": "Enterprise",
-      "priority": "High",
-      "priority_full": "High",
-      "why": "The 20th Annual CDO/IQ Symposium at MIT's backyard; 2,250+ data and AI leaders focusing on trusted AI and enterprise data governance — direct access to CDOs and AI governance leaders evaluating new data infrastructure solutions.",
-      "url": null,
-      "status": "upcoming"
-    },
-    {
       "num": 84,
       "name": "MachineCon USA 2026 (4th Edition)",
       "date_str": "July 24, 2026",
@@ -518,21 +488,6 @@
       "audience_type": "Buyer-rich",
       "typical_attendees": "Senior data, analytics, CIO, CDO, and enterprise AI leaders",
       "attendee_count": "100+"
-    },
-    {
-      "num": 29,
-      "name": "Ai4 2026",
-      "date_str": "August 4–6, 2026",
-      "start_date": "2026-08-04",
-      "end_date": "2026-08-06",
-      "location": "Las Vegas, NV, USA",
-      "region": "Americas",
-      "type": "Enterprise",
-      "priority": "High",
-      "priority_full": "High",
-      "why": "America's largest applied enterprise AI conference; 5,000+ attendees with co-located enterprise-specific summits (Finance, Operations, Policy); open speaker application — best earned speaking opportunity in the window.",
-      "url": "https://ai4.io/",
-      "status": "upcoming"
     },
     {
       "num": 85,
@@ -604,21 +559,6 @@
       "priority_full": "Medium",
       "why": "Foundry/IDG's flagship CIO awards conference honoring 100 IT innovators alongside 300+ senior CIOs; AI, cybersecurity, and digital transformation agenda; strong partner speaking route for enterprise AI solution providers.",
       "url": "https://event.foundryco.com/cio100-symposium-and-awards",
-      "status": "upcoming"
-    },
-    {
-      "num": 87,
-      "name": "ALIGN AI Executive Summit San Francisco 2026",
-      "date_str": "August 19, 2026",
-      "start_date": "2026-08-19",
-      "end_date": "2026-08-19",
-      "location": "McCormick & Kuleto's, Ghirardelli Square, San Francisco, CA, USA",
-      "region": "Americas",
-      "type": "Enterprise",
-      "priority": "Medium",
-      "priority_full": "Medium",
-      "why": "Boutique 150+ senior enterprise data and AI executive gathering in SF with open speaker interest form — same organizer (Data Science Connect) as AI Enterprise Conference NYC and COLLIDE Atlanta; ideal West Coast CxO data/AI pipeline event for ArcticBlue.",
-      "url": null,
       "status": "upcoming"
     },
     {
@@ -1319,25 +1259,6 @@
       "status": "upcoming"
     },
     {
-      "num": 94,
-      "name": "Agentic AI Exchange 2026 (IELA)",
-      "date_str": "November 4–6, 2026",
-      "start_date": "2026-11-04",
-      "end_date": "2026-11-06",
-      "location": "New York, NY, USA",
-      "region": "Americas",
-      "type": "Enterprise",
-      "priority": "High",
-      "priority_full": "High",
-      "why": "Intelligent Enterprise Leaders' executive-level agentic AI forum in NYC; \"shifting from AI delivery to AI orchestration, enablement, and long-term value stewardship\" — directly matches ArcticBlue's sprint-based enterprise delivery-to-value thesis; curated enterprise practitioner audience.",
-      "url": null,
-      "status": "upcoming",
-      "venue": "Square",
-      "pay_to_play": "Yes",
-      "audience_type": "Buyer-rich",
-      "typical_attendees": "Senior AI, IT, technology, and automation leaders employed by brands; Director level/Head and above"
-    },
-    {
       "num": 46,
       "name": "Web Summit 2026",
       "date_str": "November 9-12, 2026",
@@ -1539,36 +1460,6 @@
       "priority_full": "High",
       "why": "World's largest tech exposition (180,000+ attendees, 46th edition); GITEX Scale Summit centers AI governance and data sovereignty; critical for ArcticBlue's active GCC client base (Gulf Air, BBK, Tamkeen); largest single enterprise tech event globally in Q4.",
       "url": "https://gitex.com",
-      "status": "upcoming"
-    },
-    {
-      "num": 50,
-      "name": "The AI Summit New York 2026",
-      "date_str": "December 9-10, 2026",
-      "start_date": "2026-12-09",
-      "end_date": "2026-12-10",
-      "location": "Javits Convention Center, New York, NY, USA",
-      "region": "Americas",
-      "type": "Enterprise",
-      "priority": "High",
-      "priority_full": "High",
-      "why": "Where commercial AI comes to life — 5,000+ enterprise AI buyers at Javits; Ambassador Chapter from Wells Fargo, JPMorgan, McDonald's, eBay, PayPal; ArcticBlue's home-market year-end flagship enterprise AI event.",
-      "url": null,
-      "status": "upcoming"
-    },
-    {
-      "num": 96,
-      "name": "AI Summit New York 2026",
-      "date_str": "December 9–10, 2026",
-      "start_date": "2026-12-09",
-      "end_date": "2026-12-10",
-      "location": "Javits Center, New York, NY, USA",
-      "region": "Americas",
-      "type": "Enterprise",
-      "priority": "High",
-      "priority_full": "High",
-      "why": "11th edition of the world's longest-running commercial AI event at Javits Center — 10 content stages, enterprise case studies, and Q4 anchor event for ArcticBlue's NYC market; open speaker submission rolling basis on official site.",
-      "url": null,
       "status": "upcoming"
     },
     {
@@ -3332,7 +3223,7 @@
     {
       "num": 161,
       "name": "AI Everything Abu Dhabi",
-      "date_str": "May 11–13, 2026",
+      "date_str": "October 5–7, 2026",
       "location": "Abu Dhabi, UAE",
       "type": "Enterprise",
       "priority": "High",
@@ -3351,8 +3242,8 @@
       "region": "Middle East",
       "external_id": "f06d6e6a-2e94-44c9-a243-4266718859dc",
       "source": "arcticscout",
-      "start_date": "2026-05-11",
-      "end_date": "2026-05-13",
+      "start_date": "2026-10-05",
+      "end_date": "2026-10-07",
       "notes": "Their current submission form is full of bugs and does not work.\nReach out via personal contact or try to make the form work."
     },
     {
@@ -3782,7 +3673,7 @@
     {
       "num": 178,
       "name": "World AI Cannes Festival (WAICF)",
-      "date_str": "February 12–13, 2026",
+      "date_str": "February 10–11, 2027",
       "location": "Cannes, France",
       "type": "Enterprise",
       "priority": "Medium",
@@ -3804,8 +3695,8 @@
       "workflow_status": "Past event",
       "external_id": "5cefedfc-7220-4f05-b66a-7c208c82184a",
       "source": "arcticscout",
-      "start_date": "2026-02-12",
-      "end_date": "2026-02-13"
+      "start_date": "2027-02-10",
+      "end_date": "2027-02-11"
     },
     {
       "num": 179,
@@ -4002,7 +3893,7 @@
     {
       "num": 186,
       "name": "GITEX AI Asia",
-      "date_str": "April 9–10, 2026",
+      "date_str": "April 29–30, 2027",
       "location": "Singapore, Singapore",
       "type": "Enterprise",
       "priority": "High",
@@ -4025,8 +3916,8 @@
       "workflow_status": "Submitted",
       "external_id": "30b9d50e-0e0e-4a28-9cc3-c56547dcf33d",
       "source": "arcticscout",
-      "start_date": "2026-04-09",
-      "end_date": "2026-04-10"
+      "start_date": "2027-04-29",
+      "end_date": "2027-04-30"
     },
     {
       "num": 187,
@@ -4824,7 +4715,7 @@
     {
       "num": 217,
       "name": "POSSIBLE Miami Marketing Conference & Expo",
-      "date_str": "April 5–7, 2027",
+      "date_str": "April 27–29, 2026",
       "location": "Miami Beach, USA",
       "type": "Enterprise",
       "priority": "Medium",
@@ -4842,8 +4733,8 @@
       "region": "Florida",
       "external_id": "d39d6c15-fb3b-42f5-875c-11ca9c012582",
       "source": "arcticscout",
-      "start_date": "2027-04-05",
-      "end_date": "2027-04-07"
+      "start_date": "2026-04-27",
+      "end_date": "2026-04-29"
     },
     {
       "num": 218,
@@ -6752,6 +6643,30 @@
       "city": "New York",
       "country": "USA",
       "external_id": "replit-223"
+    },
+    {
+      "num": 296,
+      "name": "AIAI Agentic AI Summit Los Angeles 2026",
+      "date_str": "August 26, 2026",
+      "start_date": "2026-08-26",
+      "end_date": "2026-08-26",
+      "location": "Los Angeles, CA",
+      "region": "West Coast",
+      "type": "Enterprise",
+      "priority": "Medium",
+      "priority_full": "Medium",
+      "why": "Co-located with AIAI GenAI Summit LA on same day; dedicated agentic AI track with enterprise practitioners and builders; open earned speaker application; extends ArcticBlue's West Coast agentic AI brand.",
+      "url": "https://world.aiacceleratorinstitute.com",
+      "status": "upcoming",
+      "about": "AI Accelerator Institute's Agentic AI Summit in Los Angeles, co-located with the Generative AI Summit on August 26. Part of AIAI's global summit series (4,000+ attendees across 2026, 60%+ senior management). Focused on enterprise agentic AI deployment.",
+      "focus_areas": "Agentic AI architecture and enterprise deployment • Multi-agent systems and orchestration • AI agents for enterprise operations and automation • Responsible and governed agentic AI • Enterprise case studies: pilot to production",
+      "typical_attendees": "AI practitioners, enterprise CTOs, AI engineers, CDOs, senior managers deploying agentic AI; approximately 400–600 per city location",
+      "speaking_route": "Apply to speak: world.aiacceleratorinstitute.com/requesttospeak",
+      "contact_info": "tim@aiacceleratorinstitute.com",
+      "city": "Los Angeles",
+      "country": "USA",
+      "external_id": "replit-210",
+      "source": "replit-reconcile"
     }
   ]
 }
