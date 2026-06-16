@@ -103,6 +103,7 @@ def _gather_events(host):
                 if ops.get('hidden'):
                     continue  # hidden events are noise for recommendations
                 out.append({
+                    'num': e.get('num'),
                     'name': e.get('name'), 'date': e.get('date_str'),
                     'location': e.get('location'), 'region': e.get('region'),
                     'type': e.get('type'), 'priority': e.get('priority'),
@@ -145,14 +146,16 @@ _SYSTEM = (
     "company that wants speaking slots and attendance at events full of BUYERS "
     "(in-house enterprise decision-makers), not vendor-to-vendor sales expos.\n"
     "Answer the user's question using ONLY the EVENTS data provided in the next "
-    "message. Today's date is {today}. Rules:\n"
-    "- Be concise and specific. Prefer short bullet lists of named events.\n"
-    "- When recommending what to attend/skip, weigh: buyer-rich audience, "
-    "'Worth attending' verdict, priority, fit (why), and whether the date is "
-    "upcoming (ignore past events unless asked).\n"
-    "- Cite each event by its exact name. If a field is unknown, say so rather "
-    "than inventing it. Never invent events not in the data.\n"
-    "- If the question isn't about the events, answer briefly and steer back."
+    "message. Today's date is {today}.\n"
+    "Return ONLY a JSON object: {{\"answer\": \"<1-3 sentence markdown summary>\", "
+    "\"recommended\": [\"<exact event name>\", ...]}}.\n"
+    "- 'recommended' is the events that answer the question, MOST RELEVANT FIRST "
+    "(max 8). Use each event's EXACT name from the data. Empty list if none fit.\n"
+    "- Keep 'answer' short — the events render as cards below it, so don't repeat "
+    "their dates/locations; just give the gist or the reasoning.\n"
+    "- When ranking what to attend/skip, weigh: buyer-rich audience, 'Worth "
+    "attending' verdict, priority, fit (why), and upcoming date (ignore past "
+    "events unless asked). Never invent events not in the data."
 )
 
 
@@ -169,10 +172,43 @@ def _ask_openai(question, history, events):
         'POST', OPENAI_BASE + '/chat/completions',
         headers={'Authorization': 'Bearer ' + OPENAI_API_KEY},
         body={'model': OPENAI_MODEL, 'messages': messages,
-              'temperature': 0.2, 'max_tokens': 700}, timeout=60)
+              'temperature': 0.2, 'max_tokens': 700,
+              'response_format': {'type': 'json_object'}}, timeout=60)
     if st != 200 or not isinstance(data, dict):
         raise RuntimeError('openai %s: %s' % (st, str(data)[:300]))
-    return data['choices'][0]['message']['content']
+    content = data['choices'][0]['message']['content']
+    try:
+        parsed = json.loads(content)
+        return (str(parsed.get('answer', '') or ''),
+                [str(n) for n in (parsed.get('recommended') or []) if n])
+    except (json.JSONDecodeError, TypeError):
+        return content, []
+
+
+def _match_cards(names, events):
+    """Map model-recommended names to real event objects, preserving order."""
+    by_lower = {}
+    for e in events:
+        nm = (e.get('name') or '').strip().lower()
+        if nm and nm not in by_lower:
+            by_lower[nm] = e
+    cards, seen = [], set()
+    for n in names:
+        key = (n or '').strip().lower()
+        hit = by_lower.get(key)
+        if not hit:  # fall back to substring match
+            for nm, e in by_lower.items():
+                if key and (key in nm or nm in key):
+                    hit = e
+                    break
+        if hit and id(hit) not in seen:
+            seen.add(id(hit))
+            cards.append({k: hit.get(k) for k in (
+                'num', 'name', 'date', 'location', 'region', 'audience',
+                'attend', 'stage', 'price', 'url', 'priority')})
+        if len(cards) >= 8:
+            break
+    return cards
 
 
 def _send(handler, status, payload):
@@ -217,8 +253,10 @@ class handler(BaseHTTPRequestHandler):
             return _send(self, 400, {'error': 'no question'})
         events = _gather_events(self.headers.get('Host', ''))
         try:
-            answer = _ask_openai(question, body.get('history'), events)
+            answer, names = _ask_openai(question, body.get('history'), events)
         except Exception as e:  # noqa: BLE001
             return _send(self, 502, {'error': 'assistant failed: %s' % str(e)[:300]})
-        return _send(self, 200, {'answer': answer, 'model': OPENAI_MODEL,
+        cards = _match_cards(names, events)
+        return _send(self, 200, {'answer': answer, 'cards': cards,
+                                 'model': OPENAI_MODEL,
                                  'events_considered': len(events)})

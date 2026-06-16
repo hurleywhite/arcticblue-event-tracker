@@ -89,14 +89,19 @@ def _load_events_json():
         'region', 'notes', 'speaker', 'workflow_status', 'source',
         'external_id', 'start_date', 'end_date',
     )
+    # Some source locations carry a trailing "(Halo)" / "(Seed, Halo)" tag
+    # baked into the text — redundant noise (Halo is the type, Seed is a flag).
+    # Strip it everywhere so it never shows on cards/modal.
+    _LOC_TAG_RE = re.compile(r'\s*\((?:seed|halo)(?:\s*,\s*(?:seed|halo))*\)\s*$', re.I)
     events = []
     for r in raw:
         ev = {
             'num':           r.get('num'),
             'name':          r.get('name', ''),
             'date_str':      r.get('date_str', ''),
-            'location':      r.get('location', ''),
-            'type':          r.get('type', ''),
+            'location':      _LOC_TAG_RE.sub('', r.get('location', '') or '').strip(),
+            # Same noise leaks into a few `type` values ("Halo (Seed)" -> "Halo").
+            'type':          _LOC_TAG_RE.sub('', r.get('type', '') or '').strip(),
             'priority':      r.get('priority', ''),
             'priority_full': r.get('priority_full', r.get('priority', '')),
             'why':           r.get('why', ''),
@@ -1263,7 +1268,14 @@ def build():
     .ops-stat {{
       background: var(--ab-bg); padding: 14px 16px;
       display: flex; flex-direction: column; gap: 2px;
+      align-items: flex-start; text-align: left;
+      border: 0; font: inherit; cursor: pointer;
+      transition: background 0.12s;
     }}
+    .ops-stat:hover {{ background: var(--ab-bg-3); }}
+    .ops-stat.is-activestat {{ background: var(--ab-fg); }}
+    .ops-stat.is-activestat .num,
+    .ops-stat.is-activestat .lbl {{ color: var(--ab-bg) !important; }}
     .ops-stat .num {{
       font-family: var(--ab-mono); font-weight: 600;
       font-size: 1.4rem; letter-spacing: -0.02em;
@@ -1679,6 +1691,29 @@ def build():
     .ask-msg.user {{ align-self: flex-end; background: var(--ab-fg); color: var(--ab-bg); }}
     .ask-msg.ai   {{ align-self: flex-start; background: var(--ab-bg-3); color: var(--ab-fg); border: 1px solid var(--ab-rule); }}
     .ask-msg.ai a {{ color: var(--ab-blue, #1d4ed8); }}
+    /* Recommended event cards returned under an AI answer — clickable, ranked. */
+    .ask-cards {{ align-self: stretch; max-width: 100%; display: flex; flex-direction: column; gap: 7px; margin: 2px 0 2px; }}
+    .ask-card {{
+      display: block; width: 100%; text-align: left; cursor: pointer;
+      border: 1px solid var(--ab-rule-strong); border-radius: 9px;
+      background: var(--ab-bg); color: var(--ab-fg);
+      padding: 9px 11px; font-family: var(--ab-sans); position: relative;
+    }}
+    .ask-card:hover {{ background: var(--ab-bg-3); border-color: var(--ab-fg-3); }}
+    .ask-card .rank {{
+      position: absolute; top: 9px; right: 10px; font-family: var(--ab-mono);
+      font-size: 0.64rem; color: var(--ab-fg-3); letter-spacing: 0.06em;
+    }}
+    .ask-card .ac-name {{ font-weight: 600; font-size: 0.9rem; line-height: 1.3; padding-right: 26px; }}
+    .ask-card .ac-meta {{ font-size: 0.78rem; color: var(--ab-fg-2); margin-top: 3px; }}
+    .ask-card .ac-tags {{ display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }}
+    .ask-card .ac-tag {{
+      font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.04em;
+      padding: 2px 7px; border-radius: 999px; border: 1px solid var(--ab-rule);
+      background: var(--ab-bg-2); color: var(--ab-fg-2);
+    }}
+    .ask-card .ac-tag.buyer {{ background: #ecfdf5; color: #047857; border-color: #a7f3d0; }}
+    .ask-card .ac-tag.worth {{ background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }}
     .ask-examples {{ display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }}
     .ask-chip {{ font-size: 0.8rem; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
     .ask-chip:hover {{ background: var(--ab-bg-3); color: var(--ab-fg); }}
@@ -2460,6 +2495,9 @@ def build():
     // Month keys ('YYYY-MM' or 'tbd') the user has collapsed in the ops grid.
     // A truthy value means that month's cards are hidden via the dropdown / header.
     var opsCollapsedMonths = {{}};
+    // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
+    // | 'buyer' | 'worth') — click a top stat to show only those events.
+    var opsStatFilter = '';
 
     function showOnly(el) {{
       [$loading, $signin, $sent, $unauth, $ops].forEach(function (n) {{
@@ -3866,6 +3904,16 @@ def build():
         }}
         if (!showPast && card.dataset.past === '1') on = false;
         if (!showHidden && card.classList.contains('is-hidden')) on = false;
+        // Top stat-tile filter (one click on a stat shows only those events).
+        if (opsStatFilter) {{
+          var tagsS = (card.dataset.statusTags || '');
+          if (opsStatFilter === 'saved'   && !card.classList.contains('is-saved'))  on = false;
+          if (opsStatFilter === 'urgent'  && !card.classList.contains('is-urgent')) on = false;
+          if (opsStatFilter === 'pipeline'&& !tagsS) on = false;
+          if (opsStatFilter === 'booked'  && tagsS.split('|').indexOf('Booked') === -1) on = false;
+          if (opsStatFilter === 'buyer'   && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
+          if (opsStatFilter === 'worth'   && (card.dataset.attend || '').toLowerCase().indexOf('worth attending') !== 0) on = false;
+        }}
         if (activeStages.length > 0) {{
           var cardStages = (card.dataset.statusTags || '').split('|').filter(Boolean);
           var stageHit = activeStages.some(function (a) {{ return cardStages.indexOf(a) !== -1; }});
@@ -3957,15 +4005,33 @@ def build():
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if ((m.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
       }});
+      // Each tile is a one-click filter (data-stat). 'all' clears everything.
+      function tile(key, num, label, cls) {{
+        var on = opsStatFilter === key ? ' is-activestat' : '';
+        return '<button type="button" class="ops-stat' + (cls ? ' ' + cls : '') + on +
+          '" data-stat="' + key + '"><span class="num">' + num +
+          '</span><span class="lbl">' + label + '</span></button>';
+      }}
       $stats.innerHTML =
-        '<div class="ops-stat"><span class="num">' + total + '</span><span class="lbl">Upcoming</span></div>' +
-        '<div class="ops-stat saved"><span class="num">' + saved + '</span><span class="lbl">Saved</span></div>' +
-        '<div class="ops-stat urgent"><span class="num">' + urgent + '</span><span class="lbl">Urgent</span></div>' +
-        '<div class="ops-stat"><span class="num">' + inPipeline + '</span><span class="lbl">In pipeline</span></div>' +
-        '<div class="ops-stat"><span class="num">' + booked + '</span><span class="lbl">Booked</span></div>' +
-        '<div class="ops-stat"><span class="num">' + buyerRich + '</span><span class="lbl">Buyer-rich</span></div>' +
-        '<div class="ops-stat"><span class="num">' + worthIt + '</span><span class="lbl">Worth attending</span></div>';
+        tile('all', total, 'Upcoming', '') +
+        tile('saved', saved, 'Saved', 'saved') +
+        tile('urgent', urgent, 'Urgent', 'urgent') +
+        tile('pipeline', inPipeline, 'In pipeline', '') +
+        tile('booked', booked, 'Booked', '') +
+        tile('buyer', buyerRich, 'Buyer-rich', '') +
+        tile('worth', worthIt, 'Worth attending', '');
       $stats.removeAttribute('hidden');
+      Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {{
+        t.addEventListener('click', function () {{
+          var k = t.dataset.stat;
+          opsStatFilter = (k === 'all' || opsStatFilter === k) ? '' : k;
+          applyFilters();
+          // Reflect the active tile without a full re-render.
+          Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (x) {{
+            x.classList.toggle('is-activestat', x.dataset.stat === opsStatFilter);
+          }});
+        }});
+      }});
     }}
 
     function renderOps(email) {{
@@ -5807,6 +5873,43 @@ def build():
       h = h.replace(/^\\s*[-*]\\s+(.*)$/gm, '• $1');
       return h;
     }}
+    // Render the AI\\u2019s ranked event recommendations as clickable mini cards.
+    function _askCardsHtml(cards) {{
+      if (!cards || !cards.length) return '';
+      return '<div class="ask-cards">' + cards.map(function (c, i) {{
+        var meta = [c.date, c.location || c.region].filter(Boolean).map(escapeHtml).join(' \\u00b7 ');
+        var tags = [];
+        if (c.audience && /buyer/i.test(c.audience))
+          tags.push('<span class="ac-tag buyer">Buyer-rich</span>');
+        if (c.attend && /worth/i.test(c.attend))
+          tags.push('<span class="ac-tag worth">Worth attending</span>');
+        if (c.stage) tags.push('<span class="ac-tag">' + escapeHtml(String(c.stage).split(',')[0].trim()) + '</span>');
+        if (c.price) tags.push('<span class="ac-tag">' + escapeHtml(c.price) + '</span>');
+        var idAttr = (c.num !== null && c.num !== undefined)
+          ? ' data-evnum="' + escapeHtml(String(c.num)) + '"'
+          : ' data-evname="' + escapeHtml(c.name || '') + '"';
+        return '<button type="button" class="ask-card"' + idAttr + '>' +
+          '<span class="rank">#' + (i + 1) + '</span>' +
+          '<span class="ac-name">' + escapeHtml(c.name || 'Untitled event') + '</span>' +
+          (meta ? '<span class="ac-meta">' + meta + '</span>' : '') +
+          (tags.length ? '<span class="ac-tags">' + tags.join('') + '</span>' : '') +
+        '</button>';
+      }}).join('') + '</div>';
+    }}
+    // Click a recommended card \\u2192 open that event\\u2019s detail modal.
+    function _wireAskCards(container) {{
+      container.querySelectorAll('.ask-card').forEach(function (btn) {{
+        btn.addEventListener('click', function () {{
+          var num = btn.getAttribute('data-evnum');
+          if (num && typeof window.openEventByNum === 'function') {{ window.openEventByNum(num); return; }}
+          var nm = (btn.getAttribute('data-evname') || '').trim().toLowerCase();
+          if (!nm) return;
+          var hit = Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card'))
+            .filter(function (c) {{ return c._modalRec && (c._modalRec.name || '').trim().toLowerCase() === nm; }})[0];
+          if (hit && typeof window.openEventModal === 'function') window.openEventModal(hit._modalRec);
+        }});
+      }});
+    }}
     function openAskPanel() {{
       var existing = document.getElementById('ask-panel');
       if (existing) {{ existing.remove(); return; }}
@@ -5847,9 +5950,14 @@ def build():
         log.scrollTop = log.scrollHeight;
         return m;
       }}
-      // Replay prior history when re-opening.
+      // Replay prior history when re-opening (including recommended cards).
       _askHistory.forEach(function (h) {{
-        addMsg(h.role, h.role === 'assistant' ? _mdToHtml(h.content) : h.content, h.role === 'assistant');
+        if (h.role === 'assistant') {{
+          var m = addMsg('ai', _mdToHtml(h.content) + _askCardsHtml(h.cards), true);
+          _wireAskCards(m);
+        }} else {{
+          addMsg(h.role, h.content);
+        }}
       }});
 
       function ask(q) {{
@@ -5872,9 +5980,10 @@ def build():
               thinking.textContent = 'Sorry \\u2014 ' + ((data && data.error) || 'the assistant is unavailable right now.');
               return;
             }}
-            thinking.innerHTML = _mdToHtml(data.answer);
+            thinking.innerHTML = _mdToHtml(data.answer) + _askCardsHtml(data.cards);
+            _wireAskCards(thinking);
             log.scrollTop = log.scrollHeight;
-            _askHistory.push({{ role: 'assistant', content: data.answer }});
+            _askHistory.push({{ role: 'assistant', content: data.answer, cards: data.cards || [] }});
           }}).catch(function () {{
             sendBtn.disabled = false; sendBtn.textContent = 'Ask';
             thinking.textContent = 'Network error \\u2014 please try again.';
