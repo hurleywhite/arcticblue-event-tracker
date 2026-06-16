@@ -1554,6 +1554,48 @@ def build():
       height: 640px; border: 1px solid var(--ab-rule); border-radius: 10px;
       background: var(--ab-bg-2);
     }}
+    /* Click a pin → events slide into this right-hand panel (Angela-style). */
+    .map-wrap {{ position: relative; }}
+    .map-sidebar {{
+      position: absolute; top: 0; right: 0; height: 100%; width: 380px; max-width: 84%;
+      background: var(--ab-bg); border-left: 1px solid var(--ab-rule);
+      border-radius: 0 10px 10px 0; box-shadow: -10px 0 28px rgba(0,0,0,0.14);
+      display: flex; flex-direction: column; overflow: hidden; z-index: 500;
+      animation: msb-in 160ms ease-out;
+    }}
+    .map-sidebar[hidden] {{ display: none; }}
+    @keyframes msb-in {{ from {{ transform: translateX(16px); opacity: 0; }} to {{ transform: none; opacity: 1; }} }}
+    .map-sidebar-head {{
+      display: flex; align-items: center; gap: 9px;
+      padding: 16px 16px 14px 20px; border-bottom: 1px solid var(--ab-rule);
+    }}
+    .msb-title {{ font-family: var(--ab-sans); font-weight: 700; font-size: 1.05rem; color: var(--ab-fg); }}
+    .msb-count {{
+      font-family: var(--ab-mono); font-size: 0.72rem; font-weight: 700;
+      background: var(--ab-blue); color: #fff; border-radius: 999px;
+      min-width: 22px; height: 22px; padding: 0 7px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }}
+    .msb-close {{
+      margin-left: auto; border: 0; background: transparent; cursor: pointer;
+      font-size: 1.4rem; line-height: 1; color: var(--ab-fg-3); padding: 2px 6px; border-radius: 6px;
+    }}
+    .msb-close:hover {{ color: var(--ab-fg); background: var(--ab-bg-3); }}
+    .map-sidebar-list {{ overflow-y: auto; flex: 1; }}
+    .map-sb-ev {{
+      display: flex; align-items: flex-start; gap: 12px; justify-content: space-between;
+      width: 100%; text-align: left; border: 0; background: transparent; cursor: pointer;
+      padding: 13px 18px; border-bottom: 1px solid var(--ab-rule);
+      font-family: var(--ab-sans);
+    }}
+    .map-sb-ev:hover {{ background: var(--ab-bg-3); }}
+    .map-sb-ev .nm {{ font-size: 0.92rem; line-height: 1.35; color: var(--ab-fg); font-weight: 500; }}
+    .map-sb-ev .meta {{ display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }}
+    .map-sb-ev .dt {{ font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg-3); white-space: nowrap; }}
+    .msb-badge {{
+      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 999px; white-space: nowrap; letter-spacing: 0.02em;
+    }}
     .map-popup .map-ev {{ margin: 0 0 6px; font-size: 0.85rem; line-height: 1.35; }}
     .map-popup .map-ev a {{ color: var(--ab-blue, #1d4ed8); cursor: pointer; text-decoration: underline; }}
     .map-popup .map-ev .d {{ color: #666; font-family: var(--ab-mono); font-size: 0.72rem; }}
@@ -2089,7 +2131,17 @@ def build():
         <div class="ops-calendar" id="ops-calendar"></div>
         <div class="ops-map" id="ops-map">
           <p class="ops-meta" id="ops-map-note" style="margin:0 0 8px;"></p>
-          <div id="ops-map-canvas"></div>
+          <div class="map-wrap">
+            <div id="ops-map-canvas"></div>
+            <aside class="map-sidebar" id="map-sidebar" hidden aria-label="Events at this location">
+              <div class="map-sidebar-head">
+                <span class="msb-title" id="msb-title"></span>
+                <span class="msb-count" id="msb-count"></span>
+                <button type="button" class="msb-close" id="msb-close" aria-label="Close panel">&times;</button>
+              </div>
+              <div class="map-sidebar-list" id="msb-list"></div>
+            </aside>
+          </div>
         </div>
       </div>
 
@@ -4858,6 +4910,10 @@ def build():
             attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
           }}).addTo(_opsMap);
           _opsMapLayer = L.layerGroup().addTo(_opsMap);
+          // Sidebar close button + clicking empty map dismisses the panel.
+          var sbClose = document.getElementById('msb-close');
+          if (sbClose) sbClose.addEventListener('click', closeMapSidebar);
+          _opsMap.on('click', closeMapSidebar);
         }}
         renderOpsMap();
         // The container was display:none at init — force a size recalc.
@@ -4871,6 +4927,7 @@ def build():
     function renderOpsMap() {{
       if (!_opsMapLayer) return;
       _opsMapLayer.clearLayers();
+      closeMapSidebar();  // filters changed → reset the panel
       // Use the cards as the data source so the map honors the SAME filters
       // as the grid (price, buyer-rich, months, search, ...).
       var byCoord = {{}};
@@ -4901,47 +4958,62 @@ def build():
         }});
         var marker = L.marker(g.ll, {{ icon: icon }}).addTo(_opsMapLayer);
 
-        // Popup built as a real DOM node so each event row gets a live click
-        // handler that opens the SAME detail pop-up as the cards — works for
-        // catalog AND manual events (both carry a full _modalRec).
-        var box = document.createElement('div');
-        box.className = 'map-popup';
-        var city = (g.evs[0].city || (g.evs[0].location || '').split(',')[0] || '').trim();
-        var head = document.createElement('p');
-        head.className = 'map-city';
-        head.textContent = (city ? city + ' · ' : '') + n + ' event' + (n === 1 ? '' : 's');
-        box.appendChild(head);
-        g.evs.slice(0, 12).forEach(function (r) {{
-          var p = document.createElement('p');
-          p.className = 'map-ev';
-          var a = document.createElement('a');
-          a.textContent = r.name || 'Event';
-          a.addEventListener('click', function () {{
-            if (typeof window.openEventModal === 'function') window.openEventModal(r);
-          }});
-          p.appendChild(a);
-          if (r.date_str) {{
-            var d = document.createElement('span');
-            d.className = 'd';
-            d.textContent = ' ' + r.date_str;
-            p.appendChild(d);
-          }}
-          box.appendChild(p);
-        }});
-        if (n > 12) {{
-          var more = document.createElement('p');
-          more.className = 'map-ev';
-          more.textContent = '…and ' + (n - 12) + ' more (see Grid)';
-          box.appendChild(more);
-        }}
-        marker.bindPopup(box, {{ maxWidth: 340 }});
+        // Click a pin → slide this place's events into the right sidebar.
+        marker.on('click', function () {{ openMapSidebar(g); }});
       }});
       var note = document.getElementById('ops-map-note');
       if (note) {{
         note.textContent = placed + ' events on the map' +
           (unplaced ? ' · ' + unplaced + ' without a mappable location (Remote / TBD / Podcast)' : '') +
-          ' — pins follow the filters above; click a pin for details.';
+          ' — pins follow the filters above; click a pin to list its events.';
       }}
+    }}
+
+    // Short date for the sidebar rows ("Mar 15"), from start_date when we have it.
+    function _msbShortDate(r) {{
+      if (r.start_date) {{
+        var d = new Date(r.start_date + 'T00:00:00');
+        if (!isNaN(d)) return d.toLocaleDateString('en-US', {{ month: 'short', day: 'numeric' }});
+      }}
+      return r.date_str || '';
+    }}
+    // Populate + reveal the right-hand sidebar with the events at one pin.
+    function openMapSidebar(g) {{
+      var sb = document.getElementById('map-sidebar');
+      if (!sb) return;
+      var evs = g.evs.slice().sort(function (a, b) {{
+        return String(a.start_date || a.date_str || '').localeCompare(String(b.start_date || b.date_str || ''));
+      }});
+      var city = (evs[0].city || (evs[0].location || '').split(',')[0] || '').trim() || 'Location';
+      document.getElementById('msb-title').textContent = city;
+      document.getElementById('msb-count').textContent = evs.length;
+      var list = document.getElementById('msb-list');
+      list.innerHTML = '';
+      evs.forEach(function (r) {{
+        var row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'map-sb-ev';
+        var topStage = (r.stage_tags && r.stage_tags.length && typeof mostAdvancedStage === 'function')
+          ? mostAdvancedStage(r.stage_tags) : null;
+        var badge = '';
+        if (topStage && STAGE_BY_KEY[topStage]) {{
+          var s = STAGE_BY_KEY[topStage];
+          badge = '<span class="msb-badge" style="background:' + s.bg + ';color:' + s.fg + ';">' + escapeHtml(topStage) + '</span>';
+        }}
+        var dt = _msbShortDate(r);
+        row.innerHTML = '<span class="nm">' + escapeHtml(r.name || 'Event') + '</span>' +
+          '<span class="meta">' + (dt ? '<span class="dt">' + escapeHtml(dt) + '</span>' : '') + badge + '</span>';
+        row.addEventListener('click', function () {{
+          if (typeof window.openEventModal === 'function') window.openEventModal(r);
+        }});
+        list.appendChild(row);
+      }});
+      list.scrollTop = 0;
+      sb.removeAttribute('hidden');
+    }}
+    function closeMapSidebar() {{
+      var sb = document.getElementById('map-sidebar');
+      if (sb) sb.setAttribute('hidden', '');
     }}
 
     // ── Calendar rendering ──────────────────────────────────────────
