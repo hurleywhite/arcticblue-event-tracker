@@ -376,41 +376,8 @@
       color: var(--ab-fg-2); transition: background 0.15s, color 0.15s;
     }
     .modal-close:hover { background: var(--ab-fg); color: #fff; }
-    .modal-edit-toggle {
-      display: inline-flex; align-items: center; gap: 6px; height: 34px;
-      padding: 0 15px; border-radius: 999px; cursor: pointer; white-space: nowrap;
-      font-family: var(--ab-sans); font-size: 0.84rem; font-weight: 600;
-      border: 1px solid var(--ab-rule-strong); background: #fff; color: var(--ab-fg);
-      transition: all 0.12s;
-    }
-    .modal-edit-toggle:hover { border-color: var(--ab-fg-3); }
-    .modal-edit-toggle.on { background: var(--ab-fg); color: #fff; border-color: var(--ab-fg); }
-    .modal-edit-toggle .met-ic { font-size: 0.92em; }
-    /* Editing-mode field: same label/position, value slot becomes an input. */
-    .modal-field.is-editing .v input,
-    .modal-field.is-editing .v select,
-    .modal-field.is-editing .v textarea {
-      width: 100%; box-sizing: border-box; font-family: var(--ab-sans);
-      font-size: 0.92rem; padding: 8px 10px; border: 1px solid var(--ab-rule-strong);
-      border-radius: 6px; background: #fff; color: var(--ab-fg); line-height: 1.5;
-    }
-    .modal-field.is-editing .v textarea { resize: vertical; }
-    .modal-field.is-editing .v input:focus,
-    .modal-field.is-editing .v select:focus,
-    .modal-field.is-editing .v textarea:focus {
-      outline: none; border-color: var(--ab-fg); box-shadow: 0 0 0 2px var(--ab-bg-3);
-    }
-    .modal-edit-note {
-      font-family: var(--ab-mono); font-size: 0.66rem; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--ab-fg-3); margin: 0;
-    }
-    .modal-head {
-      border-bottom: 1px solid var(--ab-rule); padding-bottom: 16px; margin-bottom: 18px;
-      padding-right: 30px; display: flex; align-items: flex-start; gap: 16px;
-    }
-    .modal-head-main { flex: 1; min-width: 0; }
-    .modal-head-side { flex-shrink: 0; }
-    .modal-badges { padding-right: 158px; }  /* clear the top-right toolbar */
+    .modal-head { border-bottom: 1px solid var(--ab-rule); padding-bottom: 16px; margin-bottom: 18px; }
+    .modal-badges { padding-right: 150px; }  /* clear the top-right Edit + close toolbar */
     .modal-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
     .modal-badges .badge { position: static; }
     .modal-date {
@@ -1724,18 +1691,15 @@
   <div id="event-modal" class="modal-overlay" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-topbar">
-        <button type="button" class="modal-edit-toggle" id="modal-edit-toggle" hidden><span class="met-ic" aria-hidden="true">✎</span> <span class="met-label">Edit event</span></button>
+        <div id="modal-head-side"></div>
         <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
       </div>
       <div class="modal-scroll">
         <div class="modal-head">
-          <div class="modal-head-main">
-            <div class="modal-badges" id="modal-badges"></div>
-            <p class="modal-date" id="modal-date"></p>
-            <h2 class="modal-title" id="modal-title"></h2>
-            <p class="modal-loc" id="modal-loc"></p>
-          </div>
-          <div class="modal-head-side" id="modal-head-side"></div>
+          <div class="modal-badges" id="modal-badges"></div>
+          <p class="modal-date" id="modal-date"></p>
+          <h2 class="modal-title" id="modal-title"></h2>
+          <p class="modal-loc" id="modal-loc"></p>
         </div>
         <div class="modal-body" id="modal-body"></div>
         <div class="modal-actions" id="modal-actions"></div>
@@ -1820,10 +1784,8 @@
   var $loc     = document.getElementById('modal-loc');
   var $body    = document.getElementById('modal-body');
   var $actions = document.getElementById('modal-actions');
-  var $editToggle = document.getElementById('modal-edit-toggle');
   var lastFocus = null;
-  // In-place editing: when on, the SAME fields render as inputs in their place.
-  var _editing = false, _curRec = null;
+  // The ArcticBlue speaker roster — drives the "Interested" picker.
   var AB_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
 
   function esc(s) {
@@ -1933,9 +1895,6 @@
       if (scEl) scEl.scrollTop = sc;
     });
   }
-
-  // The ArcticBlue speaker roster — drives the "Interested" picker.
-  var AB_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
 
   // Edit form — mirrors the READ-ONLY field layout (same .modal-field rows /
   // labels / spacing) so edit mode looks just like view mode, only editable.
