@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-15T18:28:54.624320Z",
-  "build_date": "2026-06-15",
+  "generated_at": "2026-06-16T14:23:25.536159Z",
+  "build_date": "2026-06-16",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
     "today": 2,
-    "upcoming": 149,
-    "archived": 109,
+    "upcoming": 148,
+    "archived": 110,
     "total": 260
   },
   "events": [
@@ -41,32 +41,6 @@
       "external_id": "baf42aa6-0e88-4064-8df3-ddba26e57d91"
     },
     {
-      "num": 229,
-      "name": "Columbia Business School: Advisor for Summer Startup Track 2026",
-      "date_str": "June 15, 2026",
-      "start_date": "2026-06-15",
-      "end_date": "2026-06-15",
-      "location": "New York, USA",
-      "region": "Americas",
-      "region_coarse": "Americas",
-      "type": "Enterprise",
-      "priority": "Medium",
-      "priority_full": "Medium",
-      "why": "Personal contact. Thor has advised before.\n\nAdvisory and programming are typically coordinated through the Columbia Business School Entrepreneurship team and the Eugene Lang Entrepreneurship Center.",
-      "url": "https://business.columbia.edu/lang/student-and-alumni-programming/launch/summer-startup-track",
-      "status": "today",
-      "about": "The Summer Startup Track (SST) at Columbia Business School pairs rising second-year students advancing their ventures over the summer with dedicated entrepreneurial advisors, peer cohorts, and industry leaders. The program culminates in a pitch competition for taxable grants of up to $10,000 \n\nSummer Startup Track (SST) fosters a culture of innovation and entrepreneurship for rising second-year Columbia Business School students who are dedicated to advancing their ventures over the summer. The program provides tailored advisory, a network of peers, talks with industry leaders, and a pitch competition for a limited number of grants (taxable*) of up to $10k at the end of the summer. \n\nSummer Startup Track is stage agnostic and committed to supporting student founders regardless of whether they are in ideation, MVP, or post-launch stages. The program is designed to create an active and engaged community of aspiring entrepreneurs, meeting founders where they are to help them reach the next stage in their startup journeys.",
-      "speaking_route": "Personal contact. Thor has advised before.\n\nGabriel Mejia: gm2576@gsb.columbia.edu\nDirector, The Eugene Lang Entrepreneurship Center\nColumbia Business School",
-      "seed": false,
-      "urgent": false,
-      "venue": "Columbia Business School, Geffen Hall 688",
-      "city": "New York",
-      "country": "USA",
-      "notes": "YOUR COMMITMENT\n4-5 hour time commitment from Jun 1 - Jul 23, 2026. \nProvide 8-10 30-min advisory sessions that any student team may book with you - based on your schedule and availability (Of course, we will accept more if you\u2019d like!)\nCan be virtual or in-person, although virtual provides greater flexibility\nAvailability for adhoc follow-up questions, within reason\nBrief written recommendation(s) if requested by a student team for the grant application. The recommendation is just a short survey (not a letter!)\nOptional: Lead one roundtable session for 10-12 students (up to 1 hour) - Let us know if this is of special interest to you and we can share more guidance",
-      "source": "arcticscout",
-      "external_id": "9bbd78e3-6f2d-4377-846c-8980d8b30d22"
-    },
-    {
       "num": 222,
       "name": "Reuters NEXT Europe",
       "date_str": "June 16, 2026",
@@ -80,7 +54,7 @@
       "priority_full": "Medium",
       "why": "",
       "url": "https://events.reutersevents.com/next/europe",
-      "status": "upcoming",
+      "status": "today",
       "about": "invitation-based attendance",
       "speaking_route": "invite only / curated speaker lineup (CEOs, ministers, heads of major institutions)",
       "seed": false,
@@ -815,7 +789,12 @@
       "priority_full": "High",
       "why": "Exclusive 1-day gathering of 150+ CIOs, CDOs, and Chief AI Officers at NYC's iconic 583 Park Avenue; AI100 Awards live; ArcticBlue's highest-density CxO AI leadership event in its home market mid-summer.",
       "url": null,
-      "status": "upcoming"
+      "status": "upcoming",
+      "typical_attendees": "Senior data, analytics, CIO, CDO, and enterprise AI leaders",
+      "attendee_count": "100+",
+      "audience_type": "Buyer-rich",
+      "meeting_formats": "Invitite-only invite-only conference; networking break",
+      "venue": "583 Park Avenue"
     },
     {
       "num": 115,
@@ -1261,7 +1240,11 @@
       "priority_full": "Medium",
       "why": "Fortune 500 AI decision-makers and solution providers converge in NYC for Data Science Connect's flagship enterprise AI event; same organizer network as ALIGN AI SFO and COLLIDE Atlanta; open speaker interest form active.",
       "url": null,
-      "status": "upcoming"
+      "status": "upcoming",
+      "typical_attendees": "Fortune 500 decision-makers, enterprise data and AI leaders, solution providers",
+      "attendee_count": "150+",
+      "audience_type": "Mixed",
+      "meeting_formats": "curated roundtables and dinners"
     },
     {
       "num": 248,
@@ -1338,7 +1321,11 @@
       "priority_full": "High",
       "why": "Co-located with CAIO Summit Berlin at The Ritz Carlton; Bayer, Meta, Mastercard enterprise practitioners on stage; same-day/same-venue maximizes European enterprise AI access for ArcticBlue.",
       "url": null,
-      "status": "upcoming"
+      "status": "upcoming",
+      "typical_attendees": "Technical builders, developers, researchers, and senior leaders",
+      "attendee_count": "300+",
+      "audience_type": "Mixed",
+      "venue": "The Ritz Carlton, 3 Potsdamer Platz, Berlin"
     },
     {
       "num": 37,
@@ -1386,7 +1373,10 @@
       "priority_full": "High",
       "why": "Corinium's sector-specific London CDAO event for UK financial services and insurance data leaders \u2014 Nominate a Speaker route directly available on official site; targeted CDO/CAIO access in ArcticBlue's key European FS market.",
       "url": null,
-      "status": "upcoming"
+      "status": "upcoming",
+      "typical_attendees": "Data & analytics leaders from financial services and insurance; CDOs, CDAOs, and senior data leaders",
+      "attendee_count": "120+Attendees",
+      "audience_type": "Buyer-rich"
     },
     {
       "num": 240,
@@ -1453,8 +1443,15 @@
       "priority": "Medium",
       "priority_full": "Medium",
       "why": "Premier enterprise data/AI governance conference anchored by an Executive AI Summit on Day 1; CDO, Head of Data, and enterprise analytics leaders focused on AI governance strategy and data foundations \u2014 core ArcticBlue data-layer buyer audience.",
-      "url": null,
-      "status": "upcoming"
+      "url": "https://tdwi.org/anaheim",
+      "status": "upcoming",
+      "typical_attendees": "Data, analytics, and AI leaders; business leaders; practitioners from enterprise data, BI, governance, and analytics teams",
+      "speaking_route": "Apply to speak: https://tdwi.org/pages/about-tdwi/call-for-speakers.aspx",
+      "pay_to_play": "No",
+      "pricing": "Six-Day Pass: $2,695\u2013$3,195; Five-Day Pass: $2,395\u2013$2,895; Four-Day Pass: $2,095\u2013$2,595; Three-Day Pass: $1,795\u2013$2,295; Summit-only two-day pass: $1,166\u2013$1,616",
+      "audience_type": "Buyer-rich",
+      "meeting_formats": "attendee app for pre-booking meetings; networking opportunities",
+      "venue": "JW Marriott, Anaheim Resort"
     },
     {
       "num": 71,
@@ -1556,7 +1553,14 @@
       "priority_full": "Medium",
       "why": "we.CONECT's boutique enterprise AI summit in Berlin; 400\u2013500 participants from Germany, Austria, and Switzerland; open \"Apply as a speaker\" route \u2014 ideal entry point for ArcticBlue's DACH-region European enterprise market.",
       "url": null,
-      "status": "upcoming"
+      "status": "upcoming",
+      "typical_attendees": "Decision-makers in artificial intelligence, machine learning, and business analytics",
+      "attendee_count": "300-500 Delegates",
+      "pricing": "Venue to be announced (Check Official Website)",
+      "audience_type": "Buyer-rich",
+      "past_speakers": "Approximately 10 speakers participating (specific titles/companies not listed in source)",
+      "meeting_formats": "Top-level networking opportunities; platform for sharing current projects and methodologies",
+      "venue": "Maritim proArte Hotel"
     },
     {
       "num": 57,
@@ -2514,7 +2518,11 @@
       "priority_full": "High",
       "why": "Intelligent Enterprise Leaders' executive-level agentic AI forum in NYC; \"shifting from AI delivery to AI orchestration, enablement, and long-term value stewardship\" \u2014 directly matches ArcticBlue's sprint-based enterprise delivery-to-value thesis; curated enterprise practitioner audience.",
       "url": null,
-      "status": "upcoming"
+      "status": "upcoming",
+      "typical_attendees": "Senior AI, IT, technology, and automation leaders employed by brands; Director level/Head and above",
+      "pay_to_play": "Yes",
+      "audience_type": "Buyer-rich",
+      "venue": "Square"
     },
     {
       "num": 189,
@@ -3671,6 +3679,32 @@
       "notes": "- https://www.linkedin.com/company/eutncom/about/\n- https://x.com/etnshow\n- https://etnshow.co/",
       "source": "arcticscout",
       "external_id": "e3848d4f-71be-4c02-a8b9-f8166430da7e"
+    },
+    {
+      "num": 229,
+      "name": "Columbia Business School: Advisor for Summer Startup Track 2026",
+      "date_str": "June 15, 2026",
+      "start_date": "2026-06-15",
+      "end_date": "2026-06-15",
+      "location": "New York, USA",
+      "region": "Americas",
+      "region_coarse": "Americas",
+      "type": "Enterprise",
+      "priority": "Medium",
+      "priority_full": "Medium",
+      "why": "Personal contact. Thor has advised before.\n\nAdvisory and programming are typically coordinated through the Columbia Business School Entrepreneurship team and the Eugene Lang Entrepreneurship Center.",
+      "url": "https://business.columbia.edu/lang/student-and-alumni-programming/launch/summer-startup-track",
+      "status": "archived",
+      "about": "The Summer Startup Track (SST) at Columbia Business School pairs rising second-year students advancing their ventures over the summer with dedicated entrepreneurial advisors, peer cohorts, and industry leaders. The program culminates in a pitch competition for taxable grants of up to $10,000 \n\nSummer Startup Track (SST) fosters a culture of innovation and entrepreneurship for rising second-year Columbia Business School students who are dedicated to advancing their ventures over the summer. The program provides tailored advisory, a network of peers, talks with industry leaders, and a pitch competition for a limited number of grants (taxable*) of up to $10k at the end of the summer. \n\nSummer Startup Track is stage agnostic and committed to supporting student founders regardless of whether they are in ideation, MVP, or post-launch stages. The program is designed to create an active and engaged community of aspiring entrepreneurs, meeting founders where they are to help them reach the next stage in their startup journeys.",
+      "speaking_route": "Personal contact. Thor has advised before.\n\nGabriel Mejia: gm2576@gsb.columbia.edu\nDirector, The Eugene Lang Entrepreneurship Center\nColumbia Business School",
+      "seed": false,
+      "urgent": false,
+      "venue": "Columbia Business School, Geffen Hall 688",
+      "city": "New York",
+      "country": "USA",
+      "notes": "YOUR COMMITMENT\n4-5 hour time commitment from Jun 1 - Jul 23, 2026. \nProvide 8-10 30-min advisory sessions that any student team may book with you - based on your schedule and availability (Of course, we will accept more if you\u2019d like!)\nCan be virtual or in-person, although virtual provides greater flexibility\nAvailability for adhoc follow-up questions, within reason\nBrief written recommendation(s) if requested by a student team for the grant application. The recommendation is just a short survey (not a letter!)\nOptional: Lead one roundtable session for 10-12 students (up to 1 hour) - Let us know if this is of special interest to you and we can share more guidance",
+      "source": "arcticscout",
+      "external_id": "9bbd78e3-6f2d-4377-846c-8980d8b30d22"
     },
     {
       "num": 190,

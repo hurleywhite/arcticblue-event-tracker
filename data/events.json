@@ -513,7 +513,12 @@
    "priority_full": "High",
    "why": "Exclusive 1-day gathering of 150+ CIOs, CDOs, and Chief AI Officers at NYC's iconic 583 Park Avenue; AI100 Awards live; ArcticBlue's highest-density CxO AI leadership event in its home market mid-summer.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "583 Park Avenue",
+   "meeting_formats": "Invitite-only invite-only conference; networking break",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Senior data, analytics, CIO, CDO, and enterprise AI leaders",
+   "attendee_count": "100+"
   },
   {
    "num": 29,
@@ -684,7 +689,11 @@
    "priority_full": "Medium",
    "why": "Fortune 500 AI decision-makers and solution providers converge in NYC for Data Science Connect's flagship enterprise AI event; same organizer network as ALIGN AI SFO and COLLIDE Atlanta; open speaker interest form active.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "meeting_formats": "curated roundtables and dinners",
+   "audience_type": "Mixed",
+   "typical_attendees": "Fortune 500 decision-makers, enterprise data and AI leaders, solution providers",
+   "attendee_count": "150+"
   },
   {
    "num": 69,
@@ -729,7 +738,11 @@
    "priority_full": "High",
    "why": "Co-located with CAIO Summit Berlin at The Ritz Carlton; Bayer, Meta, Mastercard enterprise practitioners on stage; same-day/same-venue maximizes European enterprise AI access for ArcticBlue.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "The Ritz Carlton, 3 Potsdamer Platz, Berlin",
+   "audience_type": "Mixed",
+   "typical_attendees": "Technical builders, developers, researchers, and senior leaders",
+   "attendee_count": "300+"
   },
   {
    "num": 37,
@@ -774,7 +787,10 @@
    "priority_full": "High",
    "why": "Corinium's sector-specific London CDAO event for UK financial services and insurance data leaders — Nominate a Speaker route directly available on official site; targeted CDO/CAIO access in ArcticBlue's key European FS market.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Data & analytics leaders from financial services and insurance; CDOs, CDAOs, and senior data leaders",
+   "attendee_count": "120+Attendees"
   },
   {
    "num": 38,
@@ -788,8 +804,15 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "Premier enterprise data/AI governance conference anchored by an Executive AI Summit on Day 1; CDO, Head of Data, and enterprise analytics leaders focused on AI governance strategy and data foundations — core ArcticBlue data-layer buyer audience.",
-   "url": null,
-   "status": "upcoming"
+   "url": "https://tdwi.org/anaheim",
+   "status": "upcoming",
+   "venue": "JW Marriott, Anaheim Resort",
+   "pricing": "Six-Day Pass: $2,695–$3,195; Five-Day Pass: $2,395–$2,895; Four-Day Pass: $2,095–$2,595; Three-Day Pass: $1,795–$2,295; Summit-only two-day pass: $1,166–$1,616",
+   "pay_to_play": "No",
+   "meeting_formats": "attendee app for pre-booking meetings; networking opportunities",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Data, analytics, and AI leaders; business leaders; practitioners from enterprise data, BI, governance, and analytics teams",
+   "speaking_route": "Apply to speak: https://tdwi.org/pages/about-tdwi/call-for-speakers.aspx"
   },
   {
    "num": 71,
@@ -858,7 +881,14 @@
    "priority_full": "Medium",
    "why": "we.CONECT's boutique enterprise AI summit in Berlin; 400–500 participants from Germany, Austria, and Switzerland; open \"Apply as a speaker\" route — ideal entry point for ArcticBlue's DACH-region European enterprise market.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "Maritim proArte Hotel",
+   "pricing": "Venue to be announced (Check Official Website)",
+   "past_speakers": "Approximately 10 speakers participating (specific titles/companies not listed in source)",
+   "meeting_formats": "Top-level networking opportunities; platform for sharing current projects and methodologies",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Decision-makers in artificial intelligence, machine learning, and business analytics",
+   "attendee_count": "300-500 Delegates"
   },
   {
    "num": 57,
@@ -1302,7 +1332,11 @@
    "priority_full": "High",
    "why": "Intelligent Enterprise Leaders' executive-level agentic AI forum in NYC; \"shifting from AI delivery to AI orchestration, enablement, and long-term value stewardship\" — directly matches ArcticBlue's sprint-based enterprise delivery-to-value thesis; curated enterprise practitioner audience.",
    "url": null,
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "Square",
+   "pay_to_play": "Yes",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Senior AI, IT, technology, and automation leaders employed by brands; Director level/Head and above"
   },
   {
    "num": 46,
