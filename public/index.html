@@ -418,13 +418,15 @@
     }
     /* Editable modal — one-tap quick-action bar at the top of the body. */
     .modal-quickbar {
-      display: flex; flex-wrap: wrap; gap: 8px;
-      margin: 0 0 20px; padding-bottom: 16px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 10px; margin: 0 0 20px; padding-bottom: 16px;
       border-bottom: 1px solid var(--ab-rule);
     }
+    .qa-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .modal-quickbar .qa {
+      display: inline-flex; align-items: center; min-height: 34px;
       font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
-      padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      padding: 0 14px; border-radius: 999px; cursor: pointer; white-space: nowrap;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
       color: var(--ab-fg-2); transition: all 0.12s;
     }
@@ -432,6 +434,16 @@
     .modal-quickbar .qa.on {
       background: #166534; color: #fff; border-color: #166534;
     }
+    /* Primary edit affordance — top-right of the action row (Angela-style). */
+    .qa-edit {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 34px;
+      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
+      padding: 0 16px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg-3); color: var(--ab-fg);
+      transition: all 0.12s;
+    }
+    .qa-edit:hover, .qa-edit.on { background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }
+    .qa-edit-ic { font-size: 0.92em; }
     .modal-quickbar .qa[data-qa="saved"].on { background: var(--ab-blue); border-color: var(--ab-blue); }
     .modal-quickbar .qa[data-qa="hidden"].on { background: var(--ab-fg-3); border-color: var(--ab-fg-3); }
     .modal-edit-btn {
@@ -446,13 +458,11 @@
       margin: 0 0 20px; padding: 14px 16px; border-radius: 10px;
       background: var(--ab-bg-2); border: 1px solid var(--ab-rule);
     }
-    .modal-edit > summary {
-      cursor: pointer; font-family: var(--ab-mono); font-size: 0.72rem;
+    .me-edithead {
+      font-family: var(--ab-mono); font-size: 0.68rem;
       letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3);
-      list-style: none; user-select: none;
+      margin-bottom: 12px;
     }
-    .modal-edit > summary::-webkit-details-marker { display: none; }
-    .modal-edit[open] > summary { margin-bottom: 12px; }
     .me-grid { display: grid; gap: 11px; }
     .me-row { display: grid; grid-template-columns: 130px 1fr; gap: 10px; align-items: center; }
     .me-key {
@@ -1762,7 +1772,13 @@
     b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Mark Submitted') + '</button>');
     b.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
     b.push('<button type="button" class="qa' + (att ? ' on' : '') + '" data-qa="attending">' + (att ? '✓ Attending' : 'Attending') + '</button>');
-    return '<div class="modal-quickbar">' + b.join('') + '</div>';
+    // "Edit event" sits at the top-right of the action row (like Angela's app)
+    // and reveals the inline edit fields below.
+    return '<div class="modal-quickbar">' +
+      '<div class="qa-row">' + b.join('') + '</div>' +
+      '<button type="button" class="qa-edit" data-edittoggle aria-expanded="false">' +
+        '<span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event</button>' +
+      '</div>';
   }
   function wireQuickBar(rec) {
     var bar = $body.querySelector('.modal-quickbar');
@@ -1819,7 +1835,7 @@
     var verdicts = ['', 'Worth attending', 'Maybe', 'Not worth it'];
     var pris = ['', 'High', 'Medium', 'Low'];
     var curPri = isCat ? (rec.priority_override || rec.priority || '') : (rec.priority || '');
-    var h = '<details class="modal-edit" open><summary>✎ Edit fields — changes save instantly</summary><div class="me-grid">';
+    var h = '<div class="modal-edit" hidden><div class="me-edithead">Editing — changes save instantly</div><div class="me-grid">';
     if (!isCat) {
       h += meRow('Name', '<input type="text" data-edit="name" value="' + esc(rec.name || '') + '">');
       h += meRow('Date', '<input type="text" data-edit="date_str" value="' + esc(rec.date_str || '') + '" placeholder="e.g. Sept 14–16, 2026">');
@@ -1835,12 +1851,31 @@
       h += meRow('Deadline', '<input type="text" data-edit="deadline" value="' + esc(rec.deadline || '') + '" placeholder="e.g. July 10, 2026">');
     }
     h += meRow('Notes', '<textarea data-edit="notes" rows="2" placeholder="Internal notes…">' + esc(rec.notes || '') + '</textarea>');
-    h += '</div></details>';
+    h += '</div></div>';
     return h;
   }
   function wireEditBar(rec) {
     var box = $body.querySelector('.modal-edit');
     if (!box || !window.opsWrite) return;
+    // Top-right "Edit event" button toggles the inline fields open/closed.
+    var toggle = $body.querySelector('[data-edittoggle]');
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        var open = box.hasAttribute('hidden');
+        if (open) {
+          box.removeAttribute('hidden');
+          toggle.classList.add('on');
+          toggle.setAttribute('aria-expanded', 'true');
+          toggle.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✓</span> Done';
+          box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          box.setAttribute('hidden', '');
+          toggle.classList.remove('on');
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event';
+        }
+      });
+    }
     box.querySelectorAll('.me-stage').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var s = btn.dataset.stage;
@@ -1943,22 +1978,15 @@
     wireQuickBar(rec);
     wireEditBar(rec);
 
+    // Editing now lives in the top-right "Edit event" toggle; the footer just
+    // links out to the event website.
     var actHtml = '';
-    if (rec._table && rec._key != null) {
-      actHtml += '<button type="button" class="modal-edit-btn" id="modal-edit-event">More fields ↗</button>';
-    }
     if (rec.url) {
       actHtml += '<a class="modal-visit" href="' + esc(rec.url) + '" target="_blank" rel="noopener">Visit event website ↗</a>';
-    } else if (rec._table && rec._key != null) {
-      actHtml += '<button type="button" class="modal-edit-btn" id="modal-add-link">+ Add a website link</button>';
     } else {
       actHtml += '<span class="modal-nolink">No verified website URL on file.</span>';
     }
     $actions.innerHTML = actHtml;
-    var editBtn = document.getElementById('modal-edit-event');
-    if (editBtn) editBtn.addEventListener('click', function () { if (window.opsOpenEditor) window.opsOpenEditor(rec._table, rec._key); });
-    var addLinkBtn = document.getElementById('modal-add-link');
-    if (addLinkBtn) addLinkBtn.addEventListener('click', function () { if (window.opsOpenEditor) window.opsOpenEditor(rec._table, rec._key); });
 
     lastFocus = document.activeElement;
     overlay.removeAttribute('hidden');
