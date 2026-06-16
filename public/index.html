@@ -1173,47 +1173,50 @@
        inside ellipsis-clip correctly. */
     .ops-calendar { overflow-x: auto; }
     .calendar-grid {
+      border: 1px solid var(--ab-rule); border-radius: 8px; overflow: hidden;
+      min-width: 700px;  /* horizontal-scroll kicks in below this on mobile */
+      width: 100%; background: var(--ab-bg);
+    }
+    .cal-weekhead {
       display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 1px; background: var(--ab-rule);
-      border: 1px solid var(--ab-rule); border-radius: 8px;
-      overflow: hidden;
-      min-width: 700px;  /* horizontal-scroll kicks in below this; keeps cells legible on mobile */
-      width: 100%;
+      background: var(--ab-bg-2);
     }
     .calendar-day-head {
-      background: var(--ab-bg-2); padding: 8px;
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      padding: 8px; font-family: var(--ab-mono); font-size: 0.66rem;
       color: var(--ab-fg-3); letter-spacing: 0.08em;
-      text-transform: uppercase; text-align: center;
-      min-width: 0; overflow: hidden;
+      text-transform: uppercase; text-align: center; min-width: 0; overflow: hidden;
     }
-    .calendar-day {
-      background: var(--ab-bg); padding: 6px 4px 6px 0;
-      min-height: 112px;
-      display: flex; flex-direction: column; gap: 3px;
-      min-width: 0; overflow: visible;  /* let multi-day bars bleed to the cell edge */
+    /* Each week is its own 7-column grid. Day backgrounds span every row, so the
+       date numbers (row 1) and event lanes (rows 2+) layer on top. A multi-day
+       event is ONE element spanning its day columns — genuinely contiguous,
+       with room for the full name. */
+    .cal-week {
+      display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-auto-rows: min-content;
     }
-    .calendar-day.is-outside { background: var(--ab-bg-3); }
-    .calendar-day.is-outside .calendar-day-num { color: var(--ab-mute); }
-    .calendar-day.is-today { background: rgba(39,115,194,0.06); }
-    .calendar-day.is-today .calendar-day-num { color: var(--ab-blue); font-weight: 700; }
-    .calendar-day-num {
-      font-family: var(--ab-mono); font-size: 0.72rem;
-      color: var(--ab-fg-3); margin-bottom: 4px;
+    .cal-day-bg {
+      border-top: 1px solid var(--ab-rule); border-right: 1px solid var(--ab-rule);
+      min-height: 106px; background: var(--ab-bg);
     }
-    .cal-chip {
-      font-family: var(--ab-sans); font-size: 0.74rem; line-height: 1.3;
-      padding: 4px 6px 5px; border-radius: 4px; margin-left: 4px;
-      background: var(--ab-bg-2);
+    .cal-day-bg.is-outside { background: var(--ab-bg-3); }
+    .cal-day-bg.is-today { background: rgba(39,115,194,0.06); }
+    .cal-daynum {
+      font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3);
+      padding: 5px 0 3px 8px; position: relative; z-index: 1; pointer-events: none;
+    }
+    .cal-daynum.is-outside { color: var(--ab-mute); }
+    .cal-evt {
+      position: relative; z-index: 2; margin: 1px 4px 2px; min-height: 21px;
+      display: flex; align-items: center; gap: 5px; padding: 2px 8px;
+      border-radius: 5px; background: var(--ab-bg-2);
       border-left: 3px solid var(--ab-rule-strong);
-      cursor: pointer; overflow: hidden;
-      text-overflow: ellipsis; white-space: nowrap;
-      transition: background 120ms ease;
-      display: flex; align-items: center; gap: 4px; min-width: 0;
+      font-family: var(--ab-sans); font-size: 0.74rem; line-height: 1.2;
+      cursor: pointer; overflow: hidden; white-space: nowrap;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.03); transition: filter 120ms ease;
     }
-    .cal-chip:hover { background: var(--ab-bg-3); }
-    .cal-chip.is-saved { background: rgba(39,115,194,0.10); border-left-color: var(--ab-blue); }
-    .cal-chip.is-urgent { background: rgba(185,28,28,0.10); border-left-color: var(--ab-red); }
+    .cal-evt:hover { filter: brightness(0.96); }
+    .cal-evt.is-saved { background: rgba(39,115,194,0.12); border-left-color: var(--ab-blue); }
+    .cal-evt.is-urgent { background: rgba(185,28,28,0.10); border-left-color: var(--ab-red); }
 
     /* Calendar legend — shows status-group color meanings under the grid */
     .cal-legend {
@@ -1235,32 +1238,18 @@
     .cal-legend-dot {
       width: 8px; height: 8px; border-radius: 50%;
     }
-    .cal-chip-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ab-fg); }
+    .cal-evt-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ab-fg); font-weight: 500; }
     .cal-chip-initial {
       display: inline-block; background: var(--ab-fg); color: var(--ab-bg);
       font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 600;
       border-radius: 50%; width: 16px; height: 16px;
       line-height: 16px; text-align: center; flex-shrink: 0;
     }
-    .cal-chip-status {
+    .cal-evt-status {
       font-family: var(--ab-mono); font-size: 0.58rem; font-weight: 600;
       padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
       letter-spacing: 0.02em;
     }
-    /* Multi-day spanning bar — start cell carries the name, the rest are a
-       clean connected fill so the event reads as ONE contiguous bar. Bars
-       bleed to both cell edges (negative margins) so they touch across the
-       1px grid gap and look continuous. */
-    .cal-chip.cal-bar { border-left-width: 3px; }
-    .cal-chip.is-continuation {
-      min-height: 22px; padding: 0; gap: 0;
-      border-left: 0;
-    }
-    .cal-chip.is-continuation .cal-bar-fill { flex: 1; height: 100%; }
-    /* Connect the segments seamlessly across the day-cell gap. */
-    .cal-chip.cal-bar.is-start:not(.is-end) { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: -5px; }
-    .cal-chip.cal-bar.is-continuation:not(.is-end) { border-radius: 0; margin-left: -1px; margin-right: -5px; }
-    .cal-chip.cal-bar.is-end:not(.is-start) { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; }
     .cal-region-dot {
       width: 6px; height: 6px; border-radius: 50%;
       display: inline-block; flex-shrink: 0;
@@ -2450,34 +2439,27 @@
     // CFP-deadline line for the card face. Red when the text says URGENT or
     // a parseable date is within ~30 days (or already passed — either way it
     // needs Angela's attention NOW, not buried in the pop-up).
-    // True when a CFP/apply deadline is coming up within the next ~month (or the
-    // text literally says urgent). Drives BOTH the red card styling and the
-    // "Urgent" stat/filter — an event whose deadline is days away needs
-    // attention NOW. A deadline already long past is not "coming up".
+    // True when an event's APPLY / CFP deadline is still open and closing soon —
+    // a parseable deadline date within the next ~6 weeks, or text that says it's
+    // urgent/closing. This is the ONLY thing that makes an event "Urgent": a
+    // deadline to apply that's coming up — NOT the event date itself.
+    // Rolling / open-ended / already-closed deadlines carry no urgency.
     function isDeadlineSoon(d) {
       if (d == null || !String(d).trim()) return false;
       var txt = String(d).trim();
-      if (/urgent|immediately|asap/i.test(txt)) return true;
+      if (/rolling|ongoing|membership|closed|has passed|may have passed/i.test(txt)) return false;
+      if (/urgent|immediately|asap|closing soon|closes soon/i.test(txt)) return true;
       var iso = null;
       try { iso = deriveDatesFromText(txt).start_date; } catch (e) {}
       if (!iso) return false;
-      var days = (new Date(iso) - new Date()) / 86400000;
-      return days <= 30 && days >= -1;
+      var days = (new Date(iso + 'T00:00:00') - new Date()) / 86400000;
+      return days >= -1 && days <= 45;  // still open, closing within ~6 weeks
     }
     function deadlineLine(d) {
       if (d == null || !String(d).trim()) return '';
       var txt = String(d).trim();
       var cls = isDeadlineSoon(d) ? ' deadline-soon' : '';
       return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
-    }
-    // True when an event is happening within the next ~month (and hasn't ended).
-    // A "coming up" event is urgent — it's the last call to apply / book / show.
-    function isStartingSoon(ev) {
-      if (!ev || isPastEvent(ev)) return false;
-      var iso = ev.start_date;
-      if (!iso) return false;
-      var days = (new Date(iso + 'T00:00:00') - new Date()) / 86400000;
-      return days <= 30;
     }
 
     function buildOpsCard(ev, st, email) {
@@ -2509,9 +2491,9 @@
       if (_opsPast) card.classList.add('is-past');
       if (st.saved)  card.classList.add('is-saved');
       if (st.hidden) card.classList.add('is-hidden');
-      // Urgent = manually flagged, OR a CFP/apply deadline within the month,
-      // OR the event itself is coming up within the next month.
-      var _soon = (isDeadlineSoon(ev.deadline) || isStartingSoon(ev)) && !_opsPast;
+      // Urgent = manually flagged OR an apply/CFP deadline that's closing soon.
+      // (The event merely being upcoming does NOT make it urgent.)
+      var _soon = isDeadlineSoon(ev.deadline) && !_opsPast;
       if (_soon) card.dataset.deadlineSoon = '1';
       if (st.urgent || _soon) card.classList.add('is-urgent');
 
@@ -2689,8 +2671,8 @@
       var _manPast = isPastEvent(mev);
       card.dataset.past = _manPast ? '1' : '';
       if (_manPast) card.classList.add('is-past');
-      // Urgent = deadline within the month OR the event itself coming up soon.
-      var _manSoon = (isDeadlineSoon(mev.deadline) || isStartingSoon(mev)) && !_manPast;
+      // Urgent = an apply/CFP deadline that's closing soon (not just upcoming).
+      var _manSoon = isDeadlineSoon(mev.deadline) && !_manPast;
       if (_manSoon) { card.dataset.deadlineSoon = '1'; card.classList.add('is-urgent'); }
       var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
       card.dataset.month = manualMeta.key;
@@ -3586,12 +3568,12 @@
         if (stages.indexOf('Booked') !== -1) booked++;
         if ((r.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
       });
-      // Urgent = a CFP/apply deadline coming up within the next month (or a
-      // manually-flagged urgent event). Counted per upcoming event.
+      // Urgent = an apply/CFP deadline closing soon (or a manually-flagged
+      // urgent event) — NOT merely an upcoming event. Counted per event.
       (evs || []).forEach(function (ev) {
         if (((ev.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         var st = stByNum[ev.num] || {};
-        if (!isPastEvent(ev) && (st.urgent || isDeadlineSoon(ev.deadline) || isStartingSoon(ev))) urgent++;
+        if (!isPastEvent(ev) && (st.urgent || isDeadlineSoon(ev.deadline))) urgent++;
       });
       // Manual events carry their own stage tags + deadlines — fold them in.
       (manualRows || []).forEach(function (m) {
@@ -3600,7 +3582,7 @@
         if (stages.indexOf('Booked') !== -1) booked++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if ((m.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
-        if (!isPastEvent(m) && (isDeadlineSoon(m.deadline) || isStartingSoon(m))) urgent++;
+        if (!isPastEvent(m) && isDeadlineSoon(m.deadline)) urgent++;
       });
       // Each tile is a one-click filter (data-stat). 'all' clears everything.
       function tile(key, num, label, cls) {
@@ -4468,134 +4450,149 @@
 
       var grid = document.createElement('div');
       grid.className = 'calendar-grid';
+
+      // Weekday header row.
+      var hdr = document.createElement('div');
+      hdr.className = 'cal-weekhead';
       ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function (d) {
         var dh = document.createElement('div');
         dh.className = 'calendar-day-head';
         dh.textContent = d;
-        grid.appendChild(dh);
+        hdr.appendChild(dh);
       });
+      grid.appendChild(hdr);
 
       var firstDay = new Date(year, month, 1).getDay();
-      var daysInMonth = new Date(year, month+1, 0).getDate();
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
       var prevMonthDays = new Date(year, month, 0).getDate();
-      var today = new Date(); today.setHours(0,0,0,0);
+      var today = new Date(); today.setHours(0, 0, 0, 0);
       var todayIso = isoFromYMD(today.getFullYear(), today.getMonth(), today.getDate());
+      var DAY = 86400000;
 
-      // Lead with previous month's tail
+      // Build every cell of the month grid: previous-month tail, this month,
+      // next-month head — padded to whole weeks.
+      var cells = [];
       for (var i = 0; i < firstDay; i++) {
         var dn = prevMonthDays - firstDay + i + 1;
-        var cell = document.createElement('div');
-        cell.className = 'calendar-day is-outside';
-        cell.innerHTML = '<div class="calendar-day-num">' + dn + '</div>';
-        grid.appendChild(cell);
+        var pm = new Date(year, month - 1, dn);
+        cells.push({ iso: isoFromYMD(pm.getFullYear(), pm.getMonth(), pm.getDate()), day: dn, outside: true });
+      }
+      for (var day = 1; day <= daysInMonth; day++) {
+        cells.push({ iso: isoFromYMD(year, month, day), day: day, outside: false });
+      }
+      var trail = (Math.ceil(cells.length / 7) * 7) - cells.length;
+      for (var t = 1; t <= trail; t++) {
+        var nm = new Date(year, month + 1, t);
+        cells.push({ iso: isoFromYMD(nm.getFullYear(), nm.getMonth(), nm.getDate()), day: t, outside: true });
+      }
+      cells.forEach(function (c) { c.ms = new Date(c.iso + 'T00:00:00Z').getTime(); });
+      var calStartMs = cells[0].ms, calEndMs = cells[cells.length - 1].ms;
+
+      // Resolve ops state for an event (catalog → event_state; manual → baked on).
+      function stOf(ev) {
+        return ev._manual
+          ? { status_tags: ev._manualStatusTags, speaker: ev._manualSpeaker }
+          : (stateMap[ev.num] || {});
       }
 
-      // Index events by EVERY day they span. Each day-entry remembers
-      // whether it's the first day (so we render the name + speaker
-      // initial) or a continuation (so we render a dimmer bar).
-      function _eachDay(startIso, endIso, fn) {
-        if (!startIso) return;
-        var s = new Date(startIso + 'T00:00:00Z');
-        var e = endIso ? new Date(endIso + 'T00:00:00Z') : s;
-        if (isNaN(s)) return;
-        if (isNaN(e) || e < s) e = s;
-        // Cap multi-day spans at 60 days to avoid runaway from bad data
-        var maxIter = 60;
-        for (var d = new Date(s); d <= e && maxIter-- > 0; d.setUTCDate(d.getUTCDate() + 1)) {
-          var iso = d.toISOString().slice(0, 10);
-          fn(iso, d.getTime() === s.getTime(), d.getTime() === e.getTime());
-        }
-      }
-
-      var byDate = {};
+      // Each visible event becomes a span clamped to the grid's date range.
+      var spans = [];
       events.forEach(function (ev) {
-        _eachDay(ev.start_date, ev.end_date || ev.start_date, function (iso, isStart, isEnd) {
-          (byDate[iso] = byDate[iso] || []).push({ event: ev, isStart: isStart, isEnd: isEnd });
-        });
+        if (!ev.start_date) return;
+        var st = stOf(ev);
+        if (st.hidden) return;
+        var sMs = new Date(ev.start_date + 'T00:00:00Z').getTime();
+        var eMs = new Date((ev.end_date || ev.start_date) + 'T00:00:00Z').getTime();
+        if (isNaN(sMs)) return;
+        if (isNaN(eMs) || eMs < sMs) eMs = sMs;
+        if (eMs < calStartMs || sMs > calEndMs) return;
+        spans.push({ ev: ev, st: st, sMs: Math.max(sMs, calStartMs), eMs: Math.min(eMs, calEndMs) });
       });
 
-      for (var day = 1; day <= daysInMonth; day++) {
-        var dayIso = isoFromYMD(year, month, day);
-        var cell = document.createElement('div');
-        cell.className = 'calendar-day';
-        if (dayIso === todayIso) cell.classList.add('is-today');
-        var head2 = document.createElement('div');
-        head2.className = 'calendar-day-num';
-        head2.textContent = day;
-        cell.appendChild(head2);
+      var weeks = Math.ceil(cells.length / 7);
+      for (var w = 0; w < weeks; w++) {
+        var weekCells = cells.slice(w * 7, w * 7 + 7);
+        var weekStartMs = weekCells[0].ms, weekEndMs = weekCells[6].ms;
+        var weekDiv = document.createElement('div');
+        weekDiv.className = 'cal-week';
 
-        (byDate[dayIso] || []).forEach(function (entry) {
-          var ev = entry.event;
-          // Catalog events read state from event_state; manual events bring
-          // their own ops fields baked onto the entry object.
-          var isManual = !!ev._manual;
-          var st = isManual
-            ? { status: ev._manualStatus, status_tags: ev._manualStatusTags, speaker: ev._manualSpeaker }
-            : (stateMap[ev.num] || {});
-          if (st.hidden) return;
-          var chip = document.createElement('div');
-          chip.className = 'cal-chip';
-          if (st.saved)  chip.classList.add('is-saved');
-          if (st.urgent) chip.classList.add('is-urgent');
-          if (!entry.isStart) chip.classList.add('is-continuation');
-          if (entry.isStart)  chip.classList.add('is-start');
-          if (entry.isEnd)    chip.classList.add('is-end');
-          chip.dataset.eventNum = ev.num;
-          var sp  = st.speaker || '';
-          var ini = sp ? initials(sp) : '';
-          // Tint the WHOLE span (start + continuation cells) the same color so
-          // a multi-day event reads as ONE contiguous bar — the name shown
-          // once on the start day, a clean colored bar across the rest.
-          var calStages  = stageTagsOf(st);
-          var topStage   = mostAdvancedStage(calStages);
-          var grpDot = topStage ? stageDot(topStage) : null;
-          var spanBg = (topStage && STAGE_BY_KEY[topStage]) ? STAGE_BY_KEY[topStage].bg : null;
-          var isMultiDay = !(entry.isStart && entry.isEnd);
-          if (isMultiDay) {
-            chip.classList.add('cal-bar');
-            if (spanBg) chip.style.background = spanBg;
-          }
-          if (grpDot) chip.style.borderLeftColor = grpDot;
-          // Stage pill on the chip — shows the most-advanced stage; a small
-          // "+N" hints that more stages are set.
-          var statusInline = '';
-          if (topStage && STAGE_BY_KEY[topStage] && entry.isStart) {
-            var s = STAGE_BY_KEY[topStage];
-            var extra = calStages.length > 1 ? ' +' + (calStages.length - 1) : '';
-            statusInline = '<span class="cal-chip-status" style="background:' + s.bg + ';color:' + s.fg + ';">' + escapeHtml(topStage) + extra + '</span>';
-          }
-          if (entry.isStart) {
-            chip.innerHTML =
-              '<span class="cal-region-dot" style="background:' + regionColor(ev.region) + ';"></span>' +
-              '<span class="cal-chip-name">' + escapeHtml(ev.name) + '</span>' +
-              (ini ? '<span class="cal-chip-initial" title="' + escapeHtml(sp) + '">' + escapeHtml(ini) + '</span>' : '') +
-              statusInline;
-          } else {
-            // Continuation / end day — a clean connected bar, NO repeated text.
-            chip.innerHTML = '<span class="cal-bar-fill"></span>';
-          }
-          chip.title = ev.name +
-            (sp ? ' · Speaker: ' + sp : '') +
-            (ev.location ? ' · ' + ev.location : '') +
-            (calStages.length ? ' · ' + calStages.join(', ') : '') +
-            (ev.start_date && (ev.end_date && ev.end_date !== ev.start_date)
-              ? ' · ' + ev.start_date + ' to ' + ev.end_date
-              : '');
-          chip.addEventListener('click', function () { onChipClick(ev.num); });
-          cell.appendChild(chip);
+        // Background day cells + date numbers (each occupies one column; the
+        // background spans every row so event lanes sit on top of it).
+        weekCells.forEach(function (c, ci) {
+          var bg = document.createElement('div');
+          bg.className = 'cal-day-bg' + (c.outside ? ' is-outside' : '') + (c.iso === todayIso ? ' is-today' : '');
+          bg.style.gridColumn = (ci + 1);
+          bg.style.gridRow = '1 / -1';
+          weekDiv.appendChild(bg);
+          var num = document.createElement('div');
+          num.className = 'cal-daynum' + (c.outside ? ' is-outside' : '');
+          num.style.gridColumn = (ci + 1);
+          num.style.gridRow = '1';
+          num.textContent = c.day;
+          weekDiv.appendChild(num);
         });
 
-        grid.appendChild(cell);
-      }
+        // Event segments that intersect this week → one contiguous bar each.
+        var weekSpans = spans.filter(function (sp) {
+          return sp.eMs >= weekStartMs && sp.sMs <= weekEndMs;
+        }).map(function (sp) {
+          var segStart = Math.max(sp.sMs, weekStartMs);
+          var segEnd = Math.min(sp.eMs, weekEndMs);
+          var startCol = Math.round((segStart - weekStartMs) / DAY);
+          var endCol = Math.round((segEnd - weekStartMs) / DAY);
+          return { sp: sp, startCol: startCol, span: (endCol - startCol + 1) };
+        }).sort(function (a, b) {
+          return a.startCol - b.startCol || b.span - a.span;
+        });
 
-      // Trail: pad to complete the last week
-      var totalCells = firstDay + daysInMonth;
-      var trail = (Math.ceil(totalCells / 7) * 7) - totalCells;
-      for (var t = 1; t <= trail; t++) {
-        var cell2 = document.createElement('div');
-        cell2.className = 'calendar-day is-outside';
-        cell2.innerHTML = '<div class="calendar-day-num">' + t + '</div>';
-        grid.appendChild(cell2);
+        // Greedy lane packing so overlapping events stack vertically.
+        var lanes = [];
+        weekSpans.forEach(function (ws) {
+          var endCol = ws.startCol + ws.span - 1;
+          var lane = 0;
+          while ((lanes[lane] || []).some(function (r) { return !(endCol < r[0] || ws.startCol > r[1]); })) lane++;
+          (lanes[lane] = lanes[lane] || []).push([ws.startCol, endCol]);
+          ws.lane = lane;
+        });
+
+        weekSpans.forEach(function (ws) {
+          var ev = ws.sp.ev, st = ws.sp.st;
+          var bar = document.createElement('div');
+          bar.className = 'cal-evt';
+          if (st.saved) bar.classList.add('is-saved');
+          if (st.urgent || isDeadlineSoon(ev.deadline)) bar.classList.add('is-urgent');
+          bar.dataset.eventNum = ev.num;
+          bar.style.gridColumn = (ws.startCol + 1) + ' / span ' + ws.span;
+          bar.style.gridRow = (ws.lane + 2);
+          var calStages = stageTagsOf(st);
+          var topStage = mostAdvancedStage(calStages);
+          var grpDot = topStage ? stageDot(topStage) : null;
+          var spanBg = (topStage && STAGE_BY_KEY[topStage]) ? STAGE_BY_KEY[topStage].bg : null;
+          if (spanBg) bar.style.background = spanBg;
+          bar.style.borderLeftColor = grpDot || regionColor(ev.region);
+          var sp2 = st.speaker || '';
+          var ini = sp2 ? initials(sp2) : '';
+          var statusInline = '';
+          if (topStage && STAGE_BY_KEY[topStage]) {
+            var s = STAGE_BY_KEY[topStage];
+            var extra = calStages.length > 1 ? ' +' + (calStages.length - 1) : '';
+            statusInline = '<span class="cal-evt-status" style="background:' + s.bg + ';color:' + s.fg + ';">' + escapeHtml(topStage) + extra + '</span>';
+          }
+          bar.innerHTML =
+            '<span class="cal-region-dot" style="background:' + regionColor(ev.region) + ';"></span>' +
+            '<span class="cal-evt-name">' + escapeHtml(ev.name) + '</span>' +
+            (ini ? '<span class="cal-chip-initial" title="' + escapeHtml(sp2) + '">' + escapeHtml(ini) + '</span>' : '') +
+            statusInline;
+          bar.title = ev.name +
+            (sp2 ? ' · Speaker: ' + sp2 : '') +
+            (ev.location ? ' · ' + ev.location : '') +
+            (calStages.length ? ' · ' + calStages.join(', ') : '') +
+            (ev.end_date && ev.end_date !== ev.start_date ? ' · ' + ev.start_date + ' to ' + ev.end_date : '');
+          bar.addEventListener('click', function () { onChipClick(ev.num); });
+          weekDiv.appendChild(bar);
+        });
+
+        grid.appendChild(weekDiv);
       }
 
       monthDiv.appendChild(grid);
@@ -4626,6 +4623,7 @@
           location: m.location || '',
           region: m.region || '',
           date_str: m.date_str || '',
+          deadline: m.deadline || '',
           // Hoist Angela's ops fields onto the calendar entry so the chip
           // can color-tint by pipeline stage + show speaker initials.
           _manualStatus:     m.status || '',
