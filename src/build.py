@@ -1518,10 +1518,10 @@ def build():
       min-width: 0; overflow: hidden;
     }}
     .calendar-day {{
-      background: var(--ab-bg); padding: 6px 8px;
-      min-height: 100px;
-      display: flex; flex-direction: column; gap: 2px;
-      min-width: 0; overflow: hidden;
+      background: var(--ab-bg); padding: 6px 4px 6px 0;
+      min-height: 112px;
+      display: flex; flex-direction: column; gap: 3px;
+      min-width: 0; overflow: visible;  /* let multi-day bars bleed to the cell edge */
     }}
     .calendar-day.is-outside {{ background: var(--ab-bg-3); }}
     .calendar-day.is-outside .calendar-day-num {{ color: var(--ab-mute); }}
@@ -1532,8 +1532,8 @@ def build():
       color: var(--ab-fg-3); margin-bottom: 4px;
     }}
     .cal-chip {{
-      font-family: var(--ab-sans); font-size: 0.7rem; line-height: 1.3;
-      padding: 3px 6px 4px; border-radius: 4px;
+      font-family: var(--ab-sans); font-size: 0.74rem; line-height: 1.3;
+      padding: 4px 6px 5px; border-radius: 4px; margin-left: 4px;
       background: var(--ab-bg-2);
       border-left: 3px solid var(--ab-rule-strong);
       cursor: pointer; overflow: hidden;
@@ -1577,17 +1577,20 @@ def build():
       padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
       letter-spacing: 0.02em;
     }}
-    /* Continuation chips on multi-day events */
+    /* Multi-day spanning bar — start cell carries the name, the rest are a
+       clean connected fill so the event reads as ONE contiguous bar. Bars
+       bleed to both cell edges (negative margins) so they touch across the
+       1px grid gap and look continuous. */
+    .cal-chip.cal-bar {{ border-left-width: 3px; }}
     .cal-chip.is-continuation {{
-      opacity: 0.7;
-      border-left-style: dashed;
+      min-height: 22px; padding: 0; gap: 0;
+      border-left: 0;
     }}
-    .cal-chip.is-continuation .continuation-name {{
-      color: var(--ab-fg-2); font-style: italic;
-    }}
-    .cal-chip.is-start:not(.is-end) {{ border-top-right-radius: 0; border-bottom-right-radius: 0; }}
-    .cal-chip.is-continuation:not(.is-end) {{ border-radius: 0; }}
-    .cal-chip.is-end:not(.is-start) {{ border-top-left-radius: 0; border-bottom-left-radius: 0; }}
+    .cal-chip.is-continuation .cal-bar-fill {{ flex: 1; height: 100%; }}
+    /* Connect the segments seamlessly across the day-cell gap. */
+    .cal-chip.cal-bar.is-start:not(.is-end) {{ border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: -5px; }}
+    .cal-chip.cal-bar.is-continuation:not(.is-end) {{ border-radius: 0; margin-left: -1px; margin-right: -5px; }}
+    .cal-chip.cal-bar.is-end:not(.is-start) {{ border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; }}
     .cal-region-dot {{
       width: 6px; height: 6px; border-radius: 50%;
       display: inline-block; flex-shrink: 0;
@@ -4778,11 +4781,18 @@ def build():
           chip.dataset.eventNum = ev.num;
           var sp  = st.speaker || '';
           var ini = sp ? initials(sp) : '';
-          // Tint chip border with the most-advanced pipeline stage color
-          // (left edge), so the calendar at-a-glance shows pipeline state.
+          // Tint the WHOLE span (start + continuation cells) the same color so
+          // a multi-day event reads as ONE contiguous bar — the name shown
+          // once on the start day, a clean colored bar across the rest.
           var calStages  = stageTagsOf(st);
           var topStage   = mostAdvancedStage(calStages);
           var grpDot = topStage ? stageDot(topStage) : null;
+          var spanBg = (topStage && STAGE_BY_KEY[topStage]) ? STAGE_BY_KEY[topStage].bg : null;
+          var isMultiDay = !(entry.isStart && entry.isEnd);
+          if (isMultiDay) {{
+            chip.classList.add('cal-bar');
+            if (spanBg) chip.style.background = spanBg;
+          }}
           if (grpDot) chip.style.borderLeftColor = grpDot;
           // Stage pill on the chip — shows the most-advanced stage; a small
           // "+N" hints that more stages are set.
@@ -4799,10 +4809,8 @@ def build():
               (ini ? '<span class="cal-chip-initial" title="' + escapeHtml(sp) + '">' + escapeHtml(ini) + '</span>' : '') +
               statusInline;
           }} else {{
-            // Continuation cell — narrow bar that just hints "this event continues"
-            chip.innerHTML =
-              '<span class="cal-region-dot" style="background:' + regionColor(ev.region) + ';"></span>' +
-              '<span class="cal-chip-name continuation-name">' + escapeHtml(ev.name) + '</span>';
+            // Continuation / end day — a clean connected bar, NO repeated text.
+            chip.innerHTML = '<span class="cal-bar-fill"></span>';
           }}
           chip.title = ev.name +
             (sp ? ' · Speaker: ' + sp : '') +
