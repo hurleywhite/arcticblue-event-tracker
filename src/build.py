@@ -2531,7 +2531,6 @@ def build():
     var stages = rec.stage_tags || [];
     function has(s) {{ return stages.indexOf(s) !== -1; }}
     var isCat = rec._table === 'event_state';
-    var att = (rec.attend_verdict || '').indexOf('Worth') === 0;
     var b = [];
     if (isCat) {{
       b.push('<button type="button" class="qa' + (rec.saved ? ' on' : '') + '" data-qa="saved">' + (rec.saved ? '★ Saved' : '☆ Save') + '</button>');
@@ -2539,7 +2538,6 @@ def build():
     }}
     b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Mark Submitted') + '</button>');
     b.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
-    b.push('<button type="button" class="qa' + (att ? ' on' : '') + '" data-qa="attending">' + (att ? '✓ Attending' : 'Attending') + '</button>');
     // "Interested" — the current teammate adds themselves to the list of people
     // who want Angela to apply for them. This feeds Angela's Queue.
     var me = (window.opsCurrentUser ? window.opsCurrentUser() : '') || '';
@@ -2584,11 +2582,7 @@ def build():
         rec.interested = ilist;
         patch.interested = ilist;
       }}
-      else if (qa === 'attending') {{
-        var on = (rec.attend_verdict || '').indexOf('Worth') === 0;
-        rec.attend_verdict = on ? null : 'Worth attending';
-        patch.attend_verdict = rec.attend_verdict;
-      }} else if (qa === 'submitted' || qa === 'booked') {{
+      else if (qa === 'submitted' || qa === 'booked') {{
         var stage = qa === 'submitted' ? 'Submitted' : 'Booked';
         var tags = (rec.stage_tags || []).slice();
         var idx = tags.indexOf(stage);
@@ -2636,7 +2630,6 @@ def build():
     var intChips = AB_ROSTER.map(function (n) {{
       return '<label class="me-int' + (interested.indexOf(n) !== -1 ? ' on' : '') + '"><input type="checkbox" data-interested="' + esc(n) + '"' + (interested.indexOf(n) !== -1 ? ' checked' : '') + '>' + esc(n) + '</label>';
     }}).join('');
-    var verdicts = ['', 'Worth attending', 'Maybe', 'Not worth it'];
     var pris = ['', 'High', 'Medium', 'Low'];
     var p2p = ['', 'Yes', 'No', 'Both'];
     var curPri = isCat ? (rec.priority_override || rec.priority || '') : (rec.priority || '');
@@ -2650,7 +2643,6 @@ def build():
     h += ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
     h += ef('ArcticBlue speaker', '<input class="me-input" type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
     h += ef('Interested — wants Angela to apply', '<div class="me-ints">' + intChips + '</div>');
-    h += ef('Worth attending?', '<select class="me-input" data-edit="attend_verdict">' + verdicts.map(function (v) {{ return opt(v, rec.attend_verdict); }}).join('') + '</select>');
     h += ef('Priority', '<select class="me-input" data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) {{ return opt(v, curPri); }}).join('') + '</select>');
     h += ef('Why it fits ArcticBlue', ta('why', rec.why));
     h += ef('About', ta('about', rec.about));
@@ -2801,7 +2793,6 @@ def build():
     if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
     if (rec.audience_type) badges.push('<span class="badge ' + audienceClass(rec.audience_type) + '">' + esc(rec.audience_type) + '</span>');
     if (rec.meeting_formats) badges.push('<span class="badge p-medium" title="' + esc(rec.meeting_formats) + '">1:1 meetings</span>');
-    if (rec.attend_verdict) badges.push('<span class="badge ' + attendClass(rec.attend_verdict) + '">' + esc(rec.attend_verdict) + '</span>');
     if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
     $badges.innerHTML = badges.join('');
@@ -2839,7 +2830,6 @@ def build():
     grid += field('Attendee count', rec.attendee_count);
     grid += field('Audience', rec.audience_type);
     grid += field('Price to attend', rec.pricing);
-    grid += field('Worth attending?', rec.attend_verdict);
     grid += field('Pay-to-play', rec.pay_to_play);
     grid += field('Venue', rec.venue);
     grid += field('Submission status', rec.submission_status);
@@ -2999,7 +2989,7 @@ def build():
     // A truthy value means that month's cards are hidden via the dropdown / header.
     var opsCollapsedMonths = {{ hidden: true, archive: true }};
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
-    // | 'buyer' | 'worth') — click a top stat to show only those events.
+    // | 'buyer' | 'interested') — click a top stat to show only those events.
     var opsStatFilter = '';
 
     // Last-fetched data, cached by renderOps() so the Queue + Planner views can
@@ -3470,6 +3460,7 @@ def build():
       card.dataset.price    = (_pn == null ? '' : String(_pn));
       card.dataset.meetings = (ev.meeting_formats ? '1' : '');
       card.dataset.attend   = (st.attend_verdict || '');
+      card.dataset.interested = (st.interested && st.interested.length) ? '1' : '';
       var _opsPast = isPastEvent(ev);
       card.dataset.past = _opsPast ? '1' : '';
       if (_opsPast) card.classList.add('is-past');
@@ -3492,7 +3483,6 @@ def build():
       // Attending-signal strip + one-click apply (the booking shortcut).
       var sigBits = [];
       if (ev.audience_type) sigBits.push('<span class="badge ' + audienceClass(ev.audience_type) + '">' + escapeHtml(ev.audience_type) + '</span>');
-      if (st.attend_verdict) sigBits.push('<span class="badge ' + attendClass(st.attend_verdict) + '">' + escapeHtml(st.attend_verdict) + '</span>');
       if (ev.pricing) sigBits.push('<span class="attend-sig" title="Price to attend">' + escapeHtml(ev.pricing) + '</span>');
       if (ev.meeting_formats) sigBits.push('<span class="attend-sig" title="' + escapeHtml(ev.meeting_formats) + '">1:1 meetings</span>');
       var sigRow = sigBits.length ? '<p class="attend-signals">' + sigBits.join('') + '</p>' : '';
@@ -3600,10 +3590,7 @@ def build():
         '</div>' +
         '<label><span class="key">Past / announced speakers (Title, Company)</span><textarea name="past_speakers" placeholder="e.g. CIO, UnitedHealth; Chief Data Officer, Pfizer">' + v('past_speakers') + '</textarea></label>' +
         '<label><span class="key">Meetings &amp; networking (guaranteed 1:1s, roundtables, attendee app)</span><input type="text" name="meeting_formats" value="' + v('meeting_formats') + '" placeholder="e.g. Hosted 1:1 meetings; roundtables; Brella app"></label>' +
-        '<div class="row">' +
-          '<label><span class="key">Worth attending?</span><select name="attend_verdict">' + optionRows(['', 'Worth attending', 'Maybe', 'Not worth it'], o.attend_verdict || '') + '</select></label>' +
-          '<label><span class="key">Post-mortem (ROI)</span><input type="text" name="postmortem" value="' + v('postmortem') + '" placeholder="Contacts / meetings / sales vs cost"></label>' +
-        '</div>' +
+        '<label><span class="key">Post-mortem (ROI)</span><input type="text" name="postmortem" value="' + v('postmortem') + '" placeholder="Contacts / meetings / sales vs cost"></label>' +
         '<div class="row">' +
           '<label><span class="key">Pay-to-play</span><select name="pay_to_play">' + optionRows(['', 'Yes', 'No', 'Unknown'], o.pay_to_play || '') + '</select></label>' +
           '<label><span class="key">Venue</span><input type="text" name="venue" value="' + v('venue') + '"></label>' +
@@ -3636,6 +3623,7 @@ def build():
       card.dataset.price    = (_mpn == null ? '' : String(_mpn));
       card.dataset.meetings = (mev.meeting_formats ? '1' : '');
       card.dataset.attend   = (mev.attend_verdict || '');
+      card.dataset.interested = (mev.interested && mev.interested.length) ? '1' : '';
       var _manPast = isPastEvent(mev);
       card.dataset.past = _manPast ? '1' : '';
       if (_manPast) card.classList.add('is-past');
@@ -3694,9 +3682,7 @@ def build():
       var audChip = mev.audience_type
         ? '<span class="badge ' + audienceClass(mev.audience_type) + '">' + escapeHtml(mev.audience_type) + '</span>'
         : '';
-      var attendChip = mev.attend_verdict
-        ? '<span class="badge ' + attendClass(mev.attend_verdict) + '">' + escapeHtml(mev.attend_verdict) + '</span>'
-        : '';
+      var attendChip = '';  // "Worth attending" folded into the Interested list
       var meetChip = mev.meeting_formats
         ? '<span class="attend-sig" title="' + escapeHtml(mev.meeting_formats) + '">1:1 meetings</span>'
         : '';
@@ -4428,7 +4414,7 @@ def build():
           if (opsStatFilter === 'pipeline'&& !tagsS) on = false;
           if (opsStatFilter === 'booked'  && tagsS.split('|').indexOf('Booked') === -1) on = false;
           if (opsStatFilter === 'buyer'   && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
-          if (opsStatFilter === 'worth'   && (card.dataset.attend || '').toLowerCase().indexOf('worth attending') !== 0) on = false;
+          if (opsStatFilter === 'interested' && card.dataset.interested !== '1') on = false;
         }}
         if (activeStages.length > 0) {{
           var cardStages = (card.dataset.statusTags || '').split('|').filter(Boolean);
@@ -4505,13 +4491,13 @@ def build():
       var stByNum = {{}};
       (stateRows || []).forEach(function (r) {{ stByNum[r.event_num] = r; }});
       var saved = 0, urgent = 0, inPipeline = 0, booked = 0;
-      var buyerRich = 0, worthIt = 0;
+      var buyerRich = 0, interestedCount = 0;
       (stateRows || []).forEach(function (r) {{
         if (r.saved)  saved++;
         var stages = stageTagsOf(r);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
-        if ((r.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
+        if (r.interested && r.interested.length) interestedCount++;
       }});
       // Urgent = an apply/CFP deadline closing soon (or a manually-flagged
       // urgent event) — NOT merely an upcoming event. Counted per event.
@@ -4526,7 +4512,7 @@ def build():
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
-        if ((m.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
+        if (m.interested && m.interested.length) interestedCount++;
         if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
       }});
       // Each tile is a one-click filter (data-stat). 'all' clears everything.
@@ -4543,7 +4529,7 @@ def build():
         tile('pipeline', inPipeline, 'In pipeline', '') +
         tile('booked', booked, 'Booked', '') +
         tile('buyer', buyerRich, 'Buyer-rich', '') +
-        tile('worth', worthIt, 'Worth attending', '');
+        tile('interested', interestedCount, 'Interested', '');
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {{
         t.addEventListener('click', function () {{
@@ -6821,8 +6807,6 @@ def build():
         var tags = [];
         if (c.audience && /buyer/i.test(c.audience))
           tags.push('<span class="ac-tag buyer">Buyer-rich</span>');
-        if (c.attend && /worth/i.test(c.attend))
-          tags.push('<span class="ac-tag worth">Worth attending</span>');
         if (c.stage) tags.push('<span class="ac-tag">' + escapeHtml(String(c.stage).split(',')[0].trim()) + '</span>');
         if (c.price) tags.push('<span class="ac-tag">' + escapeHtml(c.price) + '</span>');
         var idAttr = (c.num !== null && c.num !== undefined)
