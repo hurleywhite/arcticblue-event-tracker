@@ -539,6 +539,19 @@
     }
     textarea.me-input { resize: vertical; }
     .me-input:focus { outline: none; border-color: var(--ab-fg); box-shadow: 0 0 0 2px var(--ab-bg-3); }
+    /* Delete control for manual events, in the modal's Edit form. */
+    .me-danger {
+      margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--ab-rule);
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .me-delete {
+      font-family: var(--ab-sans); font-weight: 600; font-size: 0.85rem;
+      padding: 8px 14px; border-radius: 7px; cursor: pointer;
+      background: var(--ab-bg); color: var(--ab-red); border: 1px solid var(--ab-red);
+    }
+    .me-delete:hover { background: var(--ab-red); color: #fff; }
+    .me-delete:disabled { opacity: 0.5; cursor: wait; }
+    .me-danger-note { font-size: 0.78rem; color: var(--ab-fg-3); }
     /* "Interested" picker — roster name chips you toggle on. */
     .me-ints { display: flex; flex-wrap: wrap; gap: 7px; }
     .me-int {
@@ -824,6 +837,7 @@
       border: 1px solid var(--ab-rule); border-radius: 10px;
       background: var(--ab-bg);
       transition: border-color 120ms ease;
+      display: flex; flex-direction: column; height: 100%;
     }
     .ops-card:hover { border-color: var(--ab-rule-strong); }
     .ops-card.is-saved { border-color: var(--ab-blue); }
@@ -2152,6 +2166,32 @@
     h += ef('Contact info', inp('contact_info', rec.contact_info));
     h += ef('Deadline', inp('deadline', rec.deadline, 'e.g. July 10, 2026'));
     h += ef('Notes', ta('notes', rec.notes, 2));
+    // Fields that used to live only in the inline card editor — migrated here so
+    // editing lives entirely in the Details pop-up (nothing lost).
+    if (isCat) {
+      h += ef('Track', '<select class="me-input" data-edit="track">' + ['', 'Sponsor', 'Earned', 'Both', 'Unknown'].map(function (v) { return opt(v, rec.track); }).join('') + '</select>');
+    } else {
+      h += ef('Region', '<select class="me-input" data-edit="region">' + ['', 'Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'].map(function (v) { return opt(v, rec.region); }).join('') + '</select>');
+      h += ef('Type', inp('type', rec.type));
+      h += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) { return opt(v, rec.audience_type); }).join('') + '</select>');
+      h += ef('Price to attend', inp('pricing', rec.pricing));
+      h += ef('Attendee count', inp('attendee_count', rec.attendee_count));
+      h += ef('Meetings & networking', inp('meeting_formats', rec.meeting_formats));
+      h += ef('Past / announced speakers', ta('past_speakers', rec.past_speakers, 2));
+      h += ef('Submission status', inp('submission_status', rec.submission_status));
+      h += ef('POC name', inp('poc_name', rec.poc_name));
+      h += ef('POC email', inp('poc_email', rec.poc_email));
+      h += ef('POC LinkedIn', inp('poc_linkedin', rec.poc_linkedin));
+      h += ef('Additional contacts', ta('additional_contacts', rec.additional_contacts, 2));
+      h += ef('Speaking fee', inp('speaking_fee', rec.speaking_fee));
+      var paidCur = rec.paid === true ? 'true' : (rec.paid === false ? 'false' : '');
+      h += ef('Paid', '<select class="me-input" data-edit="paid">' + [['', '—'], ['true', 'Yes'], ['false', 'No']].map(function (o) { return '<option value="' + o[0] + '"' + (paidCur === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>');
+    }
+    h += ef('Post-mortem (ROI: contacts · meetings · sales vs cost)', ta('postmortem', rec.postmortem, 2));
+    if (!isCat) {
+      h += '<div class="me-danger"><button type="button" class="me-delete">Delete this event</button>' +
+           '<span class="me-danger-note">Removes this manually-added event. Cannot be undone.</span></div>';
+    }
     return h;
   }
   function wireEditForm(rec) {
@@ -2190,11 +2230,25 @@
         if (field === 'name' && !val) { el.value = rec.name || ''; return; }
         var out = val === '' ? null : val;
         if (field === 'url' && out && !/^https?:\/\//i.test(out)) out = 'https://' + out;
+        // "Paid" is a boolean column on manual_events — coerce the select value.
+        if (field === 'paid') out = (val === 'true') ? true : (val === 'false' ? false : null);
         var patch = {}; patch[field] = out;
         if (field === 'priority_override') rec.priority = out;
         else rec[field] = out;
         window.opsWrite(rec._table, rec._key, patch);
       });
+    });
+    // Delete (manual events only) — lives at the bottom of the Edit form.
+    var delBtn = box.querySelector('.me-delete');
+    if (delBtn) delBtn.addEventListener('click', function () {
+      if (!window.confirm('Delete "' + (rec.name || 'this manual event') + '"? This cannot be undone.')) return;
+      delBtn.disabled = true; delBtn.textContent = 'Deleting…';
+      if (window.opsDelete) {
+        window.opsDelete(rec._table, rec._key).then(function (resp) {
+          if (resp && resp.error) { delBtn.disabled = false; delBtn.textContent = 'Delete this event'; return; }
+          if (window.closeEventModal) window.closeEventModal();
+        });
+      }
     });
   }
 
@@ -2941,43 +2995,10 @@
         sigRow +
         (st.interested && st.interested.length ? '<p class="ops-meta ops-interested">★ Interested: ' + escapeHtml(st.interested.join(', ')) + '</p>' : '') +
         applyBtn +
-        renderOpsTags(st) +
-        '<details class="ops-edit">' +
-          '<summary>Edit</summary>' +
-          '<div class="ops-form">' +
-            '<label><span class="key">Pipeline stages</span>' +
-              stageCheckboxes(opsStages) +
-            '</label>' +
-            '<label><span class="key">Speaker</span>' +
-              '<input type="text" data-field="speaker" list="ab-speakers" value="' + escapeHtml(st.speaker || '') + '" placeholder="Who from AB is speaking?">' +
-            '</label>' +
-            '<div class="row">' +
-              '<label><span class="key">Priority override</span>' +
-                '<select data-field="priority_override">' + optionRows(['', 'High', 'Medium', 'Low'], st.priority_override) + '</select>' +
-              '</label>' +
-              '<label><span class="key">Track</span>' +
-                '<select data-field="track">' + optionRows(['', 'Sponsor', 'Earned', 'Both', 'Unknown'], st.track) + '</select>' +
-              '</label>' +
-            '</div>' +
-            '<label><span class="key">Notes</span>' +
-              '<textarea data-field="notes" placeholder="Anything Angela should know…">' + escapeHtml(st.notes || '') + '</textarea>' +
-            '</label>' +
-            '<label><span class="key">Worth attending?</span>' +
-              '<select data-field="attend_verdict">' + optionRows(['', 'Worth attending', 'Maybe', 'Not worth it'], st.attend_verdict) + '</select>' +
-            '</label>' +
-            '<label><span class="key">Post-mortem (ROI: contacts · meetings · sales vs cost)</span>' +
-              '<textarea data-field="postmortem" placeholder="After the event: contacts made, client meetings, sales — was it worth the ticket + travel?">' + escapeHtml(st.postmortem || '') + '</textarea>' +
-            '</label>' +
-            '<details class="ops-edit"><summary>Legacy status (detail)</summary>' +
-              '<div class="ops-form" style="margin-top:8px;">' +
-                '<label><span class="key">Legacy status</span>' +
-                  '<select data-field="status">' + statusOptionRows(st.status || '') + '</select>' +
-                '</label>' +
-              '</div>' +
-            '</details>' +
-          '</div>' +
-          metaLine +
-        '</details>';
+        renderOpsTags(st);
+      // (metaLine intentionally unused now — "Last edit" detail lived inside the
+      // old inline editor, which has moved to the Details pop-up.)
+      void metaLine;
       // Stash a modal record on the node for the delegated "Details" handler.
       var rec = {};
       for (var k in ev) { if (Object.prototype.hasOwnProperty.call(ev, k)) rec[k] = ev[k]; }
@@ -3190,73 +3211,6 @@
         speakersLine +
         feeLine +
         mApplyBtn +
-        '<details class="ops-edit">' +
-          '<summary>Edit</summary>' +
-          '<form class="ops-form manual-edit">' +
-            '<label><span class="key">Name</span>' +
-              '<input type="text" name="name" value="' + escapeHtml(mev.name || '') + '" required></label>' +
-            '<label><span class="key">Date</span>' +
-              '<input type="text" name="date_str" value="' + escapeHtml(mev.date_str || '') + '"></label>' +
-            '<div class="row">' +
-              '<label><span class="key">Location</span>' +
-                '<input type="text" name="location" value="' + escapeHtml(mev.location || '') + '"></label>' +
-              '<label><span class="key">Region</span>' +
-                '<select name="region">' + optionRows(['', 'Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'], mev.region || '') + '</select></label>' +
-            '</div>' +
-            '<div class="row">' +
-              '<label><span class="key">Type</span>' +
-                '<input type="text" name="type" value="' + escapeHtml(mev.type || '') + '"></label>' +
-              '<label><span class="key">Priority</span>' +
-                '<select name="priority">' + optionRows(['', 'High', 'Medium', 'Low'], mev.priority || '') + '</select></label>' +
-            '</div>' +
-            '<label><span class="key">Pipeline stages</span>' +
-              stageCheckboxes(manualStages, 'status_tags') +
-            '</label>' +
-            '<label><span class="key">Speaker</span>' +
-              '<input type="text" name="speaker" list="ab-speakers" value="' + escapeHtml(mev.speaker || '') + '"></label>' +
-            '<details class="ops-edit"><summary>Legacy status (detail)</summary>' +
-              '<div class="ops-form" style="margin-top:8px;">' +
-                '<label><span class="key">Legacy status</span>' +
-                  '<select name="status">' + statusOptionRows(mev.status || '') + '</select></label>' +
-              '</div>' +
-            '</details>' +
-            '<label><span class="key">Submission status (free text)</span>' +
-              '<input type="text" name="submission_status" value="' + escapeHtml(mev.submission_status || '') + '"></label>' +
-            '<div class="row">' +
-              '<label><span class="key">POC name</span>' +
-                '<input type="text" name="poc_name" value="' + escapeHtml(mev.poc_name || '') + '"></label>' +
-              '<label><span class="key">POC email</span>' +
-                '<input type="text" name="poc_email" value="' + escapeHtml(mev.poc_email || '') + '"></label>' +
-            '</div>' +
-            '<label><span class="key">POC LinkedIn</span>' +
-              '<input type="text" name="poc_linkedin" value="' + escapeHtml(mev.poc_linkedin || '') + '"></label>' +
-            '<label><span class="key">Additional contacts</span>' +
-              '<textarea name="additional_contacts">' + escapeHtml(mev.additional_contacts || '') + '</textarea></label>' +
-            '<label><span class="key">Why it fits</span>' +
-              '<textarea name="why">' + escapeHtml(mev.why || '') + '</textarea></label>' +
-            '<label><span class="key">Notes</span>' +
-              '<textarea name="notes">' + escapeHtml(mev.notes || '') + '</textarea></label>' +
-            '<div class="row">' +
-              '<label><span class="key">Speaking fee</span>' +
-                '<input type="text" name="speaking_fee" value="' + escapeHtml(mev.speaking_fee || '') + '"></label>' +
-              '<label><span class="key">Paid</span>' +
-                '<select name="paid">' +
-                  '<option value=""'        + (mev.paid === null || mev.paid === undefined ? ' selected' : '') + '>—</option>' +
-                  '<option value="true"'    + (mev.paid === true  ? ' selected' : '') + '>Yes</option>' +
-                  '<option value="false"'   + (mev.paid === false ? ' selected' : '') + '>No</option>' +
-                '</select></label>' +
-            '</div>' +
-            '<label><span class="key">URL</span>' +
-              '<input type="text" name="url" value="' + escapeHtml(mev.url || '') + '"></label>' +
-            '<details class="ops-edit"><summary>More details (About, Focus, Deadline, …)</summary>' +
-              '<div class="ops-form" style="margin-top:8px;">' + richDetailFields(mev) + '</div>' +
-            '</details>' +
-            '<div class="add-actions">' +
-              '<button type="submit" class="primary">Save changes</button>' +
-              '<button type="button" class="secondary" data-delete>Delete event</button>' +
-            '</div>' +
-          '</form>' +
-        '</details>' +
         (who ? '<p class="ops-meta"' + whoTitle + '>' + who + '</p>' : '');
       // Stash a modal record on the node for the delegated "Details" handler.
       var mrec = {};
@@ -3535,8 +3489,10 @@
     }
 
     function updateOpsCount() {
-      var regular = $opsGrid.querySelectorAll('.ops-card[data-kind="regular"]').length;
-      var manual  = $opsGrid.querySelectorAll('.ops-card[data-kind="manual"]').length;
+      // Count only active (non-past) events — archived events now live in the
+      // grid too (collapsible Archive group), but shouldn't inflate "tracked".
+      var regular = $opsGrid.querySelectorAll('.ops-card[data-kind="regular"]:not([data-past="1"])').length;
+      var manual  = $opsGrid.querySelectorAll('.ops-card[data-kind="manual"]:not([data-past="1"])').length;
       var $count = document.getElementById('ops-count');
       if (!$count) return;
       $count.textContent = regular + ' tracked · ' + manual + ' manual';
@@ -6698,19 +6654,25 @@
     };
     // Re-fetch + re-render everything (used after server-side enrichment writes).
     window.opsRefresh = function () { return renderOps(getCollabName() || 'Team'); };
+    // Delete bridge for the modal's Edit form (manual events only).
+    window.opsDelete = function (table, key) {
+      if (table !== 'manual_events') return Promise.resolve({ error: { message: 'Only manual events can be deleted.' } });
+      return sb.from('manual_events').delete().eq('id', key).then(function (resp) {
+        if (resp && resp.error) { status('Delete failed: ' + resp.error.message, 'error'); }
+        else { flashOk('Manual event deleted'); if (typeof loadKnownNames === 'function') loadKnownNames(); renderOps(getCollabName() || 'Team'); }
+        return resp;
+      });
+    };
     window.opsOpenEditor = function (table, key) {
-      if (window.closeEventModal) window.closeEventModal();
+      // Editing now lives in the Details pop-up, not an inline card editor.
       if (typeof currentView !== 'undefined' && currentView !== 'grid') setView('grid');
       setTimeout(function () {
         var sel = table === 'manual_events'
           ? '.ops-card[data-manual-id="' + key + '"]'
           : '.ops-card[data-event-num="' + key + '"]';
         var card = $opsGrid.querySelector(sel);
-        if (card) {
-          var ed = card.querySelector('details.ops-edit');
-          if (ed) ed.open = true;
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (card && card._modalRec && window.openEventModal) window.openEventModal(card._modalRec);
       }, 70);
     };
 
