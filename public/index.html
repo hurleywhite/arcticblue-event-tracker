@@ -4192,6 +4192,7 @@
         return '<div class="queue-row' + (it.decision === 'no-go' ? ' is-nogo' : '') + '">' +
             '<div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+              '<button type="button" class="ops-details-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
               '<div class="queue-chips">' + ints + qStagePills(it.stages) + dec + deadlineHtml(it) + '</div>' +
             '</div>' +
@@ -4230,7 +4231,7 @@
             var btns = '';
             if (kind === 'toApply') btns += '<button class="q-btn primary" data-act="submitted" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark applied</button>';
             else if (kind === 'submitted') btns += '<button class="q-btn primary" data-act="booked" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark booked</button>';
-            btns += '<button class="q-btn" data-ref-kind="' + x.kind + '" data-ref-key="' + escapeHtml(String(x.key)) + '">Details &rarr;</button>';
+            // "Details" now sits inline next to the event name (see rowHtml).
             return btns;
           });
         }).join('');
