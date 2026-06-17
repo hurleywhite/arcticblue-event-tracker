@@ -2269,10 +2269,12 @@ def build():
           <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
           <select id="ops-region" aria-label="Filter region">
             <option value="">All regions</option>
-            <option value="Americas">Americas</option>
+            <option value="US &amp; Canada">US &amp; Canada</option>
+            <option value="Latin America">Latin America</option>
             <option value="Europe">Europe</option>
-            <option value="Asia-Pacific">Asia-Pacific</option>
+            <option value="Africa">Africa</option>
             <option value="MENA">MENA</option>
+            <option value="Asia-Pacific">Asia-Pacific</option>
             <option value="Global">Global</option>
           </select>
           <select id="ops-price" aria-label="Filter by ticket price" title="Higher ticket price usually means higher-clientele buyers in the room">
@@ -2665,7 +2667,7 @@ def build():
     if (isCat) {{
       h += ef('Track', '<select class="me-input" data-edit="track">' + ['', 'Sponsor', 'Earned', 'Both', 'Unknown'].map(function (v) {{ return opt(v, rec.track); }}).join('') + '</select>');
     }} else {{
-      h += ef('Region', '<select class="me-input" data-edit="region">' + ['', 'Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'].map(function (v) {{ return opt(v, rec.region); }}).join('') + '</select>');
+      h += ef('Region', '<select class="me-input" data-edit="region">' + ['', 'US & Canada', 'Latin America', 'Europe', 'Africa', 'MENA', 'Asia-Pacific', 'Global'].map(function (v) {{ return opt(v, rec.region); }}).join('') + '</select>');
       h += ef('Type', inp('type', rec.type));
       h += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) {{ return opt(v, rec.audience_type); }}).join('') + '</select>');
       h += ef('Price to attend', inp('pricing', rec.pricing));
@@ -3276,6 +3278,23 @@ def build():
       return iso < todayIso;  // strictly before today; an event ending today is NOT past
     }}
 
+    // Normalize any event's messy/granular region (or country/city/location)
+    // into one of the 7 canonical regions used by the filter + map + planner.
+    // Country is the most reliable signal; region/city/location are fallbacks.
+    // Idempotent — feeding a canonical value back in returns the same value.
+    function canonicalRegion(o) {{
+      o = o || {{}};
+      var hay = abFold([o.country, o.region, o.city, o.location].join(' '));
+      function has(re) {{ return re.test(hay); }}
+      if (has(/\\b(uae|united arab emirates|saudi|riyadh|dubai|abu dhabi|doha|qatar|bahrain|kuwait|oman|israel|tel aviv|jordan|lebanon|egypt|cairo|morocco|mena|middle east)\\b/)) return 'MENA';
+      if (has(/\\b(south africa|johannesburg|cape town|nigeria|lagos|kenya|nairobi|ghana|accra|ethiopia|rwanda|kigali|tanzania|uganda|senegal|africa)\\b/)) return 'Africa';
+      if (has(/\\b(brazil|brasil|sao paulo|rio de janeiro|mexico|cdmx|argentina|buenos aires|chile|santiago|colombia|bogota|peru|lima|venezuela|caracas|uruguay|ecuador|latin america|latam|south america)\\b/)) return 'Latin America';
+      if (has(/\\b(usa|united states|america|americas|canada|toronto|vancouver|montreal|new york|nyc|san francisco|bay area|boston|chicago|seattle|austin|texas|miami|florida|atlanta|las vegas|nevada|california|midwest|northeast|southeast|southwest|west coast|east coast|mountain west|new jersey|other us)\\b/)) return 'US & Canada';
+      if (has(/\\b(uk|united kingdom|england|london|france|paris|germany|berlin|munich|spain|madrid|barcelona|catalonia|italy|rome|milan|netherlands|amsterdam|ireland|dublin|switzerland|zurich|geneva|sweden|stockholm|denmark|copenhagen|norway|oslo|finland|portugal|lisbon|austria|vienna|belgium|brussels|poland|czech|prague|europe)\\b/)) return 'Europe';
+      if (has(/\\b(singapore|hong kong|china|beijing|shanghai|japan|tokyo|korea|seoul|india|delhi|mumbai|bangalore|bengaluru|australia|sydney|melbourne|new zealand|indonesia|jakarta|thailand|bangkok|malaysia|vietnam|philippines|taiwan|apac|asia.pacific|asia)\\b/)) return 'Asia-Pacific';
+      return 'Global';
+    }}
+
     function formatStamp(iso) {{
       if (!iso) return '';
       var d = new Date(iso);
@@ -3418,7 +3437,7 @@ def build():
       card.className = 'ops-card';
       card.dataset.eventNum = ev.num;
       card.dataset.kind = 'regular';
-      card.dataset.region = ev.region || '';
+      card.dataset.region = canonicalRegion(ev);
       card.dataset.hasSpeaker = (st.speaker && st.speaker.trim()) ? '1' : '';
       card.dataset.status = st.status || '';
       var opsStages = stageTagsOf(st);
@@ -3484,7 +3503,7 @@ def build():
             : escapeHtml(ev.name)) +
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
-        '<p class="event-loc">' + escapeHtml(ev.region || '') + ' · ' + escapeHtml(ev.location || '') + '</p>' +
+        '<p class="event-loc">' + escapeHtml(canonicalRegion(ev)) + ' · ' + escapeHtml(ev.location || '') + '</p>' +
         deadlineLine(ev.deadline) +
         sigRow +
         (st.interested && st.interested.length ? '<p class="ops-meta ops-interested">★ Interested: ' + escapeHtml(st.interested.join(', ')) + '</p>' : '') +
@@ -3519,6 +3538,7 @@ def build():
       rec.hidden = !!(st && st.hidden);
       // Editing context for the modal's quick-actions / Edit Event button.
       rec._table = 'event_state'; rec._key = ev.num;
+      rec.region = canonicalRegion(ev);
       card._modalRec = rec;
       return card;
     }}
@@ -3589,7 +3609,7 @@ def build():
       card.className = 'ops-card';
       card.dataset.manualId = mev.id;
       card.dataset.kind = 'manual';
-      card.dataset.region = mev.region || '';
+      card.dataset.region = canonicalRegion(mev);
       card.dataset.hasSpeaker = (mev.speaker && mev.speaker.trim()) ? '1' : '';
       card.dataset.status = mev.status || '';
       var manualStages = stageTagsOf(mev);
@@ -3692,7 +3712,7 @@ def build():
             : escapeHtml(mev.name || '')) +
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
-        '<p class="event-loc">' + escapeHtml(mev.region || '') + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
+        '<p class="event-loc">' + escapeHtml(canonicalRegion(mev)) + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
         (mev.interested && mev.interested.length ? '<p class="ops-meta ops-interested">★ Interested: ' + escapeHtml(mev.interested.join(', ')) + '</p>' : '') +
         tagsHtml +
         pocLine +
@@ -3713,6 +3733,7 @@ def build():
       mrec.stage_tags = manualStages;
       // Editing context for the modal's quick-actions / Edit Event button.
       mrec._table = 'manual_events'; mrec._key = mev.id;
+      mrec.region = canonicalRegion(mev);
       card._modalRec = mrec;
       return card;
     }}
@@ -4545,7 +4566,7 @@ def build():
         key: (kind === 'manual') ? base.id : base.num,
         name: base.name || 'Event',
         date_str: base.date_str || '',
-        region: base.region || '',
+        region: canonicalRegion(base),
         location: base.location || '',
         city: abFold(base.city || ((base.location || '').split(',')[0]) || ''),
         speaker: (st && st.speaker) || base.speaker || '',
@@ -4693,7 +4714,7 @@ def build():
         return /\\b(insurance|insurtech|health|healthcare|pharma|medical|life sciences|fintech|finance|financial services|bank|banking|capital markets|payments|wealth)\\b/.test(it.text);
       }} }},
       {{ who: 'Joe', label: 'US / West Coast', test: function (it) {{
-        return it.region === 'Americas' && !/\\b(latin america|latam|south america|brazil|brasil|sao paulo|mexico|argentina|chile|colombia|peru|toronto|canada|vancouver|montreal)\\b/.test(it.text);
+        return it.region === 'US & Canada';
       }} }}
     ];
 
@@ -5000,10 +5021,8 @@ def build():
       // Region guess from location
       if (out.location) {{
         var lo = out.location.toLowerCase();
-        if (/(usa|united states|canada|mexico|brazil|new york|san francisco|los angeles|chicago|boston|seattle|austin|miami|toronto|vancouver)/.test(lo)) out.region = 'Americas';
-        else if (/(uk|united kingdom|london|paris|berlin|amsterdam|madrid|barcelona|lisbon|munich|zurich|brussels|dublin|stockholm|copenhagen|oslo)/.test(lo)) out.region = 'Europe';
-        else if (/(singapore|hong kong|tokyo|seoul|shanghai|beijing|sydney|melbourne|delhi|mumbai|bangalore)/.test(lo)) out.region = 'Asia-Pacific';
-        else if (/(dubai|abu dhabi|riyadh|doha|tel aviv|cairo)/.test(lo)) out.region = 'MENA';
+        var _g = canonicalRegion({{ location: out.location }});
+        if (_g && _g !== 'Global') out.region = _g;
       }}
       return out;
     }}
@@ -5062,7 +5081,7 @@ def build():
           '</label>' +
           '<label><span class="key">Region</span>' +
             '<select name="region">' +
-              optionRows(['', 'Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'], '') +
+              optionRows(['', 'US & Canada', 'Latin America', 'Europe', 'Africa', 'MENA', 'Asia-Pacific', 'Global'], '') +
             '</select>' +
           '</label>' +
         '</div>' +
@@ -5686,11 +5705,13 @@ def build():
 
     // ── Calendar rendering ──────────────────────────────────────────
     var REGION_COLORS = {{
-      'Americas':     '#2773c2',
-      'Europe':       '#7c3aed',
-      'Asia-Pacific': '#059669',
-      'MENA':         '#ca8a04',
-      'Global':       '#475569'
+      'US & Canada':   '#2773c2',
+      'Latin America': '#0ea5e9',
+      'Europe':        '#7c3aed',
+      'Africa':        '#db2777',
+      'MENA':          '#ca8a04',
+      'Asia-Pacific':  '#059669',
+      'Global':        '#475569'
     }};
 
     function regionColor(r) {{ return REGION_COLORS[r] || '#737373'; }}
@@ -6484,7 +6505,7 @@ def build():
     }}
 
     var SEARCH_TYPE_OPTIONS    = ['Enterprise', 'Halo', 'Research', 'Industry', 'Sponsor', 'Conference', 'Summit', 'Workshop'];
-    var SEARCH_REGION_OPTIONS  = ['Americas', 'Europe', 'Asia-Pacific', 'MENA', 'Global'];
+    var SEARCH_REGION_OPTIONS  = ['US & Canada', 'Latin America', 'Europe', 'Africa', 'MENA', 'Asia-Pacific', 'Global'];
 
     function _multichip(host, options, defaults) {{
       // Build a chip group inside `host`. Returns getter for selected values.
