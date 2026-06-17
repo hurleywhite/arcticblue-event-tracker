@@ -2941,7 +2941,7 @@ def build():
     var $opsStatus = document.getElementById('ops-status');
     // Month keys ('YYYY-MM' or 'tbd') the user has collapsed in the ops grid.
     // A truthy value means that month's cards are hidden via the dropdown / header.
-    var opsCollapsedMonths = {{ hidden: true }};
+    var opsCollapsedMonths = {{ hidden: true, archive: true }};
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
     // | 'buyer' | 'worth') — click a top stat to show only those events.
     var opsStatFilter = '';
@@ -4246,6 +4246,14 @@ def build():
       return h;
     }}
 
+    // Card placement tier: regular months (0) sort first, then the collapsible
+    // "Hidden" group (1), then "Archive · past events" (2) at the very bottom.
+    function opsCardTier(card) {{
+      if (card.classList.contains('is-hidden')) return 1;
+      if (card.dataset.past === '1') return 2;
+      return 0;
+    }}
+
     // Re-sort every .ops-card chronologically and (re)insert month dividers.
     // Cards keep their DOM nodes — we only move them — so wired handlers and
     // open <details> survive. Also (re)builds the Months dropdown list.
@@ -4258,18 +4266,21 @@ def build():
       // Hidden events sink to their own group after everything (incl. Date TBD);
       // within each group, chronological by event date.
       cards.sort(function (a, b) {{
-        var ah = a.classList.contains('is-hidden') ? 1 : 0;
-        var bh = b.classList.contains('is-hidden') ? 1 : 0;
-        if (ah !== bh) return ah - bh;
-        return (parseInt(a.dataset.sort || '99999999', 10)) - (parseInt(b.dataset.sort || '99999999', 10));
+        var at = opsCardTier(a), bt = opsCardTier(b);
+        if (at !== bt) return at - bt;
+        var as = parseInt(a.dataset.sort || '99999999', 10);
+        var bs = parseInt(b.dataset.sort || '99999999', 10);
+        // Past events read best most-recent-first; everything else stays
+        // chronological (soonest first).
+        return at === 2 ? (bs - as) : (as - bs);
       }});
       var frag = document.createDocumentFragment();
       var curKey = null;
       var order = [];
       cards.forEach(function (card) {{
-        var hidden = card.classList.contains('is-hidden');
-        var key = hidden ? 'hidden' : (card.dataset.month || 'tbd');
-        var label = hidden ? 'Hidden' : (card.dataset.monthLabel || 'Date TBD');
+        var tier = opsCardTier(card);
+        var key = tier === 1 ? 'hidden' : (tier === 2 ? 'archive' : (card.dataset.month || 'tbd'));
+        var label = tier === 1 ? 'Hidden' : (tier === 2 ? 'Archive · past events' : (card.dataset.monthLabel || 'Date TBD'));
         if (key !== curKey) {{
           curKey = key;
           order.push({{ key: key, label: label }});
@@ -4413,7 +4424,8 @@ def build():
           if (fPrice === '1000-2500'    && !(pn != null && pn >= 1000 && pn < 2500)) on = false;
           if (fPrice === 'gte2500'      && !(pn != null && pn >= 2500)) on = false;
         }}
-        if (!showPast && card.dataset.past === '1') on = false;
+        // Past events are no longer force-hidden — they collect in the
+        // collapsible "Archive · past events" group at the bottom (opsCardTier).
         // Hidden events are NOT filtered out — they collect in a collapsible
         // "Hidden" section at the bottom (see the effective month key below).
         // Top stat-tile filter (one click on a stat shows only those events).
@@ -4450,7 +4462,8 @@ def build():
         // passes the filters still counts toward "shown" even when its month
         // is folded — we only hide it from view. Hidden cards live in the
         // "hidden" group regardless of their date.
-        var mkey = card.classList.contains('is-hidden') ? 'hidden' : (card.dataset.month || 'tbd');
+        var _tier = opsCardTier(card);
+        var mkey = _tier === 1 ? 'hidden' : (_tier === 2 ? 'archive' : (card.dataset.month || 'tbd'));
         if (on) {{ monthMatched[mkey] = (monthMatched[mkey] || 0) + 1; shown++; }}
         // An active search overrides month collapsing — a match inside a
         // folded month must be visible or the event looks like it's missing.
@@ -4903,9 +4916,14 @@ def build():
         var stateMap = {{}};
         stateRows.forEach(function (r) {{ stateMap[r.event_num] = r; }});
 
-        var evs = (data.events || []).filter(function (e) {{ return e.status !== 'archived'; }});
+        // Include archived (past) catalog events too, so they stay reachable in
+        // the collapsible "Archive · past events" group. Stats / calendar /
+        // queue / planner keep using `evs` (non-archived) so past events don't
+        // inflate counts or surface as false scheduling conflicts.
+        var allEvs = (data.events || []);
+        var evs = allEvs.filter(function (e) {{ return e.status !== 'archived'; }});
         $opsGrid.innerHTML = '';
-        evs.forEach(function (ev) {{
+        allEvs.forEach(function (ev) {{
           var card = buildOpsCard(ev, stateMap[ev.num] || {{}}, email);
           $opsGrid.appendChild(card);
           wireOpsCard(card, email);
