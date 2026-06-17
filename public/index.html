@@ -1420,11 +1420,11 @@
        with room for the full name. */
     .cal-week {
       display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
-      grid-auto-rows: min-content;
+      grid-auto-rows: min-content; min-height: 106px;
     }
     .cal-day-bg {
       border-top: 1px solid var(--ab-rule); border-right: 1px solid var(--ab-rule);
-      min-height: 106px; background: var(--ab-bg);
+      background: var(--ab-bg);
     }
     .cal-day-bg.is-outside { background: var(--ab-bg-3); }
     .cal-day-bg.is-today { background: rgba(39,115,194,0.06); }
@@ -5238,6 +5238,12 @@
           (lanes[lane] = lanes[lane] || []).push([ws.startCol, endCol]);
           ws.lane = lane;
         });
+
+        // Pack the date-number row + each event lane as tight auto rows, then a
+        // flexible filler row that soaks up the rest of the cell height. Without
+        // this the day-cell min-height inflates row 1 (the date number) and the
+        // events float far below it; this keeps them right under the date.
+        weekDiv.style.gridTemplateRows = 'repeat(' + (lanes.length + 1) + ', auto) 1fr';
 
         weekSpans.forEach(function (ws) {
           var ev = ws.sp.ev, st = ws.sp.st;
