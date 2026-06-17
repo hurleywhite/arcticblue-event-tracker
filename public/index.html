@@ -4427,6 +4427,13 @@
         var data = results[0];
         var stateRows = (results[1] && results[1].data) || [];
         var manualRows = (results[2] && results[2].data) || [];
+        // Soft-deleted catalog events carry a '__deleted__' sentinel on their
+        // event_state row. Drop them EVERYWHERE — grid, stats, calendar, queue,
+        // planner — by excluding both the catalog event AND its state row, so a
+        // delete truly removes it from the pipeline (not just hides the card).
+        var _deletedNums = {};
+        stateRows.forEach(function (r) { if (r.status === '__deleted__') _deletedNums[r.event_num] = true; });
+        stateRows = stateRows.filter(function (r) { return r.status !== '__deleted__'; });
         var stateMap = {};
         stateRows.forEach(function (r) { stateMap[r.event_num] = r; });
 
@@ -4434,9 +4441,7 @@
         // the collapsible "Archive · past events" group. Stats / calendar /
         // queue / planner keep using `evs` (non-archived) so past events don't
         // inflate counts or surface as false scheduling conflicts.
-        // Drop catalog events that were soft-deleted (a persistent sentinel on
-        // their event_state row) — they shouldn't reappear after the daily sync.
-        var allEvs = (data.events || []).filter(function (e) { var s = stateMap[e.num]; return !(s && s.status === '__deleted__'); });
+        var allEvs = (data.events || []).filter(function (e) { return !_deletedNums[e.num]; });
         var evs = allEvs.filter(function (e) { return e.status !== 'archived'; });
         // Trailing-year strip for display — the year is redundant with the date.
         allEvs.forEach(function (e) { if (e && e.name) e.name = stripTrailingYear(e.name); });
