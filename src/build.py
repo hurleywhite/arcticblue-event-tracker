@@ -3425,6 +3425,20 @@ def build():
       var days = (new Date(iso + 'T00:00:00') - new Date()) / 86400000;
       return days >= -1 && days <= 45;  // still open, closing within ~6 weeks
     }}
+    // Urgent when the CFP/apply deadline is within the next two weeks (and not
+    // already past). Tighter than isDeadlineSoon, which drives the softer
+    // "deadline approaching" highlight at ~6 weeks.
+    function isDeadlineUrgent(d) {{
+      if (d == null || !String(d).trim()) return false;
+      var txt = String(d).trim();
+      if (/rolling|ongoing|membership|closed|has passed|may have passed/i.test(txt)) return false;
+      if (/urgent|immediately|asap|closing soon|closes soon/i.test(txt)) return true;
+      var iso = null;
+      try {{ iso = deriveDatesFromText(txt).start_date; }} catch (e) {{}}
+      if (!iso) return false;
+      var days = (new Date(iso + 'T00:00:00') - new Date()) / 86400000;
+      return days >= -1 && days <= 14;  // closing within two weeks
+    }}
     function deadlineLine(d) {{
       if (d == null || !String(d).trim()) return '';
       var txt = String(d).trim();
@@ -3465,7 +3479,7 @@ def build():
       // (The event merely being upcoming does NOT make it urgent.)
       var _soon = isDeadlineSoon(ev.deadline) && !_opsPast;
       if (_soon) card.dataset.deadlineSoon = '1';
-      if (st.urgent || _soon) card.classList.add('is-urgent');
+      if (st.urgent || (isDeadlineUrgent(ev.deadline) && !_opsPast)) card.classList.add('is-urgent');
       card.dataset.decision = (st.decision || '');
       if (st.decision === 'no-go') card.classList.add('is-nogo');
       var decBadge = st.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>'
@@ -3627,7 +3641,8 @@ def build():
       if (_manPast) card.classList.add('is-past');
       // Urgent = an apply/CFP deadline that's closing soon (not just upcoming).
       var _manSoon = isDeadlineSoon(mev.deadline) && !_manPast;
-      if (_manSoon) {{ card.dataset.deadlineSoon = '1'; card.classList.add('is-urgent'); }}
+      if (_manSoon) card.dataset.deadlineSoon = '1';
+      if (isDeadlineUrgent(mev.deadline) && !_manPast) card.classList.add('is-urgent');
       card.dataset.decision = (mev.decision || '');
       if (mev.decision === 'no-go') card.classList.add('is-nogo');
       var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>'
@@ -4503,7 +4518,7 @@ def build():
       (evs || []).forEach(function (ev) {{
         if (((ev.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         var st = stByNum[ev.num] || {{}};
-        if (!isPastEvent(ev) && (st.urgent || isDeadlineSoon(ev.deadline))) urgent++;
+        if (!isPastEvent(ev) && (st.urgent || isDeadlineUrgent(ev.deadline))) urgent++;
       }});
       // Manual events carry their own stage tags + deadlines — fold them in.
       (manualRows || []).forEach(function (m) {{
@@ -4512,7 +4527,7 @@ def build():
         if (stages.indexOf('Booked') !== -1) booked++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if ((m.attend_verdict || '').indexOf('Worth') === 0) worthIt++;
-        if (!isPastEvent(m) && isDeadlineSoon(m.deadline)) urgent++;
+        if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
       }});
       // Each tile is a one-click filter (data-stat). 'all' clears everything.
       function tile(key, num, label, cls) {{
@@ -5880,7 +5895,7 @@ def build():
           var bar = document.createElement('div');
           bar.className = 'cal-evt';
           if (st.saved) bar.classList.add('is-saved');
-          if (st.urgent || isDeadlineSoon(ev.deadline)) bar.classList.add('is-urgent');
+          if (st.urgent || isDeadlineUrgent(ev.deadline)) bar.classList.add('is-urgent');
           bar.dataset.eventNum = ev.num;
           bar.style.gridColumn = (ws.startCol + 1) + ' / span ' + ws.span;
           bar.style.gridRow = (ws.lane + 2);
