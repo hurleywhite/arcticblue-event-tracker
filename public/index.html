@@ -4053,6 +4053,7 @@
         date_str: base.date_str || '',
         region: base.region || '',
         location: base.location || '',
+        city: abFold(base.city || ((base.location || '').split(',')[0]) || ''),
         speaker: (st && st.speaker) || base.speaker || '',
         interested: (interested && interested.slice) ? interested.slice() : [],
         stages: stages,
@@ -4237,7 +4238,12 @@
         for (var i = 0; i < list.length; i++) {
           for (var j = i + 1; j < list.length; j++) {
             var a = list[i], b = list[j];
-            if (a.range[0] <= b.range[1] && b.range[0] <= a.range[1]) conflicts.push({ who: tok, a: a.it, b: b.it });
+            if (a.range[0] <= b.range[1] && b.range[0] <= a.range[1]) {
+              // Same city = same trip, not a double-booking — only flag
+              // overlapping events in DIFFERENT cities as real conflicts.
+              if (a.it.city && b.it.city && a.it.city === b.it.city) continue;
+              conflicts.push({ who: tok, a: a.it, b: b.it });
+            }
           }
         }
       });
