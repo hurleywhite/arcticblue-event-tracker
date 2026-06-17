@@ -2182,10 +2182,10 @@
       h += ef('Paid', '<select class="me-input" data-edit="paid">' + [['', '—'], ['true', 'Yes'], ['false', 'No']].map(function (o) { return '<option value="' + o[0] + '"' + (paidCur === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>');
     }
     h += ef('Post-mortem (ROI: contacts · meetings · sales vs cost)', ta('postmortem', rec.postmortem, 2));
-    if (!isCat) {
-      h += '<div class="me-danger"><button type="button" class="me-delete">Delete this event</button>' +
-           '<span class="me-danger-note">Removes this manually-added event. Cannot be undone.</span></div>';
-    }
+    h += '<div class="me-danger"><button type="button" class="me-delete">Delete this event</button>' +
+         '<span class="me-danger-note">' + (isCat
+           ? 'Removes this event from the tracker (stays gone after the daily sync).'
+           : 'Removes this manually-added event. Cannot be undone.') + '</span></div>';
     return h;
   }
   function wireEditForm(rec) {
@@ -4410,7 +4410,9 @@
         // the collapsible "Archive · past events" group. Stats / calendar /
         // queue / planner keep using `evs` (non-archived) so past events don't
         // inflate counts or surface as false scheduling conflicts.
-        var allEvs = (data.events || []);
+        // Drop catalog events that were soft-deleted (a persistent sentinel on
+        // their event_state row) — they shouldn't reappear after the daily sync.
+        var allEvs = (data.events || []).filter(function (e) { var s = stateMap[e.num]; return !(s && s.status === '__deleted__'); });
         var evs = allEvs.filter(function (e) { return e.status !== 'archived'; });
         $opsGrid.innerHTML = '';
         allEvs.forEach(function (ev) {
@@ -6707,14 +6709,19 @@
     };
     // Re-fetch + re-render everything (used after server-side enrichment writes).
     window.opsRefresh = function () { return renderOps(getCollabName() || 'Team'); };
-    // Delete bridge for the modal's Edit form (manual events only).
+    // Delete bridge for the modal's Edit form. Manual events are hard-deleted;
+    // catalog events (from the daily ingest) are persistently suppressed via a
+    // '__deleted__' sentinel on their event_state row, so they don't reappear.
     window.opsDelete = function (table, key) {
-      if (table !== 'manual_events') return Promise.resolve({ error: { message: 'Only manual events can be deleted.' } });
-      return sb.from('manual_events').delete().eq('id', key).then(function (resp) {
-        if (resp && resp.error) { status('Delete failed: ' + resp.error.message, 'error'); }
-        else { flashOk('Manual event deleted'); if (typeof loadKnownNames === 'function') loadKnownNames(); renderOps(getCollabName() || 'Team'); }
-        return resp;
-      });
+      if (table === 'manual_events') {
+        return sb.from('manual_events').delete().eq('id', key).then(function (resp) {
+          if (resp && resp.error) { status('Delete failed: ' + resp.error.message, 'error'); }
+          else { flashOk('Manual event deleted'); if (typeof loadKnownNames === 'function') loadKnownNames(); renderOps(getCollabName() || 'Team'); }
+          return resp;
+        });
+      }
+      // Catalog event — soft-delete via opsWrite (re-renders + filters it out).
+      return window.opsWrite('event_state', key, { status: '__deleted__' });
     };
     window.opsOpenEditor = function (table, key) {
       // Editing now lives in the Details pop-up, not an inline card editor.
