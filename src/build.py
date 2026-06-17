@@ -696,9 +696,11 @@ def build():
     .deadline-line.deadline-soon {{ color: #b91c1c !important; font-weight: 700; }}
     /* One-click "Apply to speak" button on ops cards — the booking shortcut. */
     .ops-apply-btn {{
-      display: inline-block; font-family: var(--ab-mono); font-size: 0.7rem;
+      display: block; width: 100%; box-sizing: border-box; text-align: center;
+      margin-top: auto;  /* pin to the bottom of the flex-column card */
+      font-family: var(--ab-mono); font-size: 0.7rem;
       letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
-      padding: 5px 11px; border-radius: 3px; margin: 0 0 8px;
+      padding: 8px 11px; border-radius: 6px;
       background: var(--ab-blue, #1d4ed8); color: #fff !important; text-decoration: none;
     }}
     .ops-apply-btn:hover {{ opacity: 0.85; }}
@@ -3536,7 +3538,7 @@ def build():
       var sigRow = sigBits.length ? '<p class="attend-signals">' + sigBits.join('') + '</p>' : '';
       var applyUrl = speakingRouteUrl(ev.speaking_route);
       var applyBtn = applyUrl
-        ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a> '
+        ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
 
       card.innerHTML =
@@ -3556,11 +3558,11 @@ def build():
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(canonicalRegion(ev)) + ' · ' + escapeHtml(ev.location || '') + '</p>' +
-        deadlineLine(ev.deadline) +
+        renderOpsTags(st) +
         sigRow +
+        deadlineLine(ev.deadline) +
         (st.interested && st.interested.length ? '<p class="ops-meta ops-interested">★ Interested: ' + escapeHtml(st.interested.join(', ')) + '</p>' : '') +
-        applyBtn +
-        renderOpsTags(st);
+        applyBtn;
       // (metaLine intentionally unused now — "Last edit" detail lived inside the
       // old inline editor, which has moved to the Details pop-up.)
       void metaLine;
@@ -3736,6 +3738,9 @@ def build():
       var meetChip = mev.meeting_formats
         ? '<span class="attend-sig" title="' + escapeHtml(mev.meeting_formats) + '">1:1 meetings</span>'
         : '';
+      // Audience + 1:1 signals live in the same "labels" zone as the catalog cards
+      // (below the location, above the bottom Apply button) for a consistent layout.
+      var mSigRow = (audChip || meetChip) ? '<p class="attend-signals">' + audChip + meetChip + '</p>' : '';
       var priceLine = (mev.pricing && String(mev.pricing).trim())
         ? '<p class="ops-meta">Price to attend: ' + escapeHtml(mev.pricing) + '</p>'
         : '';
@@ -3744,14 +3749,11 @@ def build():
         : '';
       var mApplyUrl = speakingRouteUrl(mev.speaking_route);
       var mApplyBtn = mApplyUrl
-        ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a> '
+        ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<div class="ops-chips">' +
-            audChip +
-            attendChip +
-            meetChip +
             mDecBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
@@ -3763,13 +3765,14 @@ def build():
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(canonicalRegion(mev)) + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
-        (mev.interested && mev.interested.length ? '<p class="ops-meta ops-interested">★ Interested: ' + escapeHtml(mev.interested.join(', ')) + '</p>' : '') +
         tagsHtml +
+        mSigRow +
+        deadlineLine(mev.deadline) +
+        (mev.interested && mev.interested.length ? '<p class="ops-meta ops-interested">★ Interested: ' + escapeHtml(mev.interested.join(', ')) + '</p>' : '') +
         pocLine +
         notesLine +
         addtlLine +
         submLine +
-        deadlineLine(mev.deadline) +
         feeLine +
         mApplyBtn;
       // Stash a modal record on the node for the delegated "Details" handler.
