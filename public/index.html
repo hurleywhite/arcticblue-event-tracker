@@ -1436,11 +1436,12 @@
     .cal-evt {
       position: relative; z-index: 2; margin: 1px 4px 2px; min-height: 21px;
       display: flex; align-items: center; gap: 5px; padding: 2px 8px;
-      border-radius: 5px; background: var(--ab-bg-2);
+      border-radius: 5px; background: var(--ab-bg);
+      border: 1px solid var(--ab-rule);
       border-left: 3px solid var(--ab-rule-strong);
       font-family: var(--ab-sans); font-size: 0.74rem; line-height: 1.2;
       cursor: pointer; overflow: hidden; white-space: nowrap;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.03); transition: filter 120ms ease;
+      transition: filter 120ms ease;
     }
     .cal-evt:hover { filter: brightness(0.96); }
     .cal-evt.is-saved { background: rgba(39,115,194,0.12); border-left-color: var(--ab-blue); }
@@ -1465,6 +1466,15 @@
     }
     .cal-legend-dot {
       width: 8px; height: 8px; border-radius: 50%;
+    }
+    /* Stage swatches in the legend render as the SAME pill shown on events,
+       so the legend reads exactly like what's on the calendar. */
+    .cal-legend-pill {
+      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 600;
+      padding: 2px 7px; border-radius: 3px; letter-spacing: 0.02em;
+    }
+    .cal-legend-sep {
+      width: 1px; height: 16px; background: var(--ab-rule); margin: 0 2px;
     }
     .cal-evt-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ab-fg); font-weight: 500; }
     .cal-chip-initial {
@@ -2157,7 +2167,8 @@
     if (!rec) return;
     var badges = [];
     if (rec.priority) badges.push('<span class="badge ' + priClass(rec.priority) + '">' + esc(rec.priority) + '</span>');
-    if (rec.type)     badges.push('<span class="badge p-medium">' + esc(rec.type) + '</span>');
+    // "Halo" is an internal event-type flag, not something to surface as a label.
+    if (rec.type && rec.type.toLowerCase() !== 'halo') badges.push('<span class="badge p-medium">' + esc(rec.type) + '</span>');
     // Pipeline stages (primary). Fall back to the legacy single status badge
     // only when no stages are set, so we don't double up.
     if (rec.stage_tags && rec.stage_tags.length) {
@@ -5259,7 +5270,10 @@
           var grpDot = topStage ? stageDot(topStage) : null;
           var spanBg = (topStage && STAGE_BY_KEY[topStage]) ? STAGE_BY_KEY[topStage].bg : null;
           if (spanBg) bar.style.background = spanBg;
-          bar.style.borderLeftColor = grpDot || regionColor(ev.region);
+          // Left border = pipeline stage (neutral grey when unstaged, via CSS).
+          // Region is conveyed only by the dot, so colors map cleanly to the
+          // legend (border/fill = stage, dot = region).
+          if (grpDot) bar.style.borderLeftColor = grpDot;
           var sp2 = st.speaker || '';
           var ini = sp2 ? initials(sp2) : '';
           var statusInline = '';
@@ -5396,13 +5410,20 @@
       monthHost.id = 'cal-month-host';
       cal.appendChild(monthHost);
 
-      // Legend: one row of color dots showing status-group meanings
+      // Legend: stage swatches rendered as the exact pill shown on events, then
+      // a region row documenting the colored region dots on each bar — so every
+      // color on the calendar maps to a label here.
       var legend = document.createElement('div');
       legend.className = 'cal-legend';
       legend.innerHTML =
-        '<span class="cal-legend-label">Pipeline stages:</span>' +
+        '<span class="cal-legend-label">Stages:</span>' +
         STAGE_TAGS.map(function (g) {
-          return '<span class="cal-legend-item"><span class="cal-legend-dot" style="background:' + g.dot + ';"></span>' + escapeHtml(g.key) + '</span>';
+          return '<span class="cal-legend-pill" style="' + stageStyle(g.key) + '">' + escapeHtml(g.key) + '</span>';
+        }).join('') +
+        '<span class="cal-legend-sep"></span>' +
+        '<span class="cal-legend-label">Regions:</span>' +
+        Object.keys(REGION_COLORS).map(function (r) {
+          return '<span class="cal-legend-item"><span class="cal-legend-dot" style="background:' + REGION_COLORS[r] + ';"></span>' + escapeHtml(r) + '</span>';
         }).join('');
       cal.appendChild(legend);
 
@@ -6028,7 +6049,7 @@
                 '<h4 style="margin:0;font-size:1.02rem;font-weight:700;letter-spacing:-0.01em;color:var(--ab-fg);">' + escapeHtml(ev.name || '(unnamed)') + url + '</h4>' +
                 '<p style="margin:4px 0 0;font-size:0.85rem;color:var(--ab-fg-2);">' +
                   escapeHtml(ev.date_str || '') + ' · ' + escapeHtml(ev.region || '') + (ev.location ? ' · ' + escapeHtml(ev.location) : '') +
-                  (ev.type ? ' · ' + escapeHtml(ev.type) : '') +
+                  (ev.type && ev.type.toLowerCase() !== 'halo' ? ' · ' + escapeHtml(ev.type) : '') +
                   (ev.priority ? ' · ' + escapeHtml(ev.priority) : '') +
                 '</p>' +
               '</div>' +
