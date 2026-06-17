@@ -3473,6 +3473,7 @@ def build():
       card.dataset.meetings = (ev.meeting_formats ? '1' : '');
       card.dataset.attend   = (st.attend_verdict || '');
       card.dataset.interested = (st.interested && st.interested.length) ? '1' : '';
+      card.dataset.interestedNames = (st.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       var _opsPast = isPastEvent(ev);
       card.dataset.past = _opsPast ? '1' : '';
       if (_opsPast) card.classList.add('is-past');
@@ -3636,6 +3637,7 @@ def build():
       card.dataset.meetings = (mev.meeting_formats ? '1' : '');
       card.dataset.attend   = (mev.attend_verdict || '');
       card.dataset.interested = (mev.interested && mev.interested.length) ? '1' : '';
+      card.dataset.interestedNames = (mev.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       var _manPast = isPastEvent(mev);
       card.dataset.past = _manPast ? '1' : '';
       if (_manPast) card.classList.add('is-past');
@@ -4421,7 +4423,7 @@ def build():
         // Top stat-tile filter (one click on a stat shows only those events).
         if (opsStatFilter) {{
           var tagsS = (card.dataset.statusTags || '');
-          if (opsStatFilter === 'saved'   && !card.classList.contains('is-saved'))  on = false;
+          if (opsStatFilter === 'myinterested' && (card.dataset.interestedNames || '').split('|').indexOf((getCollabName() || 'Team').toLowerCase()) === -1) on = false;
           if (opsStatFilter === 'urgent'  && !card.classList.contains('is-urgent')) on = false;
           if (opsStatFilter === 'pipeline'&& !tagsS) on = false;
           if (opsStatFilter === 'booked'  && tagsS.split('|').indexOf('Booked') === -1) on = false;
@@ -4503,13 +4505,16 @@ def build():
       var stByNum = {{}};
       (stateRows || []).forEach(function (r) {{ stByNum[r.event_num] = r; }});
       var saved = 0, urgent = 0, inPipeline = 0, booked = 0;
-      var buyerRich = 0, interestedCount = 0;
+      var buyerRich = 0, interestedCount = 0, myInterested = 0;
+      var me = (getCollabName() || 'Team').toLowerCase();
+      function _isMine(list) {{ return (list || []).some(function (n) {{ return String(n).toLowerCase() === me; }}); }}
       (stateRows || []).forEach(function (r) {{
         if (r.saved)  saved++;
         var stages = stageTagsOf(r);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
         if (r.interested && r.interested.length) interestedCount++;
+        if (_isMine(r.interested)) myInterested++;
       }});
       // Urgent = an apply/CFP deadline closing soon (or a manually-flagged
       // urgent event) — NOT merely an upcoming event. Counted per event.
@@ -4525,6 +4530,7 @@ def build():
         if (stages.indexOf('Booked') !== -1) booked++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if (m.interested && m.interested.length) interestedCount++;
+        if (_isMine(m.interested)) myInterested++;
         if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
       }});
       // Each tile is a one-click filter (data-stat). 'all' clears everything.
@@ -4536,7 +4542,7 @@ def build():
       }}
       $stats.innerHTML =
         tile('all', total, 'Upcoming', '') +
-        tile('saved', saved, 'Saved', 'saved') +
+        tile('myinterested', myInterested, 'My interested', 'saved') +
         tile('urgent', urgent, 'Urgent', 'urgent') +
         tile('pipeline', inPipeline, 'In pipeline', '') +
         tile('booked', booked, 'Booked', '') +
@@ -4753,6 +4759,9 @@ def build():
       var byWho = {{}};
       opsAllItems().forEach(function (it) {{
         if (it.past || it.decision === 'no-go' || !it.speaker) return;
+        // Only a real clash if the person is committed (Booked or Attending)
+        // to both events — not merely considering them.
+        if (it.stages.indexOf('Booked') === -1 && it.stages.indexOf('Attending') === -1) return;
         var range = opsDateRange(it.startObj);
         if (!range) return;
         speakerTokens(it.speaker).forEach(function (tok) {{
