@@ -66,8 +66,14 @@ def _env(k, d=''):
 SUPABASE_URL  = _env('SUPABASE_URL', 'https://efkvhlmfdwlobvdmvqiq.supabase.co').rstrip('/')
 SERVICE_ROLE  = _env('SUPABASE_SERVICE_ROLE_KEY')
 INGEST_SECRET = _env('EVENTS_INGEST_SECRET')
+# Optional SECOND key for Carlos's own Dust agent. When this key is used, the
+# server stamps created_by = CARLOS_CREATED_BY so his events are reliably
+# attributed (and surface in Carlos's Planner section). Falls back to the
+# single-key setup when unset.
+INGEST_SECRET_CARLOS = _env('EVENTS_INGEST_SECRET_CARLOS')
 
 DEFAULT_CREATED_BY = _env('EVENTS_INGEST_CREATED_BY', 'dust@arcticblue.ai')
+CARLOS_CREATED_BY  = _env('EVENTS_INGEST_CARLOS_CREATED_BY', 'carlos@arcticblue.ai')
 MAX_EVENTS = 50
 
 # ── Speaking-route enrichment (optional, via Exa) ────────────────────
@@ -832,15 +838,23 @@ def _send(handler, status, payload):
     handler.wfile.write(body)
 
 
-def _authorized(handler):
+def _match_secret(handler):
+    """Return which agent's key authenticated: 'carlos', 'team', or None.
+    Accepts the main EVENTS_INGEST_SECRET (team) or, if configured, the
+    separate EVENTS_INGEST_SECRET_CARLOS — so two Dust agents can each carry
+    their own key."""
     provided = (handler.headers.get('X-API-Key', '') or handler.headers.get('x-api-key', '') or '').strip()
     if not provided:
         ah = handler.headers.get('Authorization', '')
         if ah.lower().startswith('bearer '):
             provided = ah[7:].strip()
-    if not provided or not INGEST_SECRET:
-        return False
-    return hmac.compare_digest(provided, INGEST_SECRET)
+    if not provided:
+        return None
+    if INGEST_SECRET_CARLOS and hmac.compare_digest(provided, INGEST_SECRET_CARLOS):
+        return 'carlos'
+    if INGEST_SECRET and hmac.compare_digest(provided, INGEST_SECRET):
+        return 'team'
+    return None
 
 
 class handler(BaseHTTPRequestHandler):
@@ -872,8 +886,9 @@ class handler(BaseHTTPRequestHandler):
         if not SERVICE_ROLE:
             return _send(self, 500, {'error': 'server not configured: SUPABASE_SERVICE_ROLE_KEY missing'})
 
-        # Auth.
-        if not _authorized(self):
+        # Auth — which agent's key is this?
+        agent = _match_secret(self)
+        if agent is None:
             return _send(self, 401, {'error': 'unauthorized: missing or invalid X-API-Key'})
 
         # Parse body.
@@ -934,7 +949,14 @@ class handler(BaseHTTPRequestHandler):
                 if e and not row.get('end_date'):
                     row['end_date'] = e
 
-            row.setdefault('created_by', DEFAULT_CREATED_BY)
+            # Carlos's agent: stamp his attribution server-side (override any
+            # payload value) so his events are reliably his — this is what makes
+            # them surface in Carlos's Planner section. The team agent keeps the
+            # default. created_by is never forced for the team key.
+            if agent == 'carlos':
+                row['created_by'] = CARLOS_CREATED_BY
+            else:
+                row.setdefault('created_by', DEFAULT_CREATED_BY)
             row.setdefault('external_id', 'dust')
 
             lname = name.lower()
@@ -1012,6 +1034,7 @@ class handler(BaseHTTPRequestHandler):
                 errors.append({'name': name, 'reason': 'insert failed (%s)' % status, 'detail': detail})
 
         return _send(self, 200, {
+            'agent':    agent,
             'inserted': inserted,
             'rejected': rejected,
             'skipped':  skipped,

@@ -4575,6 +4575,7 @@ def build():
         past: isPastEvent(base),
         sort: meta.sort,
         startObj: base,
+        createdBy: abFold(base.created_by || ''),
         text: abFold(blob)
       }};
     }}
@@ -4700,7 +4701,9 @@ def build():
         return it.region === 'Europe' || /\\b(europe|emea|london|zurich|geneva|paris|berlin|amsterdam|madrid|barcelona|lisbon|brussels|stockholm|munich|milan|dublin|vienna|copenhagen|helsinki|oslo)\\b/.test(it.text);
       }} }},
       {{ who: 'Carlos', label: 'Latin America', test: function (it) {{
-        return /\\b(latin america|latam|south america|brazil|brasil|sao paulo|mexico|argentina|chile|colombia|peru|bogota|lima|santiago|buenos aires)\\b/.test(it.text);
+        // Carlos's own ingest agent stamps created_by=carlos — always his.
+        return it.createdBy.indexOf('carlos') !== -1 ||
+          /\\b(latin america|latam|south america|brazil|brasil|sao paulo|mexico|argentina|chile|colombia|peru|bogota|lima|santiago|buenos aires)\\b/.test(it.text);
       }} }},
       {{ who: 'Jim', label: 'Governments / sovereign AI', test: function (it) {{
         return /\\b(government|govtech|gov tech|sovereign|public sector|ministry|ministerial|federal|world governments|smart nation|defense|defence|national security)\\b/.test(it.text);
