@@ -153,9 +153,9 @@ _SYSTEM = (
     "(max 8). Use each event's EXACT name from the data. Empty list if none fit.\n"
     "- Keep 'answer' short — the events render as cards below it, so don't repeat "
     "their dates/locations; just give the gist or the reasoning.\n"
-    "- When ranking what to attend/skip, weigh: buyer-rich audience, 'Worth "
-    "attending' verdict, priority, fit (why), and upcoming date (ignore past "
-    "events unless asked). Never invent events not in the data.\n"
+    "- When ranking what to attend/skip, weigh: buyer-rich audience, who's "
+    "flagged Interested, pipeline stage, priority, fit (why), and upcoming date "
+    "(ignore past events unless asked). Never invent events not in the data.\n"
     "- If the question names a teammate or asks who should go, use the TEAM "
     "COVERAGE notes to match the right person to each event by region/theme, "
     "and prefer events that fit that person's coverage."
@@ -166,25 +166,39 @@ _SYSTEM = (
 # region/theme. Distilled from the ArcticBlue Obsidian notes (team-roles);
 # edit here as the team or their focus areas change.
 _TEAM_CONTEXT = (
-    "TEAM COVERAGE — ArcticBlue people and the regions/themes each best fits, "
-    "for matching the right person to an event:\n"
-    "- Thor (CEO, co-founder) — keynote speaker; travels everywhere; flagship "
-    "stages, AI-strategy/defensibility themes, health-tech.\n"
-    "- Verma (co-founder) — travels everywhere; specialises in REGULATED "
-    "industries: insurance, healthcare / health-tech, and finance (e.g. ITC, "
-    "HLTH, JPM Healthcare, Money20/20, AWS re:Invent).\n"
-    "- Jerome — Europe / EMEA enterprise sales (London, Zurich, UK); European "
-    "events route to him.\n"
-    "- Carlos — Latin America / South America (the Americas patch).\n"
-    "- Jim — international governments / public sector / sovereign-AI events.\n"
-    "- Scott — partnerships (alliance, ecosystem, partner / co-marketing "
-    "events).\n"
-    "- Joe — facilitator lead and speaker; US / West Coast and general.\n"
-    "Guidance: match each event to the person whose coverage best fits its "
-    "region and theme (a São Paulo summit → Carlos; a government / sovereign-AI "
-    "forum → Jim; a partnership / alliance event → Scott; a European event → "
-    "Jerome; an insurance / health / finance event → Verma). Thor and Verma are "
-    "the catch-alls for anything high-profile or outside the others' areas."
+    "TEAM COVERAGE — match the right ArcticBlue person to an event by geography, "
+    "buyer audience, industry, and theme:\n"
+    "- Jerome — Head of Sales, EUROPE. Owns European events only: UK/London, "
+    "Dublin, Amsterdam, Brussels, Zurich, Geneva, Luxembourg, Berlin, Munich, "
+    "Frankfurt, Vienna, Stockholm, Copenhagen, Oslo, Helsinki, Madrid, "
+    "Barcelona, Milan, Lisbon. Buyers: CPO/CMO/CDO/CTO/CIO/COO/Chief Strategy or "
+    "Innovation/CRO/Chief Customer/VP of AI at 500+ employee firms. Industries: "
+    "financial services & insurance, healthcare, fintech, enterprise SaaS, "
+    "retail/eCommerce, telco, media. Themes: GTM innovation, scaling AI past "
+    "proof-of-concept, GDPR-safe AI, AI governance. Marquee: Web Summit, "
+    "VivaTech, DLD Munich, AI Summit London, TNW, GITEX.\n"
+    "- Joe — HR / human-enablement speaker & author. Events about HR/CHRO, L&D "
+    "and learning, talent/workforce, future of work, design thinking, "
+    "curiosity, and the human side of AI adoption (AI mindset/literacy). "
+    "Audience: CHRO, CLO, people & L&D leaders. US/general; not region-locked.\n"
+    "- Thor — CEO & founder. Flagship, top-of-funnel C-suite stages. Audience: "
+    "CEO, CIO/CTO, Chief AI Officer, COO, CDO, CPO, Head of Government "
+    "Compliance, boards. Themes: AI strategy, culture of experimentation, AI "
+    "literacy, enterprise innovation. Global; the catch-all for anything "
+    "high-profile.\n"
+    "- Verma — co-founder; REGULATED industries: insurance, healthcare, finance "
+    "/ banking, capital markets, fintech. Audience: boards, exec teams, CIO/CTO, "
+    "CEO, COO, CDO, CPO. Themes: de-risking AI, scaling experimentation, "
+    "evidence-based decisions. Global, especially Asia-Pacific and Europe; "
+    "catch-all alongside Thor.\n"
+    "- Carlos — all of LATIN AMERICA (Brazil/Sao Paulo, Mexico, Argentina, "
+    "Chile, Colombia, Peru, etc.). Usually mid-market but open to anything in "
+    "the region; events he sources are his.\n"
+    "Guidance: a European event -> Jerome; an HR / L&D / people or "
+    "design-thinking event -> Joe; an insurance / health / finance event -> "
+    "Verma; a Latin-American event -> Carlos; a flagship C-suite stage -> Thor. "
+    "Thor and Verma are the catch-alls for high-profile events or anything "
+    "outside the others' areas."
 )
 
 # Concise, non-sensitive company background (distilled from the ArcticBlue
@@ -203,10 +217,16 @@ _COMPANY_CONTEXT = (os.environ.get('ARCTICBLUE_CONTEXT') or (
 )).strip()
 
 
-def _ask_openai(question, history, events):
+def _ask_openai(question, history, events, user=''):
     messages = [{'role': 'system',
                  'content': _SYSTEM.format(today=date.today().isoformat())}]
     messages.append({'role': 'system', 'content': _TEAM_CONTEXT})
+    user = (user or '').strip()
+    if user and user.lower() != 'team':
+        messages.append({'role': 'system', 'content': (
+            'The person asking is signed in as "%s". When they say "me", "I", '
+            '"my", or "us", tailor recommendations to that person\'s coverage '
+            'profile from TEAM COVERAGE above; otherwise answer neutrally.' % user)})
     if _COMPANY_CONTEXT:
         messages.append({'role': 'system',
                          'content': 'ARCTICBLUE CONTEXT:\n' + _COMPANY_CONTEXT})
@@ -301,7 +321,7 @@ class handler(BaseHTTPRequestHandler):
             return _send(self, 400, {'error': 'no question'})
         events = _gather_events(self.headers.get('Host', ''))
         try:
-            answer, names = _ask_openai(question, body.get('history'), events)
+            answer, names = _ask_openai(question, body.get('history'), events, body.get('user'))
         except Exception as e:  # noqa: BLE001
             return _send(self, 502, {'error': 'assistant failed: %s' % str(e)[:300]})
         cards = _match_cards(names, events)

@@ -2286,6 +2286,14 @@ def build():
             <option value="gte2500">$2,500+ (high clientele)</option>
             <option value="known">Price known</option>
           </select>
+          <select id="ops-fits" aria-label="Show events that fit a teammate" title="Show only events matching one teammate's target profile (geography, audience, industry, themes)">
+            <option value="">Fits: anyone</option>
+            <option value="Jerome">Fits: Jerome (Europe)</option>
+            <option value="Joe">Fits: Joe (HR / L&amp;D)</option>
+            <option value="Thor">Fits: Thor (C-suite)</option>
+            <option value="Verma">Fits: Verma (regulated)</option>
+            <option value="Carlos">Fits: Carlos (LatAm)</option>
+          </select>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-speaker">Has speaker</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
           <div class="ops-months">
@@ -3474,6 +3482,7 @@ def build():
       card.dataset.attend   = (st.attend_verdict || '');
       card.dataset.interested = (st.interested && st.interested.length) ? '1' : '';
       card.dataset.interestedNames = (st.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
+      card.dataset.fitText = abFold([ev.name, ev.about, ev.focus_areas, ev.typical_attendees, ev.location, ev.city, ev.country, ev.type, ev.past_speakers, ev.audience_type].join(' '));
       var _opsPast = isPastEvent(ev);
       card.dataset.past = _opsPast ? '1' : '';
       if (_opsPast) card.classList.add('is-past');
@@ -3637,6 +3646,7 @@ def build():
       card.dataset.attend   = (mev.attend_verdict || '');
       card.dataset.interested = (mev.interested && mev.interested.length) ? '1' : '';
       card.dataset.interestedNames = (mev.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
+      card.dataset.fitText = abFold([mev.name, mev.about, mev.focus_areas, mev.typical_attendees, mev.location, mev.city, mev.country, mev.type, mev.past_speakers, mev.audience_type].join(' '));
       var _manPast = isPastEvent(mev);
       card.dataset.past = _manPast ? '1' : '';
       if (_manPast) card.classList.add('is-past');
@@ -4358,6 +4368,8 @@ def build():
       var fMeet    = !!($meet && $meet.checked);
       var fWorth   = !!($worth && $worth.checked);
       var fPrice   = $price ? ($price.value || '') : '';
+      var $fits    = document.getElementById('ops-fits');
+      var fitsProfile = ($fits && $fits.value) ? AB_PROFILE_BY_KEY[$fits.value] : null;
       var showPast   = !!($past && $past.checked);
       var showHidden = !!($hidden && $hidden.checked);
       // Toggle has-active classes for chip styling
@@ -4396,6 +4408,7 @@ def build():
         var on = true;
         if (q && (card.textContent || '').toLowerCase().indexOf(q) === -1) on = false;
         if (rg && card.dataset.region !== rg) on = false;
+        if (fitsProfile && !profileFits(fitsProfile, card.dataset.fitText, card.dataset.region)) on = false;
         if (fSaved && !card.classList.contains('is-saved'))  on = false;
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
         if (fSpeaker && card.dataset.hasSpeaker !== '1')       on = false;
@@ -4481,7 +4494,7 @@ def build():
     }}
 
     function wireFilters() {{
-      ['ops-search','ops-region','ops-price','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden'].forEach(function (id) {{
+      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden'].forEach(function (id) {{
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -4712,25 +4725,39 @@ def build():
     }}
 
     // ── Planner: scheduling conflicts + coverage gaps by territory ──
-    var AB_TERRITORIES = [
-      {{ who: 'Jerome', label: 'Europe / EMEA', test: function (it) {{
-        return it.region === 'Europe' || /\\b(europe|emea|london|zurich|geneva|paris|berlin|amsterdam|madrid|barcelona|lisbon|brussels|stockholm|munich|milan|dublin|vienna|copenhagen|helsinki|oslo)\\b/.test(it.text);
-      }} }},
-      {{ who: 'Carlos', label: 'Latin America', test: function (it) {{
-        // Carlos's own ingest agent stamps created_by=carlos — always his.
-        return it.createdBy.indexOf('carlos') !== -1 ||
-          /\\b(latin america|latam|south america|brazil|brasil|sao paulo|mexico|argentina|chile|colombia|peru|bogota|lima|santiago|buenos aires)\\b/.test(it.text);
-      }} }},
-      {{ who: 'Jim', label: 'Governments / sovereign AI', test: function (it) {{
-        return /\\b(government|govtech|gov tech|sovereign|public sector|ministry|ministerial|federal|world governments|smart nation|defense|defence|national security)\\b/.test(it.text);
-      }} }},
-      {{ who: 'Verma', label: 'Regulated industries (insurance / health / finance)', test: function (it) {{
-        return /\\b(insurance|insurtech|health|healthcare|pharma|medical|life sciences|fintech|finance|financial services|bank|banking|capital markets|payments|wealth)\\b/.test(it.text);
-      }} }},
-      {{ who: 'Joe', label: 'US / West Coast', test: function (it) {{
-        return it.region === 'US & Canada';
-      }} }}
+    // ── Per-teammate target profiles ────────────────────────────────
+    // Single source of truth for "which events are for whom" — drives the
+    // Planner's coverage gaps AND the grid "Fits" filter (and is mirrored in
+    // prose for the Ask-AI assistant). An event fits a profile if its canonical
+    // region is in `regions`, OR any keyword hits the event's folded text blob
+    // (matched as whole words). Keep keywords lowercase + punctuation-free.
+    var AB_PROFILES = [
+      {{ key: 'Jerome', label: 'Europe', regions: ['Europe'],
+         kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','uk','united kingdom','gdpr','web summit','vivatech','viva technology','dld','tnw','ai summit london'] }},
+      {{ key: 'Joe', label: 'HR & human enablement', regions: [],
+         kw: ['hr','human resources','chro','clo','chief people','people officer','talent','workforce','future of work','upskilling','reskilling','design thinking','curiosity','employee experience','human enablement','human capital','people analytics','organizational development','uxpa'] }},
+      {{ key: 'Thor', label: 'Flagship / C-suite', regions: [],
+         kw: ['ceo','chief executive','cio','cto','chief information','chief technology','chief ai officer','caio','cdo','chief data','coo','chief operating','cpo','chief product','chief digital','board','government compliance','davos','world economic forum','ai strategy','ai literacy'] }},
+      {{ key: 'Verma', label: 'Regulated industries', regions: ['Asia-Pacific','Europe'],
+         kw: ['insurance','insurtech','healthcare','health tech','pharma','life sciences','medical','finance','financial services','bank','banking','capital markets','payments','wealth','fintech','regulated','compliance'] }},
+      {{ key: 'Carlos', label: 'Latin America', regions: ['Latin America'],
+         kw: ['latin america','latam','south america','brazil','brasil','sao paulo','mexico','cdmx','argentina','buenos aires','chile','santiago','colombia','bogota','peru','lima','medellin','monterrey'] }}
     ];
+    var AB_PROFILE_BY_KEY = {{}};
+    AB_PROFILES.forEach(function (p) {{ AB_PROFILE_BY_KEY[p.key] = p; }});
+    // True if an event (canonical region + folded text blob) fits a profile.
+    function profileFits(p, blob, region) {{
+      if (!p) return false;
+      if (region && p.regions.indexOf(region) !== -1) return true;
+      var b = ' ' + String(blob || '').replace(/[^a-z0-9 ]/g, ' ').replace(/ +/g, ' ').trim() + ' ';
+      for (var i = 0; i < p.kw.length; i++) {{ if (b.indexOf(' ' + p.kw[i] + ' ') !== -1) return true; }}
+      return false;
+    }}
+
+    // Planner coverage-gap territories, derived from the profiles above.
+    var AB_TERRITORIES = AB_PROFILES.map(function (p) {{
+      return {{ who: p.key, label: p.label, test: function (it) {{ return profileFits(p, it.text, it.region); }} }};
+    }});
 
     function opsDateRange(o) {{
       var s = (o.start_date && /^\\d{{4}}-\\d{{2}}-\\d{{2}}/.test(o.start_date)) ? o.start_date.slice(0, 10) : null;
@@ -6944,7 +6971,7 @@ def build():
         fetch('/api/ask', {{
           method: 'POST',
           headers: {{ 'Content-Type': 'application/json' }},
-          body: JSON.stringify({{ question: q, history: _askHistory.slice(0, -1) }})
+          body: JSON.stringify({{ question: q, history: _askHistory.slice(0, -1), user: (typeof getCollabName === 'function' ? (getCollabName() || '') : '') }})
         }}).then(function (r) {{ return r.json().then(function (j) {{ return [r.status, j]; }}); }})
           .then(function (pair) {{
             sendBtn.disabled = false; sendBtn.textContent = 'Ask';
