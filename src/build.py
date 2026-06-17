@@ -502,10 +502,11 @@ def build():
     .app-title {{
       font-family: "Nunito Sans", var(--ab-sans);
       font-weight: 800; font-size: 2.6rem; letter-spacing: -0.02em;
-      line-height: 1.1; color: var(--ab-fg); margin: 0;
+      line-height: 1.1; color: #1fa0dc; margin: 0 auto; white-space: nowrap;
+      max-width: none; width: 100%; text-align: center;
     }}
-    @media (max-width: 560px) {{
-      .app-title {{ font-size: 1.7rem; }}
+    @media (max-width: 700px) {{
+      .app-title {{ font-size: 1.6rem; white-space: normal; }}
       .app-titlebar {{ padding: 18px 16px 6px; }}
     }}
 
@@ -869,6 +870,13 @@ def build():
     .qa-edit-ic {{ font-size: 0.92em; }}
     .modal-quickbar .qa[data-qa="saved"].on {{ background: var(--ab-blue); border-color: var(--ab-blue); }}
     .modal-quickbar .qa[data-qa="hidden"].on {{ background: var(--ab-fg-3); border-color: var(--ab-fg-3); }}
+    .modal-quickbar .qa[data-qa="go"].on {{ background: #1a8c54; border-color: #1a8c54; }}
+    .modal-quickbar .qa[data-qa="nogo"].on {{ background: #6b7280; border-color: #6b7280; }}
+    .qa-row-label {{
+      display: inline-flex; align-items: center; font-family: var(--ab-mono);
+      font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--ab-fg-3); margin-right: 2px;
+    }}
     .modal-edit-btn {{
       display: inline-flex; align-items: center; gap: 7px;
       font-family: var(--ab-sans); font-weight: 600; font-size: 0.9rem;
@@ -1588,6 +1596,128 @@ def build():
     }}
     .view-toggle button:hover {{ color: var(--ab-fg); }}
     .view-toggle button.active {{ background: var(--ab-bg); color: var(--ab-fg); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }}
+    /* Small count pill inside a view-toggle tab (Queue / Planner alerts). */
+    .vt-count {{
+      display: inline-block; min-width: 16px; margin-left: 6px; padding: 0 5px;
+      font-family: var(--ab-mono); font-size: 0.64rem; line-height: 16px;
+      text-align: center; border-radius: 9px; vertical-align: middle;
+      background: var(--ab-fg-3); color: #fff;
+    }}
+    .view-toggle button.active .vt-count {{ background: #1fa0dc; }}
+    .vt-count.alert {{ background: #d64545; }}
+
+    /* Go / No-go decision badges (cards + modal + queue rows). */
+    .decision-badge {{
+      display: inline-flex; align-items: center; gap: 3px;
+      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+    }}
+    .decision-badge.go    {{ background: rgba(31,160,90,0.14); color: #1a8c54; }}
+    .decision-badge.nogo  {{ background: rgba(150,150,150,0.16); color: var(--ab-fg-3); }}
+    .ops-card.is-nogo {{ opacity: 0.55; }}
+    .ops-card.is-nogo:hover {{ opacity: 1; }}
+
+    /* ── Queue view (Angela's application queue) ─────────────────── */
+    .ops-queue, .ops-planner {{ display: none; }}
+    .ops-queue.show, .ops-planner.show {{ display: block; }}
+    .queue-intro, .planner-intro {{
+      font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 18px; max-width: 70ch; line-height: 1.5;
+    }}
+    .queue-section {{ margin: 0 0 26px; }}
+    .queue-sec-head {{
+      display: flex; align-items: baseline; gap: 10px; margin: 0 0 10px;
+      padding-bottom: 6px; border-bottom: 1px solid var(--ab-rule);
+    }}
+    .queue-sec-title {{ font-family: var(--ab-sans); font-weight: 700; font-size: 1.02rem; color: var(--ab-fg); }}
+    .queue-sec-count {{ font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); }}
+    .queue-row {{
+      display: grid; grid-template-columns: 1fr auto; gap: 6px 14px;
+      align-items: start; padding: 12px 14px; margin: 0 0 8px;
+      border: 1px solid var(--ab-rule); border-radius: 10px; background: var(--ab-bg);
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }}
+    .queue-row:hover {{ border-color: #bfe3f5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }}
+    .queue-row.is-nogo {{ opacity: 0.6; }}
+    .queue-main {{ min-width: 0; }}
+    .queue-name {{
+      font-family: var(--ab-sans); font-weight: 650; font-size: 0.98rem; color: var(--ab-fg);
+      background: none; border: 0; padding: 0; cursor: pointer; text-align: left;
+    }}
+    .queue-name:hover {{ color: #1fa0dc; text-decoration: underline; }}
+    .queue-meta {{ font-size: 0.8rem; color: var(--ab-fg-3); margin: 3px 0 0; }}
+    .queue-chips {{ display: flex; flex-wrap: wrap; gap: 5px; margin: 7px 0 0; align-items: center; }}
+    .q-int-chip {{
+      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 600;
+      padding: 2px 7px; border-radius: 999px;
+      background: rgba(31,160,220,0.12); color: #1271a8;
+    }}
+    .q-stage-pill {{
+      font-family: var(--ab-mono); font-size: 0.64rem; padding: 2px 7px;
+      border-radius: 999px; border: 1px solid var(--ab-rule); color: var(--ab-fg-2);
+    }}
+    .q-deadline {{ font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-3); }}
+    .q-deadline.soon {{ color: #d64545; font-weight: 600; }}
+    .queue-actions {{ display: flex; flex-direction: column; gap: 6px; align-items: stretch; }}
+    .q-btn {{
+      font-family: var(--ab-sans); font-size: 0.78rem; font-weight: 550;
+      padding: 5px 11px; border-radius: 7px; border: 1px solid var(--ab-rule);
+      background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; white-space: nowrap;
+      transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+    }}
+    .q-btn:hover {{ border-color: #1fa0dc; color: #1271a8; }}
+    .q-btn.primary {{ background: #1fa0dc; border-color: #1fa0dc; color: #fff; }}
+    .q-btn.primary:hover {{ background: #1488bf; }}
+    .q-btn.danger:hover {{ border-color: #d64545; color: #d64545; }}
+    .queue-empty, .planner-empty {{
+      padding: 20px; border: 1px dashed var(--ab-rule); border-radius: 10px;
+      color: var(--ab-fg-3); font-size: 0.9rem; text-align: center;
+    }}
+
+    /* ── Planner view (conflicts + coverage gaps) ─────────────────── */
+    .planner-section {{ margin: 0 0 30px; }}
+    .planner-sec-head {{
+      display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px;
+      padding-bottom: 6px; border-bottom: 1px solid var(--ab-rule);
+    }}
+    .planner-sec-title {{ font-family: var(--ab-sans); font-weight: 700; font-size: 1.05rem; color: var(--ab-fg); }}
+    .planner-sec-sub {{ font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); }}
+    .conflict-row {{
+      display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; margin: 0 0 8px;
+      border: 1px solid rgba(214,69,69,0.35); border-radius: 10px; background: rgba(214,69,69,0.05);
+    }}
+    .conflict-icon {{ font-size: 1.1rem; line-height: 1.3; }}
+    .conflict-body {{ min-width: 0; font-size: 0.88rem; color: var(--ab-fg); }}
+    .conflict-who {{ font-weight: 700; }}
+    .conflict-vs {{ display: block; margin-top: 4px; color: var(--ab-fg-2); font-size: 0.84rem; }}
+    .conflict-evt {{
+      background: none; border: 0; padding: 0; cursor: pointer; color: #1271a8;
+      font: inherit; font-weight: 600; text-align: left;
+    }}
+    .conflict-evt:hover {{ text-decoration: underline; }}
+    .gap-owner {{ margin: 0 0 18px; border: 1px solid var(--ab-rule); border-radius: 12px; overflow: hidden; }}
+    .gap-owner-head {{
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px;
+      padding: 11px 14px; background: var(--ab-bg-3);
+    }}
+    .gap-owner-name {{ font-family: var(--ab-sans); font-weight: 700; font-size: 0.98rem; color: var(--ab-fg); }}
+    .gap-owner-terr {{ font-size: 0.82rem; color: var(--ab-fg-2); }}
+    .gap-owner-stat {{ font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-3); margin-left: auto; }}
+    .gap-owner-stat b {{ color: #d64545; }}
+    .gap-list {{ padding: 6px 14px 12px; }}
+    .gap-row {{
+      display: grid; grid-template-columns: 1fr auto; gap: 4px 12px;
+      align-items: center; padding: 9px 0; border-bottom: 1px solid var(--ab-rule);
+    }}
+    .gap-row:last-child {{ border-bottom: 0; }}
+    .gap-name {{
+      background: none; border: 0; padding: 0; cursor: pointer; text-align: left;
+      font-family: var(--ab-sans); font-weight: 600; font-size: 0.9rem; color: var(--ab-fg);
+    }}
+    .gap-name:hover {{ color: #1fa0dc; text-decoration: underline; }}
+    .gap-meta {{ font-size: 0.78rem; color: var(--ab-fg-3); margin-top: 2px; }}
+    .gap-none {{ padding: 10px 14px; font-size: 0.85rem; color: var(--ab-fg-3); }}
+    .gap-more {{ padding: 8px 14px 0; font-size: 0.78rem; color: var(--ab-fg-3); }}
 
     /* Calendar view */
     .ops-calendar {{ display: none; }}
@@ -2136,6 +2266,8 @@ def build():
           <button type="button" role="tab" data-view="grid"     class="active" aria-selected="true">Grid</button>
           <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
           <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
+          <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
+          <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
         </div>
         <div class="ops-toolbar">
           <div class="ops-toolbar-group" role="group" aria-label="Add events">
@@ -2186,6 +2318,8 @@ def build():
             </aside>
           </div>
         </div>
+        <div class="ops-queue" id="ops-queue"></div>
+        <div class="ops-planner" id="ops-planner"></div>
       </div>
 
     </div><!-- /panel-angela -->
@@ -2367,9 +2501,15 @@ def build():
     b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Mark Submitted') + '</button>');
     b.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
     b.push('<button type="button" class="qa' + (att ? ' on' : '') + '" data-qa="attending">' + (att ? '✓ Attending' : 'Attending') + '</button>');
+    // Go / No-go decision — pursue this event or pass on it. Mutually exclusive.
+    var dec = rec.decision || '';
+    var g = [];
+    g.push('<button type="button" class="qa' + (dec === 'go' ? ' on' : '') + '" data-qa="go">' + (dec === 'go' ? '✓ Go' : 'Go') + '</button>');
+    g.push('<button type="button" class="qa' + (dec === 'no-go' ? ' on' : '') + '" data-qa="nogo">' + (dec === 'no-go' ? '✓ No-go' : 'No-go') + '</button>');
     // Fast one-tap actions. (The "Edit event" toggle lives in the modal header,
     // top-right, in the same spot for every event.)
-    return '<div class="modal-quickbar"><div class="qa-row">' + b.join('') + '</div></div>';
+    return '<div class="modal-quickbar"><div class="qa-row">' + b.join('') + '</div>' +
+           '<div class="qa-row" style="margin-top:6px;"><span class="qa-row-label">Decision:</span>' + g.join('') + '</div></div>';
   }}
   function wireQuickBar(rec) {{
     var bar = $body.querySelector('.modal-quickbar');
@@ -2381,6 +2521,8 @@ def build():
       var patch = {{}};
       if (qa === 'saved') {{ rec.saved = !rec.saved; patch.saved = rec.saved; }}
       else if (qa === 'hidden') {{ rec.hidden = !rec.hidden; patch.hidden = rec.hidden; }}
+      else if (qa === 'go')   {{ rec.decision = (rec.decision === 'go')    ? null : 'go';    patch.decision = rec.decision; }}
+      else if (qa === 'nogo') {{ rec.decision = (rec.decision === 'no-go') ? null : 'no-go'; patch.decision = rec.decision; }}
       else if (qa === 'attending') {{
         var on = (rec.attend_verdict || '').indexOf('Worth') === 0;
         rec.attend_verdict = on ? null : 'Worth attending';
@@ -2524,6 +2666,8 @@ def build():
     if (rec.attend_verdict) badges.push('<span class="badge ' + attendClass(rec.attend_verdict) + '">' + esc(rec.attend_verdict) + '</span>');
     if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
+    if (rec.decision === 'go')    badges.push('<span class="badge decision-badge go">✓ Go</span>');
+    if (rec.decision === 'no-go') badges.push('<span class="badge decision-badge nogo">No-go</span>');
     $badges.innerHTML = badges.join('');
 
     $date.textContent  = rec.date_str || '';
@@ -2716,6 +2860,13 @@ def build():
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
     // | 'buyer' | 'worth') — click a top stat to show only those events.
     var opsStatFilter = '';
+
+    // Last-fetched data, cached by renderOps() so the Queue + Planner views can
+    // render from the SAME set the grid just built (no extra fetch).
+    var _lastEvs = [], _lastStateMap = {{}}, _lastStateRows = [], _lastManual = [];
+    // Roster used by the Planner's coverage-gap "Flag for X" action. (The modal
+    // closure has its own AB_ROSTER; this closure needs its own copy.)
+    var OPS_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
 
     function showOnly(el) {{
       [$loading, $signin, $sent, $unauth, $ops].forEach(function (n) {{
@@ -3157,6 +3308,10 @@ def build():
       var _soon = isDeadlineSoon(ev.deadline) && !_opsPast;
       if (_soon) card.dataset.deadlineSoon = '1';
       if (st.urgent || _soon) card.classList.add('is-urgent');
+      card.dataset.decision = (st.decision || '');
+      if (st.decision === 'no-go') card.classList.add('is-nogo');
+      var decBadge = st.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>'
+                   : st.decision === 'no-go' ? '<span class="decision-badge nogo">No-go</span>' : '';
 
       var metaLine = (st.updated_by && st.updated_at)
         ? '<p class="ops-meta" title="' + escapeHtml(st.updated_by) + '">Last edit · ' + escapeHtml(firstNameFromEmail(st.updated_by)) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
@@ -3180,6 +3335,7 @@ def build():
             '<button class="saved-star' + (st.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (st.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (st.saved ? '★' : '☆') + '</button>' +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             '<button class="ops-chip' + (st.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (st.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
+            decBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(ev.date_str) + '</p>' +
         '</div>' +
@@ -3248,6 +3404,7 @@ def build():
           if (st[f] != null && String(st[f]).trim() !== '') rec[f] = st[f];
         }});
         if (st.interested && st.interested.length) rec.interested = st.interested;
+        if (st.decision) rec.decision = st.decision;
         rec.stage_tags = opsStages;
       }}
       rec.saved  = !!(st && st.saved);
@@ -3343,6 +3500,10 @@ def build():
       // Urgent = an apply/CFP deadline that's closing soon (not just upcoming).
       var _manSoon = isDeadlineSoon(mev.deadline) && !_manPast;
       if (_manSoon) {{ card.dataset.deadlineSoon = '1'; card.classList.add('is-urgent'); }}
+      card.dataset.decision = (mev.decision || '');
+      if (mev.decision === 'no-go') card.classList.add('is-nogo');
+      var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>'
+                    : mev.decision === 'no-go' ? '<span class="decision-badge nogo">No-go</span>' : '';
       var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
       card.dataset.month = manualMeta.key;
       card.dataset.monthLabel = manualMeta.label;
@@ -3413,6 +3574,7 @@ def build():
             audChip +
             attendChip +
             meetChip +
+            mDecBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
         '</div>' +
@@ -4286,6 +4448,316 @@ def build():
       }});
     }}
 
+    // ════════════════════════════════════════════════════════════════
+    // Queue + Planner views — render from the cached last-fetched data.
+    // ════════════════════════════════════════════════════════════════
+
+    // Accent-fold + lowercase, so territory keyword matching catches "São".
+    function abFold(s) {{
+      try {{ return String(s == null ? '' : s).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase(); }}
+      catch (e) {{ return String(s == null ? '' : s).toLowerCase(); }}
+    }}
+
+    // Normalise a catalog or manual row into the one shape the new views share.
+    function opsItem(kind, base, st) {{
+      var stages = stageTagsOf(st || base);
+      var interested = (st && st.interested) || base.interested || [];
+      var meta = opsMonthMeta(base.start_date || (st && st.start_date), base.date_str);
+      var blob = [base.name, base.about, base.focus_areas, base.typical_attendees,
+                  base.location, base.region, base.city, base.country, base.type,
+                  base.notes, base.past_speakers].join(' ');
+      return {{
+        kind: kind,
+        key: (kind === 'manual') ? base.id : base.num,
+        name: base.name || 'Event',
+        date_str: base.date_str || '',
+        region: base.region || '',
+        location: base.location || '',
+        speaker: (st && st.speaker) || base.speaker || '',
+        interested: (interested && interested.slice) ? interested.slice() : [],
+        stages: stages,
+        decision: (st && st.decision) || base.decision || '',
+        deadline: (st && st.deadline) || base.deadline || '',
+        past: isPastEvent(base),
+        sort: meta.sort,
+        startObj: base,
+        text: abFold(blob)
+      }};
+    }}
+
+    function opsAllItems() {{
+      var items = [];
+      (_lastEvs || []).forEach(function (ev) {{ items.push(opsItem('catalog', ev, _lastStateMap[ev.num] || {{}})); }});
+      (_lastManual || []).forEach(function (m) {{ items.push(opsItem('manual', m, m)); }});
+      return items;
+    }}
+
+    // Open the rich modal for a queue/planner row by reusing the grid card's
+    // stashed _modalRec (which carries full edit context), so editing works.
+    function opsOpenRef(kind, key) {{
+      var sel = (kind === 'manual')
+        ? '.ops-card[data-manual-id="' + key + '"]'
+        : '.ops-card[data-event-num="' + key + '"]';
+      var card = $opsGrid.querySelector(sel);
+      if (card && card._modalRec && window.openEventModal) window.openEventModal(card._modalRec);
+    }}
+
+    function qStagePills(stages) {{
+      if (!stages || !stages.length) return '<span class="q-stage-pill">Not started</span>';
+      return stages.map(function (s) {{ return '<span class="q-stage-pill" style="' + stageStyle(s) + '">' + escapeHtml(s) + '</span>'; }}).join('');
+    }}
+
+    function opsQuickWrite(kind, key, patch) {{
+      if (!window.opsWrite) return;
+      window.opsWrite(kind === 'manual' ? 'manual_events' : 'event_state', key, patch);
+    }}
+
+    // ── Queue: every flagged "apply for me" event, grouped by progress ──
+    function renderQueue() {{
+      var host = document.getElementById('ops-queue');
+      if (!host) return;
+      var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Declined'];
+      var items = opsAllItems().filter(function (it) {{ return it.interested.length && !it.past; }});
+
+      function deadlineHtml(it) {{
+        if (!it.deadline) return '';
+        var soon = isDeadlineSoon(it.deadline);
+        return '<span class="q-deadline' + (soon ? ' soon' : '') + '">&#9203; ' + escapeHtml(it.deadline) + '</span>';
+      }}
+      function rowHtml(it, actions) {{
+        var ints = it.interested.map(function (n) {{ return '<span class="q-int-chip">' + escapeHtml(n) + '</span>'; }}).join('');
+        var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>'
+                : it.decision === 'no-go' ? '<span class="decision-badge nogo">No-go</span>' : '';
+        var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
+        return '<div class="queue-row' + (it.decision === 'no-go' ? ' is-nogo' : '') + '">' +
+            '<div class="queue-main">' +
+              '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+              '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
+              '<div class="queue-chips">' + ints + qStagePills(it.stages) + dec + deadlineHtml(it) + '</div>' +
+            '</div>' +
+            '<div class="queue-actions">' + actions(it) + '</div>' +
+          '</div>';
+      }}
+
+      var booked = [], submitted = [], toApply = [], passed = [];
+      items.forEach(function (it) {{
+        if (it.decision === 'no-go') {{ passed.push(it); return; }}
+        if (it.stages.indexOf('Booked') !== -1) booked.push(it);
+        else if (it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Meeting held') !== -1) submitted.push(it);
+        else toApply.push(it);
+      }});
+      function bySoonThenDate(a, b) {{
+        var as = isDeadlineSoon(a.deadline) ? 0 : 1, bs = isDeadlineSoon(b.deadline) ? 0 : 1;
+        if (as !== bs) return as - bs;
+        return a.sort - b.sort;
+      }}
+      toApply.sort(bySoonThenDate); submitted.sort(bySoonThenDate);
+      booked.sort(function (a, b) {{ return a.sort - b.sort; }});
+
+      function markStage(it, stage) {{
+        var tags = it.stages.slice();
+        if (tags.indexOf(stage) === -1) tags.push(stage);
+        tags = order.filter(function (s) {{ return tags.indexOf(s) !== -1; }});
+        opsQuickWrite(it.kind, it.key, {{ status_tags: tags }});
+      }}
+
+      var html = '<p class="queue-intro"><strong>Angela&#39;s application queue.</strong> Every event a teammate flagged as &ldquo;apply for me,&rdquo; grouped by where it stands. Add more from any event &rarr; <em>Edit</em> &rarr; &ldquo;Interested,&rdquo; or from the Planner&#39;s coverage gaps.</p>';
+
+      function section(title, list, kind) {{
+        if (!list.length) return '';
+        var rows = list.map(function (it) {{
+          return rowHtml(it, function (x) {{
+            var btns = '';
+            if (kind === 'toApply') btns += '<button class="q-btn primary" data-act="submitted" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark applied</button>';
+            else if (kind === 'submitted') btns += '<button class="q-btn primary" data-act="booked" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark booked</button>';
+            btns += '<button class="q-btn" data-ref-kind="' + x.kind + '" data-ref-key="' + escapeHtml(String(x.key)) + '">Open</button>';
+            return btns;
+          }});
+        }}).join('');
+        return '<div class="queue-section"><div class="queue-sec-head"><span class="queue-sec-title">' + title + '</span><span class="queue-sec-count">' + list.length + '</span></div>' + rows + '</div>';
+      }}
+
+      if (!items.length) {{
+        html += '<div class="queue-empty">Nobody has flagged an event yet.<br>Open any event &rarr; <strong>Edit</strong> &rarr; tick a name under &ldquo;Interested &mdash; wants Angela to apply,&rdquo; and it lands here.</div>';
+      }} else {{
+        html += section('To apply', toApply, 'toApply');
+        html += section('Submitted / in progress', submitted, 'submitted');
+        html += section('Booked', booked, 'booked');
+        if (passed.length) html += section('Passed (No-go)', passed, 'passed');
+      }}
+      host.innerHTML = html;
+
+      host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
+        el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
+      }});
+      host.querySelectorAll('[data-act]').forEach(function (btn) {{
+        btn.addEventListener('click', function (e) {{
+          e.stopPropagation();
+          var it = items.filter(function (x) {{ return x.kind === btn.getAttribute('data-k') && String(x.key) === btn.getAttribute('data-key'); }})[0];
+          if (it) markStage(it, btn.getAttribute('data-act') === 'submitted' ? 'Submitted' : 'Booked');
+        }});
+      }});
+      updateViewBadges();
+    }}
+
+    // ── Planner: scheduling conflicts + coverage gaps by territory ──
+    var AB_TERRITORIES = [
+      {{ who: 'Jerome', label: 'Europe / EMEA', test: function (it) {{
+        return it.region === 'Europe' || /\\b(europe|emea|london|zurich|geneva|paris|berlin|amsterdam|madrid|barcelona|lisbon|brussels|stockholm|munich|milan|dublin|vienna|copenhagen|helsinki|oslo)\\b/.test(it.text);
+      }} }},
+      {{ who: 'Carlos', label: 'Latin America', test: function (it) {{
+        return /\\b(latin america|latam|south america|brazil|brasil|sao paulo|mexico|argentina|chile|colombia|peru|bogota|lima|santiago|buenos aires)\\b/.test(it.text);
+      }} }},
+      {{ who: 'Jim', label: 'Governments / sovereign AI', test: function (it) {{
+        return /\\b(government|govtech|gov tech|sovereign|public sector|ministry|ministerial|federal|world governments|smart nation|defense|defence|national security)\\b/.test(it.text);
+      }} }},
+      {{ who: 'Verma', label: 'Regulated industries (insurance / health / finance)', test: function (it) {{
+        return /\\b(insurance|insurtech|health|healthcare|pharma|medical|life sciences|fintech|finance|financial services|bank|banking|capital markets|payments|wealth)\\b/.test(it.text);
+      }} }},
+      {{ who: 'Joe', label: 'US / West Coast', test: function (it) {{
+        return it.region === 'Americas' && !/\\b(latin america|latam|south america|brazil|brasil|sao paulo|mexico|argentina|chile|colombia|peru|toronto|canada|vancouver|montreal)\\b/.test(it.text);
+      }} }}
+    ];
+
+    function opsDateRange(o) {{
+      var s = (o.start_date && /^\\d{{4}}-\\d{{2}}-\\d{{2}}/.test(o.start_date)) ? o.start_date.slice(0, 10) : null;
+      var e = (o.end_date && /^\\d{{4}}-\\d{{2}}-\\d{{2}}/.test(o.end_date)) ? o.end_date.slice(0, 10) : null;
+      if (!s && o.date_str) {{ try {{ var d = deriveDatesFromText(o.date_str); s = d.start_date; e = d.end_date; }} catch (x) {{}} }}
+      if (!s) return null;
+      if (!e) e = s;
+      var sm = new Date(s + 'T00:00:00').getTime();
+      var em = new Date(e + 'T23:59:59').getTime();
+      if (isNaN(sm)) return null;
+      if (isNaN(em) || em < sm) em = sm;
+      return [sm, em];
+    }}
+
+    function speakerTokens(sp) {{
+      if (!sp) return [];
+      return abFold(sp).split(/[,;/&]| and |\\bplus\\b/).map(function (s) {{ return s.trim(); }}).filter(Boolean);
+    }}
+
+    function findConflicts() {{
+      var byWho = {{}};
+      opsAllItems().forEach(function (it) {{
+        if (it.past || it.decision === 'no-go' || !it.speaker) return;
+        var range = opsDateRange(it.startObj);
+        if (!range) return;
+        speakerTokens(it.speaker).forEach(function (tok) {{
+          if (tok) (byWho[tok] = byWho[tok] || []).push({{ it: it, range: range }});
+        }});
+      }});
+      var conflicts = [];
+      Object.keys(byWho).forEach(function (tok) {{
+        var list = byWho[tok];
+        if (list.length < 2) return;
+        for (var i = 0; i < list.length; i++) {{
+          for (var j = i + 1; j < list.length; j++) {{
+            var a = list[i], b = list[j];
+            if (a.range[0] <= b.range[1] && b.range[0] <= a.range[1]) conflicts.push({{ who: tok, a: a.it, b: b.it }});
+          }}
+        }}
+      }});
+      return conflicts;
+    }}
+
+    function renderPlanner() {{
+      var host = document.getElementById('ops-planner');
+      if (!host) return;
+      var items = opsAllItems();
+      var html = '<p class="planner-intro"><strong>Planner.</strong> Two checks the calendar can&#39;t do on its own: scheduling conflicts (one speaker double-booked) and coverage gaps (events in a territory with nobody assigned yet).</p>';
+
+      var conflicts = findConflicts();
+      html += '<div class="planner-section"><div class="planner-sec-head"><span class="planner-sec-title">&#9888; Scheduling conflicts</span><span class="planner-sec-sub">' + conflicts.length + ' found</span></div>';
+      if (!conflicts.length) {{
+        html += '<div class="planner-empty">No conflicts &mdash; every assigned speaker is in one place at a time.</div>';
+      }} else {{
+        conflicts.forEach(function (c) {{
+          var who = c.who.charAt(0).toUpperCase() + c.who.slice(1);
+          html += '<div class="conflict-row"><span class="conflict-icon">&#9888;</span><div class="conflict-body">' +
+            '<span class="conflict-who">' + escapeHtml(who) + '</span> is booked for two overlapping events:' +
+            '<span class="conflict-vs">' +
+              '<button class="conflict-evt" data-ref-kind="' + c.a.kind + '" data-ref-key="' + escapeHtml(String(c.a.key)) + '">' + escapeHtml(c.a.name) + '</button> (' + escapeHtml(c.a.date_str || '?') + ')' +
+              ' &nbsp;vs&nbsp; ' +
+              '<button class="conflict-evt" data-ref-kind="' + c.b.kind + '" data-ref-key="' + escapeHtml(String(c.b.key)) + '">' + escapeHtml(c.b.name) + '</button> (' + escapeHtml(c.b.date_str || '?') + ')' +
+            '</span></div></div>';
+        }});
+      }}
+      html += '</div>';
+
+      html += '<div class="planner-section"><div class="planner-sec-head"><span class="planner-sec-title">&#128506; Coverage gaps by territory</span><span class="planner-sec-sub">upcoming events with no speaker assigned</span></div>';
+      var CAP = 12;
+      AB_TERRITORIES.forEach(function (terr) {{
+        var inTerr = items.filter(function (it) {{ return !it.past && terr.test(it); }});
+        if (!inTerr.length) return;
+        var covered = inTerr.filter(function (it) {{ return it.speaker && it.speaker.trim(); }});
+        var gaps = inTerr.filter(function (it) {{ return !(it.speaker && it.speaker.trim()) && it.decision !== 'no-go'; }});
+        gaps.sort(function (a, b) {{ return a.sort - b.sort; }});
+        html += '<div class="gap-owner"><div class="gap-owner-head">' +
+            '<span class="gap-owner-name">' + escapeHtml(terr.who) + '</span>' +
+            '<span class="gap-owner-terr">' + escapeHtml(terr.label) + '</span>' +
+            '<span class="gap-owner-stat">' + inTerr.length + ' in territory &middot; ' + covered.length + ' covered &middot; <b>' + gaps.length + ' open</b></span>' +
+          '</div>';
+        if (!gaps.length) {{
+          html += '<p class="gap-none">&#10003; All ' + inTerr.length + ' covered &mdash; nothing open.</p>';
+        }} else {{
+          html += '<div class="gap-list">';
+          gaps.slice(0, CAP).forEach(function (it) {{
+            var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
+            var flagged = it.interested.indexOf(terr.who) !== -1;
+            html += '<div class="gap-row"><div>' +
+                '<button class="gap-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+                '<p class="gap-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
+              '</div>' +
+              (flagged
+                ? '<span class="q-int-chip">&#10003; Flagged for ' + escapeHtml(terr.who) + '</span>'
+                : '<button class="q-btn primary" data-flag="' + escapeHtml(terr.who) + '" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ Flag for ' + escapeHtml(terr.who) + '</button>') +
+              '</div>';
+          }});
+          if (gaps.length > CAP) html += '<p class="gap-more">Showing first ' + CAP + ' of ' + gaps.length + ' &mdash; assign or flag some to clear the list.</p>';
+          html += '</div>';
+        }}
+        html += '</div>';
+      }});
+      html += '</div>';
+      host.innerHTML = html;
+
+      host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
+        el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
+      }});
+      host.querySelectorAll('[data-flag]').forEach(function (btn) {{
+        btn.addEventListener('click', function (e) {{
+          e.stopPropagation();
+          var who = btn.getAttribute('data-flag');
+          var kind = btn.getAttribute('data-k'), key = btn.getAttribute('data-key');
+          var it = items.filter(function (x) {{ return x.kind === kind && String(x.key) === key; }})[0];
+          if (!it) return;
+          var list = it.interested.slice();
+          if (list.indexOf(who) === -1) list.push(who);
+          list = OPS_ROSTER.filter(function (x) {{ return list.indexOf(x) !== -1; }});
+          opsQuickWrite(kind, key, {{ interested: list }});
+        }});
+      }});
+      updateViewBadges();
+    }}
+
+    // Count badges on the Queue / Planner tabs (open-to-apply count + conflicts).
+    function updateViewBadges() {{
+      var qc = document.getElementById('vt-queue-count');
+      var pc = document.getElementById('vt-planner-count');
+      if (qc) {{
+        var n = opsAllItems().filter(function (it) {{
+          return it.interested.length && !it.past && it.decision !== 'no-go' && it.stages.indexOf('Booked') === -1;
+        }}).length;
+        if (n) {{ qc.textContent = n; qc.removeAttribute('hidden'); }} else {{ qc.setAttribute('hidden', ''); }}
+      }}
+      if (pc) {{
+        var c = findConflicts().length;
+        if (c) {{ pc.textContent = c; pc.classList.add('alert'); pc.removeAttribute('hidden'); }}
+        else {{ pc.setAttribute('hidden', ''); pc.classList.remove('alert'); }}
+      }}
+    }}
+
     function renderOps(email) {{
       // Keep the reader's place across a re-render. A manual save AND the
       // realtime postgres_changes echo both call renderOps(); without this the
@@ -4350,6 +4822,12 @@ def build():
         _knownNames = Object.keys(_knownNameSource);
         // Mirror into the calendar view (uses the same data set)
         renderCalendar(evs, stateMap, manualRows);
+        // Cache for the Queue + Planner views; refresh whichever is active plus
+        // the tab-count badges (so flagging / conflicts update live).
+        _lastEvs = evs; _lastStateMap = stateMap; _lastStateRows = stateRows; _lastManual = manualRows;
+        if (currentView === 'queue') renderQueue();
+        else if (currentView === 'planner') renderPlanner();
+        updateViewBadges();
         // And the map, when it's the active view (realtime echo / saves).
         if (currentView === 'map' && _opsMapLayer) renderOpsMap();
         // Put the reader back where they were (captured at the top): re-open
@@ -4869,8 +5347,9 @@ def build():
     var VIEW_KEY = 'ab.angela.view';
     var currentView = 'grid';
 
+    var VIEW_NAMES = ['grid', 'calendar', 'map', 'queue', 'planner'];
     function setView(name) {{
-      if (name !== 'grid' && name !== 'calendar' && name !== 'map') name = 'grid';
+      if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
       currentView = name;
       document.querySelectorAll('.view-toggle button[data-view]').forEach(function (b) {{
         var on = b.dataset.view === name;
@@ -4880,10 +5359,16 @@ def build():
       var g = document.getElementById('ops-grid');
       var c = document.getElementById('ops-calendar');
       var m = document.getElementById('ops-map');
+      var q = document.getElementById('ops-queue');
+      var p = document.getElementById('ops-planner');
       if (g) g.style.display = (name === 'grid') ? '' : 'none';
       if (c) c.classList.toggle('show', name === 'calendar');
       if (m) m.classList.toggle('show', name === 'map');
+      if (q) q.classList.toggle('show', name === 'queue');
+      if (p) p.classList.toggle('show', name === 'planner');
       if (name === 'map') openOpsMap();
+      if (name === 'queue') renderQueue();
+      if (name === 'planner') renderPlanner();
       try {{ localStorage.setItem(VIEW_KEY, name); }} catch (e) {{}}
     }}
 
@@ -4896,7 +5381,7 @@ def build():
       }});
       try {{
         var saved = localStorage.getItem(VIEW_KEY);
-        if (saved === 'grid' || saved === 'calendar' || saved === 'map') setView(saved);
+        if (VIEW_NAMES.indexOf(saved) !== -1) setView(saved);
       }} catch (e) {{}}
     }}
 
