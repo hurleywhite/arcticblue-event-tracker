@@ -3243,6 +3243,15 @@ def build():
       return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
     }}
 
+    // Drop a trailing year (e.g. "Databricks Data + AI Summit 2026" → "…Summit")
+    // — the year is redundant with the event's date. Keeps the name if stripping
+    // would leave it empty (a year-only name).
+    function stripTrailingYear(name) {{
+      var s = String(name == null ? '' : name);
+      var out = s.replace(/[\\s,;:\\u2013\\u2014-]+(?:19|20)\\d{{2}}\\s*$/, '').trim();
+      return out || s.trim();
+    }}
+
     // ── Past-event detection (client-side, uses the REAL current date) ──
     // An event is "past" once its END date is before today. Computed live so
     // a just-ended event hides immediately — not only after the next daily
@@ -4914,6 +4923,9 @@ def build():
         // their event_state row) — they shouldn't reappear after the daily sync.
         var allEvs = (data.events || []).filter(function (e) {{ var s = stateMap[e.num]; return !(s && s.status === '__deleted__'); }});
         var evs = allEvs.filter(function (e) {{ return e.status !== 'archived'; }});
+        // Trailing-year strip for display — the year is redundant with the date.
+        allEvs.forEach(function (e) {{ if (e && e.name) e.name = stripTrailingYear(e.name); }});
+        manualRows.forEach(function (m) {{ if (m && m.name) m.name = stripTrailingYear(m.name); }});
         $opsGrid.innerHTML = '';
         allEvs.forEach(function (ev) {{
           var card = buildOpsCard(ev, stateMap[ev.num] || {{}}, email);
@@ -5336,6 +5348,12 @@ def build():
         var derived = deriveDatesFromText(row.date_str);
         if (derived.start_date) row.start_date = derived.start_date;
         if (derived.end_date)   row.end_date   = derived.end_date;
+        // Year is redundant with the date — strip a trailing year on save.
+        row.name = stripTrailingYear(row.name);
+        // Auto-flag whoever adds the event as interested, so it lands in
+        // Angela's Queue ("apply for me") immediately.
+        var _adder = getCollabName() || (email ? firstNameFromEmail(email) : '') || 'Team';
+        row.interested = [_adder];
         // HARD duplicate-name guard — case-insensitive across catalog + manual_events.
         // No confirm() escape hatch: duplicates land in the calendar as two
         // separate entries with two UIDs, which produces double-rendered
