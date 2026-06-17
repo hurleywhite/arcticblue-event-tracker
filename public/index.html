@@ -2130,7 +2130,7 @@
       return '<textarea class="me-input" data-edit="' + f + '" rows="' + (rows || 3) + '">' + esc(val || '') + '</textarea>';
     }
     var stages = rec.stage_tags || [];
-    var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Declined'];
+    var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Attending'];
     var chips = order.map(function (s) {
       return '<button type="button" class="me-stage' + (stages.indexOf(s) !== -1 ? ' on' : '') + '" data-stage="' + esc(s) + '">' + esc(s) + '</button>';
     }).join('');
@@ -2634,21 +2634,20 @@
     // read-side fallback below for rows not yet migrated.
     //
     // Order here IS the canonical pipeline order (Identified → … → Booked),
-    // with Declined as the terminal off-ramp last.
+    // with Attending as the alternate positive outcome.
     var STAGE_TAGS = [
       { key: 'Identified',   dot: '#737373', bg: '#e5e7eb', fg: '#374151' },
       { key: 'Submitted',    dot: '#0ea5e9', bg: '#bae6fd', fg: '#075985' },
       { key: 'Meeting held', dot: '#8b5cf6', bg: '#ddd6fe', fg: '#5b21b6' },
       { key: 'Booked',       dot: '#047857', bg: '#bbf7d0', fg: '#14532d' },
-      { key: 'Attending',    dot: '#0d9488', bg: '#ccfbf1', fg: '#115e59' },
-      { key: 'Declined',     dot: '#dc2626', bg: '#fee2e2', fg: '#991b1b' }
+      { key: 'Attending',    dot: '#0d9488', bg: '#ccfbf1', fg: '#115e59' }
     ];
     var STAGE_BY_KEY = {};
     STAGE_TAGS.forEach(function (s, i) { s.order = i; STAGE_BY_KEY[s.key] = s; });
     // "Most important" ranking for a single calendar tint when an event
-    // carries several stages: a win (Booked) trumps everything, then the
-    // terminal Declined, then progress backwards.
-    var STAGE_DISPLAY_RANK = ['Booked', 'Attending', 'Declined', 'Meeting held', 'Submitted', 'Identified'];
+    // carries several stages: a win (Booked) trumps everything, then
+    // Attending, then progress backwards.
+    var STAGE_DISPLAY_RANK = ['Booked', 'Attending', 'Meeting held', 'Submitted', 'Identified'];
 
     function stageStyle(key) {
       var s = STAGE_BY_KEY[key];
@@ -2683,7 +2682,7 @@
       if (!s) return [];
       if (/attending|will attend|attend only/i.test(s)) return ['Attending'];
       if (/book|self submitted|speaking|confirmed/i.test(s)) return ['Booked'];
-      if (/not accept|declin|\bskip\b|passing|we.ll pass|no opening|date conflict|sponsorship only|don.?t call/i.test(s)) return ['Declined'];
+      if (/not accept|declin|\bskip\b|passing|we.ll pass|no opening|date conflict|sponsorship only|don.?t call/i.test(s)) return [];
       if (/intro meeting|received intro|in contact|cc.?d on mtg|\bmeeting\b/i.test(s)) return ['Meeting held'];
       if (/submit|application|finish submission/i.test(s)) return ['Submitted'];
       return ['Identified'];
@@ -4124,7 +4123,7 @@
     function renderQueue() {
       var host = document.getElementById('ops-queue');
       if (!host) return;
-      var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Declined'];
+      var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Attending'];
       var items = opsAllItems().filter(function (it) { return it.interested.length && !it.past; });
 
       function deadlineHtml(it) {
@@ -6703,7 +6702,7 @@
     // The modal's quick-action buttons + "Edit Event" call these. opsWrite
     // routes a patch to the right table; opsOpenEditor expands the source
     // card's full edit form.
-    var _STAGE_ORDER = ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Attending', 'Declined'];
+    var _STAGE_ORDER = ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Attending'];
     window.opsStageOrder = _STAGE_ORDER;
     window.opsWrite = function (table, key, patch) {
       var who = getCollabName() || 'Team';
