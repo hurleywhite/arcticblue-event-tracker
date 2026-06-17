@@ -859,19 +859,24 @@ def build():
       background: #166534; color: #fff; border-color: #166534;
     }}
     /* Primary edit affordance — top-right of the modal header, same spot always. */
+    /* Edit — the primary action, solid ArcticBlue. */
     .qa-edit {{
-      display: inline-flex; align-items: center; gap: 6px; min-height: 34px;
-      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
-      padding: 0 16px; border-radius: 8px; cursor: pointer; white-space: nowrap;
-      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg-3); color: var(--ab-fg);
-      transition: all 0.12s;
+      display: inline-flex; align-items: center; gap: 7px; min-height: 36px;
+      font-family: var(--ab-sans); font-size: 0.85rem; font-weight: 600;
+      padding: 0 16px; border-radius: 9px; cursor: pointer; white-space: nowrap;
+      border: 1px solid #1fa0dc; background: #1fa0dc; color: #fff;
+      box-shadow: 0 1px 2px rgba(31,160,220,0.28);
+      transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, transform 0.06s ease;
     }}
-    .qa-edit:hover, .qa-edit.on {{ background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }}
-    .qa-edit-ic {{ font-size: 0.92em; }}
-    /* Enrich button — distinct purple "research" accent, sits left of Edit. */
-    .qa-enrich {{ background: #faf5ff; color: #7e22ce; border-color: #e9d5ff; }}
-    .qa-enrich:hover {{ background: #7e22ce; color: #fff; border-color: #7e22ce; }}
-    .qa-enrich[aria-busy] {{ opacity: 0.7; cursor: default; }}
+    .qa-edit:hover {{ background: #1488bf; border-color: #1488bf; }}
+    .qa-edit:active {{ transform: translateY(1px); }}
+    .qa-edit.on {{ background: #0f7298; border-color: #0f7298; box-shadow: none; }}
+    .qa-edit-ic {{ font-size: 0.95em; line-height: 1; }}
+    /* Enrich — soft purple "research" accent (AI = purple across the app);
+       a clear secondary to the solid-blue Edit primary. */
+    .qa-enrich {{ background: #f7f3ff; color: #7c3aed; border-color: #ddd6fe; box-shadow: none; }}
+    .qa-enrich:hover {{ background: #7c3aed; color: #fff; border-color: #7c3aed; }}
+    .qa-enrich[aria-busy] {{ opacity: 0.65; cursor: default; }}
     .modal-enrich-note {{
       font-family: var(--ab-sans); font-size: 0.85rem; padding: 8px 12px;
       border-radius: 8px; margin: 0 0 14px; background: var(--ab-bg-3); color: var(--ab-fg-2);
@@ -2815,7 +2820,7 @@ def build():
         ? '<button type="button" class="qa-edit qa-enrich" id="modal-enrich-btn" title="Search the web to fill in missing details for this event"><span class="qa-edit-ic" aria-hidden="true">✦</span> Enrich</button>'
         : '';
       $side.innerHTML = enrichBtn + (editForm
-        ? '<button type="button" class="qa-edit" id="modal-edit-toggle" aria-expanded="false"><span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event</button>'
+        ? '<button type="button" class="qa-edit" id="modal-edit-toggle" aria-expanded="false"><span class="qa-edit-ic" aria-hidden="true">✎</span> Edit</button>'
         : '');
       wireEnrichButton(rec);
       var et = document.getElementById('modal-edit-toggle');
@@ -2830,7 +2835,7 @@ def build():
         }} else {{
           form.setAttribute('hidden', ''); if (view) view.removeAttribute('hidden');
           et.classList.remove('on'); et.setAttribute('aria-expanded', 'false');
-          et.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event';
+          et.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✎</span> Edit';
         }}
       }});
     }}
