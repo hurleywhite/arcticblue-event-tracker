@@ -3002,7 +3002,6 @@
       // Attending-signal strip + one-click apply (the booking shortcut).
       var sigBits = [];
       if (ev.audience_type) sigBits.push('<span class="badge ' + audienceClass(ev.audience_type) + '">' + escapeHtml(ev.audience_type) + '</span>');
-      if (ev.pricing) sigBits.push('<span class="attend-sig" title="Price to attend">' + escapeHtml(ev.pricing) + '</span>');
       if (ev.meeting_formats) sigBits.push('<span class="attend-sig" title="' + escapeHtml(ev.meeting_formats) + '">1:1 meetings</span>');
       var sigRow = sigBits.length ? '<p class="attend-signals">' + sigBits.join('') + '</p>' : '';
       var applyUrl = speakingRouteUrl(ev.speaking_route);
@@ -3219,7 +3218,6 @@
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<div class="ops-chips">' +
-            '<span class="ops-chip badge-manual">Manual</span>' +
             audChip +
             attendChip +
             meetChip +
@@ -3237,16 +3235,12 @@
         (mev.interested && mev.interested.length ? '<p class="ops-meta ops-interested">★ Interested: ' + escapeHtml(mev.interested.join(', ')) + '</p>' : '') +
         tagsHtml +
         pocLine +
-        (mev.why  ? '<p class="event-why" style="font-size:0.85rem;color:var(--ab-fg-2);margin:0 0 8px;">' + escapeHtml(mev.why) + '</p>' : '') +
         notesLine +
         addtlLine +
         submLine +
         deadlineLine(mev.deadline) +
-        priceLine +
-        speakersLine +
         feeLine +
-        mApplyBtn +
-        (who ? '<p class="ops-meta"' + whoTitle + '>' + who + '</p>' : '');
+        mApplyBtn;
       // Stash a modal record on the node for the delegated "Details" handler.
       var mrec = {};
       for (var mk in mev) { if (Object.prototype.hasOwnProperty.call(mev, mk)) mrec[mk] = mev[mk]; }
@@ -4100,6 +4094,7 @@
         decision: (st && st.decision) || base.decision || '',
         deadline: (st && st.deadline) || base.deadline || '',
         past: isPastEvent(base),
+        hidden: !!(st && st.hidden),
         sort: meta.sort,
         startObj: base,
         createdBy: abFold(base.created_by || ''),
@@ -4264,7 +4259,7 @@
     function findConflicts() {
       var byWho = {};
       opsAllItems().forEach(function (it) {
-        if (it.past || it.decision === 'no-go' || !it.speaker) return;
+        if (it.past || it.decision === 'no-go' || !it.speaker || it.hidden) return;
         // Only a real clash if the person is committed (Booked or Attending)
         // to both events — not merely considering them.
         if (it.stages.indexOf('Booked') === -1 && it.stages.indexOf('Attending') === -1) return;
@@ -4320,7 +4315,7 @@
       html += '<div class="planner-section"><div class="planner-sec-head"><span class="planner-sec-title">&#128506; Coverage gaps by territory</span><span class="planner-sec-sub">upcoming events with no speaker assigned</span></div>';
       var CAP = 12;
       AB_TERRITORIES.forEach(function (terr) {
-        var inTerr = items.filter(function (it) { return !it.past && terr.test(it); });
+        var inTerr = items.filter(function (it) { return !it.past && !it.hidden && terr.test(it); });
         if (!inTerr.length) return;
         var covered = inTerr.filter(function (it) { return it.speaker && it.speaker.trim(); });
         var gaps = inTerr.filter(function (it) { return !(it.speaker && it.speaker.trim()) && it.decision !== 'no-go'; });
