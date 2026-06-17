@@ -426,6 +426,19 @@ def _coerce(ev):
 
 GATE_FAIL_OPEN = _truthy(_GATE_FAIL_OPEN_RAW)
 
+# ── Existence verification (web-confirm a real event) ────────────────
+# A REQUIRED check on each genuinely-new event: an OpenAI web-search model must
+# find a real, event-specific page for THIS exact edition, or the event is
+# rejected as a likely hallucination. The text-only worthiness gate can't tell
+# a real event from a plausible-sounding fake (e.g. an invented city/edition of
+# a real conference series), so this is the actual "does it exist?" check.
+# Uses the same OPENAI_API_KEY. Fail-OPEN on an API error so an outage never
+# silently drops real opportunities; set EVENTS_VERIFY_FAIL_OPEN=false to
+# fail-closed, or EVENTS_VERIFY_EXISTENCE=false to disable the check.
+VERIFY_MODEL     = _env('OPENAI_VERIFY_MODEL', 'gpt-4o-mini-search-preview')
+VERIFY_ENABLED   = bool(OPENAI_API_KEY) and _truthy(_env('EVENTS_VERIFY_EXISTENCE', 'true'))
+VERIFY_FAIL_OPEN = _truthy(_env('EVENTS_VERIFY_FAIL_OPEN', 'true'))
+
 
 def _gate_enabled():
     return bool(OPENAI_API_KEY)
@@ -523,6 +536,72 @@ def _svc_headers():
         'Authorization': 'Bearer ' + SERVICE_ROLE,
         'Content-Type':  'application/json',
     }
+
+
+def _extract_verdict(text):
+    """Lenient JSON parse — pull a {...} verdict object out of a model reply."""
+    text = text or ''
+    try:
+        return json.loads(text)
+    except (ValueError, json.JSONDecodeError):
+        pass
+    m = re.search(r'\{.*\}', text, re.S)
+    if m:
+        try:
+            return json.loads(m.group(0))
+        except (ValueError, json.JSONDecodeError):
+            pass
+    return None
+
+
+def _verify_exists(row):
+    """Web-confirm the event is a real, specific edition via an OpenAI
+    web-search model. Returns {'ok': bool, 'url': str, 'reason': str,
+    'confidence': float}. Fail-OPEN on API error (per VERIFY_FAIL_OPEN)."""
+    name = (row.get('name') or '').strip()
+    if not name:
+        return {'ok': False, 'url': '', 'reason': 'no name', 'confidence': 0.0}
+    loc = (row.get('location') or '').strip()
+    dt  = (row.get('date_str') or '').strip()
+    prompt = (
+        "Use web search to decide whether this is a REAL, scheduled event — a "
+        "specific edition that actually exists, not a plausible-sounding guess.\n"
+        "Event name: %s\nLocation: %s\nDate: %s\n\n"
+        "Find the official page for THIS exact edition (matching the name, city, "
+        "and timeframe). A generic company website or an event-series homepage "
+        "is NOT sufficient on its own. Reply with ONLY a JSON object:\n"
+        '{"exists": true or false, "url": "<official event-specific URL, or empty>", '
+        '"confidence": <0 to 1>, "note": "<=120 chars on what you found>"}\n'
+        "Set exists=false (and url empty) if you cannot confirm a real, specific "
+        "page for this exact event."
+    ) % (name, loc or 'unspecified', dt or 'unspecified')
+    payload = {
+        'model': VERIFY_MODEL,
+        'messages': [{'role': 'user', 'content': prompt}],
+        'web_search_options': {},
+    }
+    status, data = _http_json(
+        'POST', OPENAI_BASE + '/chat/completions',
+        headers={'Authorization': 'Bearer ' + OPENAI_API_KEY,
+                 'Content-Type':  'application/json'},
+        body=payload, timeout=60)
+    if status != 200 or not isinstance(data, dict):
+        return {'ok': VERIFY_FAIL_OPEN, 'url': '',
+                'reason': 'verify api error %s' % status, 'confidence': 0.0}
+    try:
+        content = data['choices'][0]['message']['content'] or ''
+    except (KeyError, IndexError, TypeError):
+        return {'ok': VERIFY_FAIL_OPEN, 'url': '', 'reason': 'verify: no content', 'confidence': 0.0}
+    v = _extract_verdict(content)
+    if not isinstance(v, dict):
+        return {'ok': VERIFY_FAIL_OPEN, 'url': '', 'reason': 'verify: unparseable', 'confidence': 0.0}
+    try:
+        conf = float(v.get('confidence'))
+    except (TypeError, ValueError):
+        conf = 0.0
+    url = (v.get('url') or '').strip()
+    ok = bool(v.get('exists')) and bool(url) and conf >= 0.5
+    return {'ok': ok, 'url': url, 'reason': (v.get('note') or '')[:200], 'confidence': conf}
 
 
 def _http_json(method, url, headers=None, body=None, timeout=20):
@@ -991,6 +1070,26 @@ class handler(BaseHTTPRequestHandler):
             if not row.get('typical_attendees') and verdict.get('audience_note'):
                 row['typical_attendees'] = verdict['audience_note']
 
+            # REQUIRED existence check — a web-search model must confirm this is
+            # a real, specific event (with an event-specific page) before we add
+            # it. Rejects hallucinated events that the text-only gate can't catch
+            # (plausible details + a generic link). New, gate-accepted events only.
+            if VERIFY_ENABLED:
+                vr = _verify_exists(row)
+                if not vr['ok']:
+                    rejected.append({
+                        'name':   name,
+                        'reason': 'unverified — could not web-confirm a real event page: ' + (vr.get('reason') or 'not found'),
+                        'verify': vr,
+                    })
+                    seen_names.add(lname)
+                    if fp:
+                        seen_fps.add(fp)
+                    continue
+                # Backfill the confirmed official URL when the caller had none.
+                if vr.get('url') and not row.get('url'):
+                    row['url'] = vr['url']
+
             # Speaking-route enrichment: only when the caller didn't already
             # supply one, only for accepted events, and capped per request so a
             # big batch can't time out. Best-effort — never blocks the insert.
@@ -1046,6 +1145,7 @@ class handler(BaseHTTPRequestHandler):
                 'errors':   len(errors),
             },
             'gate': {'enabled': _gate_enabled(), 'model': OPENAI_MODEL if _gate_enabled() else None},
+            'verify': {'enabled': VERIFY_ENABLED, 'model': VERIFY_MODEL if VERIFY_ENABLED else None},
             'enrich': {'enabled': bool(EXA_API_KEY), 'lookups_used': enrich_used,
                        'perplexity': bool(PPLX_API_KEY), 'facts_lookups_used': pplx_used},
         })
