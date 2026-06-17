@@ -1318,9 +1318,9 @@
     .conflict-vs { display: block; margin-top: 4px; color: var(--ab-fg-2); font-size: 0.84rem; }
     .conflict-evt {
       background: none; border: 0; padding: 0; cursor: pointer; color: #1271a8;
-      font: inherit; font-weight: 600; text-align: left;
+      font: inherit; font-weight: 600; text-align: left; text-decoration: underline;
     }
-    .conflict-evt:hover { text-decoration: underline; }
+    .conflict-evt:hover { color: #0e5a86; }
     .gap-owner { margin: 0 0 18px; border: 1px solid var(--ab-rule); border-radius: 12px; overflow: hidden; }
     .gap-owner-head {
       display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px;
@@ -1336,6 +1336,7 @@
       align-items: center; padding: 9px 0; border-bottom: 1px solid var(--ab-rule);
     }
     .gap-row:last-child { border-bottom: 0; }
+    .gap-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
     .gap-name {
       background: none; border: 0; padding: 0; cursor: pointer; text-align: left;
       font-family: var(--ab-sans); font-weight: 600; font-size: 0.9rem; color: var(--ab-fg);
@@ -4174,7 +4175,7 @@
             var btns = '';
             if (kind === 'toApply') btns += '<button class="q-btn primary" data-act="submitted" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark applied</button>';
             else if (kind === 'submitted') btns += '<button class="q-btn primary" data-act="booked" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark booked</button>';
-            btns += '<button class="q-btn" data-ref-kind="' + x.kind + '" data-ref-key="' + escapeHtml(String(x.key)) + '">Open</button>';
+            btns += '<button class="q-btn" data-ref-kind="' + x.kind + '" data-ref-key="' + escapeHtml(String(x.key)) + '">Details &rarr;</button>';
             return btns;
           });
         }).join('');
@@ -4320,9 +4321,12 @@
                 '<button class="gap-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
                 '<p class="gap-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
               '</div>' +
-              (flagged
-                ? '<span class="q-int-chip">&#10003; Flagged for ' + escapeHtml(terr.who) + '</span>'
-                : '<button class="q-btn primary" data-flag="' + escapeHtml(terr.who) + '" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ Flag for ' + escapeHtml(terr.who) + '</button>') +
+              '<div class="gap-actions">' +
+                '<button class="q-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
+                (flagged
+                  ? '<span class="q-int-chip">&#10003; Flagged for ' + escapeHtml(terr.who) + '</span>'
+                  : '<button class="q-btn primary" data-flag="' + escapeHtml(terr.who) + '" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ Flag for ' + escapeHtml(terr.who) + '</button>') +
+              '</div>' +
               '</div>';
           });
           if (gaps.length > CAP) html += '<p class="gap-more">Showing first ' + CAP + ' of ' + gaps.length + ' &mdash; assign or flag some to clear the list.</p>';
