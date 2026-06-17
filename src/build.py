@@ -3449,8 +3449,25 @@ def build():
       var days = (new Date(iso + 'T00:00:00') - new Date()) / 86400000;
       return days >= -1 && days <= 14;  // closing within two weeks
     }}
+    // True when the apply/CFP deadline has clearly already passed — so we stop
+    // showing it as an active "⏳ deadline". Open-ended deadlines (rolling /
+    // ongoing / TBD) and unparseable text never count as past.
+    function isDeadlinePast(d) {{
+      if (d == null || !String(d).trim()) return false;
+      var txt = String(d).trim();
+      if (/closed|has passed|deadline passed|expired/i.test(txt)) return true;
+      if (/rolling|ongoing|membership|continuous|tbd|tba|open|invite|varies|year.round/i.test(txt)) return false;
+      var dt = null;
+      // deriveDatesFromText handles ranges + "Month DD, YYYY"; fall back to the
+      // native parser for day-first formats like "4 April 2026" it misses.
+      try {{ var iso = deriveDatesFromText(txt).start_date; if (iso) dt = new Date(iso + 'T00:00:00'); }} catch (e) {{}}
+      if (!dt || isNaN(dt)) {{ var d2 = new Date(txt); if (!isNaN(d2)) dt = d2; }}
+      if (!dt || isNaN(dt)) return false;  // unparseable -> don't assume past
+      return ((dt - new Date()) / 86400000) < 0;  // strictly before today
+    }}
     function deadlineLine(d) {{
       if (d == null || !String(d).trim()) return '';
+      if (isDeadlinePast(d)) return '';  // don't show a deadline that's gone
       var txt = String(d).trim();
       var cls = isDeadlineSoon(d) ? ' deadline-soon' : '';
       return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
@@ -4644,7 +4661,7 @@ def build():
       var items = opsAllItems().filter(function (it) {{ return it.interested.length && !it.past; }});
 
       function deadlineHtml(it) {{
-        if (!it.deadline) return '';
+        if (!it.deadline || isDeadlinePast(it.deadline)) return '';
         var soon = isDeadlineSoon(it.deadline);
         return '<span class="q-deadline' + (soon ? ' soon' : '') + '">&#9203; ' + escapeHtml(it.deadline) + '</span>';
       }}
