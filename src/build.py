@@ -4735,7 +4735,7 @@ def build():
       {{ key: 'Jerome', label: 'Europe', regions: ['Europe'],
          kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','uk','united kingdom','gdpr','web summit','vivatech','viva technology','dld','tnw','ai summit london'] }},
       {{ key: 'Joe', label: 'HR & human enablement', regions: [],
-         kw: ['hr','human resources','chro','clo','chief people','people officer','talent','workforce','future of work','upskilling','reskilling','design thinking','curiosity','employee experience','human enablement','human capital','people analytics','organizational development','uxpa'] }},
+         kw: ['hr','human resources','chro','clo','chief people','people officer','talent','workforce','future of work','upskilling','reskilling','design thinking','curiosity','critical thinking','change management','shadow ai','question to learn','employee experience','human enablement','human capital','people analytics','organizational development','uxpa'] }},
       {{ key: 'Thor', label: 'Flagship / C-suite', regions: [],
          kw: ['ceo','chief executive','cio','cto','chief information','chief technology','chief ai officer','caio','cdo','chief data','coo','chief operating','cpo','chief product','chief digital','board','government compliance','davos','world economic forum','ai strategy','ai literacy'] }},
       {{ key: 'Verma', label: 'Regulated industries', regions: ['Asia-Pacific','Europe'],
