@@ -2649,6 +2649,10 @@ def build():
       h += ef('Date', inp('date_str', rec.date_str, 'e.g. Sept 14–16, 2026'));
       h += ef('Location', inp('location', rec.location));
       h += ef('Website', inp('url', rec.url, 'https://'));
+    }} else {{
+      // Catalog events have no editable name field, so put the link first —
+      // right under the event title at the top of the Edit form.
+      h += ef('Website / link', inp('url', rec.url, 'https://'));
     }}
     h += ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
     h += ef('ArcticBlue speaker', '<input class="me-input" type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
@@ -2667,7 +2671,6 @@ def build():
     // Fields that used to live only in the inline card editor — migrated here so
     // editing lives entirely in the Details pop-up (nothing lost).
     if (isCat) {{
-      h += ef('Website / link', inp('url', rec.url, 'https://'));
       h += ef('Type', inp('type', rec.type, 'e.g. Enterprise'));
       h += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) {{ return opt(v, rec.audience_type); }}).join('') + '</select>');
       h += ef('Meetings & networking (1:1s)', inp('meeting_formats', rec.meeting_formats, 'e.g. Hosted 1:1 meetings; roundtables'));
