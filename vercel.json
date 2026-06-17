@@ -18,6 +18,9 @@
     },
     "api/ask.py": {
       "maxDuration": 60
+    },
+    "api/calendars.py": {
+      "maxDuration": 60
     }
   },
   "headers": [
