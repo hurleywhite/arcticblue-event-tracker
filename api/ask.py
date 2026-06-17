@@ -33,6 +33,10 @@ OPENAI_MODEL = _env('OPENAI_CHAT_MODEL', _env('OPENAI_MODEL', 'gpt-4o-mini'))
 OPENAI_BASE = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
 
 MAX_EVENTS_CONTEXT = 300
+# Past events are noise for "what's upcoming / what fits me / should I attend"
+# questions (and cost tokens), but keep a recent slice so "what happened at X?"
+# still works. Upcoming events are never truncated (they sort first).
+PAST_EVENTS_CONTEXT = 50
 
 
 def _http_json(method, url, headers=None, body=None, timeout=30):
@@ -79,9 +83,115 @@ def _truncate(v, n):
     return s[:n] if s else ''
 
 
+# ── Team coverage profiles — ported from AB_PROFILES in src/build.py. KEEP IN
+# SYNC with that list (and the prose _TEAM_CONTEXT below). 'regions' are the
+# canonical grid regions; 'kw' are lowercase, punctuation-free whole-word tokens
+# matched against a folded text blob. Used to pre-compute, server-side, which
+# teammate each event fits, so the model gets a hard signal instead of guessing
+# (e.g. it must never hand Jerome — Europe-only — a Brazil event).
+AB_PROFILES = [
+    {'key': 'Jerome', 'label': 'Europe (European events only)', 'regions': ['Europe'], 'locked': True,
+     'kw': ['london', 'dublin', 'amsterdam', 'brussels', 'zurich', 'geneva', 'luxembourg', 'berlin', 'munich', 'frankfurt', 'vienna', 'stockholm', 'copenhagen', 'oslo', 'helsinki', 'madrid', 'barcelona', 'milan', 'lisbon', 'europe', 'emea', 'european', 'uk', 'united kingdom', 'gdpr', 'web summit', 'vivatech', 'viva technology', 'dld', 'tnw', 'ai summit london']},
+    {'key': 'Joe', 'label': 'HR / human enablement (L&D, people, future of work)', 'regions': [],
+     'kw': ['hr', 'human resources', 'chro', 'clo', 'chief people', 'people officer', 'talent', 'workforce', 'future of work', 'upskilling', 'reskilling', 'design thinking', 'curiosity', 'critical thinking', 'change management', 'shadow ai', 'question to learn', 'employee experience', 'human enablement', 'human capital', 'people analytics', 'organizational development', 'uxpa']},
+    {'key': 'Thor', 'label': 'Flagship / C-suite stages (global catch-all)', 'regions': [],
+     'kw': ['ceo', 'chief executive', 'cio', 'cto', 'chief information', 'chief technology', 'chief ai officer', 'caio', 'cdo', 'chief data', 'coo', 'chief operating', 'cpo', 'chief product', 'chief digital', 'board', 'government compliance', 'davos', 'world economic forum', 'ai strategy', 'ai literacy']},
+    {'key': 'Verma', 'label': 'Regulated industries — insurance, healthcare, finance (esp. APAC & Europe)', 'regions': ['Asia-Pacific', 'Europe'],
+     'kw': ['insurance', 'insurtech', 'healthcare', 'health tech', 'pharma', 'life sciences', 'medical', 'finance', 'financial services', 'bank', 'banking', 'capital markets', 'payments', 'wealth', 'fintech', 'regulated', 'compliance']},
+    {'key': 'Carlos', 'label': 'Latin America (all of it)', 'regions': ['Latin America'], 'locked': True,
+     'kw': ['latin america', 'latam', 'south america', 'brazil', 'brasil', 'sao paulo', 'mexico', 'cdmx', 'argentina', 'buenos aires', 'chile', 'santiago', 'colombia', 'bogota', 'peru', 'lima', 'medellin', 'monterrey']},
+]
+PROFILE_BY_KEY = {p['key']: p for p in AB_PROFILES}
+
+
+def _fold(s):
+    return re.sub(r' +', ' ', re.sub(r'[^a-z0-9 ]', ' ', str(s or '').lower())).strip()
+
+
+# Best-effort map of an event's geography to one of the 7 canonical grid regions
+# (mirrors canonicalRegion() in build.py closely enough for coverage matching).
+# Order matters: Latin America is tested before US & Canada so "Americas + Sao
+# Paulo" resolves to Latin America rather than the bare word "america".
+_REGION_RULES = [
+    ('Latin America', ['latin america', 'latam', 'south america', 'brazil', 'brasil', 'sao paulo', 'mexico', 'cdmx', 'argentina', 'buenos aires', 'chile', 'santiago', 'colombia', 'bogota', 'peru', 'lima', 'medellin', 'monterrey']),
+    ('Europe', ['united kingdom', 'uk', 'england', 'britain', 'london', 'ireland', 'dublin', 'france', 'paris', 'germany', 'berlin', 'munich', 'frankfurt', 'spain', 'madrid', 'barcelona', 'italy', 'milan', 'rome', 'netherlands', 'amsterdam', 'belgium', 'brussels', 'switzerland', 'zurich', 'geneva', 'sweden', 'stockholm', 'denmark', 'copenhagen', 'norway', 'oslo', 'finland', 'helsinki', 'portugal', 'lisbon', 'austria', 'vienna', 'luxembourg', 'poland', 'warsaw', 'europe', 'european']),
+    ('Asia-Pacific', ['singapore', 'japan', 'tokyo', 'china', 'beijing', 'shanghai', 'hong kong', 'india', 'mumbai', 'bangalore', 'bengaluru', 'new delhi', 'delhi', 'australia', 'sydney', 'melbourne', 'korea', 'seoul', 'indonesia', 'jakarta', 'malaysia', 'kuala lumpur', 'thailand', 'bangkok', 'vietnam', 'philippines', 'manila', 'asia', 'apac', 'asia pacific']),
+    ('MENA', ['dubai', 'abu dhabi', 'uae', 'saudi', 'riyadh', 'qatar', 'doha', 'bahrain', 'kuwait', 'israel', 'tel aviv', 'middle east', 'mena', 'turkey', 'istanbul']),
+    ('Africa', ['nigeria', 'lagos', 'kenya', 'nairobi', 'south africa', 'johannesburg', 'cape town', 'egypt', 'cairo', 'ghana', 'accra', 'rwanda', 'kigali', 'africa']),
+    ('US & Canada', ['usa', 'united states', 'america', 'new york', 'san francisco', 'chicago', 'boston', 'austin', 'seattle', 'las vegas', 'los angeles', 'washington', 'atlanta', 'dallas', 'miami', 'denver', 'canada', 'toronto', 'vancouver', 'montreal', 'ottawa']),
+]
+
+
+def _canon_region(*parts):
+    b = ' ' + _fold(' '.join(str(p or '') for p in parts)) + ' '
+    for region, toks in _REGION_RULES:
+        for t in toks:
+            if (' ' + t + ' ') in b:
+                return region
+    return 'Global'
+
+
+def _fits(blob_folded, region_canon):
+    """Which ArcticBlue people an event suits. Region-locked people (Jerome =
+    Europe, Carlos = Latin America) fit ONLY events in their canonical region —
+    loose keywords like 'web summit' or a city named in a description must not
+    pull an out-of-region event to them. Theme-based people (Joe/Verma/Thor) fit
+    by region OR keyword, since their coverage is global/topical."""
+    b = ' ' + blob_folded + ' '
+    out = []
+    for p in AB_PROFILES:
+        region_ok = bool(region_canon and region_canon in p['regions'])
+        if p.get('locked'):
+            hit = region_ok
+        else:
+            hit = region_ok
+            if not hit:
+                for kw in p['kw']:
+                    if (' ' + kw + ' ') in b:
+                        hit = True
+                        break
+        if hit:
+            out.append(p['key'])
+    return out
+
+
+_MONTHS = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+           'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
+
+
+def _endish_iso(start_date, end_date, date_str):
+    """Best ISO date for "is this still upcoming?" — prefer the END of the event.
+    Catalog rows carry ISO start/end; manual rows often only have a date_str like
+    'June 15-18, 2026', so parse year + month + last day number from it."""
+    for v in (end_date, start_date):
+        if v and re.match(r'^\d{4}-\d{2}-\d{2}', str(v)):
+            return str(v)[:10]
+    s = str(date_str or '')
+    ym = re.search(r'(19|20)\d{2}', s)
+    year = ym.group(0) if ym else None
+    mo = None
+    low = s.lower()
+    for name, n in _MONTHS.items():
+        if name in low:
+            mo = n
+            break
+    days = re.findall(r'\b(\d{1,2})\b', s)  # 4-digit year won't match \d{1,2}
+    day = int(days[-1]) if days else 28
+    if year and mo:
+        return '%s-%02d-%02d' % (year, mo, min(day, 31))
+    if year:
+        return '%s-12-31' % year
+    return None
+
+
 def _gather_events(host):
     """Compact, model-friendly list of every event: catalog (events.json) +
-    manual (manual_events) merged with ops state (event_state)."""
+    manual (manual_events) merged with ops state (event_state). Each event is
+    annotated with a canonical region, an 'upcoming' flag (vs today), and a
+    'fits' list (which teammates it suits) so the model can answer "what's
+    upcoming / what fits me / should I attend" reliably. Upcoming events sort
+    first and are never truncated; only old past events get trimmed."""
+    today = date.today().isoformat()
     out = []
     # Ops state for catalog events, indexed by event_num.
     by_num = {}
@@ -100,12 +210,19 @@ def _gather_events(host):
             for e in (data.get('events') or []):
                 ops = by_num.get(e.get('num')) or {}
                 stages = ops.get('status_tags') or []
-                if ops.get('hidden'):
-                    continue  # hidden events are noise for recommendations
+                if ops.get('hidden') or ops.get('status') == '__deleted__':
+                    continue  # hidden / soft-deleted events are noise for recs
+                region = _canon_region(e.get('region'), e.get('country'),
+                                       e.get('city'), e.get('location'), e.get('name'))
+                blob = _fold(' '.join(str(x or '') for x in (
+                    e.get('name'), e.get('location'), e.get('region'), e.get('country'),
+                    e.get('city'), e.get('type'), e.get('audience_type'),
+                    e.get('focus_areas'), e.get('typical_attendees'), e.get('why'))))
+                endish = _endish_iso(e.get('start_date'), e.get('end_date'), e.get('date_str'))
                 out.append({
                     'num': e.get('num'),
                     'name': e.get('name'), 'date': e.get('date_str'),
-                    'location': e.get('location'), 'region': e.get('region'),
+                    'location': e.get('location'), 'region': region,
                     'type': e.get('type'), 'priority': e.get('priority'),
                     'audience': e.get('audience_type'), 'price': e.get('pricing'),
                     'deadline': e.get('deadline'),
@@ -113,8 +230,11 @@ def _gather_events(host):
                     'speaker': ops.get('speaker'),
                     'attend': ops.get('attend_verdict'),
                     'saved': bool(ops.get('saved')),
-                    'why': _truncate(e.get('why'), 220),
+                    'fits': _fits(blob, region),
+                    'upcoming': (endish is None) or (endish >= today),
+                    'why': _truncate(e.get('why'), 200),
                     'url': e.get('url'),
+                    '_sort': endish or '9999-99-99',
                 })
     # Manual events
     st, rows = _http_json(
@@ -126,19 +246,33 @@ def _gather_events(host):
     if st == 200 and isinstance(rows, list):
         for m in rows:
             stages = m.get('status_tags') or []
+            region = _canon_region(m.get('region'), m.get('location'), m.get('name'))
+            blob = _fold(' '.join(str(x or '') for x in (
+                m.get('name'), m.get('location'), m.get('region'),
+                m.get('type'), m.get('audience_type'), m.get('why'))))
+            endish = _endish_iso(None, None, m.get('date_str'))
             out.append({
                 'name': m.get('name'), 'date': m.get('date_str'),
-                'location': m.get('location'), 'region': m.get('region'),
+                'location': m.get('location'), 'region': region,
                 'type': m.get('type'), 'priority': m.get('priority'),
                 'audience': m.get('audience_type'), 'price': m.get('pricing'),
                 'deadline': m.get('deadline'),
                 'stage': ', '.join(stages) if stages else None,
                 'speaker': m.get('speaker'), 'attend': m.get('attend_verdict'),
-                'why': _truncate(m.get('why'), 220), 'url': m.get('url'),
+                'fits': _fits(blob, region),
+                'upcoming': (endish is None) or (endish >= today),
+                'why': _truncate(m.get('why'), 200), 'url': m.get('url'),
+                '_sort': endish or '9999-99-99',
             })
-    # Drop empty-name rows, cap size.
-    out = [e for e in out if (e.get('name') or '').strip()][:MAX_EVENTS_CONTEXT]
-    return out
+    # Drop empty-name rows; upcoming first (soonest first, never truncated),
+    # then a recent slice of past events; cap total size.
+    out = [e for e in out if (e.get('name') or '').strip()]
+    upcoming = sorted([e for e in out if e['upcoming']], key=lambda e: e['_sort'])
+    past = sorted([e for e in out if not e['upcoming']], key=lambda e: e['_sort'], reverse=True)
+    merged = (upcoming + past[:PAST_EVENTS_CONTEXT])[:MAX_EVENTS_CONTEXT]
+    for e in merged:
+        e.pop('_sort', None)
+    return merged
 
 
 _SYSTEM = (
@@ -153,6 +287,11 @@ _SYSTEM = (
     "(max 8). Use each event's EXACT name from the data. Empty list if none fit.\n"
     "- Keep 'answer' short — the events render as cards below it, so don't repeat "
     "their dates/locations; just give the gist or the reasoning.\n"
+    "- Each event carries 'upcoming' (true/false), 'region' (canonical), and "
+    "'fits' (the ArcticBlue people it suits). For 'upcoming' / 'next' / "
+    "'this month' questions, return ONLY upcoming=true events, soonest first. "
+    "Treat 'fits' as the authority on who an event is for — never recommend an "
+    "event for a person unless their name appears in that event's 'fits'.\n"
     "- When ranking what to attend/skip, weigh: buyer-rich audience, who's "
     "flagged Interested, pipeline stage, priority, fit (why), and upcoming date "
     "(ignore past events unless asked). Never invent events not in the data.\n"
@@ -228,10 +367,23 @@ def _ask_openai(question, history, events, user=''):
     messages.append({'role': 'system', 'content': _TEAM_CONTEXT})
     user = (user or '').strip()
     if user and user.lower() != 'team':
-        messages.append({'role': 'system', 'content': (
-            'The person asking is signed in as "%s". When they say "me", "I", '
-            '"my", or "us", tailor recommendations to that person\'s coverage '
-            'profile from TEAM COVERAGE above; otherwise answer neutrally.' % user)})
+        prof = PROFILE_BY_KEY.get(user) or (PROFILE_BY_KEY.get(user.split()[0]) if user.split() else None)
+        if prof:
+            messages.append({'role': 'system', 'content': (
+                'The person asking is signed in as "%s", whose ArcticBlue coverage is: '
+                '%s. When they say "me", "I", "my", "us", "should I", or ask which '
+                'events fit them or where they should go, recommend ONLY upcoming '
+                'events whose "fits" list includes "%s" (their coverage). Rank those '
+                'by buyer-rich audience, anyone flagged Interested, pipeline stage, '
+                'priority, and soonest date. If none fit, say so plainly rather than '
+                'offering events outside their coverage. When they ask generally (not '
+                'about themselves), answer neutrally over all events.'
+                % (prof['key'], prof['label'], prof['key']))})
+        else:
+            messages.append({'role': 'system', 'content': (
+                'The person asking is signed in as "%s" (no specific coverage '
+                'territory). When they say "me"/"I"/"my", tailor to any matching TEAM '
+                'COVERAGE notes; otherwise answer neutrally over all events.' % user)})
     if _COMPANY_CONTEXT:
         messages.append({'role': 'system',
                          'content': 'ARCTICBLUE CONTEXT:\n' + _COMPANY_CONTEXT})

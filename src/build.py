@@ -4762,7 +4762,7 @@ def build():
     // region is in `regions`, OR any keyword hits the event's folded text blob
     // (matched as whole words). Keep keywords lowercase + punctuation-free.
     var AB_PROFILES = [
-      {{ key: 'Jerome', label: 'Europe', regions: ['Europe'],
+      {{ key: 'Jerome', label: 'Europe', regions: ['Europe'], locked: true,
          kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','uk','united kingdom','gdpr','web summit','vivatech','viva technology','dld','tnw','ai summit london'] }},
       {{ key: 'Joe', label: 'HR & human enablement', regions: [],
          kw: ['hr','human resources','chro','clo','chief people','people officer','talent','workforce','future of work','upskilling','reskilling','design thinking','curiosity','critical thinking','change management','shadow ai','question to learn','employee experience','human enablement','human capital','people analytics','organizational development','uxpa'] }},
@@ -4770,7 +4770,7 @@ def build():
          kw: ['ceo','chief executive','cio','cto','chief information','chief technology','chief ai officer','caio','cdo','chief data','coo','chief operating','cpo','chief product','chief digital','board','government compliance','davos','world economic forum','ai strategy','ai literacy'] }},
       {{ key: 'Verma', label: 'Regulated industries', regions: ['Asia-Pacific','Europe'],
          kw: ['insurance','insurtech','healthcare','health tech','pharma','life sciences','medical','finance','financial services','bank','banking','capital markets','payments','wealth','fintech','regulated','compliance'] }},
-      {{ key: 'Carlos', label: 'Latin America', regions: ['Latin America'],
+      {{ key: 'Carlos', label: 'Latin America', regions: ['Latin America'], locked: true,
          kw: ['latin america','latam','south america','brazil','brasil','sao paulo','mexico','cdmx','argentina','buenos aires','chile','santiago','colombia','bogota','peru','lima','medellin','monterrey'] }}
     ];
     var AB_PROFILE_BY_KEY = {{}};
@@ -4778,7 +4778,12 @@ def build():
     // True if an event (canonical region + folded text blob) fits a profile.
     function profileFits(p, blob, region) {{
       if (!p) return false;
-      if (region && p.regions.indexOf(region) !== -1) return true;
+      var regionOk = !!(region && p.regions.indexOf(region) !== -1);
+      // Region-locked people (Jerome = Europe, Carlos = Latin America) fit ONLY
+      // their own region — a loose keyword (a city named in a blurb, or 'web
+      // summit') must not pull an out-of-region event to them.
+      if (p.locked) return regionOk;
+      if (regionOk) return true;
       var b = ' ' + String(blob || '').replace(/[^a-z0-9 ]/g, ' ').replace(/ +/g, ' ').trim() + ' ';
       for (var i = 0; i < p.kw.length; i++) {{ if (b.indexOf(' ' + p.kw[i] + ' ') !== -1) return true; }}
       return false;
