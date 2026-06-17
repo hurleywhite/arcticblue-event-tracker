@@ -1,0 +1,12 @@
+-- ArcticBlue Event Tracker — allow editing an event's Type on catalog events.
+--
+-- WHY: catalog events get their "type" (e.g. Enterprise / Halo) from the
+-- ingest. The Details → Edit form now lets a human override it, but event_state
+-- had no `type` column to store the override (url / audience_type /
+-- meeting_formats already exist from earlier override migrations). Until this
+-- runs, a Type edit on a CATALOG event is silently dropped (sbWriteRetry strips
+-- it); link / Buyer-rich / 1:1-meetings edits already persist. Manual events
+-- already have their own `type` column, so they're unaffected.
+--
+-- Safe + additive — run once in the Supabase SQL editor.
+alter table public.event_state add column if not exists type text;

@@ -2173,6 +2173,10 @@
     // Fields that used to live only in the inline card editor — migrated here so
     // editing lives entirely in the Details pop-up (nothing lost).
     if (isCat) {
+      h += ef('Website / link', inp('url', rec.url, 'https://'));
+      h += ef('Type', inp('type', rec.type, 'e.g. Enterprise'));
+      h += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) { return opt(v, rec.audience_type); }).join('') + '</select>');
+      h += ef('Meetings & networking (1:1s)', inp('meeting_formats', rec.meeting_formats, 'e.g. Hosted 1:1 meetings; roundtables'));
       h += ef('Track', '<select class="me-input" data-edit="track">' + ['', 'Sponsor', 'Earned', 'Both', 'Unknown'].map(function (v) { return opt(v, rec.track); }).join('') + '</select>');
     } else {
       h += ef('Region', '<select class="me-input" data-edit="region">' + ['', 'US & Canada', 'Latin America', 'Europe', 'Africa', 'MENA', 'Asia-Pacific', 'Global'].map(function (v) { return opt(v, rec.region); }).join('') + '</select>');
@@ -3020,6 +3024,9 @@
       if (st.decision === 'no-go') card.classList.add('is-nogo');
       var decBadge = st.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>'
                    : st.decision === 'no-go' ? '<span class="decision-badge nogo">No-go</span>' : '';
+      // A link added/edited in event_state (override) wins over the catalog URL,
+      // so adding a link to a link-less catalog event lights up the card ↗.
+      var _cardUrl = (st.url && String(st.url).trim()) ? String(st.url).trim() : (ev.url || '');
 
       var metaLine = (st.updated_by && st.updated_at)
         ? '<p class="ops-meta" title="' + escapeHtml(st.updated_by) + '">Last edit · ' + escapeHtml(firstNameFromEmail(st.updated_by)) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
@@ -3046,8 +3053,8 @@
           '<p class="event-date">' + escapeHtml(ev.date_str) + '</p>' +
         '</div>' +
         '<h3 class="event-name">' +
-          (ev.url
-            ? '<a class="event-name-link" href="' + escapeHtml(ev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + ' <span class="event-link-arrow" aria-hidden="true">↗</span></a>'
+          (_cardUrl
+            ? '<a class="event-name-link" href="' + escapeHtml(_cardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + ' <span class="event-link-arrow" aria-hidden="true">↗</span></a>'
             : escapeHtml(ev.name)) +
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
@@ -3073,7 +3080,7 @@
         // Descriptive-field overrides edited in the pop-up — they live in
         // event_state and win over the read-only catalog value when set.
         ['why', 'about', 'focus_areas', 'typical_attendees', 'speaking_route',
-         'pay_to_play', 'venue', 'contact_info', 'deadline',
+         'pay_to_play', 'venue', 'contact_info', 'deadline', 'type',
          'url', 'pricing', 'audience_type', 'past_speakers',
          'meeting_formats', 'attendee_count'].forEach(function (f) {
           if (st[f] != null && String(st[f]).trim() !== '') rec[f] = st[f];
@@ -4716,7 +4723,7 @@
     // the offending column, and retry so the save still lands (the buyer/price
     // fields just stay blank until the migration runs).
     var MIGRATION_COLS = ['pricing', 'audience_type', 'past_speakers',
-                          'meeting_formats', 'attend_verdict', 'postmortem'];
+                          'meeting_formats', 'attend_verdict', 'postmortem', 'type'];
     function unknownMigrationCol(err) {
       if (!err) return null;
       var msg = ((err.message || '') + ' ' + (err.details || '')).toLowerCase();
