@@ -480,7 +480,7 @@ def build():
       -webkit-backdrop-filter: blur(12px);
       position: sticky; top: 0; z-index: 10;
     }}
-    .nav-inner {{ max-width: var(--ab-max); margin: 0 auto; display: grid; grid-template-columns: 1fr minmax(0, auto) 1fr; align-items: center; width: 100%; gap: 16px; }}
+    .nav-inner {{ max-width: var(--ab-max); margin: 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; gap: 16px; }}
     .brand {{
       display: flex; align-items: center; gap: 12px; justify-self: start;
       color: var(--ab-fg); text-decoration: none;
@@ -502,7 +502,7 @@ def build():
       font-family: "Nunito Sans", var(--ab-sans);
       font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em;
       line-height: 1.1; color: #1fa0dc; margin: 0; white-space: nowrap;
-      text-align: center; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+      text-align: center;
     }}
     @media (max-width: 760px) {{
       .app-title {{ font-size: 1.05rem; }}
