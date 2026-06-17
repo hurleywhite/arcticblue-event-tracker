@@ -4156,7 +4156,13 @@ def build():
         btn.textContent = s.key;
         btn.title = 'Filter by ' + s.key;
         btn.addEventListener('click', function () {{
-          btn.classList.toggle('is-on');
+          // Single-select: clicking a stage shows ONLY that stage and clears the
+          // others, so swapping between pipeline views is one click (Angela's
+          // ask — no more "both filters stuck on"). Re-click the active chip to
+          // clear it and show everything again.
+          var wasOn = btn.classList.contains('is-on');
+          host.querySelectorAll('.stage-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
+          if (!wasOn) btn.classList.add('is-on');
           applyFilters();
         }});
         frag.appendChild(btn);
