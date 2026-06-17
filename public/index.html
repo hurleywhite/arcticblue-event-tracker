@@ -20,7 +20,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Nunito+Sans:wght@600;700;800;900&family=Fragment+Mono&display=swap" rel="stylesheet">
 
   <!-- Supabase JS client — used only by the "For Angela" ops tab -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
@@ -91,6 +91,17 @@
       font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
       text-transform: uppercase;
+    }
+    /* Centered app title at the very top, in Nunito Sans. */
+    .app-titlebar { text-align: center; padding: 28px 20px 8px; }
+    .app-title {
+      font-family: "Nunito Sans", var(--ab-sans);
+      font-weight: 800; font-size: 2.6rem; letter-spacing: -0.02em;
+      line-height: 1.1; color: var(--ab-fg); margin: 0;
+    }
+    @media (max-width: 560px) {
+      .app-title { font-size: 1.7rem; }
+      .app-titlebar { padding: 18px 16px 6px; }
     }
 
     /* ───────────── hero ───────────── */
@@ -1512,6 +1523,10 @@
       <p class="nav-meta">Last updated · JUNE 16, 2026</p>
     </div>
   </nav>
+
+  <div class="app-titlebar">
+    <h1 class="app-title">ArcticBlue's Event Tracker</h1>
+  </div>
 
   <main class="wrap">
 
