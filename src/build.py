@@ -3795,7 +3795,7 @@ def build():
         if (derived.end_date)   patch.end_date   = derived.end_date;
         // Rename-into-existing guard: a fresh name must not collide with
         // another manual event or anything in the catalog.
-        var dup = findDuplicate(patch.name, id);
+        var dup = findDuplicate(patch.name, id, patch);
         if (dup) {{
           var srcLabel = dup.source === 'catalog'
             ? 'the public ArcticBlue catalog (events.json)'
@@ -4925,9 +4925,9 @@ def build():
         // Rebuild the dedup index from this fresh fetch — realtime
         // events from other tabs / sessions land here, so we want every
         // re-render to refresh _knownNames too.
-        _knownNameSource = {{}};
-        (data.events || []).forEach(function (e) {{ var n = (e.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'catalog'; }});
-        manualRows.forEach(function (m) {{ var n = (m.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'manual:' + m.id; }});
+        _knownNameSource = {{}}; _knownKeys = {{}};
+        (data.events || []).forEach(function (e) {{ var n = (e.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'catalog'; var k = dupKeyOf(e); if (k && !_knownKeys[k]) _knownKeys[k] = 'catalog'; }});
+        manualRows.forEach(function (m) {{ var n = (m.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'manual:' + m.id; var k = dupKeyOf(m); if (k) _knownKeys[k] = 'manual:' + m.id; }});
         _knownNames = Object.keys(_knownNameSource);
         // Mirror into the calendar view (uses the same data set)
         renderCalendar(evs, stateMap, manualRows);
@@ -5119,6 +5119,17 @@ def build():
     // (events.json) is loaded once; manual_events is reloaded each time.
     var _knownNames = null;          // Set of lowercased names
     var _knownNameSource = {{}};      // map: name_lower → 'catalog' | 'manual'
+    var _knownKeys = {{}};            // map: fuzzy name+city+year key → source
+    // Fuzzy duplicate key: reduce the name to its core (drop parentheticals like
+    // "(IPT Edition)", the year, and punctuation), then pin to city + year. So
+    // "AI Summit Brasil – Sao Paulo 2026" and "AI Summit Brasil — Sao Paulo
+    // (IPT Edition)" collapse to the SAME key and are caught as one event.
+    function dupNameCore(name) {{
+      return abFold(name).replace(/\\(.*?\\)/g, ' ').replace(/\\b20\\d\\d\\b/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\\s+/g, ' ').trim();
+    }}
+    function dupCityOf(o) {{ return abFold(o.city || ((o.location || '').split(',')[0]) || ''); }}
+    function dupYearOf(o) {{ var m = ((o.start_date || '') + ' ' + (o.date_str || '')).match(/20\\d\\d/); return m ? m[0] : ''; }}
+    function dupKeyOf(o) {{ var core = dupNameCore(o.name || ''); return core ? (core + '|' + dupCityOf(o) + '|' + dupYearOf(o)) : ''; }}
     // ── Strip-and-retry around not-yet-migrated columns ────────────────
     // pricing / audience_type were added 2026-06. If this DB hasn't run the
     // migration yet, PostgREST rejects the whole write. We detect that, drop
@@ -5157,30 +5168,39 @@ def build():
 
     function loadKnownNames() {{
       var p1 = fetch('events.json').then(function (r) {{ return r.json(); }}).then(function (d) {{
-        return ((d && d.events) || []).map(function (e) {{ return (e.name || '').toLowerCase().trim(); }});
+        return ((d && d.events) || []);
       }}).catch(function () {{ return []; }});
-      var p2 = sb.from('manual_events').select('id,name').then(function (r) {{
-        return ((r && r.data) || []).map(function (e) {{ return [(e.name || '').toLowerCase().trim(), e.id]; }});
+      var p2 = sb.from('manual_events').select('id,name,city,location,start_date,date_str').then(function (r) {{
+        return ((r && r.data) || []);
       }});
       return Promise.all([p1, p2]).then(function (a) {{
-        _knownNameSource = {{}};
-        a[0].forEach(function (n) {{ if (n) _knownNameSource[n] = 'catalog'; }});
-        a[1].forEach(function (pair) {{ if (pair[0]) _knownNameSource[pair[0]] = 'manual:' + pair[1]; }});
+        _knownNameSource = {{}}; _knownKeys = {{}};
+        a[0].forEach(function (e) {{
+          var n = (e.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'catalog';
+          var k = dupKeyOf(e); if (k && !_knownKeys[k]) _knownKeys[k] = 'catalog';
+        }});
+        a[1].forEach(function (e) {{
+          var n = (e.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'manual:' + e.id;
+          var k = dupKeyOf(e); if (k) _knownKeys[k] = 'manual:' + e.id;
+        }});
         _knownNames = Object.keys(_knownNameSource);
         return _knownNames;
       }});
     }}
     // Returns null if name is fine, or an object describing the conflict.
     // selfId optional — when editing, ignores a match against the row being edited.
-    function findDuplicate(name, selfId) {{
+    function findDuplicate(name, selfId, o) {{
       var n = (name || '').toLowerCase().trim();
-      if (!n || !_knownNameSource) return null;
-      var src = _knownNameSource[n];
+      if (!_knownNameSource) return null;
+      // 1) exact name match (original behavior)
+      var src = n ? _knownNameSource[n] : null;
+      // 2) fuzzy name+city+year match — catches "… 2026" vs "… (IPT Edition)"
+      if (!src && o) {{ var k = dupKeyOf(o); if (k) src = _knownKeys[k] || null; }}
       if (!src) return null;
       if (selfId && src === 'manual:' + selfId) return null;
       return {{ name_lower: n, source: src }};
     }}
-    function isDuplicateName(name, selfId) {{ return !!findDuplicate(name, selfId); }}
+    function isDuplicateName(name, selfId, o) {{ return !!findDuplicate(name, selfId, o); }}
 
     function attachAddEventHandlers(form, email) {{
       // Warm the duplicate-name cache so the submit handler can synchronously
@@ -5318,6 +5338,13 @@ def build():
             ? 'the public ArcticBlue catalog (events.json)'
             : 'manual events';
           alert('"' + row.name + '" already exists in ' + srcLabel + '. Use the existing entry instead of adding a duplicate.');
+          return;
+        }}
+        // Fuzzy guard — same core name + city + year as an existing event (e.g.
+        // "… 2026" vs "… (IPT Edition)"). Likely the same event; let the user
+        // override in case it's genuinely a different edition.
+        var fuzzyDup = findDuplicate(null, null, row);
+        if (fuzzyDup && !confirm('This looks like a duplicate of an event already in ' + (fuzzyDup.source === 'catalog' ? 'the catalog' : 'manual events') + ' — same name, city and year. Add it anyway?')) {{
           return;
         }}
         var submitBtn = form.querySelector('button.primary[type="submit"]');
@@ -6633,7 +6660,7 @@ def build():
 
       var cards = events.map(function (ev, idx) {{
         var url = ev.url ? ' <a href="' + escapeHtml(ev.url) + '" target="_blank" rel="noopener" style="color:var(--ab-blue);text-decoration:none;font-weight:600;">↗</a>' : '';
-        var dup = isDuplicateName(ev.name) ? '<span class="ops-tag" style="background:#fef2f2;color:#7f1d1d;border:1px solid #fecaca;">Already in tracker</span>' : '';
+        var dup = isDuplicateName(ev.name, null, ev) ? '<span class="ops-tag" style="background:#fef2f2;color:#7f1d1d;border:1px solid #fecaca;">Already in tracker</span>' : '';
         return (
           '<div class="search-result" data-idx="' + idx + '" style="border:1px solid var(--ab-rule);border-radius:8px;padding:14px;margin-bottom:10px;background:var(--ab-bg);">' +
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;flex-wrap:wrap;">' +
@@ -6685,7 +6712,7 @@ def build():
 
       function insertOne(ev) {{
         if (!ev || !ev.name) return Promise.resolve({{ ok: false, reason: 'missing name' }});
-        if (isDuplicateName(ev.name)) return Promise.resolve({{ ok: false, reason: 'duplicate' }});
+        if (isDuplicateName(ev.name, null, ev)) return Promise.resolve({{ ok: false, reason: 'duplicate' }});
         var dates = ev.date_str ? deriveDatesFromText(ev.date_str) : {{}};
         var row = {{
           name:       ev.name.trim(),
