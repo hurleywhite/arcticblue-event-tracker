@@ -5749,6 +5749,15 @@ def build():
     }};
 
     function regionColor(r) {{ return REGION_COLORS[r] || '#737373'; }}
+    // Light translucent tint of a hex color — used so calendar chips without a
+    // pipeline stage still get a (region-colored) fill instead of blank white.
+    function hexToRgba(hex, a) {{
+      hex = String(hex || '').replace('#', '');
+      if (hex.length === 3) hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+      var n = parseInt(hex, 16);
+      if (isNaN(n)) return 'rgba(115,115,115,' + a + ')';
+      return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+    }}
 
     function initials(name) {{
       if (!name) return '';
@@ -5894,12 +5903,17 @@ def build():
           var calStages = stageTagsOf(st);
           var topStage = mostAdvancedStage(calStages);
           var grpDot = topStage ? stageDot(topStage) : null;
-          var spanBg = (topStage && STAGE_BY_KEY[topStage]) ? STAGE_BY_KEY[topStage].bg : null;
-          if (spanBg) bar.style.background = spanBg;
-          // Left border = pipeline stage (neutral grey when unstaged, via CSS).
-          // Region is conveyed only by the dot, so colors map cleanly to the
-          // legend (border/fill = stage, dot = region).
-          if (grpDot) bar.style.borderLeftColor = grpDot;
+          // Color precedence so no chip is ever blank white: pipeline stage
+          // (fill + border) first; saved / urgent keep their CSS class colors;
+          // everything else falls back to a light tint of the event's region.
+          if (topStage && STAGE_BY_KEY[topStage]) {{
+            bar.style.background = STAGE_BY_KEY[topStage].bg;
+            if (grpDot) bar.style.borderLeftColor = grpDot;
+          }} else if (!st.saved && !(st.urgent || isDeadlineUrgent(ev.deadline))) {{
+            var _calReg = regionColor(canonicalRegion(ev));
+            bar.style.background = hexToRgba(_calReg, 0.13);
+            bar.style.borderLeftColor = _calReg;
+          }}
           var sp2 = st.speaker || '';
           var ini = sp2 ? initials(sp2) : '';
           var statusInline = '';
@@ -5909,7 +5923,7 @@ def build():
             statusInline = '<span class="cal-evt-status" style="background:' + s.bg + ';color:' + s.fg + ';">' + escapeHtml(topStage) + extra + '</span>';
           }}
           bar.innerHTML =
-            '<span class="cal-region-dot" style="background:' + regionColor(ev.region) + ';"></span>' +
+            '<span class="cal-region-dot" style="background:' + regionColor(canonicalRegion(ev)) + ';"></span>' +
             '<span class="cal-evt-name">' + escapeHtml(ev.name) + '</span>' +
             (ini ? '<span class="cal-chip-initial" title="' + escapeHtml(sp2) + '">' + escapeHtml(ini) + '</span>' : '') +
             statusInline;
