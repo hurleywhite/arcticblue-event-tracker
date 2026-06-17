@@ -75,9 +75,9 @@
       -webkit-backdrop-filter: blur(12px);
       position: sticky; top: 0; z-index: 10;
     }
-    .nav-inner { max-width: var(--ab-max); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 16px; }
+    .nav-inner { max-width: var(--ab-max); margin: 0 auto; display: grid; grid-template-columns: 1fr minmax(0, auto) 1fr; align-items: center; width: 100%; gap: 16px; }
     .brand {
-      display: flex; align-items: center; gap: 12px;
+      display: flex; align-items: center; gap: 12px; justify-self: start;
       color: var(--ab-fg); text-decoration: none;
     }
     .brand img {
@@ -90,19 +90,19 @@
     .nav-meta {
       font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
-      text-transform: uppercase;
+      text-transform: uppercase; justify-self: end; text-align: right;
     }
-    /* Centered app title at the very top, in Nunito Sans. */
-    .app-titlebar { text-align: center; padding: 28px 20px 8px; }
+    /* App title — centered in the nav bar, same line as the logo + last-updated. */
     .app-title {
       font-family: "Nunito Sans", var(--ab-sans);
-      font-weight: 800; font-size: 2.6rem; letter-spacing: -0.02em;
-      line-height: 1.1; color: #1fa0dc; margin: 0 auto; white-space: nowrap;
-      max-width: none; width: 100%; text-align: center;
+      font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em;
+      line-height: 1.1; color: #1fa0dc; margin: 0; white-space: nowrap;
+      text-align: center; min-width: 0; overflow: hidden; text-overflow: ellipsis;
     }
-    @media (max-width: 700px) {
-      .app-title { font-size: 1.6rem; white-space: normal; }
-      .app-titlebar { padding: 18px 16px 6px; }
+    @media (max-width: 760px) {
+      .app-title { font-size: 1.05rem; }
+      .nav-meta { font-size: 0.6rem; }
+      .brand-text { display: none; }
     }
 
     /* ───────────── hero ───────────── */
@@ -463,6 +463,15 @@
     }
     .qa-edit:hover, .qa-edit.on { background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }
     .qa-edit-ic { font-size: 0.92em; }
+    /* Enrich button — distinct purple "research" accent, sits left of Edit. */
+    .qa-enrich { background: #faf5ff; color: #7e22ce; border-color: #e9d5ff; }
+    .qa-enrich:hover { background: #7e22ce; color: #fff; border-color: #7e22ce; }
+    .qa-enrich[aria-busy] { opacity: 0.7; cursor: default; }
+    .modal-enrich-note {
+      font-family: var(--ab-sans); font-size: 0.85rem; padding: 8px 12px;
+      border-radius: 8px; margin: 0 0 14px; background: var(--ab-bg-3); color: var(--ab-fg-2);
+    }
+    .modal-enrich-note.ok { background: rgba(31,160,90,0.12); color: #1a8c54; font-weight: 600; }
     .modal-quickbar .qa[data-qa="saved"].on { background: var(--ab-blue); border-color: var(--ab-blue); }
     .modal-quickbar .qa[data-qa="hidden"].on { background: var(--ab-fg-3); border-color: var(--ab-fg-3); }
     .modal-quickbar .qa[data-qa="go"].on { background: #1a8c54; border-color: #1a8c54; }
@@ -472,6 +481,9 @@
       font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
       color: var(--ab-fg-3); margin-right: 2px;
     }
+    .modal-quickbar .qa[data-qa="interested"].on { background: var(--ab-blue); border-color: var(--ab-blue); }
+    .qa-int-summary { font-family: var(--ab-sans); font-size: 0.85rem; color: var(--ab-fg-2); margin-left: 4px; }
+    .qa-int-summary.qa-int-empty { color: var(--ab-fg-3); font-style: italic; }
     .modal-edit-btn {
       display: inline-flex; align-items: center; gap: 7px;
       font-family: var(--ab-sans); font-weight: 600; font-size: 0.9rem;
@@ -1660,13 +1672,10 @@
         <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
         <span class="brand-text">ArcticBlue</span>
       </a>
+      <h1 class="app-title">ArcticBlue's Event Tracker</h1>
       <p class="nav-meta">Last updated · JUNE 16, 2026</p>
     </div>
   </nav>
-
-  <div class="app-titlebar">
-    <h1 class="app-title">ArcticBlue's Event Tracker</h1>
-  </div>
 
   <main class="wrap">
 
@@ -1716,7 +1725,6 @@
       <div id="angela-ops" hidden>
         <div class="angela-header">
           <span class="who">Editing as <strong id="ops-email">Team</strong> <button type="button" id="change-name" class="inline">change</button></span>
-          <span class="collab-note">Live &amp; shared — every edit is visible to the whole team instantly.</span>
         </div>
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-stats" id="ops-stats" hidden></div>
@@ -2017,15 +2025,29 @@
     b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Mark Submitted') + '</button>');
     b.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
     b.push('<button type="button" class="qa' + (att ? ' on' : '') + '" data-qa="attending">' + (att ? '✓ Attending' : 'Attending') + '</button>');
-    // Go / No-go decision — pursue this event or pass on it. Mutually exclusive.
-    var dec = rec.decision || '';
-    var g = [];
-    g.push('<button type="button" class="qa' + (dec === 'go' ? ' on' : '') + '" data-qa="go">' + (dec === 'go' ? '✓ Go' : 'Go') + '</button>');
-    g.push('<button type="button" class="qa' + (dec === 'no-go' ? ' on' : '') + '" data-qa="nogo">' + (dec === 'no-go' ? '✓ No-go' : 'No-go') + '</button>');
-    // Fast one-tap actions. (The "Edit event" toggle lives in the modal header,
-    // top-right, in the same spot for every event.)
+    // "Interested" — the current teammate adds themselves to the list of people
+    // who want Angela to apply for them. This feeds Angela's Queue.
+    var me = (window.opsCurrentUser ? window.opsCurrentUser() : '') || '';
+    var iAmIn = !!(me && (rec.interested || []).some(function (n) { return String(n).toLowerCase() === me.toLowerCase(); }));
+    var summary = formatInterested(rec.interested);
+    var intRow =
+      '<span class="qa-row-label">Interested:</span>' +
+      '<button type="button" class="qa' + (iAmIn ? ' on' : '') + '" data-qa="interested">' + (iAmIn ? '✓ Interested' : "+ I'm interested") + '</button>' +
+      (summary
+        ? '<span class="qa-int-summary">' + summary + '</span>'
+        : '<span class="qa-int-summary qa-int-empty">No one yet — Angela applies for whoever\'s interested</span>');
     return '<div class="modal-quickbar"><div class="qa-row">' + b.join('') + '</div>' +
-           '<div class="qa-row" style="margin-top:6px;"><span class="qa-row-label">Decision:</span>' + g.join('') + '</div></div>';
+           '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div></div>';
+  }
+  // Natural-language list of who's interested: "Joe is interested" /
+  // "Verma & Joe are interested" / "Verma, Joe & Thor are interested".
+  function formatInterested(names) {
+    names = (names || []).filter(Boolean);
+    if (!names.length) return '';
+    if (names.length === 1) return esc(names[0]) + ' is interested';
+    var last = names[names.length - 1];
+    var head = names.slice(0, -1).map(esc).join(', ');
+    return head + ' &amp; ' + esc(last) + ' are interested';
   }
   function wireQuickBar(rec) {
     var bar = $body.querySelector('.modal-quickbar');
@@ -2037,8 +2059,16 @@
       var patch = {};
       if (qa === 'saved') { rec.saved = !rec.saved; patch.saved = rec.saved; }
       else if (qa === 'hidden') { rec.hidden = !rec.hidden; patch.hidden = rec.hidden; }
-      else if (qa === 'go')   { rec.decision = (rec.decision === 'go')    ? null : 'go';    patch.decision = rec.decision; }
-      else if (qa === 'nogo') { rec.decision = (rec.decision === 'no-go') ? null : 'no-go'; patch.decision = rec.decision; }
+      else if (qa === 'interested') {
+        var me = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || '';
+        if (!me) return;  // no name entered — nothing to toggle
+        var ilist = (rec.interested || []).slice();
+        var hit = -1;
+        for (var z = 0; z < ilist.length; z++) { if (String(ilist[z]).toLowerCase() === me.toLowerCase()) { hit = z; break; } }
+        if (hit === -1) ilist.push(me); else ilist.splice(hit, 1);
+        rec.interested = ilist;
+        patch.interested = ilist;
+      }
       else if (qa === 'attending') {
         var on = (rec.attend_verdict || '').indexOf('Worth') === 0;
         rec.attend_verdict = on ? null : 'Worth attending';
@@ -2163,6 +2193,42 @@
     });
   }
 
+  // "Enrich" — POST the event to /api/enrich_one, which researches the gaps via
+  // Perplexity + Exa and writes the fill-only-missing patch server-side. We then
+  // merge the patch into rec and re-render so the new facts show immediately.
+  function wireEnrichButton(rec) {
+    var btn = document.getElementById('modal-enrich-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      if (btn.getAttribute('aria-busy')) return;
+      if (!window.confirm('Search the web to fill in any missing details for "' + (rec.name || 'this event') + '"?\n\nThis runs one research lookup (uses a credit).')) return;
+      btn.setAttribute('aria-busy', '1');
+      var prev = btn.innerHTML;
+      btn.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">⏳</span> Enriching…';
+      fetch('/api/enrich_one', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: rec, table: rec._table, key: rec._key })
+      }).then(function (r) { return r.json(); }).then(function (data) {
+        btn.removeAttribute('aria-busy'); btn.innerHTML = prev;
+        if (!data || data.skipped) { window.alert("Enrichment isn't set up yet — no research API keys are configured on the server."); return; }
+        if (data.error) { window.alert('Enrichment failed: ' + (data.detail || data.error)); return; }
+        var filled = data.filled || [];
+        var patch = data.patch || {};
+        for (var k in patch) { if (Object.prototype.hasOwnProperty.call(patch, k)) rec[k] = patch[k]; }
+        openEventModal(rec);
+        if (window.opsRefresh) window.opsRefresh();
+        var note = filled.length
+          ? '<div class="modal-enrich-note ok">&#10022; Enriched — filled: ' + esc(filled.join(', ')) + '</div>'
+          : '<div class="modal-enrich-note">No new details found — everything we could fill is already here.</div>';
+        if ($body) $body.insertAdjacentHTML('afterbegin', note);
+      }).catch(function (e) {
+        btn.removeAttribute('aria-busy'); btn.innerHTML = prev;
+        window.alert('Enrichment error: ' + e);
+      });
+    });
+  }
+
   function openEventModal(rec) {
     if (!rec) return;
     var badges = [];
@@ -2183,8 +2249,6 @@
     if (rec.attend_verdict) badges.push('<span class="badge ' + attendClass(rec.attend_verdict) + '">' + esc(rec.attend_verdict) + '</span>');
     if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
-    if (rec.decision === 'go')    badges.push('<span class="badge decision-badge go">✓ Go</span>');
-    if (rec.decision === 'no-go') badges.push('<span class="badge decision-badge nogo">No-go</span>');
     $badges.innerHTML = badges.join('');
 
     $date.textContent  = rec.date_str || '';
@@ -2252,9 +2316,14 @@
     // swaps the read-only view for the (identically-laid-out) edit form.
     var $side = document.getElementById('modal-head-side');
     if ($side) {
-      $side.innerHTML = editForm
-        ? '<button type="button" class="qa-edit" id="modal-edit-toggle" aria-expanded="false"><span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event</button>'
+      // "Enrich" — research missing details on demand (editable records only).
+      var enrichBtn = (rec._table && rec._key != null)
+        ? '<button type="button" class="qa-edit qa-enrich" id="modal-enrich-btn" title="Search the web to fill in missing details for this event"><span class="qa-edit-ic" aria-hidden="true">✦</span> Enrich</button>'
         : '';
+      $side.innerHTML = enrichBtn + (editForm
+        ? '<button type="button" class="qa-edit" id="modal-edit-toggle" aria-expanded="false"><span class="qa-edit-ic" aria-hidden="true">✎</span> Edit event</button>'
+        : '');
+      wireEnrichButton(rec);
       var et = document.getElementById('modal-edit-toggle');
       if (et) et.addEventListener('click', function () {
         var view = $body.querySelector('.modal-view');
@@ -2373,7 +2442,7 @@
     var $opsStatus = document.getElementById('ops-status');
     // Month keys ('YYYY-MM' or 'tbd') the user has collapsed in the ops grid.
     // A truthy value means that month's cards are hidden via the dropdown / header.
-    var opsCollapsedMonths = {};
+    var opsCollapsedMonths = { hidden: true };
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
     // | 'buyer' | 'worth') — click a top stat to show only those events.
     var opsStatFilter = '';
@@ -2917,7 +2986,9 @@
         // Descriptive-field overrides edited in the pop-up — they live in
         // event_state and win over the read-only catalog value when set.
         ['why', 'about', 'focus_areas', 'typical_attendees', 'speaking_route',
-         'pay_to_play', 'venue', 'contact_info', 'deadline'].forEach(function (f) {
+         'pay_to_play', 'venue', 'contact_info', 'deadline',
+         'url', 'pricing', 'audience_type', 'past_speakers',
+         'meeting_formats', 'attendee_count'].forEach(function (f) {
           if (st[f] != null && String(st[f]).trim() !== '') rec[f] = st[f];
         });
         if (st.interested && st.interested.length) rec.interested = st.interested;
@@ -3360,6 +3431,9 @@
               card.classList.toggle('is-urgent', nextOn);
             } else if (field === 'hidden') {
               card.classList.toggle('is-hidden', nextOn);
+              // Move the card into / out of the collapsible "Hidden" section.
+              regroupOpsByMonth();
+              applyFilters();
             }
             flashOk();
           });
@@ -3676,18 +3750,25 @@
         .forEach(function (h) { if (h.parentNode) h.parentNode.removeChild(h); });
       var cards = Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card'));
       if (!cards.length) { buildMonthsMenu([]); return; }
+      // Hidden events sink to their own group after everything (incl. Date TBD);
+      // within each group, chronological by event date.
       cards.sort(function (a, b) {
+        var ah = a.classList.contains('is-hidden') ? 1 : 0;
+        var bh = b.classList.contains('is-hidden') ? 1 : 0;
+        if (ah !== bh) return ah - bh;
         return (parseInt(a.dataset.sort || '99999999', 10)) - (parseInt(b.dataset.sort || '99999999', 10));
       });
       var frag = document.createDocumentFragment();
       var curKey = null;
       var order = [];
       cards.forEach(function (card) {
-        var key = card.dataset.month || 'tbd';
+        var hidden = card.classList.contains('is-hidden');
+        var key = hidden ? 'hidden' : (card.dataset.month || 'tbd');
+        var label = hidden ? 'Hidden' : (card.dataset.monthLabel || 'Date TBD');
         if (key !== curKey) {
           curKey = key;
-          order.push({ key: key, label: card.dataset.monthLabel || 'Date TBD' });
-          frag.appendChild(buildOpsMonthHeader(key, card.dataset.monthLabel || 'Date TBD'));
+          order.push({ key: key, label: label });
+          frag.appendChild(buildOpsMonthHeader(key, label));
         }
         frag.appendChild(card);
       });
@@ -3828,7 +3909,8 @@
           if (fPrice === 'gte2500'      && !(pn != null && pn >= 2500)) on = false;
         }
         if (!showPast && card.dataset.past === '1') on = false;
-        if (!showHidden && card.classList.contains('is-hidden')) on = false;
+        // Hidden events are NOT filtered out — they collect in a collapsible
+        // "Hidden" section at the bottom (see the effective month key below).
         // Top stat-tile filter (one click on a stat shows only those events).
         if (opsStatFilter) {
           var tagsS = (card.dataset.statusTags || '');
@@ -3861,8 +3943,9 @@
         }
         // Collapsing a month is a view convenience, not a filter: a card that
         // passes the filters still counts toward "shown" even when its month
-        // is folded — we only hide it from view.
-        var mkey = card.dataset.month || 'tbd';
+        // is folded — we only hide it from view. Hidden cards live in the
+        // "hidden" group regardless of their date.
+        var mkey = card.classList.contains('is-hidden') ? 'hidden' : (card.dataset.month || 'tbd');
         if (on) { monthMatched[mkey] = (monthMatched[mkey] || 0) + 1; shown++; }
         // An active search overrides month collapsing — a match inside a
         // folded month must be visible or the event looks like it's missing.
@@ -6575,6 +6658,14 @@
       });
     };
     function dict_assign(a, b) { for (var k in b) { if (Object.prototype.hasOwnProperty.call(b, k)) a[k] = b[k]; } return a; }
+    // Current collaborator's display name, for the modal's "I'm interested"
+    // toggle. Pass ensure=true to prompt for a name if none is set yet.
+    window.opsCurrentUser = function (ensure) {
+      if (ensure && !getCollabName()) return ensureCollabName();
+      return getCollabName() || '';
+    };
+    // Re-fetch + re-render everything (used after server-side enrichment writes).
+    window.opsRefresh = function () { return renderOps(getCollabName() || 'Team'); };
     window.opsOpenEditor = function (table, key) {
       if (window.closeEventModal) window.closeEventModal();
       if (typeof currentView !== 'undefined' && currentView !== 'grid') setView('grid');
