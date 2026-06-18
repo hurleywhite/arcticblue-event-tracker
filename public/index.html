@@ -376,12 +376,16 @@
       animation: modalRise 0.16s ease-out;
     }
     @keyframes modalRise { from { transform: translateY(8px); opacity: 0.6; } to { transform: translateY(0); opacity: 1; } }
-    .modal-scroll { padding: 30px 32px 26px; max-height: 86vh; overflow-y: auto; }
-    /* Fixed top-right toolbar — Edit event + close sit in the SAME spot for
-       every event (consistent placement, no floating). */
+    .modal-scroll { padding: 62px 32px 26px; max-height: 86vh; overflow-y: auto; }
+    /* Fixed top toolbar — Edit event + close sit in the SAME spot for every
+       event. Full-width opaque band so form fields scroll cleanly UNDERNEATH it
+       (no content bleeding through behind the buttons). */
     .modal-topbar {
-      position: absolute; top: 12px; right: 14px; z-index: 3;
-      display: flex; align-items: center; gap: 8px;
+      position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+      display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+      padding: 12px 14px; background: #fff;
+      border-bottom: 1px solid var(--ab-rule);
+      border-radius: 8px 8px 0 0;
     }
     .modal-close {
       flex-shrink: 0;
@@ -576,7 +580,7 @@
       .me-row { grid-template-columns: 1fr; gap: 4px; }
     }
     @media (max-width: 560px) {
-      .modal-scroll { padding: 26px 20px 22px; }
+      .modal-scroll { padding: 58px 20px 22px; }
       .modal-title { font-size: 1.3rem; }
       .modal-grid { grid-template-columns: 1fr; }
     }
@@ -1695,7 +1699,7 @@
         <span class="brand-text">ArcticBlue</span>
       </a>
       <h1 class="app-title">ArcticBlue's Event Tracker</h1>
-      <p class="nav-meta">Last updated · JUNE 18, 2026</p>
+      <p class="nav-meta">Last updated · JUNE 17, 2026</p>
     </div>
   </nav>
 
@@ -1882,7 +1886,7 @@
 
     <footer class="foot">
       <p class="foot-text">ArcticBlue · Event Tracker · Auto-archives events one day after end-date.</p>
-      <p class="foot-mono">v1.2 · 2026-06-18</p>
+      <p class="foot-mono">v1.2 · 2026-06-17</p>
     </footer>
   </main>
 
@@ -4734,31 +4738,38 @@
     // migration yet, PostgREST rejects the whole write. We detect that, drop
     // the offending column, and retry so the save still lands (the buyer/price
     // fields just stay blank until the migration runs).
-    var MIGRATION_COLS = ['pricing', 'audience_type', 'past_speakers',
-                          'meeting_formats', 'attend_verdict', 'postmortem', 'type'];
-    function unknownMigrationCol(err) {
+    // Internal/audit columns: strip SILENTLY on a missing-column error (they
+    // aren't user-entered data, so don't warn that they "weren't saved").
+    var SILENT_STRIP_COLS = ['updated_by', 'updated_at'];
+    function missingColFromErr(err) {
+      // The column name Postgres/PostgREST reports as missing, for either:
+      //   PGRST204  "Could not find the 'updated_by' column of 'manual_events' in the schema cache"
+      //   42703     "column manual_events.updated_by does not exist"
+      // Returning it lets sbWriteRetry strip that one column and retry, so a save
+      // never dies just because the DB lacks an optional / not-yet-migrated
+      // column (any column, not just a hard-coded list).
       if (!err) return null;
-      var msg = ((err.message || '') + ' ' + (err.details || '')).toLowerCase();
+      var msg = (err.message || '') + ' ' + (err.details || '');
       var code = String(err.code || '');
-      if (code !== 'PGRST204' && code !== '42703' && msg.indexOf('column') === -1) return null;
-      for (var i = 0; i < MIGRATION_COLS.length; i++) {
-        var c = MIGRATION_COLS[i];
-        if (msg.indexOf("'" + c + "'") !== -1 || msg.indexOf('"' + c + '"') !== -1 ||
-            msg.indexOf(' ' + c + ' ') !== -1) return c;
-      }
-      return null;
+      if (code !== 'PGRST204' && code !== '42703' && msg.toLowerCase().indexOf('column') === -1) return null;
+      var m = msg.match(/find the ['"]([A-Za-z0-9_]+)['"] column/i)
+           || msg.match(/column ['"]?(?:[A-Za-z0-9_]+\.)?([A-Za-z0-9_]+)['"]? (?:of |does not exist)/i)
+           || msg.match(/['"]([A-Za-z0-9_]+)['"] column/i);
+      return m ? m[1] : null;
     }
     // runFn(payload) -> a Supabase thenable resolving to {data, error}.
-    // The final resp carries strippedMigrationCols so callers can warn that
-    // those values were NOT saved (DB migration still pending).
+    // On a missing-column error it strips that column and retries. The final
+    // resp carries strippedMigrationCols (user-data columns only) so callers can
+    // warn that those values were NOT saved (DB migration still pending).
     function sbWriteRetry(payload, runFn, _stripped) {
       _stripped = _stripped || [];
       return runFn(payload).then(function (resp) {
-        var col = unknownMigrationCol(resp.error);
+        var col = missingColFromErr(resp.error);
         if (col && Object.prototype.hasOwnProperty.call(payload, col)) {
           var p2 = {};
           for (var k in payload) { if (k !== col && Object.prototype.hasOwnProperty.call(payload, k)) p2[k] = payload[k]; }
-          return sbWriteRetry(p2, runFn, _stripped.concat([col]));
+          var next = (SILENT_STRIP_COLS.indexOf(col) !== -1) ? _stripped : _stripped.concat([col]);
+          return sbWriteRetry(p2, runFn, next);
         }
         if (_stripped.length) resp.strippedMigrationCols = _stripped;
         return resp;
@@ -6796,11 +6807,13 @@
     window.opsStageOrder = _STAGE_ORDER;
     window.opsWrite = function (table, key, patch) {
       var who = getCollabName() || 'Team';
-      patch.updated_by = who;
       var run;
       if (table === 'manual_events') {
+        // manual_events has no updated_by column (it tracks created_by on
+        // insert), so don't stamp it — doing so failed the whole save.
         run = sbWriteRetry(patch, function (p) { return sb.from('manual_events').update(p).eq('id', key); });
       } else {
+        patch.updated_by = who;
         var pp = dict_assign({ event_num: key }, patch);
         run = sbWriteRetry(pp, function (p) { return sb.from('event_state').upsert(p, { onConflict: 'event_num' }); });
       }
