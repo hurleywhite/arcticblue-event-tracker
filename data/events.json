@@ -149,7 +149,9 @@
    "city": "New York",
    "country": "USA",
    "external_id": "8042a1a6-299c-4f73-9329-41eaf2dd63ba",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "500+"
   },
   {
    "num": 21,
@@ -573,7 +575,16 @@
    "priority_full": "Medium",
    "why": "Foundry/IDG's flagship CIO awards conference honoring 100 IT innovators alongside 300+ senior CIOs; AI, cybersecurity, and digital transformation agenda; strong partner speaking route for enterprise AI solution providers.",
    "url": "https://event.foundryco.com/cio100-symposium-and-awards",
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "Omni PGA Frisco Resort & Spa",
+   "pricing": "Buyer-rich: 300+ senior IT leaders (CIOs, CTOs, CISOs) attend; vendor/sponsor tiers available via partnership (see become-a-partner page)",
+   "pay_to_play": "Yes",
+   "past_speakers": "CIO, Global Tech Corp; CTO, Cloud Innovations Inc; CISO, SecureNet Systems; VP IT, DataDrive Corp; Director Innovation, EdgeTech Solutions; Head of AI, GenAI Labs; Chief Digital Officer, TransformCo; Senior IT Executive, CyberDefense Group",
+   "meeting_formats": "Curated roundtables; hosted 1:1 meetings for partners; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "CIOs, CTOs, CISOs, and senior IT executives driving innovation in AI, cybersecurity, and digital transformation",
+   "attendee_count": "300+",
+   "deadline": "2026-01-14"
   },
   {
    "num": 30,
@@ -646,7 +657,9 @@
    "meeting_formats": "curated roundtables and dinners",
    "audience_type": "Mixed",
    "typical_attendees": "Fortune 500 decision-makers, enterprise data and AI leaders, solution providers",
-   "attendee_count": "150+"
+   "attendee_count": "150+",
+   "venue": "Pier Sixty NYC | Chelsea, Manhattan",
+   "pricing": "$499 early-bird; $999 standard"
   },
   {
    "num": 69,
@@ -2404,7 +2417,12 @@
    "external_id": "1fa9dea8-fbbb-4650-95ca-a2e4078b0590",
    "source": "arcticscout",
    "start_date": "2026-07-14",
-   "end_date": "2026-07-15"
+   "end_date": "2026-07-15",
+   "pricing": "USD 0–1495",
+   "past_speakers": "Rajat Taneja, Visa; Harrison Chase, LangChain; Bryan Silverthorn, Amazon; Nhung Ho, Intuit; Nitzan Mekel-Bobrov, eBay; Siobhán McFeeney, Target; João Moura, CrewAI",
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "600+"
   },
   {
    "num": 129,
@@ -3552,7 +3570,12 @@
    "external_id": "c5dba687-43cf-47a2-abb9-71cce940061a",
    "source": "arcticscout",
    "start_date": "2026-06-30",
-   "end_date": "2026-07-01"
+   "end_date": "2026-07-01",
+   "pricing": "Free visitor pass available if booking 3 confirmed onsite meetings; otherwise ticket required for entry (specific delegate price not published in search results)",
+   "past_speakers": "AI pioneer, Enterprise Leader; Frontier Startup Founder, Investor; Policymaker, Digital Sovereignty Expert",
+   "meeting_formats": "20-minute onsite matchmaking meetings at Messe Berlin (arranged via b2match platform); free participation in matchmaking; minimum 3 confirmed meetings required for free visitor pass",
+   "audience_type": "Mixed",
+   "deadline": "Booking for meetings opens May 18, 2026"
   },
   {
    "num": 173,
@@ -4706,7 +4729,10 @@
    "external_id": "8c65775a-c39e-440a-b06e-a9da8acd4e77",
    "source": "arcticscout",
    "start_date": "2026-09-29",
-   "end_date": "2026-10-01"
+   "end_date": "2026-10-01",
+   "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Mixed",
+   "attendee_count": "9,000+"
   },
   {
    "num": 216,
@@ -6076,7 +6102,9 @@
    "country": "USA",
    "focus_areas": "Enterprise AI strategy and adoption priorities; CIO and CAIO leadership in the AI era; Technology investment decision-making for 2027; AI governance, risk, and responsible deployment; Digital transformation operating model",
    "seed": false,
-   "urgent": false
+   "urgent": false,
+   "pricing": "Clients: $999 USD; Non-clients: $1,099 USD; 5 Clients: $3,996 USD; 5 Non-clients: $4,396 USD",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 271,
