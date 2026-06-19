@@ -29,7 +29,10 @@ SUPABASE_URL = _env('SUPABASE_URL', 'https://efkvhlmfdwlobvdmvqiq.supabase.co').
 SUPABASE_PUBLISHABLE = _env('SUPABASE_PUBLISHABLE_KEY')
 
 OPENAI_API_KEY = _env('OPENAI_API_KEY')
-OPENAI_MODEL = _env('OPENAI_CHAT_MODEL', _env('OPENAI_MODEL', 'gpt-4o-mini'))
+OPENAI_MODEL = _env('OPENAI_CHAT_MODEL', _env('OPENAI_MODEL', 'gpt-5'))
+# If the primary model id is rejected (not yet available on the account), retry
+# once with this known-good model so Ask AI never hard-fails.
+OPENAI_FALLBACK = _env('OPENAI_FALLBACK_MODEL', 'gpt-4o-mini')
 OPENAI_BASE = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
 
 MAX_EVENTS_CONTEXT = 300
@@ -393,21 +396,25 @@ def _ask_openai(question, history, events, user=''):
         if isinstance(h, dict) and h.get('role') in ('user', 'assistant') and h.get('content'):
             messages.append({'role': h['role'], 'content': str(h['content'])[:2000]})
     messages.append({'role': 'user', 'content': str(question)[:1000]})
-    st, data = _http_json(
-        'POST', OPENAI_BASE + '/chat/completions',
-        headers={'Authorization': 'Bearer ' + OPENAI_API_KEY},
-        body={'model': OPENAI_MODEL, 'messages': messages,
-              'temperature': 0.2, 'max_tokens': 700,
-              'response_format': {'type': 'json_object'}}, timeout=60)
+    # No temperature override — newer models (gpt-5 / reasoning tier) only accept
+    # the default, and the prompt is already tightly constrained.
+    body = {'model': OPENAI_MODEL, 'messages': messages, 'max_tokens': 700,
+            'response_format': {'type': 'json_object'}}
+    hdr = {'Authorization': 'Bearer ' + OPENAI_API_KEY}
+    st, data = _http_json('POST', OPENAI_BASE + '/chat/completions', headers=hdr, body=body, timeout=60)
+    if st in (400, 404) and OPENAI_FALLBACK and OPENAI_FALLBACK != OPENAI_MODEL:
+        body['model'] = OPENAI_FALLBACK
+        st, data = _http_json('POST', OPENAI_BASE + '/chat/completions', headers=hdr, body=body, timeout=60)
     if st != 200 or not isinstance(data, dict):
         raise RuntimeError('openai %s: %s' % (st, str(data)[:300]))
+    served = data.get('model')
     content = data['choices'][0]['message']['content']
     try:
         parsed = json.loads(content)
         return (str(parsed.get('answer', '') or ''),
-                [str(n) for n in (parsed.get('recommended') or []) if n])
+                [str(n) for n in (parsed.get('recommended') or []) if n], served)
     except (json.JSONDecodeError, TypeError):
-        return content, []
+        return content, [], served
 
 
 def _match_cards(names, events):
@@ -478,10 +485,10 @@ class handler(BaseHTTPRequestHandler):
             return _send(self, 400, {'error': 'no question'})
         events = _gather_events(self.headers.get('Host', ''))
         try:
-            answer, names = _ask_openai(question, body.get('history'), events, body.get('user'))
+            answer, names, served = _ask_openai(question, body.get('history'), events, body.get('user'))
         except Exception as e:  # noqa: BLE001
             return _send(self, 502, {'error': 'assistant failed: %s' % str(e)[:300]})
         cards = _match_cards(names, events)
         return _send(self, 200, {'answer': answer, 'cards': cards,
-                                 'model': OPENAI_MODEL,
+                                 'model': served or OPENAI_MODEL,
                                  'events_considered': len(events)})

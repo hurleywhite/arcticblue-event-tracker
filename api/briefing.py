@@ -44,7 +44,7 @@ SUPABASE_PUBLISHABLE = _env('SUPABASE_PUBLISHABLE_KEY')
 SUPABASE_SERVICE_ROLE = _env('SUPABASE_SERVICE_ROLE_KEY')
 OPENAI_API_KEY = _env('OPENAI_API_KEY')
 OPENAI_BASE = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
-BRIEFING_MODEL = _env('OPENAI_BRIEFING_MODEL', 'gpt-4o-mini-search-preview')
+BRIEFING_MODEL = _env('OPENAI_BRIEFING_MODEL', 'gpt-5-search')
 BRIEFING_FALLBACK = _env('OPENAI_BRIEFING_FALLBACK', 'gpt-4o-mini-search-preview')
 # Vercel auto-sends `Authorization: Bearer ${CRON_SECRET}` on cron invocations
 # when a CRON_SECRET env var exists; accept that or an explicit override.
@@ -213,7 +213,8 @@ def generate_brief(event, persona, topic):
                 brief = json.loads(m.group(0))
             except (json.JSONDecodeError, TypeError):
                 brief = {}
-    return normalize_brief(brief, event, persona)
+    model_used = data.get('model') if isinstance(data, dict) else None
+    return normalize_brief(brief, event, persona), model_used
 
 
 def normalize_brief(brief, event, persona):
@@ -226,8 +227,10 @@ def normalize_brief(brief, event, persona):
     g.setdefault('event', event.get('name'))
     g.setdefault('dates', event.get('date_str'))
     g.setdefault('region', event.get('region'))
-    g.setdefault('covered_by', persona.get('name'))
-    g.setdefault('mode', persona.get('mode'))
+    # covered_by + mode are authoritative from the persona — never let the model
+    # override them (it sometimes echoes the event source, e.g. 'arcticscout').
+    g['covered_by'] = persona.get('name')
+    g['mode'] = persona.get('mode')
     brief['at_a_glance'] = g
     brief.setdefault('why_were_here', '')
     wir = brief.get('who_in_room') or {}
@@ -338,10 +341,11 @@ def _one(kind, key, host, regenerate):
         return {'brief': state['briefing_json'], 'generated_at': state.get('briefing_generated_at'),
                 'cached': True, 'persona': keys[0]}, 200
     ev = event_facts_for(kind, facts, state)
-    brief = generate_brief(ev, persona, ev.get('speaker_topic'))
+    brief, model_used = generate_brief(ev, persona, ev.get('speaker_topic'))
     when = datetime.utcnow().isoformat() + 'Z'
     cache_brief(kind, key, brief, when)
-    return {'brief': brief, 'generated_at': when, 'cached': False, 'persona': keys[0]}, 200
+    return {'brief': brief, 'generated_at': when, 'cached': False,
+            'persona': keys[0], 'model': model_used}, 200
 
 
 class handler(BaseHTTPRequestHandler):
@@ -404,5 +408,5 @@ class handler(BaseHTTPRequestHandler):
             return
         persona = load_personas()['personas'][keys[0]]
         ev = event_facts_for(kind, facts, state)
-        brief = generate_brief(ev, persona, ev.get('speaker_topic'))
+        brief, _model = generate_brief(ev, persona, ev.get('speaker_topic'))
         cache_brief(kind, key, brief, datetime.utcnow().isoformat() + 'Z')

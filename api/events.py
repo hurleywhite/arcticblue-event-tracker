@@ -113,7 +113,7 @@ except ValueError:
 # Optional. If OPENAI_API_KEY is unset the gate is SKIPPED and every new
 # (non-duplicate) event is inserted, exactly as the original endpoint did.
 OPENAI_API_KEY = _env('OPENAI_API_KEY')
-OPENAI_MODEL   = _env('OPENAI_MODEL', 'gpt-4o-mini')
+OPENAI_MODEL   = _env('OPENAI_MODEL', 'gpt-5')
 OPENAI_BASE    = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
 # On an OpenAI error/timeout: keep the event (fail-open, default) so a flaky
 # API never silently loses a real opportunity, or drop it (fail-closed).
@@ -435,7 +435,7 @@ GATE_FAIL_OPEN = _truthy(_GATE_FAIL_OPEN_RAW)
 # Uses the same OPENAI_API_KEY. Fail-OPEN on an API error so an outage never
 # silently drops real opportunities; set EVENTS_VERIFY_FAIL_OPEN=false to
 # fail-closed, or EVENTS_VERIFY_EXISTENCE=false to disable the check.
-VERIFY_MODEL     = _env('OPENAI_VERIFY_MODEL', 'gpt-4o-mini-search-preview')
+VERIFY_MODEL     = _env('OPENAI_VERIFY_MODEL', 'gpt-5-search')
 VERIFY_ENABLED   = bool(OPENAI_API_KEY) and _truthy(_env('EVENTS_VERIFY_EXISTENCE', 'true'))
 VERIFY_FAIL_OPEN = _truthy(_env('EVENTS_VERIFY_FAIL_OPEN', 'true'))
 
