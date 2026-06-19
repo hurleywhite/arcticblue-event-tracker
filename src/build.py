@@ -3758,6 +3758,9 @@ def build():
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<div class="ops-chips">' +
+            '<button class="saved-star' + (mev.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (mev.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (mev.saved ? '★' : '☆') + '</button>' +
+            '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
+            '<button class="ops-chip' + (mev.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (mev.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
             mDecBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
@@ -3788,6 +3791,37 @@ def build():
       mrec._table = 'manual_events'; mrec._key = mev.id;
       mrec.region = canonicalRegion(mev);
       card._modalRec = mrec;
+
+      if (mev.hidden) card.classList.add('is-hidden');
+      if (mev.saved)  card.classList.add('is-saved');
+      if (mev.urgent) card.classList.add('is-urgent');
+      // Boolean toggles (saved/urgent/hidden) — same UX as catalog cards, but
+      // written to manual_events. Needs the columns from
+      // scripts/2026-06-18_manual_events_toggles.sql; until that runs,
+      // sbWriteRetry strips the unknown column and we warn instead of pretending.
+      card.querySelectorAll('[data-field][data-on]').forEach(function (btn) {{
+        btn.addEventListener('click', function () {{
+          var field = btn.dataset.field;
+          var nextOn = btn.dataset.on !== '1';
+          btn.setAttribute('aria-busy', 'true');
+          var patch = {{}}; patch[field] = nextOn;
+          sbWriteRetry(patch, function (p) {{ return sb.from('manual_events').update(p).eq('id', mev.id); }}).then(function (resp) {{
+            btn.removeAttribute('aria-busy');
+            if (resp.error) {{ status('Save failed: ' + resp.error.message, 'error'); return; }}
+            if (resp.strippedMigrationCols && resp.strippedMigrationCols.indexOf(field) !== -1) {{
+              status('Run scripts/2026-06-18_manual_events_toggles.sql in Supabase to enable ' + field + ' on manual events.', 'warn');
+              return;
+            }}
+            btn.dataset.on = nextOn ? '1' : '0';
+            btn.classList.toggle('is-on', nextOn);
+            mev[field] = nextOn;
+            if (field === 'saved') {{ btn.textContent = nextOn ? '★' : '☆'; card.classList.toggle('is-saved', nextOn); }}
+            else if (field === 'urgent') {{ card.classList.toggle('is-urgent', nextOn); }}
+            else if (field === 'hidden') {{ card.classList.toggle('is-hidden', nextOn); regroupOpsByMonth(); applyFilters(); }}
+            flashOk();
+          }});
+        }});
+      }});
       return card;
     }}
 
