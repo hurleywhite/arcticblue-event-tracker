@@ -46,7 +46,9 @@ OPENAI_API_KEY = _env('OPENAI_API_KEY')
 OPENAI_BASE = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
 BRIEFING_MODEL = _env('OPENAI_BRIEFING_MODEL', 'gpt-4o-mini-search-preview')
 BRIEFING_FALLBACK = _env('OPENAI_BRIEFING_FALLBACK', 'gpt-4o-mini-search-preview')
-CRON_SECRET = _env('BRIEFING_CRON_SECRET')
+# Vercel auto-sends `Authorization: Bearer ${CRON_SECRET}` on cron invocations
+# when a CRON_SECRET env var exists; accept that or an explicit override.
+CRON_SECRET = _env('CRON_SECRET') or _env('BRIEFING_CRON_SECRET')
 STALE_HOURS = 24
 
 _PERSONAS = None
