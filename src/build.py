@@ -43,6 +43,11 @@ else:
 SUPABASE_URL              = 'https://efkvhlmfdwlobvdmvqiq.supabase.co'
 SUPABASE_PUBLISHABLE_KEY  = 'sb_publishable_Lu7bLEA1jdsJXFDrKqC1OA_LYAjWYEj'
 
+# Persona single-source-of-truth (config/personas.json) baked into the page so
+# the Day-Of tab + brief drawer render without a runtime fetch. api/briefing.py
+# reads the same file. PERSONAS_JS is a JSON object literal for the JS.
+PERSONAS_JS = json.dumps(json.loads((HERE / 'config' / 'personas.json').read_text()), ensure_ascii=False)
+
 # NEVER hallucinate URLs — only use what's in the doc OR what's manually
 # vouched for in event-urls-manual.json. See AGENT-CONTEXT.md, Rule 2.
 EVENT_URLS = {}
@@ -1656,8 +1661,70 @@ def build():
     .ops-card.is-nogo:hover {{ opacity: 1; }}
 
     /* ── Queue view (Angela's application queue) ─────────────────── */
-    .ops-queue, .ops-planner {{ display: none; }}
-    .ops-queue.show, .ops-planner.show {{ display: block; }}
+    .ops-queue, .ops-planner, .ops-dayof {{ display: none; }}
+    .ops-queue.show, .ops-planner.show, .ops-dayof.show {{ display: block; }}
+    /* ── Day-Of tab ─────────────────────────────────────────────── */
+    .vt-count--dayof {{ background: #f59e0b; color: #fff; }}
+    .dayof-intro {{ font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 18px; line-height: 1.5; max-width: 760px; }}
+    .dayof-section {{ margin: 0 0 26px; }}
+    .dayof-sec-head {{ display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }}
+    .dayof-sec-title {{ font-family: var(--ab-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg); font-weight: 700; }}
+    .dayof-sec-count {{ font-family: var(--ab-mono); font-size: 0.66rem; background: var(--ab-bg-3); border-radius: 10px; padding: 1px 8px; color: var(--ab-fg-3); }}
+    .dayof-card {{ display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      border: 1px solid var(--ab-rule); border-radius: 8px; padding: 14px 16px; margin: 0 0 10px; background: var(--ab-bg); }}
+    .dayof-card.is-today {{ border-color: #f59e0b; box-shadow: 0 0 0 1px #f59e0b33; background: linear-gradient(0deg, #fffaf0, #fff); }}
+    .dayof-card-main {{ min-width: 0; flex: 1 1 280px; }}
+    .dayof-name {{ font-family: var(--ab-sans); font-weight: 650; font-size: 1rem; color: var(--ab-fg); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }}
+    .dayof-name:hover {{ color: #1fa0dc; text-decoration: underline; }}
+    .dayof-meta {{ font-size: 0.8rem; color: var(--ab-fg-3); margin: 3px 0 8px; }}
+    .dayof-who-row {{ display: flex; flex-wrap: wrap; gap: 8px; }}
+    .dayof-who {{ font-size: 0.82rem; color: var(--ab-fg-2); display: inline-flex; align-items: center; gap: 5px; }}
+    .dayof-actions {{ display: flex; align-items: center; gap: 10px; }}
+    .dayof-ready {{ font-family: var(--ab-mono); font-size: 0.64rem; color: #15803d; }}
+    .dayof-empty {{ border: 1px dashed var(--ab-rule); border-radius: 8px; padding: 22px; text-align: center; color: var(--ab-fg-3); font-size: 0.88rem; line-height: 1.6; }}
+    .mode-badge {{ font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; padding: 1px 7px; border-radius: 3px; }}
+    .mode-room {{ background: #dbeafe; color: #1e40af; }}
+    .mode-stage {{ background: #f3e8ff; color: #7e22ce; }}
+    /* ── Brief drawer ───────────────────────────────────────────── */
+    .briefing-overlay {{ position: fixed; inset: 0; z-index: 70; background: rgba(10,10,10,0.42); display: none; justify-content: flex-end; }}
+    .briefing-overlay.show {{ display: flex; }}
+    .briefing-card {{ background: #fff; width: 100%; max-width: 560px; height: 100%; display: flex; flex-direction: column;
+      box-shadow: -18px 0 50px rgba(0,0,0,0.22); animation: bfSlide 0.18s ease-out; }}
+    @keyframes bfSlide {{ from {{ transform: translateX(30px); opacity: 0.6; }} to {{ transform: none; opacity: 1; }} }}
+    .briefing-top {{ display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px;
+      border-bottom: 1px solid var(--ab-rule); position: sticky; top: 0; background: #fff; }}
+    .briefing-top-title {{ font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3); }}
+    .briefing-top-actions {{ display: flex; gap: 6px; }}
+    .bf-btn {{ font-family: var(--ab-mono); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 5px 9px;
+      border: 1px solid var(--ab-rule); border-radius: 4px; background: var(--ab-bg-3); color: var(--ab-fg-2); cursor: pointer; }}
+    .bf-btn:hover {{ border-color: #1fa0dc; color: #1271a8; }}
+    .bf-close {{ font-size: 1rem; padding: 3px 9px; }}
+    .briefing-body {{ padding: 18px 20px 60px; overflow-y: auto; flex: 1; }}
+    .bf-head h2 {{ font-size: 1.35rem; margin: 0 0 4px; display: inline; }}
+    .bf-head .mode-badge {{ margin-left: 8px; vertical-align: 3px; }}
+    .bf-sub {{ font-size: 0.85rem; color: var(--ab-fg-2); margin: 6px 0 2px; }}
+    .bf-stamp {{ font-family: var(--ab-mono); font-size: 0.62rem; color: var(--ab-fg-3); margin: 0 0 6px; }}
+    .bf-sec {{ border-top: 1px solid var(--ab-rule); padding: 14px 0 4px; }}
+    .bf-sec h3 {{ font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ab-fg); margin: 0 0 8px; }}
+    .bf-conf {{ font-size: 0.58rem; background: var(--ab-bg-3); color: var(--ab-fg-3); border-radius: 8px; padding: 1px 7px; margin-left: 6px; }}
+    .bf-sec p {{ font-size: 0.9rem; line-height: 1.55; margin: 0 0 8px; color: var(--ab-fg); }}
+    .bf-muted {{ color: var(--ab-fg-3) !important; font-size: 0.82rem !important; }}
+    .bf-label {{ font-family: var(--ab-mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ab-fg-3); margin: 10px 0 4px !important; }}
+    .bf-win {{ font-weight: 650; color: #b45309 !important; }}
+    .bf-chips {{ display: flex; flex-wrap: wrap; gap: 6px; }}
+    .bf-chip {{ font-size: 0.76rem; background: var(--ab-bg-3); border-radius: 4px; padding: 2px 8px; color: var(--ab-fg-2); }}
+    .bf-list, .bf-news {{ margin: 4px 0 10px; padding-left: 18px; }}
+    .bf-list li, .bf-news li {{ font-size: 0.88rem; line-height: 1.5; margin: 0 0 6px; color: var(--ab-fg); }}
+    .bf-news a {{ color: var(--ab-blue); }}
+    .bf-date {{ font-family: var(--ab-mono); font-size: 0.66rem; color: var(--ab-fg-3); }}
+    .bf-speaker {{ margin: 0 0 12px; }}
+    .bf-hook {{ font-style: italic; color: #1271a8 !important; font-size: 0.84rem !important; }}
+    .bf-unconf li {{ color: #92600a; }}
+    .bf-loading {{ display: flex; align-items: center; gap: 10px; color: var(--ab-fg-2); font-size: 0.9rem; padding: 30px 0; }}
+    .bf-spin {{ width: 16px; height: 16px; border: 2px solid var(--ab-rule); border-top-color: #1fa0dc; border-radius: 50%; animation: bfspin 0.7s linear infinite; }}
+    @keyframes bfspin {{ to {{ transform: rotate(360deg); }} }}
+    .bf-error {{ color: #b91c1c; font-size: 0.88rem; padding: 24px 0; line-height: 1.5; }}
+    @media (max-width: 560px) {{ .briefing-card {{ max-width: 100%; }} }}
     .queue-intro, .planner-intro {{
       font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 18px; max-width: 70ch; line-height: 1.5;
     }}
@@ -2322,6 +2389,7 @@ def build():
           <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
+          <button type="button" role="tab" data-view="dayof"    aria-selected="false">Day-Of<span class="vt-count vt-count--dayof" id="vt-dayof-count" hidden></span></button>
         </div>
         <div class="ops-toolbar">
           <div class="ops-toolbar-group" role="group" aria-label="Add events">
@@ -2374,6 +2442,7 @@ def build():
         </div>
         <div class="ops-queue" id="ops-queue"></div>
         <div class="ops-planner" id="ops-planner"></div>
+        <div class="ops-dayof" id="ops-dayof"></div>
       </div>
 
     </div><!-- /panel-angela -->
@@ -2484,6 +2553,9 @@ def build():
   var lastFocus = null;
   // The ArcticBlue speaker roster — drives the "Interested" picker.
   var AB_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
+  // Persona single-source-of-truth (config/personas.json), baked in. Global so
+  // both the modal (attendees picker) and the ops views (Day-Of) read it.
+  window.AB_PERSONAS = {PERSONAS_JS}.personas;
 
   function esc(s) {{
     return String(s == null ? '' : s)
@@ -2663,6 +2735,14 @@ def build():
     h += ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
     h += ef('ArcticBlue speaker', '<input class="me-input" type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
     h += ef('Interested — wants Angela to apply', '<div class="me-ints">' + intChips + '</div>');
+    var attendees = rec.attendees || [];
+    var attChips = Object.keys(window.AB_PERSONAS || {{}}).map(function (k) {{
+      var nm = (window.AB_PERSONAS[k] || {{}}).name || k;
+      var on = attendees.indexOf(k) !== -1;
+      return '<label class="me-int' + (on ? ' on' : '') + '"><input type="checkbox" data-attending="' + esc(k) + '"' + (on ? ' checked' : '') + '>' + esc(nm) + '</label>';
+    }}).join('');
+    h += ef('Attending — surfaces a Day-Of brief', '<div class="me-ints">' + attChips + '</div>');
+    h += ef('Speaker topic — drives the day-of news pull', inp('speaker_topic', rec.speaker_topic, 'e.g. AI workforce enablement'));
     h += ef('Priority', '<select class="me-input" data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) {{ return opt(v, curPri); }}).join('') + '</select>');
     h += ef('Why it fits ArcticBlue', ta('why', rec.why));
     h += ef('About', ta('about', rec.about));
@@ -2732,6 +2812,20 @@ def build():
         rec.interested = list;
         var lbl = cb.closest('.me-int'); if (lbl) lbl.classList.toggle('on', cb.checked);
         window.opsWrite(rec._table, rec._key, {{ interested: list }});
+      }});
+    }});
+    box.querySelectorAll('[data-attending]').forEach(function (cb) {{
+      cb.addEventListener('change', function () {{
+        var list = (rec.attendees || []).slice();
+        var k = cb.dataset.attending;
+        var i = list.indexOf(k);
+        if (cb.checked && i === -1) list.push(k);
+        else if (!cb.checked && i !== -1) list.splice(i, 1);
+        var order = Object.keys(window.AB_PERSONAS || {{}});
+        list = order.filter(function (x) {{ return list.indexOf(x) !== -1; }});
+        rec.attendees = list;
+        var lbl = cb.closest('.me-int'); if (lbl) lbl.classList.toggle('on', cb.checked);
+        window.opsWrite(rec._table, rec._key, {{ attendees: list }});
       }});
     }});
     box.querySelectorAll('[data-edit]').forEach(function (el) {{
@@ -3589,6 +3683,8 @@ def build():
           if (st[f] != null && String(st[f]).trim() !== '') rec[f] = st[f];
         }});
         if (st.interested && st.interested.length) rec.interested = st.interested;
+        if (st.attendees && st.attendees.length) rec.attendees = st.attendees;
+        if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
         if (st.decision) rec.decision = st.decision;
         rec.stage_tags = opsStages;
       }}
@@ -4672,9 +4768,33 @@ def build():
         hidden: !!(st && st.hidden),
         sort: meta.sort,
         startObj: base,
+        start_date: base.start_date || (st && st.start_date) || '',
+        end_date: base.end_date || (st && st.end_date) || base.start_date || '',
+        attendees: ((st && st.attendees) || base.attendees || []).slice ? ((st && st.attendees) || base.attendees || []).slice() : [],
+        speaker_topic: (st && st.speaker_topic) || base.speaker_topic || '',
+        briefing_json: (st && st.briefing_json) || base.briefing_json || null,
+        briefing_generated_at: (st && st.briefing_generated_at) || base.briefing_generated_at || null,
         createdBy: abFold(base.created_by || ''),
         text: abFold(blob)
       }};
+    }}
+
+    // Attendee persona keys for an event = explicit `attendees` ∪ any persona
+    // matched by the assigned speaker. Drives the Day-Of tab + brief.
+    function resolveAttendeeKeys(it) {{
+      var P = window.AB_PERSONAS || {{}};
+      var keys = [];
+      (it.attendees || []).forEach(function (k) {{
+        k = String(k || '').toLowerCase();
+        if (k && P[k] && keys.indexOf(k) === -1) keys.push(k);
+      }});
+      var sp = abFold(it.speaker || '');
+      Object.keys(P).forEach(function (k) {{
+        var first = abFold((P[k].name || '').split(' ')[0]);
+        var hit = new RegExp('\\\\b' + k + '\\\\b').test(sp) || (first && new RegExp('\\\\b' + first + '\\\\b').test(sp));
+        if (hit && keys.indexOf(k) === -1) keys.push(k);
+      }});
+      return keys;
     }}
 
     function opsAllItems() {{
@@ -4702,6 +4822,162 @@ def build():
     function opsQuickWrite(kind, key, patch) {{
       if (!window.opsWrite) return;
       window.opsWrite(kind === 'manual' ? 'manual_events' : 'event_state', key, patch);
+    }}
+
+    // ════════════════════════════════════════════════════════════════
+    // Day-Of view — events happening now that an ArcticBlue person attends.
+    // ════════════════════════════════════════════════════════════════
+    function dayofItems() {{
+      var today = new Date().toISOString().slice(0, 10);
+      var todayList = [], soon = [];
+      opsAllItems().forEach(function (it) {{
+        if (it.hidden) return;
+        it._keys = resolveAttendeeKeys(it);
+        if (!it._keys.length) return;
+        var s = it.start_date || '', e = it.end_date || it.start_date || '';
+        if (s && s <= today && today <= (e || s)) todayList.push(it);
+        else if (s && s > today) soon.push(it);
+      }});
+      todayList.sort(function (a, b) {{ return a.sort - b.sort; }});
+      soon.sort(function (a, b) {{ return a.sort - b.sort; }});
+      return {{ today: todayList, soon: soon.slice(0, 8) }};
+    }}
+
+    function modeBadge(key) {{
+      var m = ((window.AB_PERSONAS[key] || {{}}).mode) || 'room';
+      return '<span class="mode-badge mode-' + m + '">' + m + '</span>';
+    }}
+
+    function dayofCard(it, isToday) {{
+      var P = window.AB_PERSONAS;
+      var who = it._keys.map(function (k) {{ return '<span class="dayof-who">' + escapeHtml((P[k] || {{}}).name || k) + ' ' + modeBadge(k) + '</span>'; }}).join('');
+      var loc = [it.region, it.location].filter(Boolean).join(' · ');
+      var ready = it.briefing_json ? '<span class="dayof-ready">&#10003; brief ready</span>' : '';
+      return '<div class="dayof-card' + (isToday ? ' is-today' : '') + '">' +
+        '<div class="dayof-card-main">' +
+          '<button type="button" class="dayof-name" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+          '<p class="dayof-meta">' + escapeHtml(it.date_str || '') + (loc ? ' · ' + escapeHtml(loc) : '') + '</p>' +
+          '<div class="dayof-who-row">' + who + '</div>' +
+        '</div>' +
+        '<div class="dayof-actions">' + ready +
+          '<button type="button" class="q-btn primary dayof-open" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">Open brief &rarr;</button>' +
+        '</div>' +
+      '</div>';
+    }}
+
+    function renderDayOf() {{
+      var host = document.getElementById('ops-dayof');
+      if (!host) return;
+      var d = dayofItems();
+      var html = '<p class="dayof-intro"><strong>Day-Of briefings.</strong> When a teammate is attending an event today, a persona-tailored brief is waiting here &mdash; who is in the room, the targets, speaker news, and the angles to use. Set who is going via an event&#39;s <em>Details &rarr; Edit &rarr; Attending</em>.</p>';
+      if (!d.today.length && !d.soon.length) {{
+        html += '<div class="dayof-empty">Nobody is marked as attending an event right now.<br>Open an event &rarr; <strong>Edit</strong> &rarr; tick a name under <strong>Attending (day-of)</strong>, and it surfaces here on the day &mdash; pre-generated overnight.</div>';
+      }} else {{
+        if (d.today.length) {{
+          html += '<div class="dayof-section"><div class="dayof-sec-head"><span class="dayof-sec-title">&#9889; Happening today</span><span class="dayof-sec-count">' + d.today.length + '</span></div>' +
+                  d.today.map(function (it) {{ return dayofCard(it, true); }}).join('') + '</div>';
+        }}
+        if (d.soon.length) {{
+          html += '<div class="dayof-section"><div class="dayof-sec-head"><span class="dayof-sec-title">&#128197; Coming up &mdash; someone attending</span><span class="dayof-sec-count">' + d.soon.length + '</span></div>' +
+                  d.soon.map(function (it) {{ return dayofCard(it, false); }}).join('') + '</div>';
+        }}
+      }}
+      host.innerHTML = html;
+      host.querySelectorAll('.dayof-open, .dayof-name').forEach(function (b) {{
+        b.addEventListener('click', function () {{ openBriefDrawer(b.dataset.k, b.dataset.key); }});
+      }});
+      var badge = document.getElementById('vt-dayof-count');
+      if (badge) {{ if (d.today.length) {{ badge.textContent = d.today.length; badge.removeAttribute('hidden'); }} else badge.setAttribute('hidden', ''); }}
+    }}
+
+    function kindToTable(kind) {{ return kind === 'manual' ? 'manual_events' : 'event_state'; }}
+
+    function openBriefDrawer(kind, key) {{
+      var it = opsAllItems().filter(function (x) {{ return x.kind === kind && String(x.key) === String(key); }})[0];
+      if (!it) return;
+      it._keys = resolveAttendeeKeys(it);
+      var ov = document.getElementById('briefing-overlay');
+      if (!ov) {{
+        ov = document.createElement('div'); ov.id = 'briefing-overlay'; ov.className = 'briefing-overlay';
+        ov.innerHTML = '<div class="briefing-card" role="dialog" aria-modal="true">' +
+          '<div class="briefing-top"><span class="briefing-top-title">Day-Of brief</span>' +
+          '<div class="briefing-top-actions">' +
+            '<button type="button" class="bf-btn bf-regen" title="Force a fresh research pass">&#8635; Regenerate</button>' +
+            '<button type="button" class="bf-btn bf-copy">Copy</button>' +
+            '<button type="button" class="bf-btn bf-print">Print</button>' +
+            '<button type="button" class="bf-btn bf-close" aria-label="Close">&times;</button>' +
+          '</div></div><div class="briefing-body" id="briefing-body"></div></div>';
+        document.body.appendChild(ov);
+        ov.addEventListener('click', function (e) {{ if (e.target === ov) ov.classList.remove('show'); }});
+        ov.querySelector('.bf-close').addEventListener('click', function () {{ ov.classList.remove('show'); }});
+      }}
+      ov._it = it;
+      ov.querySelector('.bf-regen').onclick = function () {{ loadBrief(it, true); }};
+      ov.querySelector('.bf-copy').onclick = function () {{ copyBrief(it); }};
+      ov.querySelector('.bf-print').onclick = function () {{ window.print(); }};
+      ov.classList.add('show');
+      if (it.briefing_json) renderBrief(it.briefing_json, it, true);
+      else loadBrief(it, false);
+    }}
+
+    function loadBrief(it, regenerate) {{
+      var body = document.getElementById('briefing-body');
+      body.innerHTML = '<div class="bf-loading"><span class="bf-spin"></span> Researching the room, the speakers, and the latest news&hellip; this takes a few seconds.</div>';
+      fetch('/api/briefing', {{
+        method: 'POST', headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ kind: kindToTable(it.kind), key: it.key, regenerate: !!regenerate }})
+      }}).then(function (r) {{ return r.json(); }}).then(function (resp) {{
+        if (resp && resp.brief) {{ it.briefing_json = resp.brief; renderBrief(resp.brief, it, !!resp.cached); if (currentView === 'dayof') renderDayOf(); }}
+        else body.innerHTML = '<div class="bf-error">Could not generate the brief: ' + escapeHtml((resp && resp.error) || 'unknown error') + '</div>';
+      }}).catch(function (e) {{ body.innerHTML = '<div class="bf-error">Briefing service unavailable (it runs on the deployed site). ' + escapeHtml(String(e)) + '</div>'; }});
+    }}
+
+    function copyBrief(it) {{
+      var b = it.briefing_json || {{}}; var g = b.at_a_glance || {{}}; var t = b.targets || {{}};
+      var lines = [(g.event || it.name), (g.dates || it.date_str || ''), '', b.why_were_here || '', '',
+        'WIN: ' + (t.outcome_target || ''), '', 'ANGLES:'].concat((b.angles || []).map(function (a) {{ return '- ' + a; }}));
+      try {{ navigator.clipboard.writeText(lines.join('\\n')); if (typeof flashOk === 'function') flashOk('Brief copied'); }} catch (e) {{}}
+    }}
+
+    function renderBrief(b, it, cached) {{
+      b = b || {{}};
+      function esc(s) {{ return escapeHtml(s == null ? '' : String(s)); }}
+      function list(arr, fn) {{ return (arr || []).map(fn).join(''); }}
+      function sec(title, inner) {{ return inner ? '<section class="bf-sec"><h3>' + title + '</h3>' + inner + '</section>' : ''; }}
+      function newsLi(n) {{ return '<li>' + (n.url ? '<a href="' + esc(n.url) + '" target="_blank" rel="noopener">' + esc(n.headline) + '</a>' : esc(n.headline)) + (n.date ? ' <span class="bf-date">' + esc(n.date) + '</span>' : '') + (n.relevance ? '<br><span class="bf-muted">' + esc(n.relevance) + '</span>' : '') + '</li>'; }}
+      var g = b.at_a_glance || {{}}, t = b.targets || {{}}, wir = b.who_in_room || {{}}, lw = b.logistics_win || {{}};
+      var mode = g.mode || ((window.AB_PERSONAS[(it._keys || [])[0]] || {{}}).mode) || 'room';
+      var html = '<div class="bf-head"><h2>' + esc(g.event || it.name) + '</h2>' +
+        '<span class="mode-badge mode-' + mode + '">' + mode + '</span>' +
+        '<p class="bf-sub">' + esc(g.dates || it.date_str || '') + (g.venue ? ' · ' + esc(g.venue) : (it.location ? ' · ' + esc(it.location) : '')) +
+        (g.covered_by ? ' · covered by <strong>' + esc(g.covered_by) + '</strong>' : '') + '</p>' +
+        (cached ? '<p class="bf-stamp">cached &middot; hit Regenerate for a fresh pass</p>' : '') + '</div>';
+      html += sec('Why we are here', b.why_were_here ? '<p>' + esc(b.why_were_here) + '</p>' : '');
+      html += sec('Who is in the room <span class="bf-conf">' + esc(wir.confidence || 'estimated') + '</span>',
+        (wir.titles && wir.titles.length ? '<p class="bf-chips">' + list(wir.titles, function (x) {{ return '<span class="bf-chip">' + esc(x) + '</span>'; }}) + '</p>' : '') +
+        (wir.industries && wir.industries.length ? '<p class="bf-muted">' + esc((wir.industries || []).join(' · ')) + '</p>' : '') +
+        (wir.named && wir.named.length ? '<ul class="bf-list">' + list(wir.named, function (n) {{ return '<li><strong>' + esc(n.name) + '</strong>' + (n.title ? ' &mdash; ' + esc(n.title) : '') + (n.org ? ', ' + esc(n.org) : '') + '</li>'; }}) + '</ul>' : ''));
+      var tgt = '';
+      if (t.people_to_find && t.people_to_find.length) tgt += '<p class="bf-label">People to find</p><ul class="bf-list">' + list(t.people_to_find, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>';
+      if (t.outcome_target) tgt += '<p class="bf-label">Win target</p><p class="bf-win">' + esc(t.outcome_target) + '</p>';
+      if (t.speaking_route_open) tgt += '<p class="bf-label">Speaking route</p><p>' + esc(t.speaking_route_open) + '</p>';
+      if (t.facilitator_leads && t.facilitator_leads.length) tgt += '<p class="bf-label">Facilitator / partner leads</p><ul class="bf-list">' + list(t.facilitator_leads, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>';
+      html += sec('&#127919; Targets', tgt || '<p class="bf-muted">No specific targets surfaced yet.</p>');
+      if (b.speaker_spotlight && b.speaker_spotlight.length) {{
+        html += sec('Speaker spotlight', list(b.speaker_spotlight, function (s) {{
+          return '<div class="bf-speaker"><strong>' + esc(s.name) + '</strong>' + (s.who ? ' &mdash; ' + esc(s.who) : '') +
+            (s.news && s.news.length ? '<ul class="bf-news">' + list(s.news, newsLi) + '</ul>' : '') +
+            (s.hook ? '<p class="bf-hook">&#8627; ' + esc(s.hook) + '</p>' : '') + '</div>';
+        }}));
+      }}
+      if (b.topic_news && b.topic_news.length) html += sec('Fresh news on your topic', '<ul class="bf-news">' + list(b.topic_news, newsLi) + '</ul>');
+      if (b.angles && b.angles.length) html += sec('Angles', '<ul class="bf-list">' + list(b.angles, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>');
+      var lwh = '';
+      ['time', 'room', 'link'].forEach(function (k) {{ if (lw[k]) lwh += '<p><strong>' + k + ':</strong> ' + (k === 'link' ? '<a href="' + esc(lw[k]) + '" target="_blank" rel="noopener">' + esc(lw[k]) + '</a>' : esc(lw[k])) + '</p>'; }});
+      if (lw.win) lwh += '<p class="bf-win">&#127937; ' + esc(lw.win) + '</p>';
+      html += sec('Logistics &amp; win', lwh);
+      if (b.unconfirmed && b.unconfirmed.length) html += sec('&#9888; Unconfirmed &mdash; verify on the ground', '<ul class="bf-list bf-unconf">' + list(b.unconfirmed, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>');
+      document.getElementById('briefing-body').innerHTML = html;
     }}
 
     // ── Queue: every flagged "apply for me" event, grouped by progress ──
@@ -5625,7 +5901,7 @@ def build():
     var VIEW_KEY = 'ab.angela.view';
     var currentView = 'grid';
 
-    var VIEW_NAMES = ['grid', 'calendar', 'map', 'queue', 'planner'];
+    var VIEW_NAMES = ['grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
     function setView(name) {{
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
       currentView = name;
@@ -5639,14 +5915,17 @@ def build():
       var m = document.getElementById('ops-map');
       var q = document.getElementById('ops-queue');
       var p = document.getElementById('ops-planner');
+      var d = document.getElementById('ops-dayof');
       if (g) g.style.display = (name === 'grid') ? '' : 'none';
       if (c) c.classList.toggle('show', name === 'calendar');
       if (m) m.classList.toggle('show', name === 'map');
       if (q) q.classList.toggle('show', name === 'queue');
       if (p) p.classList.toggle('show', name === 'planner');
+      if (d) d.classList.toggle('show', name === 'dayof');
       if (name === 'map') openOpsMap();
       if (name === 'queue') renderQueue();
       if (name === 'planner') renderPlanner();
+      if (name === 'dayof') renderDayOf();
       try {{ localStorage.setItem(VIEW_KEY, name); }} catch (e) {{}}
     }}
 

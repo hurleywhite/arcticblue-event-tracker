@@ -23,7 +23,8 @@
       "maxDuration": 60
     },
     "api/briefing.py": {
-      "maxDuration": 300
+      "maxDuration": 300,
+      "includeFiles": "config/personas.json"
     }
   },
   "crons": [
