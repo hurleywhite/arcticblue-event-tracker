@@ -170,7 +170,9 @@ def build_messages(event, persona, topic):
         "logistics_win {time, room, link, win}; "
         "unconfirmed:[string,..]. "
         "speaking_route_open and facilitator_leads apply to stage / Joe respectively; "
-        "use null / [] otherwise. Every news item MUST carry a real source url."
+        "use null / [] otherwise. Every news item MUST carry a real source url.\n"
+        "Output ONLY the raw JSON object — no markdown code fences, no commentary "
+        "before or after it."
     )
     user = (
         "ATTENDEE PERSONA:\n" + json.dumps(persona, ensure_ascii=False) + "\n\n"
@@ -185,8 +187,9 @@ def _call_openai(messages, model):
     st, data = _http_json(
         'POST', OPENAI_BASE + '/chat/completions',
         headers={'Authorization': 'Bearer ' + OPENAI_API_KEY},
-        body={'model': model, 'messages': messages, 'max_tokens': 2200,
-              'response_format': {'type': 'json_object'}}, timeout=120)
+        # NB: the *-search-preview models reject response_format=json_object, so
+        # we ask for raw JSON in the prompt and extract it (see generate_brief).
+        body={'model': model, 'messages': messages, 'max_tokens': 3000}, timeout=120)
     return st, data
 
 
@@ -198,12 +201,18 @@ def generate_brief(event, persona, topic):
         st, data = _call_openai(messages, BRIEFING_FALLBACK)
     if st != 200 or not isinstance(data, dict):
         raise RuntimeError('openai %s: %s' % (st, str(data)[:300]))
-    content = data['choices'][0]['message']['content']
+    content = data['choices'][0]['message']['content'] or ''
+    brief = {}
     try:
         brief = json.loads(content)
     except (json.JSONDecodeError, TypeError):
-        m = re.search(r'\{.*\}', content or '', re.S)
-        brief = json.loads(m.group(0)) if m else {}
+        # strip ```json fences / preamble and grab the outermost {...}
+        m = re.search(r'\{.*\}', content, re.S)
+        if m:
+            try:
+                brief = json.loads(m.group(0))
+            except (json.JSONDecodeError, TypeError):
+                brief = {}
     return normalize_brief(brief, event, persona)
 
 
