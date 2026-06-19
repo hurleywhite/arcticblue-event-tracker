@@ -29,10 +29,17 @@ SUPABASE_URL = _env('SUPABASE_URL', 'https://efkvhlmfdwlobvdmvqiq.supabase.co').
 SUPABASE_PUBLISHABLE = _env('SUPABASE_PUBLISHABLE_KEY')
 
 OPENAI_API_KEY = _env('OPENAI_API_KEY')
-OPENAI_MODEL = _env('OPENAI_CHAT_MODEL', _env('OPENAI_MODEL', 'gpt-5'))
-# If the primary model id is rejected (not yet available on the account), retry
-# once with this known-good model so Ask AI never hard-fails.
+OPENAI_MODEL = _env('OPENAI_CHAT_MODEL', _env('OPENAI_MODEL', 'gpt-5.4'))
+# If the primary model id is rejected (not available on the account), retry once
+# with this known-good model so Ask AI never hard-fails.
 OPENAI_FALLBACK = _env('OPENAI_FALLBACK_MODEL', 'gpt-4o-mini')
+
+
+def _tok(model, n):
+    """gpt-5 / o-series require max_completion_tokens; older models use max_tokens."""
+    m = (model or '').lower()
+    key = 'max_completion_tokens' if m.startswith(('gpt-5', 'o1', 'o3', 'o4')) else 'max_tokens'
+    return {key: n}
 OPENAI_BASE = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
 
 MAX_EVENTS_CONTEXT = 300
@@ -398,13 +405,17 @@ def _ask_openai(question, history, events, user=''):
     messages.append({'role': 'user', 'content': str(question)[:1000]})
     # No temperature override — newer models (gpt-5 / reasoning tier) only accept
     # the default, and the prompt is already tightly constrained.
-    body = {'model': OPENAI_MODEL, 'messages': messages, 'max_tokens': 700,
+    body = {'model': OPENAI_MODEL, 'messages': messages,
             'response_format': {'type': 'json_object'}}
+    body.update(_tok(OPENAI_MODEL, 2000))  # gpt-5 reasoning shares this budget
     hdr = {'Authorization': 'Bearer ' + OPENAI_API_KEY}
-    st, data = _http_json('POST', OPENAI_BASE + '/chat/completions', headers=hdr, body=body, timeout=60)
+    st, data = _http_json('POST', OPENAI_BASE + '/chat/completions', headers=hdr, body=body, timeout=90)
     if st in (400, 404) and OPENAI_FALLBACK and OPENAI_FALLBACK != OPENAI_MODEL:
+        body.pop('max_tokens', None)
+        body.pop('max_completion_tokens', None)
         body['model'] = OPENAI_FALLBACK
-        st, data = _http_json('POST', OPENAI_BASE + '/chat/completions', headers=hdr, body=body, timeout=60)
+        body.update(_tok(OPENAI_FALLBACK, 2000))
+        st, data = _http_json('POST', OPENAI_BASE + '/chat/completions', headers=hdr, body=body, timeout=90)
     if st != 200 or not isinstance(data, dict):
         raise RuntimeError('openai %s: %s' % (st, str(data)[:300]))
     served = data.get('model')

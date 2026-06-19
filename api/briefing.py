@@ -44,8 +44,8 @@ SUPABASE_PUBLISHABLE = _env('SUPABASE_PUBLISHABLE_KEY')
 SUPABASE_SERVICE_ROLE = _env('SUPABASE_SERVICE_ROLE_KEY')
 OPENAI_API_KEY = _env('OPENAI_API_KEY')
 OPENAI_BASE = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
-BRIEFING_MODEL = _env('OPENAI_BRIEFING_MODEL', 'gpt-5-search')
-BRIEFING_FALLBACK = _env('OPENAI_BRIEFING_FALLBACK', 'gpt-4o-mini-search-preview')
+BRIEFING_MODEL = _env('OPENAI_BRIEFING_MODEL', 'gpt-5.4')
+BRIEFING_FALLBACK = _env('OPENAI_BRIEFING_FALLBACK', 'gpt-5-search-api')
 # Vercel auto-sends `Authorization: Bearer ${CRON_SECRET}` on cron invocations
 # when a CRON_SECRET env var exists; accept that or an explicit override.
 CRON_SECRET = _env('CRON_SECRET') or _env('BRIEFING_CRON_SECRET')
@@ -227,13 +227,22 @@ def build_messages(event, persona, topic, mode):
     return [{'role': 'system', 'content': sys}, {'role': 'user', 'content': user}]
 
 
+def _tok(model, n):
+    """gpt-5 / o-series require max_completion_tokens; older models use max_tokens."""
+    m = (model or '').lower()
+    key = 'max_completion_tokens' if m.startswith(('gpt-5', 'o1', 'o3', 'o4')) else 'max_tokens'
+    return {key: n}
+
+
 def _call_openai(messages, model):
-    st, data = _http_json(
-        'POST', OPENAI_BASE + '/chat/completions',
-        headers={'Authorization': 'Bearer ' + OPENAI_API_KEY},
-        # NB: the *-search-preview models reject response_format=json_object, so
-        # we ask for raw JSON in the prompt and extract it (see generate_brief).
-        body={'model': model, 'messages': messages, 'max_tokens': 4500}, timeout=150)
+    # NB: search models reject response_format=json_object, so we ask for raw JSON
+    # in the prompt and extract it. gpt-5 reasoning shares the token budget, so
+    # keep it ample.
+    body = {'model': model, 'messages': messages}
+    body.update(_tok(model, 6000))
+    st, data = _http_json('POST', OPENAI_BASE + '/chat/completions',
+                          headers={'Authorization': 'Bearer ' + OPENAI_API_KEY},
+                          body=body, timeout=200)
     return st, data
 
 
@@ -428,10 +437,11 @@ class handler(BaseHTTPRequestHandler):
                 return _send(self, 200, {'http': st, 'total': len(ids), 'matched': hit})
             if p == 'ping':
                 model = qs.get('model', ['gpt-5'])[0]
+                pbody = {'model': model, 'messages': [{'role': 'user', 'content': 'Reply with the word ok.'}]}
+                pbody.update(_tok(model, 16))
                 st, data = _http_json('POST', OPENAI_BASE + '/chat/completions',
                                       headers={'Authorization': 'Bearer ' + OPENAI_API_KEY},
-                                      body={'model': model, 'messages': [{'role': 'user', 'content': 'Reply with the word ok.'}],
-                                            'max_tokens': 5}, timeout=30)
+                                      body=pbody, timeout=30)
                 served = data.get('model') if isinstance(data, dict) else None
                 err = data.get('error') if isinstance(data, dict) else str(data)[:300]
                 return _send(self, 200, {'requested': model, 'http': st, 'served': served, 'error': err})

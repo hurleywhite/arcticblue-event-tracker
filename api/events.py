@@ -113,7 +113,7 @@ except ValueError:
 # Optional. If OPENAI_API_KEY is unset the gate is SKIPPED and every new
 # (non-duplicate) event is inserted, exactly as the original endpoint did.
 OPENAI_API_KEY = _env('OPENAI_API_KEY')
-OPENAI_MODEL   = _env('OPENAI_MODEL', 'gpt-5')
+OPENAI_MODEL   = _env('OPENAI_MODEL', 'gpt-5.4')
 OPENAI_BASE    = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
 # On an OpenAI error/timeout: keep the event (fail-open, default) so a flaky
 # API never silently loses a real opportunity, or drop it (fail-closed).
@@ -435,7 +435,7 @@ GATE_FAIL_OPEN = _truthy(_GATE_FAIL_OPEN_RAW)
 # Uses the same OPENAI_API_KEY. Fail-OPEN on an API error so an outage never
 # silently drops real opportunities; set EVENTS_VERIFY_FAIL_OPEN=false to
 # fail-closed, or EVENTS_VERIFY_EXISTENCE=false to disable the check.
-VERIFY_MODEL     = _env('OPENAI_VERIFY_MODEL', 'gpt-5-search')
+VERIFY_MODEL     = _env('OPENAI_VERIFY_MODEL', 'gpt-5-search-api')
 VERIFY_ENABLED   = bool(OPENAI_API_KEY) and _truthy(_env('EVENTS_VERIFY_EXISTENCE', 'true'))
 VERIFY_FAIL_OPEN = _truthy(_env('EVENTS_VERIFY_FAIL_OPEN', 'true'))
 
@@ -489,16 +489,22 @@ def _evaluate_event(row, known_names):
         'events_already_tracked': sample,
     }, ensure_ascii=False)
 
+    # gpt-5 / o-series require max_completion_tokens and reject a temperature
+    # override; older models use max_tokens + temperature.
+    _is5 = OPENAI_MODEL.lower().startswith(('gpt-5', 'o1', 'o3', 'o4'))
     payload = {
         'model': OPENAI_MODEL,
         'messages': [
             {'role': 'system', 'content': system},
             {'role': 'user',   'content': user},
         ],
-        'temperature': 0,
-        'max_tokens': 200,
         'response_format': {'type': 'json_object'},
     }
+    if _is5:
+        payload['max_completion_tokens'] = 1200  # reasoning shares this budget
+    else:
+        payload['temperature'] = 0
+        payload['max_tokens'] = 200
     status, data = _http_json(
         'POST', OPENAI_BASE + '/chat/completions',
         headers={
