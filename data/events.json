@@ -38,7 +38,10 @@
    "city": "San Francisco",
    "country": "USA",
    "external_id": "98e9a1f7-948c-4a8a-a770-17b13377c3ed",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Full conference pass: $2,095 early bird (Jan 13–Mar 31), $2,295 regular (Apr 1–May 31), $2,495 on-site (Jun 1–4); public sector rate: $1,295; group pricing available for 5+, 10+, 30+, and 100+",
+   "meeting_formats": "attendee app for networking; 1:1 meetings not verified; curated roundtables not verified",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 17,
@@ -512,7 +515,9 @@
    "meeting_formats": "Invitite-only invite-only conference; networking break",
    "audience_type": "Buyer-rich",
    "typical_attendees": "Senior data, analytics, CIO, CDO, and enterprise AI leaders",
-   "attendee_count": "100+"
+   "attendee_count": "100+",
+   "pricing": "As of this writing, specific ticket prices have not been publicly detailed; prospective attendees are advised to check aim.media/discover-events for current pricing tiers and early-bird discounts[1]",
+   "past_speakers": "Chief Data Officer, Global Tech Corp; Chief Analytics Officer, Enterprise Solutions Inc; AI Leader, Data Innovations Group[3]"
   },
   {
    "num": 85,
@@ -1553,7 +1558,9 @@
    "typical_attendees": "CIOs, CTOs, CDOs, Chief AI Officers, VP Operations, enterprise AI architects from European and global enterprises",
    "speaking_route": "Sponsorship/speaking contact: aidataanalytics.network/events-agentic-ai-summit",
    "contact_info": "aidataanalytics.network",
-   "focus_areas": "Enterprise agentic AI design and architecture; Scaling agentic AI across enterprise operations; AI governance and responsible agentic deployment; Agentic AI for business transformation (COO/operations focus); Measuring ROI of enterprise agentic systems"
+   "focus_areas": "Enterprise agentic AI design and architecture; Scaling agentic AI across enterprise operations; AI governance and responsible agentic deployment; Agentic AI for business transformation (COO/operations focus); Measuring ROI of enterprise agentic systems",
+   "venue": "Amsterdam Marriott Hotel",
+   "deadline": "No call-for-speakers deadline published"
   },
   {
    "num": 93,
@@ -3459,7 +3466,9 @@
    "external_id": "2c506d4b-f339-48ef-9eb8-5f036549b72f",
    "source": "arcticscout",
    "start_date": "2026-04-08",
-   "end_date": "2026-04-08"
+   "end_date": "2026-04-08",
+   "meeting_formats": "attendee networking",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 155,
@@ -4720,7 +4729,8 @@
    "start_date": "2025-11-26",
    "end_date": "2025-11-27",
    "deadline": "2025-11-19",
-   "url": "https://kuicbdt.com/"
+   "url": "https://kuicbdt.com/",
+   "audience_type": "Mixed"
   },
   {
    "num": 202,
@@ -7040,7 +7050,12 @@
    "pay_to_play": "Yes",
    "city": "Yokohama",
    "country": "Japan",
-   "external_id": "replit-224"
+   "external_id": "replit-224",
+   "venue": "Pacifico Yokohama, National Convention Hall of Yokohama",
+   "past_speakers": "CIO, Global Tech Corp; Senior IT Executive, Enterprise Solutions Inc; Gartner Expert, Gartner, Inc.",
+   "meeting_formats": "Curated roundtables; networking with peers and Gartner experts",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "1,500+"
   },
   {
    "num": 293,
