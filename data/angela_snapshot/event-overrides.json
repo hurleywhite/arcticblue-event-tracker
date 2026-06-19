@@ -1,1 +1,2001 @@
-{"096dfd13-ef81-421a-bef4-e6dd9cc004c2":{"eventId":"096dfd13-ef81-421a-bef4-e6dd9cc004c2","statuses":["Submitted"],"speaker":null,"saved":false,"hidden":false},"3adaf945-5714-4449-95e1-159493064932":{"eventId":"3adaf945-5714-4449-95e1-159493064932","statuses":["Booked"],"speaker":null,"saved":false,"hidden":false},"a8718f72-3aef-4088-aaad-f688e8317026":{"eventId":"a8718f72-3aef-4088-aaad-f688e8317026","statuses":["Booked"],"speaker":"Thor","saved":false,"hidden":false},"e811e5d7-a507-4066-b22b-8f880d84b147":{"eventId":"e811e5d7-a507-4066-b22b-8f880d84b147","statuses":["Submitted"],"speaker":null,"saved":false,"hidden":false},"14f9df76-811e-47bd-b65f-6ded02dc6923":{"eventId":"14f9df76-811e-47bd-b65f-6ded02dc6923","statuses":["Submitted"],"speaker":null,"saved":false,"hidden":false},"4b89951a-4451-4543-a49a-69e207ccff7f":{"eventId":"4b89951a-4451-4543-a49a-69e207ccff7f","statuses":["Booked"],"speaker":null,"saved":false,"hidden":false},"d0e62efc-2362-444b-a24e-e3e8bca280ad":{"eventId":"d0e62efc-2362-444b-a24e-e3e8bca280ad","statuses":["Attending"],"speaker":null,"saved":false,"hidden":false},"c5a63337-3b7b-4dc3-9ba6-9a0f61803b93":{"eventId":"c5a63337-3b7b-4dc3-9ba6-9a0f61803b93","statuses":["Sponsorship Only","Attending?"],"speaker":null,"saved":false,"hidden":false},"90f4a599-96f7-4bf5-b1b1-95c43cf70910":{"eventId":"90f4a599-96f7-4bf5-b1b1-95c43cf70910","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"d943bfea-5811-44c4-996c-ebb80a751e31":{"eventId":"d943bfea-5811-44c4-996c-ebb80a751e31","statuses":["Submitted","Sponsorship Only","Should Attend"],"speaker":"Thor","saved":false,"hidden":false},"99ff87eb-3777-489d-858e-6959f93fe631":{"eventId":"99ff87eb-3777-489d-858e-6959f93fe631","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"1c99dbeb-fea7-4a7c-b03d-4c29fcc6e30a":{"eventId":"1c99dbeb-fea7-4a7c-b03d-4c29fcc6e30a","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"878f3135-d0b5-4512-922c-e9347b38f27e":{"eventId":"878f3135-d0b5-4512-922c-e9347b38f27e","statuses":["Date Conflict","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"714c39fe-cbbd-4fd6-bdc9-0aa1372810ab":{"eventId":"714c39fe-cbbd-4fd6-bdc9-0aa1372810ab","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"b19db377-a9d9-49e8-a314-205b7ab9f9ec":{"eventId":"b19db377-a9d9-49e8-a314-205b7ab9f9ec","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"e5bf939b-75c1-4367-8767-ffbc3c78fc3c":{"eventId":"e5bf939b-75c1-4367-8767-ffbc3c78fc3c","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"199a5c61-0258-43e4-b02f-1c4d5414cbb9":{"eventId":"199a5c61-0258-43e4-b02f-1c4d5414cbb9","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"039a2248-263b-4bb5-a0d6-22f17db6afb6":{"eventId":"039a2248-263b-4bb5-a0d6-22f17db6afb6","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"417de610-d5e1-4a4e-ab10-004278ddd2f2":{"eventId":"417de610-d5e1-4a4e-ab10-004278ddd2f2","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"f1d3ddfd-88b3-4345-905d-0c26c068d86b":{"eventId":"f1d3ddfd-88b3-4345-905d-0c26c068d86b","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"15cb48c9-51dd-472b-9f90-0641d6a836ef":{"eventId":"15cb48c9-51dd-472b-9f90-0641d6a836ef","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"0a4afb96-d8b1-4965-9eff-4f31816468bb":{"eventId":"0a4afb96-d8b1-4965-9eff-4f31816468bb","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"2425bba2-d05c-4b00-a1aa-c9a2c818fd11":{"eventId":"2425bba2-d05c-4b00-a1aa-c9a2c818fd11","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"5ace1356-1193-40c0-aa12-40e6d94b71ce":{"eventId":"5ace1356-1193-40c0-aa12-40e6d94b71ce","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"ff091f94-18cc-49dd-a827-ab6be252af79":{"eventId":"ff091f94-18cc-49dd-a827-ab6be252af79","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"6a291f8c-7789-4ab4-84d9-9ea9e86a8361":{"eventId":"6a291f8c-7789-4ab4-84d9-9ea9e86a8361","statuses":["No Openings"],"speaker":null,"saved":false,"hidden":false},"40d7dcaf-f022-4861-9bd9-5ac9f00a51b8":{"eventId":"40d7dcaf-f022-4861-9bd9-5ac9f00a51b8","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"e3c14e6d-38d4-45e1-ba4f-9e49811dd6fa":{"eventId":"e3c14e6d-38d4-45e1-ba4f-9e49811dd6fa","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"1969e6ef-e4c7-4b48-992b-a8c459c40ec5":{"eventId":"1969e6ef-e4c7-4b48-992b-a8c459c40ec5","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"204aa804-b2cf-40c9-ab2d-1238e5350f59":{"eventId":"204aa804-b2cf-40c9-ab2d-1238e5350f59","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"d651ec66-cbbe-46df-bc59-a42ac6d2cd50":{"eventId":"d651ec66-cbbe-46df-bc59-a42ac6d2cd50","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"49310e3d-f767-40e9-be14-929085c57e41":{"eventId":"49310e3d-f767-40e9-be14-929085c57e41","statuses":["Date Conflict","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"841146de-1cee-4754-824d-2be99a655fc4":{"eventId":"841146de-1cee-4754-824d-2be99a655fc4","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"aff35422-ab8e-4989-8e8d-0ea239c80b88":{"eventId":"aff35422-ab8e-4989-8e8d-0ea239c80b88","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"81461952-5254-4591-9b51-0bbad22595aa":{"eventId":"81461952-5254-4591-9b51-0bbad22595aa","statuses":["Contact/Get Invited to speak"],"speaker":"Thor","saved":false,"hidden":false},"4494b543-18e5-4d46-8839-7c3def3f16a3":{"eventId":"4494b543-18e5-4d46-8839-7c3def3f16a3","statuses":["Booked"],"speaker":"Thor","saved":false,"hidden":false},"977c2145-fa3a-488d-b140-f34f0eb2c7d3":{"eventId":"977c2145-fa3a-488d-b140-f34f0eb2c7d3","statuses":["Submitted","Sponsorship Only"],"speaker":"Thor","saved":false,"hidden":false},"869f0213-4457-407a-bf0f-bb3d0b2ea06d":{"eventId":"869f0213-4457-407a-bf0f-bb3d0b2ea06d","statuses":["We'll Pass","Had Mtg"],"speaker":"Thor","saved":false,"hidden":false},"23107d9f-2710-404b-bbd1-c65707cd5dba":{"eventId":"23107d9f-2710-404b-bbd1-c65707cd5dba","statuses":["Submitted","Postponed?"],"speaker":"Thor","saved":false,"hidden":false},"63b60128-5b7a-4283-87b9-c6cc3e4a6e8b":{"eventId":"63b60128-5b7a-4283-87b9-c6cc3e4a6e8b","statuses":["Submitted","In contact with","Booked Prior Event"],"speaker":"Thor","saved":false,"hidden":false},"6abbb7a3-9e42-4fd9-bcd4-b322d3c7db6a":{"eventId":"6abbb7a3-9e42-4fd9-bcd4-b322d3c7db6a","statuses":["Submitted","Followed Up"],"speaker":"Thor","saved":false,"hidden":false},"d54a9dca-c35d-4e8c-a753-07d9748fab38":{"eventId":"d54a9dca-c35d-4e8c-a753-07d9748fab38","statuses":["Booked"],"speaker":null,"saved":false,"hidden":false},"5de45fbb-e28e-4b67-ace6-3cd2384adc48":{"eventId":"5de45fbb-e28e-4b67-ace6-3cd2384adc48","statuses":["Attending","Sponsorship Only","No External Speakers"],"speaker":"Verma","saved":false,"hidden":false},"7571a2de-52da-4f96-bff6-edc16f9a169f":{"eventId":"7571a2de-52da-4f96-bff6-edc16f9a169f","statuses":["Submitted","Booked Prior Year"],"speaker":"Thor","saved":false,"hidden":false},"4e20cd4a-3c53-43b8-90af-38457c338571":{"eventId":"4e20cd4a-3c53-43b8-90af-38457c338571","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"c77bdd67-9ad0-4e61-8684-cce77243f7d2":{"eventId":"c77bdd67-9ad0-4e61-8684-cce77243f7d2","statuses":["No Openings","Submission Inquiry"],"speaker":"Thor","saved":false,"hidden":false},"acf52fc3-dd27-45c1-8f2e-9be46390aec6":{"eventId":"acf52fc3-dd27-45c1-8f2e-9be46390aec6","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"30b9d50e-0e0e-4a28-9cc3-c56547dcf33d":{"eventId":"30b9d50e-0e0e-4a28-9cc3-c56547dcf33d","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"b8a42359-c3e3-4e7d-a8bd-1a23a83b86eb":{"eventId":"b8a42359-c3e3-4e7d-a8bd-1a23a83b86eb","statuses":["Submitted","Had Mtg","Not Accepted This Yr"],"speaker":"Thor","saved":false,"hidden":false},"98e9a1f7-948c-4a8a-a770-17b13377c3ed":{"eventId":"98e9a1f7-948c-4a8a-a770-17b13377c3ed","statuses":["No Openings","Submission Inquiry","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"8654b00a-dc72-48d1-be13-a650e1f94007":{"eventId":"8654b00a-dc72-48d1-be13-a650e1f94007","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"7ad79a17-a53e-42d6-8a6b-7e4f9a2bd3fb":{"eventId":"7ad79a17-a53e-42d6-8a6b-7e4f9a2bd3fb","statuses":["--"],"speaker":"Thor","saved":false,"hidden":false},"43c9b8e9-d33a-415d-8655-d5d2444d4ec7":{"eventId":"43c9b8e9-d33a-415d-8655-d5d2444d4ec7","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"3d4b09c4-3802-4c09-998e-03220b627c1c":{"eventId":"3d4b09c4-3802-4c09-998e-03220b627c1c","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"566665a2-cb2b-43ca-a18e-279674088df1":{"eventId":"566665a2-cb2b-43ca-a18e-279674088df1","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"c5551c3e-33da-4761-984e-55296bcd63db":{"eventId":"c5551c3e-33da-4761-984e-55296bcd63db","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"8c276165-3b5d-4658-a0f6-ba8409978993":{"eventId":"8c276165-3b5d-4658-a0f6-ba8409978993","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"f5bbc096-9fac-48d1-859a-14b033189415":{"eventId":"f5bbc096-9fac-48d1-859a-14b033189415","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"50bd7281-a61b-4d4f-a9aa-62be5887b29f":{"eventId":"50bd7281-a61b-4d4f-a9aa-62be5887b29f","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"15d1166b-dd9d-4292-91a0-ecaeaadc2b6c":{"eventId":"15d1166b-dd9d-4292-91a0-ecaeaadc2b6c","statuses":["Submitted","Followed Up"],"speaker":"Thor","saved":false,"hidden":false},"5cefedfc-7220-4f05-b66a-7c208c82184a":{"eventId":"5cefedfc-7220-4f05-b66a-7c208c82184a","statuses":["Submitted","Not Accepted This Yr"],"speaker":"Thor","saved":false,"hidden":false},"dc41d62c-0331-41ed-807c-c8c9fd2d4bba":{"eventId":"dc41d62c-0331-41ed-807c-c8c9fd2d4bba","statuses":["Submitted","test"],"speaker":"Thor","saved":false,"hidden":false},"8e454440-2021-4044-8d56-db101a1facc5":{"eventId":"8e454440-2021-4044-8d56-db101a1facc5","statuses":["Submitted"],"speaker":null,"saved":false,"hidden":false},"0231b797-2e43-461a-ad8f-353a271db130":{"eventId":"0231b797-2e43-461a-ad8f-353a271db130","statuses":["Submitted","No Openings"],"speaker":"Thor","saved":false,"hidden":false},"47f711bf-de2e-4f56-8284-dcda4ac51b62":{"eventId":"47f711bf-de2e-4f56-8284-dcda4ac51b62","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"586b9c14-49c3-4494-a951-6ebc5addcbd6":{"eventId":"586b9c14-49c3-4494-a951-6ebc5addcbd6","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"54ca86ed-6db5-4d3c-91ac-d4556fb5e84c":{"eventId":"54ca86ed-6db5-4d3c-91ac-d4556fb5e84c","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"b3f299b4-3bc0-4aef-96da-1b05bc3abf03":{"eventId":"b3f299b4-3bc0-4aef-96da-1b05bc3abf03","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"0eb91e85-853d-4ffa-b34d-25330c9b1193":{"eventId":"0eb91e85-853d-4ffa-b34d-25330c9b1193","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"e503305e-50fa-4916-8216-1f4d5dcef529":{"eventId":"e503305e-50fa-4916-8216-1f4d5dcef529","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"5ccab5fe-e426-4ab9-b91c-756bfb851e12":{"eventId":"5ccab5fe-e426-4ab9-b91c-756bfb851e12","statuses":["Date Conflict","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"10046ac1-8d4c-4dd2-a4a1-6ca1db412947":{"eventId":"10046ac1-8d4c-4dd2-a4a1-6ca1db412947","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"bc5b0b5f-067f-43da-b816-d7311c196dad":{"eventId":"bc5b0b5f-067f-43da-b816-d7311c196dad","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"b9e7ae8e-0b69-4b1f-91ae-d2c82fffa017":{"eventId":"b9e7ae8e-0b69-4b1f-91ae-d2c82fffa017","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"d6db5313-91ac-4fb6-9f29-7998e5f196c2":{"eventId":"d6db5313-91ac-4fb6-9f29-7998e5f196c2","statuses":["Booked"],"speaker":"Joe","saved":false,"hidden":false},"c59e5f7b-fecf-43f7-8256-5c2228c6a775":{"eventId":"c59e5f7b-fecf-43f7-8256-5c2228c6a775","statuses":["Attending","Thor Contacting"],"speaker":"Thor","saved":false,"hidden":false},"311e0fcc-c505-4c88-9c76-2cea7bd68fcd":{"eventId":"311e0fcc-c505-4c88-9c76-2cea7bd68fcd","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"fad698ba-b80c-4ee5-99c9-0e2491bb97f5":{"eventId":"fad698ba-b80c-4ee5-99c9-0e2491bb97f5","statuses":["Submitted","Sponsorship Only","Should Attend"],"speaker":"Thor","saved":false,"hidden":false},"7f120622-593a-459b-a427-1497202b169f":{"eventId":"7f120622-593a-459b-a427-1497202b169f","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"d1c032e2-261e-4180-8906-d9793eef69e1":{"eventId":"d1c032e2-261e-4180-8906-d9793eef69e1","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"da41e672-026b-41f2-9052-3b41042ac6ca":{"eventId":"da41e672-026b-41f2-9052-3b41042ac6ca","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"8042a1a6-299c-4f73-9329-41eaf2dd63ba":{"eventId":"8042a1a6-299c-4f73-9329-41eaf2dd63ba","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"68c8f648-2d9e-4bbe-bb81-d847f0697dc7":{"eventId":"68c8f648-2d9e-4bbe-bb81-d847f0697dc7","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"44c3231a-bb5d-4c6f-9ead-a799cff283b8":{"eventId":"44c3231a-bb5d-4c6f-9ead-a799cff283b8","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"c3ceb762-9d0a-4b42-b401-4601e1e4b3a6":{"eventId":"c3ceb762-9d0a-4b42-b401-4601e1e4b3a6","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"18c2408d-6855-405e-b953-87d2eeeb98fe":{"eventId":"18c2408d-6855-405e-b953-87d2eeeb98fe","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"50bc624f-5939-438a-96ba-d6ac128c7bf3":{"eventId":"50bc624f-5939-438a-96ba-d6ac128c7bf3","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"c2ca9fe3-d21c-4798-ac64-06e8b4d4cdef":{"eventId":"c2ca9fe3-d21c-4798-ac64-06e8b4d4cdef","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"87d74765-ed3a-482f-a542-1b3324cd2ca2":{"eventId":"87d74765-ed3a-482f-a542-1b3324cd2ca2","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"872d7e90-593e-40b0-a0b0-2fac1fb74e50":{"eventId":"872d7e90-593e-40b0-a0b0-2fac1fb74e50","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"321da59e-7609-416d-8559-68976b1cab84":{"eventId":"321da59e-7609-416d-8559-68976b1cab84","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"b0e8286b-dd50-4138-bda8-cc6bf9a562df":{"eventId":"b0e8286b-dd50-4138-bda8-cc6bf9a562df","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"2b81ba9b-2a39-4b09-b3b1-b30320d3f8b2":{"eventId":"2b81ba9b-2a39-4b09-b3b1-b30320d3f8b2","statuses":[],"speaker":"Thor","saved":false,"hidden":false},"9a23c088-0297-4827-8c69-d1b7b2fcb837":{"eventId":"9a23c088-0297-4827-8c69-d1b7b2fcb837","statuses":["Attending","Sponsorship Only","No External Speakers"],"speaker":null,"saved":false,"hidden":false},"4dc3ba64-41cf-47c8-9753-52b54058583f":{"eventId":"4dc3ba64-41cf-47c8-9753-52b54058583f","statuses":["No Openings","Thor Contacting"],"speaker":null,"saved":false,"hidden":false},"05d69c53-0bc4-44eb-b595-3c81d2281178":{"eventId":"05d69c53-0bc4-44eb-b595-3c81d2281178","statuses":["In Progress","In contact with"],"speaker":null,"saved":false,"hidden":false},"1cadaf02-cb5f-4673-a028-dc062e8e8027":{"eventId":"1cadaf02-cb5f-4673-a028-dc062e8e8027","statuses":["Attending","Finish Submission"],"speaker":"Verma","saved":false,"hidden":false},"955077e8-0315-4fa0-9351-e5c04373b1f8":{"eventId":"955077e8-0315-4fa0-9351-e5c04373b1f8","statuses":["Attending","Contact/Get Invited to speak"],"speaker":"Thor","saved":false,"hidden":false},"2492b1eb-7566-45bc-9bcb-049ffb1b7a8f":{"eventId":"2492b1eb-7566-45bc-9bcb-049ffb1b7a8f","statuses":["No Openings"],"speaker":null,"saved":false,"hidden":false},"7af201f1-c83e-423b-9ccb-e5c5ea512240":{"eventId":"7af201f1-c83e-423b-9ccb-e5c5ea512240","statuses":["Booked"],"speaker":"Thor","saved":false,"hidden":false},"661f2cb0-a3c9-4845-8b46-2482b1b1fc27":{"eventId":"661f2cb0-a3c9-4845-8b46-2482b1b1fc27","statuses":["Attending","Thor Contacting"],"speaker":null,"saved":false,"hidden":false},"646457d0-24cb-49dc-b11b-b776f8fde5ae":{"eventId":"646457d0-24cb-49dc-b11b-b776f8fde5ae","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"43e8c921-5294-4b66-90ff-f0bc31d36c79":{"eventId":"43e8c921-5294-4b66-90ff-f0bc31d36c79","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"0bd46818-738b-4141-bb69-f034809654d0":{"eventId":"0bd46818-738b-4141-bb69-f034809654d0","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"ff65d10d-02c8-478e-8a76-5e0910fbd58d":{"eventId":"ff65d10d-02c8-478e-8a76-5e0910fbd58d","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"76dc4979-40d5-45d5-b98e-90a959ac40b2":{"eventId":"76dc4979-40d5-45d5-b98e-90a959ac40b2","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"9f99109f-2dca-47e2-90ab-732f6310b117":{"eventId":"9f99109f-2dca-47e2-90ab-732f6310b117","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"19085a53-8327-4719-88d5-f2e156940b5d":{"eventId":"19085a53-8327-4719-88d5-f2e156940b5d","statuses":["Submitted"],"speaker":null,"saved":false,"hidden":false},"0680820f-d88c-4cc2-b35e-e60e90078839":{"eventId":"0680820f-d88c-4cc2-b35e-e60e90078839","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"402fb6a2-6d7b-4adf-85d3-667f008e66ef":{"eventId":"402fb6a2-6d7b-4adf-85d3-667f008e66ef","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"1ab479b9-c8d3-48bc-9531-22160a353d3a":{"eventId":"1ab479b9-c8d3-48bc-9531-22160a353d3a","statuses":["Should Attend","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"81bbbba6-a8c0-45be-a9d2-b34fbb20482b":{"eventId":"81bbbba6-a8c0-45be-a9d2-b34fbb20482b","statuses":["In Progress","Had Mtg"],"speaker":"Thor","saved":false,"hidden":false},"8c65775a-c39e-440a-b06e-a9da8acd4e77":{"eventId":"8c65775a-c39e-440a-b06e-a9da8acd4e77","statuses":["Finish Submission","Attending?"],"speaker":null,"saved":false,"hidden":false},"3596fcda-e485-470f-ba57-b655fe937664":{"eventId":"3596fcda-e485-470f-ba57-b655fe937664","statuses":["Submitted"],"speaker":null,"saved":false,"hidden":false},"d3b97b5c-128b-4b47-ae34-fd0424388e07":{"eventId":"d3b97b5c-128b-4b47-ae34-fd0424388e07","statuses":["Booked"],"speaker":null,"saved":false,"hidden":false},"e08f33c0-f12b-453b-b20d-753caf43e0ed":{"eventId":"e08f33c0-f12b-453b-b20d-753caf43e0ed","statuses":["Booked"],"speaker":"Joe","saved":false,"hidden":false},"7d7085d1-518d-4073-8162-5b707f412929":{"eventId":"7d7085d1-518d-4073-8162-5b707f412929","statuses":["Booked"],"speaker":"Thor","saved":false,"hidden":false},"183945ce-aeb8-46c5-b752-eac7135fec17":{"eventId":"183945ce-aeb8-46c5-b752-eac7135fec17","statuses":["Submitted","Sponsorship Only"],"speaker":"Thor","saved":false,"hidden":false},"d88f6e68-336f-4409-aa07-7c717e33f2dd":{"eventId":"d88f6e68-336f-4409-aa07-7c717e33f2dd","statuses":["Postponed?"],"speaker":"Thor","saved":false,"hidden":false},"7d4d8b67-4138-4d87-a8be-fb2274232ef2":{"eventId":"7d4d8b67-4138-4d87-a8be-fb2274232ef2","statuses":["Submitted","Sponsorship Only"],"speaker":"Thor","saved":false,"hidden":false},"6e93eaae-8dbe-4cc5-9925-c1d71735c146":{"eventId":"6e93eaae-8dbe-4cc5-9925-c1d71735c146","statuses":["We'll Pass","Had Mtg"],"speaker":"Thor","saved":false,"hidden":false},"00ce7a57-df93-47f3-b7a6-8a57ebd3d685":{"eventId":"00ce7a57-df93-47f3-b7a6-8a57ebd3d685","statuses":["Submitted"],"speaker":"Thor","saved":true,"hidden":false},"607ddbe3-7db0-465e-8914-0c631fc2f25c":{"eventId":"607ddbe3-7db0-465e-8914-0c631fc2f25c","statuses":["Curated Speaking by Invite","Submission Inquiry"],"speaker":"Thor","saved":false,"hidden":false},"8967884f-b150-4eda-b1cc-fa503e4fd723":{"eventId":"8967884f-b150-4eda-b1cc-fa503e4fd723","statuses":["Attending","No External Speakers"],"speaker":"Thor","saved":false,"hidden":false},"f1f7e625-0ea3-49c8-8566-e1f8b32eb1f8":{"eventId":"f1f7e625-0ea3-49c8-8566-e1f8b32eb1f8","statuses":["Submitted"],"speaker":"Joe","saved":false,"hidden":false},"d39d6c15-fb3b-42f5-875c-11ca9c012582":{"eventId":"d39d6c15-fb3b-42f5-875c-11ca9c012582","statuses":[],"speaker":null,"saved":false,"hidden":false},"51e63fa1-afd7-4311-a367-59cfe7204138":{"eventId":"51e63fa1-afd7-4311-a367-59cfe7204138","statuses":[],"speaker":null,"saved":false,"hidden":false},"6967a602-013e-43bb-b4d7-047e976fba16":{"eventId":"6967a602-013e-43bb-b4d7-047e976fba16","statuses":["--"],"speaker":null,"saved":false,"hidden":false},"8d53713b-daa4-41e8-a19d-4070dda1ac56":{"eventId":"8d53713b-daa4-41e8-a19d-4070dda1ac56","statuses":["Had Mtg","Submitted","Sponsorship Only","Attending"],"speaker":"Thor","saved":true,"hidden":false},"efaceac6-daca-4750-9b1e-093600b7ea74":{"eventId":"efaceac6-daca-4750-9b1e-093600b7ea74","statuses":["Submitted","Sponsorship Only"],"speaker":"Thor","saved":false,"hidden":false},"ad9322e7-6d24-4fcc-872c-64377b517245":{"eventId":"ad9322e7-6d24-4fcc-872c-64377b517245","statuses":["Date Conflict","Sponsorship Only","Curated Industry Invite"],"speaker":null,"saved":false,"hidden":false},"b65e98db-4363-4629-9248-e5d038c18330":{"eventId":"b65e98db-4363-4629-9248-e5d038c18330","statuses":["Attending","Sponsorship Only"],"speaker":"Thor","saved":false,"hidden":false},"208e206a-d179-4224-9637-877faa04b78f":{"eventId":"208e206a-d179-4224-9637-877faa04b78f","statuses":["Booked","In contact with"],"speaker":"Thor","saved":false,"hidden":false},"ff8d40ed-7069-493b-ba61-5532ec660be9":{"eventId":"ff8d40ed-7069-493b-ba61-5532ec660be9","statuses":["Sponsorship Only","Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"2e82352e-b000-4d09-ab83-0b82fa4c6514":{"eventId":"2e82352e-b000-4d09-ab83-0b82fa4c6514","statuses":["Attending","Contact/Get Invited to speak"],"speaker":"Thor","saved":false,"hidden":false},"594400e8-765f-4611-ba5d-e69e6b450e1b":{"eventId":"594400e8-765f-4611-ba5d-e69e6b450e1b","statuses":["--"],"speaker":"Thor","saved":false,"hidden":false},"c5dba687-43cf-47a2-abb9-71cce940061a":{"eventId":"c5dba687-43cf-47a2-abb9-71cce940061a","statuses":["Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"86f5ef84-8779-484d-a482-8893a09824eb":{"eventId":"86f5ef84-8779-484d-a482-8893a09824eb","statuses":["Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"baf42aa6-0e88-4064-8df3-ddba26e57d91":{"eventId":"baf42aa6-0e88-4064-8df3-ddba26e57d91","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"63e7d25b-fbd1-4253-8778-681acbeb895c":{"eventId":"63e7d25b-fbd1-4253-8778-681acbeb895c","statuses":["Date Conflict"],"speaker":null,"saved":false,"hidden":false},"2da6263d-ac15-413e-88f6-6bac155b1450":{"eventId":"2da6263d-ac15-413e-88f6-6bac155b1450","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"8f35bcaf-d437-4b67-bd37-31bdde418c31":{"eventId":"8f35bcaf-d437-4b67-bd37-31bdde418c31","statuses":["Submission Inquiry"],"speaker":null,"saved":false,"hidden":false},"89fce8fd-21d4-4dfb-956b-ed8f9bb08fd4":{"eventId":"89fce8fd-21d4-4dfb-956b-ed8f9bb08fd4","statuses":["?"],"speaker":null,"saved":false,"hidden":false},"10ec2099-9269-4a00-8e43-116baa095ca0":{"eventId":"10ec2099-9269-4a00-8e43-116baa095ca0","statuses":["Sponsorship Only","Curated Industry Invite"],"speaker":null,"saved":false,"hidden":false},"e9f222bf-eaab-44af-b19f-df6b7b1bea4d":{"eventId":"e9f222bf-eaab-44af-b19f-df6b7b1bea4d","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"ae9a0df0-284a-43ad-97c1-ec9c2af845ef":{"eventId":"ae9a0df0-284a-43ad-97c1-ec9c2af845ef","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"7cf3eaed-7370-40a4-929e-ec7e0eb70e25":{"eventId":"7cf3eaed-7370-40a4-929e-ec7e0eb70e25","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"f706229f-56f8-4e87-8242-b526d3c5256b":{"eventId":"f706229f-56f8-4e87-8242-b526d3c5256b","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"65894b4c-aef3-4d14-9533-4cb5957a3ce6":{"eventId":"65894b4c-aef3-4d14-9533-4cb5957a3ce6","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"1e3fae96-b822-4dfd-ae17-92f773aa65dd":{"eventId":"1e3fae96-b822-4dfd-ae17-92f773aa65dd","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"7c24869d-4a59-4aae-8c92-dd885f14eede":{"eventId":"7c24869d-4a59-4aae-8c92-dd885f14eede","statuses":["Date Conflict","Sponsorship Only","Curated Industry Invite"],"speaker":null,"saved":false,"hidden":false},"5285594e-ad07-43d4-8128-192ad2809142":{"eventId":"5285594e-ad07-43d4-8128-192ad2809142","statuses":["Sponsorship Only","Curated Industry Invite"],"speaker":null,"saved":false,"hidden":false},"ad340261-5969-4f21-bcb7-3eeea0e51a06":{"eventId":"ad340261-5969-4f21-bcb7-3eeea0e51a06","statuses":["Sponsorship Only","Curated Industry Invite"],"speaker":null,"saved":false,"hidden":false},"1ff316fb-9a01-46a5-b7cd-6f9a1d7fc134":{"eventId":"1ff316fb-9a01-46a5-b7cd-6f9a1d7fc134","statuses":["?"],"speaker":null,"saved":false,"hidden":false},"af45eb18-9b56-4884-ab2d-071e24318906":{"eventId":"af45eb18-9b56-4884-ab2d-071e24318906","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"96463014-72bd-43a3-87ec-8675a693ca90":{"eventId":"96463014-72bd-43a3-87ec-8675a693ca90","statuses":["Attending","Finish Submission"],"speaker":"Verma","saved":false,"hidden":false},"ac87a1e8-1a16-40a7-95ca-88cb4aaf4e2b":{"eventId":"ac87a1e8-1a16-40a7-95ca-88cb4aaf4e2b","statuses":["Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"092efe64-fdc6-43cd-90b8-5ed0049c1241":{"eventId":"092efe64-fdc6-43cd-90b8-5ed0049c1241","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"40ff0ff8-f1e1-461d-9e2d-2fb65c793022":{"eventId":"40ff0ff8-f1e1-461d-9e2d-2fb65c793022","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"3d75ada2-c412-4e29-acb3-053b37471c74":{"eventId":"3d75ada2-c412-4e29-acb3-053b37471c74","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"2a2803ac-dd1f-426e-a8af-4ed74a85c56e":{"eventId":"2a2803ac-dd1f-426e-a8af-4ed74a85c56e","statuses":[],"speaker":"Joe","saved":false,"hidden":false},"7ca63942-15cd-45e9-8c65-df11930f8bcb":{"eventId":"7ca63942-15cd-45e9-8c65-df11930f8bcb","statuses":["Submitted"],"speaker":null,"saved":false,"hidden":false},"fac1d2bf-50a7-44da-97e2-1c37fc7748fe":{"eventId":"fac1d2bf-50a7-44da-97e2-1c37fc7748fe","statuses":["Submitted"],"speaker":"Joe","saved":false,"hidden":false},"19961cfb-0823-4828-927b-2d01b6c6c723":{"eventId":"19961cfb-0823-4828-927b-2d01b6c6c723","statuses":["Submitted"],"speaker":"Patrick","saved":false,"hidden":false},"5046ac08-a725-43e9-ad89-a8396234cae9":{"eventId":"5046ac08-a725-43e9-ad89-a8396234cae9","statuses":["Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"ddcd4553-67f9-4fc1-8906-e4c76dc583a0":{"eventId":"ddcd4553-67f9-4fc1-8906-e4c76dc583a0","statuses":["Submitted"],"speaker":null,"saved":false,"hidden":false},"926ff723-a03a-462b-82e2-89c87847d05d::2025":{"eventId":"926ff723-a03a-462b-82e2-89c87847d05d::2025","statuses":["Membership Only (to Attend or Speak)","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"926ff723-a03a-462b-82e2-89c87847d05d::2026":{"eventId":"926ff723-a03a-462b-82e2-89c87847d05d::2026","statuses":["Membership Only (to Attend or Speak)","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"926ff723-a03a-462b-82e2-89c87847d05d::2027":{"eventId":"926ff723-a03a-462b-82e2-89c87847d05d::2027","statuses":["Membership Only (to Attend or Speak)","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"926ff723-a03a-462b-82e2-89c87847d05d::2028":{"eventId":"926ff723-a03a-462b-82e2-89c87847d05d::2028","statuses":["Membership Only (to Attend or Speak)","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"08842478-f118-4e9a-b06c-06659cd9656d":{"eventId":"08842478-f118-4e9a-b06c-06659cd9656d","statuses":["Sponsorship Only"],"speaker":"Thor","saved":false,"hidden":false},"98eec1c9-f0b8-4c03-9fa6-fced72ca21d6":{"eventId":"98eec1c9-f0b8-4c03-9fa6-fced72ca21d6","statuses":["Curated Speaking by Invite","Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"75b29f9e-ba2d-4071-808c-d6496ac4f364":{"eventId":"75b29f9e-ba2d-4071-808c-d6496ac4f364","statuses":["Submitted","Sponsorship Only","Curated Speaking by Invite"],"speaker":"Thor","saved":false,"hidden":false},"6257723e-785e-485a-8419-bf9f4cd6e670":{"eventId":"6257723e-785e-485a-8419-bf9f4cd6e670","statuses":["Sponsorship Only","Curated Speaking by Invite"],"speaker":null,"saved":false,"hidden":false},"6cc4f3b5-7aec-47e4-bb76-bad69375d0a0":{"eventId":"6cc4f3b5-7aec-47e4-bb76-bad69375d0a0","statuses":["Sponsorship Only","Curated Speaking by Invite"],"speaker":null,"saved":false,"hidden":false},"f6a9d460-200d-4af2-8922-7b5007db545f":{"eventId":"f6a9d460-200d-4af2-8922-7b5007db545f","statuses":["Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"c5d9ea6c-f3a9-44b4-96d8-f59098fc332c":{"eventId":"c5d9ea6c-f3a9-44b4-96d8-f59098fc332c","statuses":["In contact with","Curated Speaking by Invite"],"speaker":null,"saved":false,"hidden":false},"4495e64d-2b15-4edd-8c3d-ff0f7b4f3e7e":{"eventId":"4495e64d-2b15-4edd-8c3d-ff0f7b4f3e7e","statuses":["Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"f8fad721-64db-4990-be47-83d412d0b8a6":{"eventId":"f8fad721-64db-4990-be47-83d412d0b8a6","statuses":["Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"75fa88b9-7fb9-4205-8ada-5a172875ad0d":{"eventId":"75fa88b9-7fb9-4205-8ada-5a172875ad0d","statuses":["Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"bd389134-8eee-4633-ba65-c649cbe0cbdf":{"eventId":"bd389134-8eee-4633-ba65-c649cbe0cbdf","statuses":["Attending?","Curated Speaking by Invite"],"speaker":"Jerome","saved":false,"hidden":false},"5734b361-1d40-4105-a7ef-6b65072e90b8":{"eventId":"5734b361-1d40-4105-a7ef-6b65072e90b8","statuses":["Sponsorship Only","Curated Speaking by Invite","Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"61223606-7528-46f3-9e1b-16cfce128ef6":{"eventId":"61223606-7528-46f3-9e1b-16cfce128ef6","statuses":["Sponsorship Only","Curated Speaking by Invite","Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"c500eb1f-44db-4439-b2a1-b8a0fb9d251b":{"eventId":"c500eb1f-44db-4439-b2a1-b8a0fb9d251b","statuses":["Curated Speaking by Invite","Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"34ad1391-120e-4b8b-ba36-b8eb908cd551":{"eventId":"34ad1391-120e-4b8b-ba36-b8eb908cd551","statuses":["Date Conflict"],"speaker":"[\"Thor\",\"Jerome\"]","saved":false,"hidden":false},"9bbd78e3-6f2d-4377-846c-8980d8b30d22":{"eventId":"9bbd78e3-6f2d-4377-846c-8980d8b30d22","statuses":["Booked"],"speaker":"Thor","saved":false,"hidden":false},"8e1fac8f-253c-4a21-b40d-730de31d86f5":{"eventId":"8e1fac8f-253c-4a21-b40d-730de31d86f5","statuses":["Attending?","Sponsorship Only"],"speaker":"Jerome","saved":false,"hidden":false},"7541e872-6ac3-4701-aa22-f00b7e8e4dda":{"eventId":"7541e872-6ac3-4701-aa22-f00b7e8e4dda","statuses":["--"],"speaker":null,"saved":false,"hidden":false},"e3848d4f-71be-4c02-a8b9-f8166430da7e":{"eventId":"e3848d4f-71be-4c02-a8b9-f8166430da7e","statuses":[],"speaker":"[\"Thor\",\"Jerome\"]","saved":false,"hidden":true},"988e5553-6d5d-41f7-9b16-c04c03c650cd":{"eventId":"988e5553-6d5d-41f7-9b16-c04c03c650cd","statuses":["Booked"],"speaker":"[\"Thor\",\"Verma\",\"Joe\",\"Jerome\"]","saved":false,"hidden":false},"618ee7f4-157d-493d-91aa-352419abf18e":{"eventId":"618ee7f4-157d-493d-91aa-352419abf18e","statuses":["Curated Speaking by Invite"],"speaker":"Joe","saved":false,"hidden":false},"15bc140b-fec7-405c-bd80-9d4bd039ff2f":{"eventId":"15bc140b-fec7-405c-bd80-9d4bd039ff2f","statuses":["Submitted"],"speaker":"Joe","saved":false,"hidden":false},"a9a21ec6-4259-4fb7-8302-cee2ed359156":{"eventId":"a9a21ec6-4259-4fb7-8302-cee2ed359156","statuses":[],"speaker":null,"saved":false,"hidden":false},"f6487f1d-bca1-474c-b8b1-42673efdf48e":{"eventId":"f6487f1d-bca1-474c-b8b1-42673efdf48e","statuses":["No External Speakers","Curated Speaking by Invite","Attending?"],"speaker":"Jerome","saved":false,"hidden":false},"d32ddc72-5219-4d1b-9bd6-145b8273959f":{"eventId":"d32ddc72-5219-4d1b-9bd6-145b8273959f","statuses":["Submitted"],"speaker":"Joe","saved":false,"hidden":false},"50cb7ee5-9f41-49d5-8536-d67847523f25":{"eventId":"50cb7ee5-9f41-49d5-8536-d67847523f25","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"1fa9dea8-fbbb-4650-95ca-a2e4078b0590":{"eventId":"1fa9dea8-fbbb-4650-95ca-a2e4078b0590","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"45ea58fe-eb2e-467c-9887-c2b649f24f74":{"eventId":"45ea58fe-eb2e-467c-9887-c2b649f24f74","statuses":["Curated Industry Invite"],"speaker":null,"saved":false,"hidden":false},"09e88b1a-2fb3-4098-8ddd-61edf93df10f":{"eventId":"09e88b1a-2fb3-4098-8ddd-61edf93df10f","statuses":["Curated Speaking by Invite","Sponsorship Only"],"speaker":null,"saved":false,"hidden":false},"c6e4b9fa-aeae-4804-93e3-7ba155526082":{"eventId":"c6e4b9fa-aeae-4804-93e3-7ba155526082","statuses":["No Openings"],"speaker":null,"saved":false,"hidden":false},"2ba39479-1651-413a-b339-ab335857d823":{"eventId":"2ba39479-1651-413a-b339-ab335857d823","statuses":["Submitted"],"speaker":"Thor","saved":false,"hidden":false},"8677fc92-07aa-4bed-9025-d1a43fda12d0":{"eventId":"8677fc92-07aa-4bed-9025-d1a43fda12d0","statuses":["Submitted"],"speaker":"[\"Thor\",\"Jerome\"]","saved":false,"hidden":false},"a3dec80f-a30e-40ee-85cb-1dc2e194d1fa":{"eventId":"a3dec80f-a30e-40ee-85cb-1dc2e194d1fa","statuses":["Contact/Get Invited to speak"],"speaker":"Joe","saved":false,"hidden":false},"8ab85829-2a09-4ac0-b553-f999f9e3bc4b":{"eventId":"8ab85829-2a09-4ac0-b553-f999f9e3bc4b","statuses":["No Openings"],"speaker":null,"saved":false,"hidden":false}}
+{
+  "096dfd13-ef81-421a-bef4-e6dd9cc004c2": {
+    "eventId": "096dfd13-ef81-421a-bef4-e6dd9cc004c2",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "3adaf945-5714-4449-95e1-159493064932": {
+    "eventId": "3adaf945-5714-4449-95e1-159493064932",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "a8718f72-3aef-4088-aaad-f688e8317026": {
+    "eventId": "a8718f72-3aef-4088-aaad-f688e8317026",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "e811e5d7-a507-4066-b22b-8f880d84b147": {
+    "eventId": "e811e5d7-a507-4066-b22b-8f880d84b147",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "14f9df76-811e-47bd-b65f-6ded02dc6923": {
+    "eventId": "14f9df76-811e-47bd-b65f-6ded02dc6923",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "4b89951a-4451-4543-a49a-69e207ccff7f": {
+    "eventId": "4b89951a-4451-4543-a49a-69e207ccff7f",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "d0e62efc-2362-444b-a24e-e3e8bca280ad": {
+    "eventId": "d0e62efc-2362-444b-a24e-e3e8bca280ad",
+    "statuses": [
+      "Attending"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "c5a63337-3b7b-4dc3-9ba6-9a0f61803b93": {
+    "eventId": "c5a63337-3b7b-4dc3-9ba6-9a0f61803b93",
+    "statuses": [
+      "Sponsorship Only",
+      "Attending?"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "90f4a599-96f7-4bf5-b1b1-95c43cf70910": {
+    "eventId": "90f4a599-96f7-4bf5-b1b1-95c43cf70910",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "d943bfea-5811-44c4-996c-ebb80a751e31": {
+    "eventId": "d943bfea-5811-44c4-996c-ebb80a751e31",
+    "statuses": [
+      "Submitted",
+      "Sponsorship Only",
+      "Should Attend"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "99ff87eb-3777-489d-858e-6959f93fe631": {
+    "eventId": "99ff87eb-3777-489d-858e-6959f93fe631",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "1c99dbeb-fea7-4a7c-b03d-4c29fcc6e30a": {
+    "eventId": "1c99dbeb-fea7-4a7c-b03d-4c29fcc6e30a",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "878f3135-d0b5-4512-922c-e9347b38f27e": {
+    "eventId": "878f3135-d0b5-4512-922c-e9347b38f27e",
+    "statuses": [
+      "Date Conflict",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "714c39fe-cbbd-4fd6-bdc9-0aa1372810ab": {
+    "eventId": "714c39fe-cbbd-4fd6-bdc9-0aa1372810ab",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "b19db377-a9d9-49e8-a314-205b7ab9f9ec": {
+    "eventId": "b19db377-a9d9-49e8-a314-205b7ab9f9ec",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "e5bf939b-75c1-4367-8767-ffbc3c78fc3c": {
+    "eventId": "e5bf939b-75c1-4367-8767-ffbc3c78fc3c",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "199a5c61-0258-43e4-b02f-1c4d5414cbb9": {
+    "eventId": "199a5c61-0258-43e4-b02f-1c4d5414cbb9",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "039a2248-263b-4bb5-a0d6-22f17db6afb6": {
+    "eventId": "039a2248-263b-4bb5-a0d6-22f17db6afb6",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "417de610-d5e1-4a4e-ab10-004278ddd2f2": {
+    "eventId": "417de610-d5e1-4a4e-ab10-004278ddd2f2",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "f1d3ddfd-88b3-4345-905d-0c26c068d86b": {
+    "eventId": "f1d3ddfd-88b3-4345-905d-0c26c068d86b",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "15cb48c9-51dd-472b-9f90-0641d6a836ef": {
+    "eventId": "15cb48c9-51dd-472b-9f90-0641d6a836ef",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "0a4afb96-d8b1-4965-9eff-4f31816468bb": {
+    "eventId": "0a4afb96-d8b1-4965-9eff-4f31816468bb",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "2425bba2-d05c-4b00-a1aa-c9a2c818fd11": {
+    "eventId": "2425bba2-d05c-4b00-a1aa-c9a2c818fd11",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "5ace1356-1193-40c0-aa12-40e6d94b71ce": {
+    "eventId": "5ace1356-1193-40c0-aa12-40e6d94b71ce",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "ff091f94-18cc-49dd-a827-ab6be252af79": {
+    "eventId": "ff091f94-18cc-49dd-a827-ab6be252af79",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "6a291f8c-7789-4ab4-84d9-9ea9e86a8361": {
+    "eventId": "6a291f8c-7789-4ab4-84d9-9ea9e86a8361",
+    "statuses": [
+      "No Openings"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "40d7dcaf-f022-4861-9bd9-5ac9f00a51b8": {
+    "eventId": "40d7dcaf-f022-4861-9bd9-5ac9f00a51b8",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "e3c14e6d-38d4-45e1-ba4f-9e49811dd6fa": {
+    "eventId": "e3c14e6d-38d4-45e1-ba4f-9e49811dd6fa",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "1969e6ef-e4c7-4b48-992b-a8c459c40ec5": {
+    "eventId": "1969e6ef-e4c7-4b48-992b-a8c459c40ec5",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "204aa804-b2cf-40c9-ab2d-1238e5350f59": {
+    "eventId": "204aa804-b2cf-40c9-ab2d-1238e5350f59",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "d651ec66-cbbe-46df-bc59-a42ac6d2cd50": {
+    "eventId": "d651ec66-cbbe-46df-bc59-a42ac6d2cd50",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "49310e3d-f767-40e9-be14-929085c57e41": {
+    "eventId": "49310e3d-f767-40e9-be14-929085c57e41",
+    "statuses": [
+      "Date Conflict",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "841146de-1cee-4754-824d-2be99a655fc4": {
+    "eventId": "841146de-1cee-4754-824d-2be99a655fc4",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "aff35422-ab8e-4989-8e8d-0ea239c80b88": {
+    "eventId": "aff35422-ab8e-4989-8e8d-0ea239c80b88",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "81461952-5254-4591-9b51-0bbad22595aa": {
+    "eventId": "81461952-5254-4591-9b51-0bbad22595aa",
+    "statuses": [
+      "Contact/Get Invited to speak"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "4494b543-18e5-4d46-8839-7c3def3f16a3": {
+    "eventId": "4494b543-18e5-4d46-8839-7c3def3f16a3",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "977c2145-fa3a-488d-b140-f34f0eb2c7d3": {
+    "eventId": "977c2145-fa3a-488d-b140-f34f0eb2c7d3",
+    "statuses": [
+      "Submitted",
+      "Sponsorship Only"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "869f0213-4457-407a-bf0f-bb3d0b2ea06d": {
+    "eventId": "869f0213-4457-407a-bf0f-bb3d0b2ea06d",
+    "statuses": [
+      "We'll Pass",
+      "Had Mtg"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "23107d9f-2710-404b-bbd1-c65707cd5dba": {
+    "eventId": "23107d9f-2710-404b-bbd1-c65707cd5dba",
+    "statuses": [
+      "Submitted",
+      "Postponed?"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "63b60128-5b7a-4283-87b9-c6cc3e4a6e8b": {
+    "eventId": "63b60128-5b7a-4283-87b9-c6cc3e4a6e8b",
+    "statuses": [
+      "Submitted",
+      "In contact with",
+      "Booked Prior Event"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "6abbb7a3-9e42-4fd9-bcd4-b322d3c7db6a": {
+    "eventId": "6abbb7a3-9e42-4fd9-bcd4-b322d3c7db6a",
+    "statuses": [
+      "Submitted",
+      "Followed Up"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "d54a9dca-c35d-4e8c-a753-07d9748fab38": {
+    "eventId": "d54a9dca-c35d-4e8c-a753-07d9748fab38",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "5de45fbb-e28e-4b67-ace6-3cd2384adc48": {
+    "eventId": "5de45fbb-e28e-4b67-ace6-3cd2384adc48",
+    "statuses": [
+      "Attending",
+      "Sponsorship Only",
+      "No External Speakers"
+    ],
+    "speaker": "Verma",
+    "saved": false,
+    "hidden": false
+  },
+  "7571a2de-52da-4f96-bff6-edc16f9a169f": {
+    "eventId": "7571a2de-52da-4f96-bff6-edc16f9a169f",
+    "statuses": [
+      "Submitted",
+      "Booked Prior Year"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "4e20cd4a-3c53-43b8-90af-38457c338571": {
+    "eventId": "4e20cd4a-3c53-43b8-90af-38457c338571",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "c77bdd67-9ad0-4e61-8684-cce77243f7d2": {
+    "eventId": "c77bdd67-9ad0-4e61-8684-cce77243f7d2",
+    "statuses": [
+      "No Openings",
+      "Submission Inquiry"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "c5551c3e-33da-4761-984e-55296bcd63db": {
+    "eventId": "c5551c3e-33da-4761-984e-55296bcd63db",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": true
+  },
+  "acf52fc3-dd27-45c1-8f2e-9be46390aec6": {
+    "eventId": "acf52fc3-dd27-45c1-8f2e-9be46390aec6",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "30b9d50e-0e0e-4a28-9cc3-c56547dcf33d": {
+    "eventId": "30b9d50e-0e0e-4a28-9cc3-c56547dcf33d",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "b8a42359-c3e3-4e7d-a8bd-1a23a83b86eb": {
+    "eventId": "b8a42359-c3e3-4e7d-a8bd-1a23a83b86eb",
+    "statuses": [
+      "Submitted",
+      "Had Mtg",
+      "Not Accepted This Yr"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "98e9a1f7-948c-4a8a-a770-17b13377c3ed": {
+    "eventId": "98e9a1f7-948c-4a8a-a770-17b13377c3ed",
+    "statuses": [
+      "No Openings",
+      "Submission Inquiry",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "8654b00a-dc72-48d1-be13-a650e1f94007": {
+    "eventId": "8654b00a-dc72-48d1-be13-a650e1f94007",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "43c9b8e9-d33a-415d-8655-d5d2444d4ec7": {
+    "eventId": "43c9b8e9-d33a-415d-8655-d5d2444d4ec7",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "3d4b09c4-3802-4c09-998e-03220b627c1c": {
+    "eventId": "3d4b09c4-3802-4c09-998e-03220b627c1c",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "566665a2-cb2b-43ca-a18e-279674088df1": {
+    "eventId": "566665a2-cb2b-43ca-a18e-279674088df1",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "7ad79a17-a53e-42d6-8a6b-7e4f9a2bd3fb": {
+    "eventId": "7ad79a17-a53e-42d6-8a6b-7e4f9a2bd3fb",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "[\"Thor\",\"Joe\",\"Verma\"]",
+    "saved": false,
+    "hidden": false
+  },
+  "8c276165-3b5d-4658-a0f6-ba8409978993": {
+    "eventId": "8c276165-3b5d-4658-a0f6-ba8409978993",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "f5bbc096-9fac-48d1-859a-14b033189415": {
+    "eventId": "f5bbc096-9fac-48d1-859a-14b033189415",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "50bd7281-a61b-4d4f-a9aa-62be5887b29f": {
+    "eventId": "50bd7281-a61b-4d4f-a9aa-62be5887b29f",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "15d1166b-dd9d-4292-91a0-ecaeaadc2b6c": {
+    "eventId": "15d1166b-dd9d-4292-91a0-ecaeaadc2b6c",
+    "statuses": [
+      "Submitted",
+      "Followed Up"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "5cefedfc-7220-4f05-b66a-7c208c82184a": {
+    "eventId": "5cefedfc-7220-4f05-b66a-7c208c82184a",
+    "statuses": [
+      "Submitted",
+      "Not Accepted This Yr"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "dc41d62c-0331-41ed-807c-c8c9fd2d4bba": {
+    "eventId": "dc41d62c-0331-41ed-807c-c8c9fd2d4bba",
+    "statuses": [
+      "Submitted",
+      "test"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "8e454440-2021-4044-8d56-db101a1facc5": {
+    "eventId": "8e454440-2021-4044-8d56-db101a1facc5",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "0231b797-2e43-461a-ad8f-353a271db130": {
+    "eventId": "0231b797-2e43-461a-ad8f-353a271db130",
+    "statuses": [
+      "Submitted",
+      "No Openings"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "47f711bf-de2e-4f56-8284-dcda4ac51b62": {
+    "eventId": "47f711bf-de2e-4f56-8284-dcda4ac51b62",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "586b9c14-49c3-4494-a951-6ebc5addcbd6": {
+    "eventId": "586b9c14-49c3-4494-a951-6ebc5addcbd6",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "54ca86ed-6db5-4d3c-91ac-d4556fb5e84c": {
+    "eventId": "54ca86ed-6db5-4d3c-91ac-d4556fb5e84c",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "b3f299b4-3bc0-4aef-96da-1b05bc3abf03": {
+    "eventId": "b3f299b4-3bc0-4aef-96da-1b05bc3abf03",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "0eb91e85-853d-4ffa-b34d-25330c9b1193": {
+    "eventId": "0eb91e85-853d-4ffa-b34d-25330c9b1193",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "e503305e-50fa-4916-8216-1f4d5dcef529": {
+    "eventId": "e503305e-50fa-4916-8216-1f4d5dcef529",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "5ccab5fe-e426-4ab9-b91c-756bfb851e12": {
+    "eventId": "5ccab5fe-e426-4ab9-b91c-756bfb851e12",
+    "statuses": [
+      "Date Conflict",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "10046ac1-8d4c-4dd2-a4a1-6ca1db412947": {
+    "eventId": "10046ac1-8d4c-4dd2-a4a1-6ca1db412947",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "bc5b0b5f-067f-43da-b816-d7311c196dad": {
+    "eventId": "bc5b0b5f-067f-43da-b816-d7311c196dad",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "b9e7ae8e-0b69-4b1f-91ae-d2c82fffa017": {
+    "eventId": "b9e7ae8e-0b69-4b1f-91ae-d2c82fffa017",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "d6db5313-91ac-4fb6-9f29-7998e5f196c2": {
+    "eventId": "d6db5313-91ac-4fb6-9f29-7998e5f196c2",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "c59e5f7b-fecf-43f7-8256-5c2228c6a775": {
+    "eventId": "c59e5f7b-fecf-43f7-8256-5c2228c6a775",
+    "statuses": [
+      "Attending",
+      "Thor Contacting"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "311e0fcc-c505-4c88-9c76-2cea7bd68fcd": {
+    "eventId": "311e0fcc-c505-4c88-9c76-2cea7bd68fcd",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "fad698ba-b80c-4ee5-99c9-0e2491bb97f5": {
+    "eventId": "fad698ba-b80c-4ee5-99c9-0e2491bb97f5",
+    "statuses": [
+      "Submitted",
+      "Sponsorship Only",
+      "Should Attend"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "7f120622-593a-459b-a427-1497202b169f": {
+    "eventId": "7f120622-593a-459b-a427-1497202b169f",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "d1c032e2-261e-4180-8906-d9793eef69e1": {
+    "eventId": "d1c032e2-261e-4180-8906-d9793eef69e1",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "da41e672-026b-41f2-9052-3b41042ac6ca": {
+    "eventId": "da41e672-026b-41f2-9052-3b41042ac6ca",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "8042a1a6-299c-4f73-9329-41eaf2dd63ba": {
+    "eventId": "8042a1a6-299c-4f73-9329-41eaf2dd63ba",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "68c8f648-2d9e-4bbe-bb81-d847f0697dc7": {
+    "eventId": "68c8f648-2d9e-4bbe-bb81-d847f0697dc7",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "44c3231a-bb5d-4c6f-9ead-a799cff283b8": {
+    "eventId": "44c3231a-bb5d-4c6f-9ead-a799cff283b8",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "c3ceb762-9d0a-4b42-b401-4601e1e4b3a6": {
+    "eventId": "c3ceb762-9d0a-4b42-b401-4601e1e4b3a6",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "18c2408d-6855-405e-b953-87d2eeeb98fe": {
+    "eventId": "18c2408d-6855-405e-b953-87d2eeeb98fe",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "50bc624f-5939-438a-96ba-d6ac128c7bf3": {
+    "eventId": "50bc624f-5939-438a-96ba-d6ac128c7bf3",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "c2ca9fe3-d21c-4798-ac64-06e8b4d4cdef": {
+    "eventId": "c2ca9fe3-d21c-4798-ac64-06e8b4d4cdef",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "87d74765-ed3a-482f-a542-1b3324cd2ca2": {
+    "eventId": "87d74765-ed3a-482f-a542-1b3324cd2ca2",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "872d7e90-593e-40b0-a0b0-2fac1fb74e50": {
+    "eventId": "872d7e90-593e-40b0-a0b0-2fac1fb74e50",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "321da59e-7609-416d-8559-68976b1cab84": {
+    "eventId": "321da59e-7609-416d-8559-68976b1cab84",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "b0e8286b-dd50-4138-bda8-cc6bf9a562df": {
+    "eventId": "b0e8286b-dd50-4138-bda8-cc6bf9a562df",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "2b81ba9b-2a39-4b09-b3b1-b30320d3f8b2": {
+    "eventId": "2b81ba9b-2a39-4b09-b3b1-b30320d3f8b2",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "9a23c088-0297-4827-8c69-d1b7b2fcb837": {
+    "eventId": "9a23c088-0297-4827-8c69-d1b7b2fcb837",
+    "statuses": [
+      "Attending",
+      "Sponsorship Only",
+      "No External Speakers"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "4dc3ba64-41cf-47c8-9753-52b54058583f": {
+    "eventId": "4dc3ba64-41cf-47c8-9753-52b54058583f",
+    "statuses": [
+      "No Openings",
+      "Thor Contacting"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "05d69c53-0bc4-44eb-b595-3c81d2281178": {
+    "eventId": "05d69c53-0bc4-44eb-b595-3c81d2281178",
+    "statuses": [
+      "In Progress",
+      "In contact with"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "1cadaf02-cb5f-4673-a028-dc062e8e8027": {
+    "eventId": "1cadaf02-cb5f-4673-a028-dc062e8e8027",
+    "statuses": [
+      "Attending",
+      "Finish Submission"
+    ],
+    "speaker": "Verma",
+    "saved": false,
+    "hidden": false
+  },
+  "955077e8-0315-4fa0-9351-e5c04373b1f8": {
+    "eventId": "955077e8-0315-4fa0-9351-e5c04373b1f8",
+    "statuses": [
+      "Attending",
+      "Contact/Get Invited to speak"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "2492b1eb-7566-45bc-9bcb-049ffb1b7a8f": {
+    "eventId": "2492b1eb-7566-45bc-9bcb-049ffb1b7a8f",
+    "statuses": [
+      "No Openings"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "7af201f1-c83e-423b-9ccb-e5c5ea512240": {
+    "eventId": "7af201f1-c83e-423b-9ccb-e5c5ea512240",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "661f2cb0-a3c9-4845-8b46-2482b1b1fc27": {
+    "eventId": "661f2cb0-a3c9-4845-8b46-2482b1b1fc27",
+    "statuses": [
+      "Attending",
+      "Thor Contacting"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "646457d0-24cb-49dc-b11b-b776f8fde5ae": {
+    "eventId": "646457d0-24cb-49dc-b11b-b776f8fde5ae",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "43e8c921-5294-4b66-90ff-f0bc31d36c79": {
+    "eventId": "43e8c921-5294-4b66-90ff-f0bc31d36c79",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "0bd46818-738b-4141-bb69-f034809654d0": {
+    "eventId": "0bd46818-738b-4141-bb69-f034809654d0",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "ff65d10d-02c8-478e-8a76-5e0910fbd58d": {
+    "eventId": "ff65d10d-02c8-478e-8a76-5e0910fbd58d",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "76dc4979-40d5-45d5-b98e-90a959ac40b2": {
+    "eventId": "76dc4979-40d5-45d5-b98e-90a959ac40b2",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "9f99109f-2dca-47e2-90ab-732f6310b117": {
+    "eventId": "9f99109f-2dca-47e2-90ab-732f6310b117",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "19085a53-8327-4719-88d5-f2e156940b5d": {
+    "eventId": "19085a53-8327-4719-88d5-f2e156940b5d",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "208e206a-d179-4224-9637-877faa04b78f": {
+    "eventId": "208e206a-d179-4224-9637-877faa04b78f",
+    "statuses": [
+      "In contact with"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": true
+  },
+  "0680820f-d88c-4cc2-b35e-e60e90078839": {
+    "eventId": "0680820f-d88c-4cc2-b35e-e60e90078839",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "402fb6a2-6d7b-4adf-85d3-667f008e66ef": {
+    "eventId": "402fb6a2-6d7b-4adf-85d3-667f008e66ef",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "1ab479b9-c8d3-48bc-9531-22160a353d3a": {
+    "eventId": "1ab479b9-c8d3-48bc-9531-22160a353d3a",
+    "statuses": [
+      "Should Attend",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "81bbbba6-a8c0-45be-a9d2-b34fbb20482b": {
+    "eventId": "81bbbba6-a8c0-45be-a9d2-b34fbb20482b",
+    "statuses": [
+      "In Progress",
+      "Had Mtg"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "8c65775a-c39e-440a-b06e-a9da8acd4e77": {
+    "eventId": "8c65775a-c39e-440a-b06e-a9da8acd4e77",
+    "statuses": [
+      "Finish Submission",
+      "Attending?"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "3596fcda-e485-470f-ba57-b655fe937664": {
+    "eventId": "3596fcda-e485-470f-ba57-b655fe937664",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "d3b97b5c-128b-4b47-ae34-fd0424388e07": {
+    "eventId": "d3b97b5c-128b-4b47-ae34-fd0424388e07",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "e08f33c0-f12b-453b-b20d-753caf43e0ed": {
+    "eventId": "e08f33c0-f12b-453b-b20d-753caf43e0ed",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "7d7085d1-518d-4073-8162-5b707f412929": {
+    "eventId": "7d7085d1-518d-4073-8162-5b707f412929",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "183945ce-aeb8-46c5-b752-eac7135fec17": {
+    "eventId": "183945ce-aeb8-46c5-b752-eac7135fec17",
+    "statuses": [
+      "Submitted",
+      "Sponsorship Only"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "d88f6e68-336f-4409-aa07-7c717e33f2dd": {
+    "eventId": "d88f6e68-336f-4409-aa07-7c717e33f2dd",
+    "statuses": [
+      "Postponed?"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "7d4d8b67-4138-4d87-a8be-fb2274232ef2": {
+    "eventId": "7d4d8b67-4138-4d87-a8be-fb2274232ef2",
+    "statuses": [
+      "Submitted",
+      "Sponsorship Only"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "6e93eaae-8dbe-4cc5-9925-c1d71735c146": {
+    "eventId": "6e93eaae-8dbe-4cc5-9925-c1d71735c146",
+    "statuses": [
+      "We'll Pass",
+      "Had Mtg"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "00ce7a57-df93-47f3-b7a6-8a57ebd3d685": {
+    "eventId": "00ce7a57-df93-47f3-b7a6-8a57ebd3d685",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": true,
+    "hidden": false
+  },
+  "607ddbe3-7db0-465e-8914-0c631fc2f25c": {
+    "eventId": "607ddbe3-7db0-465e-8914-0c631fc2f25c",
+    "statuses": [
+      "Curated Speaking by Invite",
+      "Submission Inquiry"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "8967884f-b150-4eda-b1cc-fa503e4fd723": {
+    "eventId": "8967884f-b150-4eda-b1cc-fa503e4fd723",
+    "statuses": [
+      "Attending",
+      "No External Speakers"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "f1f7e625-0ea3-49c8-8566-e1f8b32eb1f8": {
+    "eventId": "f1f7e625-0ea3-49c8-8566-e1f8b32eb1f8",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "d39d6c15-fb3b-42f5-875c-11ca9c012582": {
+    "eventId": "d39d6c15-fb3b-42f5-875c-11ca9c012582",
+    "statuses": [],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "51e63fa1-afd7-4311-a367-59cfe7204138": {
+    "eventId": "51e63fa1-afd7-4311-a367-59cfe7204138",
+    "statuses": [],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "6967a602-013e-43bb-b4d7-047e976fba16": {
+    "eventId": "6967a602-013e-43bb-b4d7-047e976fba16",
+    "statuses": [
+      "--"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "8d53713b-daa4-41e8-a19d-4070dda1ac56": {
+    "eventId": "8d53713b-daa4-41e8-a19d-4070dda1ac56",
+    "statuses": [
+      "Had Mtg",
+      "Submitted",
+      "Sponsorship Only",
+      "Attending"
+    ],
+    "speaker": "Thor",
+    "saved": true,
+    "hidden": false
+  },
+  "efaceac6-daca-4750-9b1e-093600b7ea74": {
+    "eventId": "efaceac6-daca-4750-9b1e-093600b7ea74",
+    "statuses": [
+      "Submitted",
+      "Sponsorship Only"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "ad9322e7-6d24-4fcc-872c-64377b517245": {
+    "eventId": "ad9322e7-6d24-4fcc-872c-64377b517245",
+    "statuses": [
+      "Date Conflict",
+      "Sponsorship Only",
+      "Curated Industry Invite"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "b65e98db-4363-4629-9248-e5d038c18330": {
+    "eventId": "b65e98db-4363-4629-9248-e5d038c18330",
+    "statuses": [
+      "Attending",
+      "Sponsorship Only"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "ff8d40ed-7069-493b-ba61-5532ec660be9": {
+    "eventId": "ff8d40ed-7069-493b-ba61-5532ec660be9",
+    "statuses": [
+      "Sponsorship Only",
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "2e82352e-b000-4d09-ab83-0b82fa4c6514": {
+    "eventId": "2e82352e-b000-4d09-ab83-0b82fa4c6514",
+    "statuses": [
+      "Attending",
+      "Contact/Get Invited to speak"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "594400e8-765f-4611-ba5d-e69e6b450e1b": {
+    "eventId": "594400e8-765f-4611-ba5d-e69e6b450e1b",
+    "statuses": [
+      "--"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "c5dba687-43cf-47a2-abb9-71cce940061a": {
+    "eventId": "c5dba687-43cf-47a2-abb9-71cce940061a",
+    "statuses": [
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "86f5ef84-8779-484d-a482-8893a09824eb": {
+    "eventId": "86f5ef84-8779-484d-a482-8893a09824eb",
+    "statuses": [
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "baf42aa6-0e88-4064-8df3-ddba26e57d91": {
+    "eventId": "baf42aa6-0e88-4064-8df3-ddba26e57d91",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "2da6263d-ac15-413e-88f6-6bac155b1450": {
+    "eventId": "2da6263d-ac15-413e-88f6-6bac155b1450",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "8f35bcaf-d437-4b67-bd37-31bdde418c31": {
+    "eventId": "8f35bcaf-d437-4b67-bd37-31bdde418c31",
+    "statuses": [
+      "Submission Inquiry"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "89fce8fd-21d4-4dfb-956b-ed8f9bb08fd4": {
+    "eventId": "89fce8fd-21d4-4dfb-956b-ed8f9bb08fd4",
+    "statuses": [
+      "?"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "10ec2099-9269-4a00-8e43-116baa095ca0": {
+    "eventId": "10ec2099-9269-4a00-8e43-116baa095ca0",
+    "statuses": [
+      "Sponsorship Only",
+      "Curated Industry Invite"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "e9f222bf-eaab-44af-b19f-df6b7b1bea4d": {
+    "eventId": "e9f222bf-eaab-44af-b19f-df6b7b1bea4d",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "ae9a0df0-284a-43ad-97c1-ec9c2af845ef": {
+    "eventId": "ae9a0df0-284a-43ad-97c1-ec9c2af845ef",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "7cf3eaed-7370-40a4-929e-ec7e0eb70e25": {
+    "eventId": "7cf3eaed-7370-40a4-929e-ec7e0eb70e25",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "f706229f-56f8-4e87-8242-b526d3c5256b": {
+    "eventId": "f706229f-56f8-4e87-8242-b526d3c5256b",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "65894b4c-aef3-4d14-9533-4cb5957a3ce6": {
+    "eventId": "65894b4c-aef3-4d14-9533-4cb5957a3ce6",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "1e3fae96-b822-4dfd-ae17-92f773aa65dd": {
+    "eventId": "1e3fae96-b822-4dfd-ae17-92f773aa65dd",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "7c24869d-4a59-4aae-8c92-dd885f14eede": {
+    "eventId": "7c24869d-4a59-4aae-8c92-dd885f14eede",
+    "statuses": [
+      "Date Conflict",
+      "Sponsorship Only",
+      "Curated Industry Invite"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "5285594e-ad07-43d4-8128-192ad2809142": {
+    "eventId": "5285594e-ad07-43d4-8128-192ad2809142",
+    "statuses": [
+      "Sponsorship Only",
+      "Curated Industry Invite"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "ad340261-5969-4f21-bcb7-3eeea0e51a06": {
+    "eventId": "ad340261-5969-4f21-bcb7-3eeea0e51a06",
+    "statuses": [
+      "Sponsorship Only",
+      "Curated Industry Invite"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "1ff316fb-9a01-46a5-b7cd-6f9a1d7fc134": {
+    "eventId": "1ff316fb-9a01-46a5-b7cd-6f9a1d7fc134",
+    "statuses": [
+      "?"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "af45eb18-9b56-4884-ab2d-071e24318906": {
+    "eventId": "af45eb18-9b56-4884-ab2d-071e24318906",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "ac87a1e8-1a16-40a7-95ca-88cb4aaf4e2b": {
+    "eventId": "ac87a1e8-1a16-40a7-95ca-88cb4aaf4e2b",
+    "statuses": [
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "092efe64-fdc6-43cd-90b8-5ed0049c1241": {
+    "eventId": "092efe64-fdc6-43cd-90b8-5ed0049c1241",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "40ff0ff8-f1e1-461d-9e2d-2fb65c793022": {
+    "eventId": "40ff0ff8-f1e1-461d-9e2d-2fb65c793022",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "3d75ada2-c412-4e29-acb3-053b37471c74": {
+    "eventId": "3d75ada2-c412-4e29-acb3-053b37471c74",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "2a2803ac-dd1f-426e-a8af-4ed74a85c56e": {
+    "eventId": "2a2803ac-dd1f-426e-a8af-4ed74a85c56e",
+    "statuses": [],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "7ca63942-15cd-45e9-8c65-df11930f8bcb": {
+    "eventId": "7ca63942-15cd-45e9-8c65-df11930f8bcb",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "fac1d2bf-50a7-44da-97e2-1c37fc7748fe": {
+    "eventId": "fac1d2bf-50a7-44da-97e2-1c37fc7748fe",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "19961cfb-0823-4828-927b-2d01b6c6c723": {
+    "eventId": "19961cfb-0823-4828-927b-2d01b6c6c723",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Patrick",
+    "saved": false,
+    "hidden": false
+  },
+  "5046ac08-a725-43e9-ad89-a8396234cae9": {
+    "eventId": "5046ac08-a725-43e9-ad89-a8396234cae9",
+    "statuses": [
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "ddcd4553-67f9-4fc1-8906-e4c76dc583a0": {
+    "eventId": "ddcd4553-67f9-4fc1-8906-e4c76dc583a0",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "926ff723-a03a-462b-82e2-89c87847d05d::2025": {
+    "eventId": "926ff723-a03a-462b-82e2-89c87847d05d::2025",
+    "statuses": [
+      "Membership Only (to Attend or Speak)",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "926ff723-a03a-462b-82e2-89c87847d05d::2026": {
+    "eventId": "926ff723-a03a-462b-82e2-89c87847d05d::2026",
+    "statuses": [
+      "Membership Only (to Attend or Speak)",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "926ff723-a03a-462b-82e2-89c87847d05d::2027": {
+    "eventId": "926ff723-a03a-462b-82e2-89c87847d05d::2027",
+    "statuses": [
+      "Membership Only (to Attend or Speak)",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "926ff723-a03a-462b-82e2-89c87847d05d::2028": {
+    "eventId": "926ff723-a03a-462b-82e2-89c87847d05d::2028",
+    "statuses": [
+      "Membership Only (to Attend or Speak)",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "08842478-f118-4e9a-b06c-06659cd9656d": {
+    "eventId": "08842478-f118-4e9a-b06c-06659cd9656d",
+    "statuses": [
+      "Sponsorship Only"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "98eec1c9-f0b8-4c03-9fa6-fced72ca21d6": {
+    "eventId": "98eec1c9-f0b8-4c03-9fa6-fced72ca21d6",
+    "statuses": [
+      "Curated Speaking by Invite",
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "75b29f9e-ba2d-4071-808c-d6496ac4f364": {
+    "eventId": "75b29f9e-ba2d-4071-808c-d6496ac4f364",
+    "statuses": [
+      "Submitted",
+      "Sponsorship Only",
+      "Curated Speaking by Invite"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "6257723e-785e-485a-8419-bf9f4cd6e670": {
+    "eventId": "6257723e-785e-485a-8419-bf9f4cd6e670",
+    "statuses": [
+      "Sponsorship Only",
+      "Curated Speaking by Invite"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "6cc4f3b5-7aec-47e4-bb76-bad69375d0a0": {
+    "eventId": "6cc4f3b5-7aec-47e4-bb76-bad69375d0a0",
+    "statuses": [
+      "Sponsorship Only",
+      "Curated Speaking by Invite"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "f6a9d460-200d-4af2-8922-7b5007db545f": {
+    "eventId": "f6a9d460-200d-4af2-8922-7b5007db545f",
+    "statuses": [
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "c5d9ea6c-f3a9-44b4-96d8-f59098fc332c": {
+    "eventId": "c5d9ea6c-f3a9-44b4-96d8-f59098fc332c",
+    "statuses": [
+      "In contact with",
+      "Curated Speaking by Invite"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "4495e64d-2b15-4edd-8c3d-ff0f7b4f3e7e": {
+    "eventId": "4495e64d-2b15-4edd-8c3d-ff0f7b4f3e7e",
+    "statuses": [
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "f8fad721-64db-4990-be47-83d412d0b8a6": {
+    "eventId": "f8fad721-64db-4990-be47-83d412d0b8a6",
+    "statuses": [
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "75fa88b9-7fb9-4205-8ada-5a172875ad0d": {
+    "eventId": "75fa88b9-7fb9-4205-8ada-5a172875ad0d",
+    "statuses": [
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "bd389134-8eee-4633-ba65-c649cbe0cbdf": {
+    "eventId": "bd389134-8eee-4633-ba65-c649cbe0cbdf",
+    "statuses": [
+      "Attending?",
+      "Curated Speaking by Invite"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "5734b361-1d40-4105-a7ef-6b65072e90b8": {
+    "eventId": "5734b361-1d40-4105-a7ef-6b65072e90b8",
+    "statuses": [
+      "Sponsorship Only",
+      "Curated Speaking by Invite",
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "61223606-7528-46f3-9e1b-16cfce128ef6": {
+    "eventId": "61223606-7528-46f3-9e1b-16cfce128ef6",
+    "statuses": [
+      "Sponsorship Only",
+      "Curated Speaking by Invite",
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "c500eb1f-44db-4439-b2a1-b8a0fb9d251b": {
+    "eventId": "c500eb1f-44db-4439-b2a1-b8a0fb9d251b",
+    "statuses": [
+      "Curated Speaking by Invite",
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "34ad1391-120e-4b8b-ba36-b8eb908cd551": {
+    "eventId": "34ad1391-120e-4b8b-ba36-b8eb908cd551",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": "[\"Thor\",\"Jerome\"]",
+    "saved": false,
+    "hidden": false
+  },
+  "9bbd78e3-6f2d-4377-846c-8980d8b30d22": {
+    "eventId": "9bbd78e3-6f2d-4377-846c-8980d8b30d22",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "8e1fac8f-253c-4a21-b40d-730de31d86f5": {
+    "eventId": "8e1fac8f-253c-4a21-b40d-730de31d86f5",
+    "statuses": [
+      "Attending?",
+      "Sponsorship Only"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "7541e872-6ac3-4701-aa22-f00b7e8e4dda": {
+    "eventId": "7541e872-6ac3-4701-aa22-f00b7e8e4dda",
+    "statuses": [
+      "--"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "e3848d4f-71be-4c02-a8b9-f8166430da7e": {
+    "eventId": "e3848d4f-71be-4c02-a8b9-f8166430da7e",
+    "statuses": [],
+    "speaker": "[\"Thor\",\"Jerome\"]",
+    "saved": false,
+    "hidden": true
+  },
+  "988e5553-6d5d-41f7-9b16-c04c03c650cd": {
+    "eventId": "988e5553-6d5d-41f7-9b16-c04c03c650cd",
+    "statuses": [
+      "Booked"
+    ],
+    "speaker": "[\"Thor\",\"Verma\",\"Joe\",\"Jerome\"]",
+    "saved": false,
+    "hidden": false
+  },
+  "618ee7f4-157d-493d-91aa-352419abf18e": {
+    "eventId": "618ee7f4-157d-493d-91aa-352419abf18e",
+    "statuses": [
+      "Curated Speaking by Invite"
+    ],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "15bc140b-fec7-405c-bd80-9d4bd039ff2f": {
+    "eventId": "15bc140b-fec7-405c-bd80-9d4bd039ff2f",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "a9a21ec6-4259-4fb7-8302-cee2ed359156": {
+    "eventId": "a9a21ec6-4259-4fb7-8302-cee2ed359156",
+    "statuses": [],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "f6487f1d-bca1-474c-b8b1-42673efdf48e": {
+    "eventId": "f6487f1d-bca1-474c-b8b1-42673efdf48e",
+    "statuses": [
+      "No External Speakers",
+      "Curated Speaking by Invite",
+      "Attending?"
+    ],
+    "speaker": "Jerome",
+    "saved": false,
+    "hidden": false
+  },
+  "d32ddc72-5219-4d1b-9bd6-145b8273959f": {
+    "eventId": "d32ddc72-5219-4d1b-9bd6-145b8273959f",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "50cb7ee5-9f41-49d5-8536-d67847523f25": {
+    "eventId": "50cb7ee5-9f41-49d5-8536-d67847523f25",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "1fa9dea8-fbbb-4650-95ca-a2e4078b0590": {
+    "eventId": "1fa9dea8-fbbb-4650-95ca-a2e4078b0590",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "45ea58fe-eb2e-467c-9887-c2b649f24f74": {
+    "eventId": "45ea58fe-eb2e-467c-9887-c2b649f24f74",
+    "statuses": [
+      "Curated Industry Invite"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "63e7d25b-fbd1-4253-8778-681acbeb895c": {
+    "eventId": "63e7d25b-fbd1-4253-8778-681acbeb895c",
+    "statuses": [
+      "Date Conflict"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": true
+  },
+  "96463014-72bd-43a3-87ec-8675a693ca90": {
+    "eventId": "96463014-72bd-43a3-87ec-8675a693ca90",
+    "statuses": [
+      "Attending"
+    ],
+    "speaker": "Verma",
+    "saved": false,
+    "hidden": false
+  },
+  "09e88b1a-2fb3-4098-8ddd-61edf93df10f": {
+    "eventId": "09e88b1a-2fb3-4098-8ddd-61edf93df10f",
+    "statuses": [
+      "Curated Speaking by Invite",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "c6e4b9fa-aeae-4804-93e3-7ba155526082": {
+    "eventId": "c6e4b9fa-aeae-4804-93e3-7ba155526082",
+    "statuses": [
+      "No Openings"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "2ba39479-1651-413a-b339-ab335857d823": {
+    "eventId": "2ba39479-1651-413a-b339-ab335857d823",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "8677fc92-07aa-4bed-9025-d1a43fda12d0": {
+    "eventId": "8677fc92-07aa-4bed-9025-d1a43fda12d0",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "[\"Thor\",\"Jerome\"]",
+    "saved": false,
+    "hidden": false
+  },
+  "a3dec80f-a30e-40ee-85cb-1dc2e194d1fa": {
+    "eventId": "a3dec80f-a30e-40ee-85cb-1dc2e194d1fa",
+    "statuses": [
+      "Contact/Get Invited to speak"
+    ],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "8ab85829-2a09-4ac0-b553-f999f9e3bc4b": {
+    "eventId": "8ab85829-2a09-4ac0-b553-f999f9e3bc4b",
+    "statuses": [
+      "No Openings"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "9219c0dd-8df0-4351-b858-1b26eb12d866": {
+    "eventId": "9219c0dd-8df0-4351-b858-1b26eb12d866",
+    "statuses": [
+      "Submitted",
+      "Contact/Get Invited to speak"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "539cb785-3f77-4538-b674-5dd1994cfecf": {
+    "eventId": "539cb785-3f77-4538-b674-5dd1994cfecf",
+    "statuses": [
+      "Submitted",
+      "Contact/Get Invited to speak"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "08598fc8-30ff-4e42-98da-4a91493b9023": {
+    "eventId": "08598fc8-30ff-4e42-98da-4a91493b9023",
+    "statuses": [
+      "Submitted",
+      "Contact/Get Invited to speak"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "07a0b8f9-0f46-4cd3-9d65-5349b038d89a": {
+    "eventId": "07a0b8f9-0f46-4cd3-9d65-5349b038d89a",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "686ece77-d0f3-4a1d-a91c-d71840973b27": {
+    "eventId": "686ece77-d0f3-4a1d-a91c-d71840973b27",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "30f59656-aa6f-4f1a-83f6-30c9470b8588": {
+    "eventId": "30f59656-aa6f-4f1a-83f6-30c9470b8588",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "12d7b980-ec91-49ae-8878-85bf2b63271a": {
+    "eventId": "12d7b980-ec91-49ae-8878-85bf2b63271a",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "50829c6e-05bf-452f-aff8-833504a265d1": {
+    "eventId": "50829c6e-05bf-452f-aff8-833504a265d1",
+    "statuses": [],
+    "speaker": "Joe",
+    "saved": false,
+    "hidden": false
+  },
+  "2c506d4b-f339-48ef-9eb8-5f036549b72f": {
+    "eventId": "2c506d4b-f339-48ef-9eb8-5f036549b72f",
+    "statuses": [],
+    "speaker": null,
+    "saved": false,
+    "hidden": true
+  },
+  "44810d5c-e495-4a1f-9a83-48c1bffaa13f": {
+    "eventId": "44810d5c-e495-4a1f-9a83-48c1bffaa13f",
+    "statuses": [
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "e0a6cd31-5981-4f74-bd40-fa53747ac1cc": {
+    "eventId": "e0a6cd31-5981-4f74-bd40-fa53747ac1cc",
+    "statuses": [
+      "?",
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": false
+  },
+  "4ec5064a-f97d-4d66-9705-6d3fa3bca59f": {
+    "eventId": "4ec5064a-f97d-4d66-9705-6d3fa3bca59f",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "Verma",
+    "saved": false,
+    "hidden": false
+  },
+  "5be3392d-dea3-4538-88c6-ec117d4bf226": {
+    "eventId": "5be3392d-dea3-4538-88c6-ec117d4bf226",
+    "statuses": [],
+    "speaker": "Thor",
+    "saved": false,
+    "hidden": false
+  },
+  "d83b5f06-18f3-426c-8412-e310852895ad": {
+    "eventId": "d83b5f06-18f3-426c-8412-e310852895ad",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "[\"Thor\",\"Verma\"]",
+    "saved": false,
+    "hidden": false
+  },
+  "6c0b785b-72de-47fd-892d-d2f4135daf46": {
+    "eventId": "6c0b785b-72de-47fd-892d-d2f4135daf46",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "[\"Thor\",\"Verma\"]",
+    "saved": false,
+    "hidden": false
+  },
+  "6faac120-9c5b-4513-ab82-c7c991877fa2": {
+    "eventId": "6faac120-9c5b-4513-ab82-c7c991877fa2",
+    "statuses": [
+      "Submitted"
+    ],
+    "speaker": "[\"Thor\",\"Verma\"]",
+    "saved": false,
+    "hidden": false
+  },
+  "1c0ed2f7-98ab-4ba6-8936-671f64355fc9": {
+    "eventId": "1c0ed2f7-98ab-4ba6-8936-671f64355fc9",
+    "statuses": [
+      "Sponsorship Only"
+    ],
+    "speaker": null,
+    "saved": false,
+    "hidden": true
+  }
+}

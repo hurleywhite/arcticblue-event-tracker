@@ -1,0 +1,2227 @@
+[
+ {
+  "num": 16,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "No Openings, Submission Inquiry, Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 17,
+  "status_tags": [],
+  "status": "Date Conflict, Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 18,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 19,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 20,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 21,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Date Conflict, Sponsorship Only, Curated Industry Invite",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 22,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 23,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 24,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": "Thor, Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 26,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 27,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": true,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 28,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": true,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 31,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 35,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor, Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: albert@pmmalliance.com"
+ },
+ {
+  "num": 39,
+  "status_tags": [],
+  "status": "No Openings",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 48,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending, Sponsorship Only, No External Speakers",
+  "speaker": "Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Attending · No external speakers. Entry points are AWS partner co-presenting joint case studies with AWS team."
+ },
+ {
+  "num": 49,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 53,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Curated Industry Invite",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 57,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: hope@gaiinsights.com; gaiworld.com · Submitted Topic A: Fail or Scale: What’s the difference between Experiments and Pilots?\n"
+ },
+ {
+  "num": 64,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor, Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 68,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted"
+ },
+ {
+  "num": 69,
+  "status_tags": [
+   "Identified",
+   "Submitted"
+  ],
+  "status": "Submitted, Contact/Get Invited to speak",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 72,
+  "status_tags": [],
+  "status": "No Openings",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 73,
+  "status_tags": [
+   "Identified",
+   "Submitted"
+  ],
+  "status": "Submitted, Contact/Get Invited to speak",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 80,
+  "status_tags": [
+   "Submitted",
+   "Attending"
+  ],
+  "status": "Attending, Finish Submission",
+  "speaker": "Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Attending · POC: Submission Form · Speaker apps open mid-May; June 12 deadline. Not pay-to-play. No complimentary guest passes for speaker teams."
+ },
+ {
+  "num": 85,
+  "status_tags": [
+   "Submitted",
+   "Attending"
+  ],
+  "status": "Submitted, Sponsorship Only, Should Attend",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 86,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Curated Speaking by Invite, Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 91,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Joe",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 97,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 98,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 99,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Date Conflict, Sponsorship Only, Curated Industry Invite",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 100,
+  "status_tags": [],
+  "status": "Date Conflict, Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 101,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted, Sponsorship Only",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 102,
+  "status_tags": [],
+  "status": "Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 103,
+  "status_tags": [
+   "Submitted",
+   "Meeting held"
+  ],
+  "status": "Submitted, Had Mtg, Not Accepted This Yr",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 104,
+  "status_tags": [],
+  "status": null,
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 106,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 108,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 109,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 110,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Sponsorship Only, Curated Industry Invite",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 111,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 112,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 115,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · *Topic C (and D) relevant to event"
+ },
+ {
+  "num": 118,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 119,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 120,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 121,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Sponsorship Only, Curated Industry Invite",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 122,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 123,
+  "status_tags": [],
+  "status": null,
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 124,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: datasciconnect.com/events/align-ai-executive-summit-chicago/"
+ },
+ {
+  "num": 125,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: datasciconnect.com/events/align-ai-executive-summit-san-francisco/"
+ },
+ {
+  "num": 126,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Sponsorship Only, Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 127,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted"
+ },
+ {
+  "num": 128,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted"
+ },
+ {
+  "num": 129,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Sponsorship Only, Curated Speaking by Invite",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 130,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Sponsorship Only, Curated Speaking by Invite",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 131,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 132,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 133,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 134,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 135,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Sponsorship Only, Curated Industry Invite",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 139,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 141,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted, Sponsorship Only",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 143,
+  "status_tags": [
+   "Submitted",
+   "Booked"
+  ],
+  "status": "Submitted, Booked Prior Year",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 145,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted, Followed Up",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 146,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 147,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 148,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 153,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submission Inquiry",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 154,
+  "status_tags": [],
+  "status": null,
+  "speaker": null,
+  "saved": false,
+  "hidden": true,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 155,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 156,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 157,
+  "status_tags": [],
+  "status": null,
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 158,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 160,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted, Sponsorship Only",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 161,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted, Sponsorship Only",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": "Status: Submitted"
+ },
+ {
+  "num": 163,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "No Openings, Submission Inquiry",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 166,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": true,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · (Postponed from May)"
+ },
+ {
+  "num": 167,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 168,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 169,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 170,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 171,
+  "status_tags": [],
+  "status": null,
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 172,
+  "status_tags": [],
+  "status": "Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 173,
+  "status_tags": [
+   "Booked"
+  ],
+  "status": "Booked",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 174,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 175,
+  "status_tags": [
+   "Identified",
+   "Submitted"
+  ],
+  "status": "Curated Speaking by Invite, Submission Inquiry",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 176,
+  "status_tags": [
+   "Meeting held"
+  ],
+  "status": "We'll Pass, Had Mtg",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 177,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Patrick",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 178,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted, Not Accepted This Yr",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 179,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Contact/Get Invited to speak",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 180,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 181,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 182,
+  "status_tags": [
+   "Meeting held"
+  ],
+  "status": "We'll Pass, Had Mtg",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 183,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 184,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 185,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted, Followed Up",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 186,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 187,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 188,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 189,
+  "status_tags": [
+   "Identified",
+   "Submitted"
+  ],
+  "status": "Submitted, Sponsorship Only, Curated Speaking by Invite",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 190,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 191,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 192,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 193,
+  "status_tags": [
+   "Submitted",
+   "Meeting held"
+  ],
+  "status": "In Progress, Had Mtg",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 194,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 195,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 196,
+  "status_tags": [
+   "Submitted",
+   "Meeting held",
+   "Booked"
+  ],
+  "status": "Submitted, In contact with, Booked Prior Event",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 197,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 198,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 199,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: Connor — connor@pef.xyz · Submitted speaker package. Organizer confirmed they will contact us if chosen."
+ },
+ {
+  "num": 200,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor, Joe, Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: Online form · Submitted via online form. Registered for Speaker Updates."
+ },
+ {
+  "num": 201,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted, No Openings",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": "Status: Submitted · POC: Prof Nader Al Bastaki  + Prof Saad Darwish"
+ },
+ {
+  "num": 202,
+  "status_tags": [
+   "Submitted",
+   "Booked"
+  ],
+  "status": "Booked",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: Jessica Vodilka — jvodilka@email.gwu.edu · Booked. GWU student session + contest sponsorship."
+ },
+ {
+  "num": 203,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending, No External Speakers",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Attending · Attending and Participating. No external company speakers accepted."
+ },
+ {
+  "num": 204,
+  "status_tags": [
+   "Booked"
+  ],
+  "status": "Booked",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Booked · POC: Ewan Jamieson — ewan.jamieson@emc3.com; Daniel Curtis · Booked via emc3 personal contacts."
+ },
+ {
+  "num": 205,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending, Sponsorship Only, No External Speakers",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Attending · Attending, not speaking."
+ },
+ {
+  "num": 206,
+  "status_tags": [
+   "Submitted",
+   "Booked"
+  ],
+  "status": "Booked",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: In Progress · POC: Juan Fernandez (EY Venezuela Partner) · juan.fernandez@ve.ey.com · Juan reached out to Thor via email. Booking in progress."
+ },
+ {
+  "num": 207,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending, Thor Contacting",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [
+   "Thor"
+  ],
+  "decision": null,
+  "notes": "Status: Attending · communications@fii-institute.org · Attending, not speaking. Thor emailed personal contacts."
+ },
+ {
+  "num": 208,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "No Openings, Thor Contacting",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [
+   "Thor"
+  ],
+  "decision": "no-go",
+  "notes": "Status: In Progress · POC: Personal Contact · \"We know the organizers\" — Thor contacting."
+ },
+ {
+  "num": 209,
+  "status_tags": [
+   "Booked"
+  ],
+  "status": "Booked",
+  "speaker": "Joe",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Booked · Self submitted by Joe."
+ },
+ {
+  "num": 210,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": null,
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Attending · Attending (not speaking)."
+ },
+ {
+  "num": 211,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending, Thor Contacting",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [
+   "Thor"
+  ],
+  "decision": null,
+  "notes": "Status: Attending · Attending, not speaking."
+ },
+ {
+  "num": 212,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending, Sponsorship Only",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Attending · Speaking is sponsorship only / FII Institute must invite."
+ },
+ {
+  "num": 213,
+  "status_tags": [
+   "Booked"
+  ],
+  "status": "Booked",
+  "speaker": "Joe",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Booked · Self submitted."
+ },
+ {
+  "num": 214,
+  "status_tags": [
+   "Submitted",
+   "Meeting held"
+  ],
+  "status": "In contact with",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": true,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: gw.edu"
+ },
+ {
+  "num": 215,
+  "status_tags": [
+   "Submitted",
+   "Attending"
+  ],
+  "status": "Finish Submission, Attending?",
+  "speaker": "Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Attending · Sent Verma speaking info — would need his proposal to submit."
+ },
+ {
+  "num": 216,
+  "status_tags": [
+   "Submitted",
+   "Meeting held"
+  ],
+  "status": "In Progress, In contact with",
+  "speaker": "Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: In Progress · POC: Jay Weintraub (Connectiv Holdings) · jay@connectiv.com · Jay reached out re: AI in life and annuity space. Exploring for Verma speaker slot."
+ },
+ {
+  "num": 217,
+  "status_tags": [],
+  "status": "No Openings",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 218,
+  "status_tags": [
+   "Identified",
+   "Attending"
+  ],
+  "status": "Attending, Contact/Get Invited to speak",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 219,
+  "status_tags": [
+   "Submitted",
+   "Meeting held",
+   "Attending"
+  ],
+  "status": "Had Mtg, Submitted, Sponsorship Only, Attending",
+  "speaker": "Thor",
+  "saved": true,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Attending"
+ },
+ {
+  "num": 220,
+  "status_tags": [
+   "Identified",
+   "Attending"
+  ],
+  "status": "Attending, Contact/Get Invited to speak",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 221,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Should Attend, Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 222,
+  "status_tags": [
+   "Identified",
+   "Attending"
+  ],
+  "status": "Attending?, Curated Speaking by Invite",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 224,
+  "status_tags": [],
+  "status": "Sponsorship Only",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 225,
+  "status_tags": [
+   "Identified",
+   "Attending"
+  ],
+  "status": "No External Speakers, Curated Speaking by Invite, Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 226,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 227,
+  "status_tags": [
+   "Identified",
+   "Attending"
+  ],
+  "status": "Curated Speaking by Invite, Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 228,
+  "status_tags": [
+   "Booked"
+  ],
+  "status": "Booked",
+  "speaker": "Thor, Verma, Joe, Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 229,
+  "status_tags": [
+   "Submitted",
+   "Booked"
+  ],
+  "status": "Booked",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · YOUR COMMITMENT\n4-5 hour time commitment from Jun 1 - Jul 23, 2026. \nProvide 8-10 30-min advisory sessions that any student team may book with you - based on your schedule and availability (Of course, we will accept more if you’d like!)\nCan be virtual or in-person, although virtual provides greater flexibility\nAvailability for adhoc follow-up questions, within reason\nBrief written recommendation(s) if requested by a student team for the grant application. The recommendation is just a short survey (not a letter!)\nOptional: Lead one roundtable session for 10-12 students (up to 1 hour) - Let us know if this is of special interest to you and we can share more guidance"
+ },
+ {
+  "num": 230,
+  "status_tags": [
+   "Submitted",
+   "Attending"
+  ],
+  "status": "Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: Gabriella Disandolo, Speaking Opportunities · Jerome self submitted an application"
+ },
+ {
+  "num": 231,
+  "status_tags": [],
+  "status": "Membership Only (to Attend or Speak), Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 232,
+  "status_tags": [
+   "Identified",
+   "Attending"
+  ],
+  "status": "Sponsorship Only, Curated Speaking by Invite, Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 233,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 234,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 235,
+  "status_tags": [
+   "Identified",
+   "Meeting held"
+  ],
+  "status": "In contact with, Curated Speaking by Invite",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 236,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor, Jerome",
+  "saved": false,
+  "hidden": true,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 237,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending?, Sponsorship Only",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 238,
+  "status_tags": [
+   "Identified",
+   "Attending"
+  ],
+  "status": "Sponsorship Only, Curated Speaking by Invite, Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 239,
+  "status_tags": [
+   "Identified",
+   "Attending"
+  ],
+  "status": "Curated Speaking by Invite, Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 240,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Curated Speaking by Invite",
+  "speaker": "Joe",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 241,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 243,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Joe",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 244,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Joe",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 245,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending",
+  "speaker": "Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 246,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · Apply to speak: https://datasciconnect.com/events/speaker-interest-form/\nOne submission covers multiple events:\nALIGN AI Executive Summit - ATL (5.20.2026)\nALIGN AI Executive Summit - NYC (6.25.2026)\nALIGN AI Executive Summit - CHI (7.15.2026)\nALIGN AI Executive Summit - SF (8.19.2026)\nThe AI Enterprise Conference - NYC (9.2.2026)\nCOLLIDE Data+AI Conference - ATL (10.1.2026)\nALIGN AI Executive Summit - DAL (10.21.2026)\nAI for Enterprise Webinar Series\n\nall event descriptions combined here: \nhttps://datasciconnect.com/events/"
+ },
+ {
+  "num": 247,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · Apply to speak: https://datasciconnect.com/events/speaker-interest-form/\nOne submission covers multiple events:\nALIGN AI Executive Summit - ATL (5.20.2026)\nALIGN AI Executive Summit - NYC (6.25.2026)\nALIGN AI Executive Summit - CHI (7.15.2026)\nALIGN AI Executive Summit - SF (8.19.2026)\nThe AI Enterprise Conference - NYC (9.2.2026)\nCOLLIDE Data+AI Conference - ATL (10.1.2026)\nALIGN AI Executive Summit - DAL (10.21.2026)\nAI for Enterprise Webinar Series\n\nall event descriptions combined here: \nhttps://datasciconnect.com/events/"
+ },
+ {
+  "num": 248,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 250,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · Apply to speak: https://datasciconnect.com/events/speaker-interest-form/\nOne submission covers multiple events:\nALIGN AI Executive Summit - ATL (5.20.2026)\nALIGN AI Executive Summit - NYC (6.25.2026)\nALIGN AI Executive Summit - CHI (7.15.2026)\nALIGN AI Executive Summit - SF (8.19.2026)\nThe AI Enterprise Conference - NYC (9.2.2026)\nCOLLIDE Data+AI Conference - ATL (10.1.2026)\nALIGN AI Executive Summit - DAL (10.21.2026)\nAI for Enterprise Webinar Series\n\nall event descriptions combined here: \nhttps://datasciconnect.com/events/\n\n"
+ },
+ {
+  "num": 251,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · \nApply to speak: https://datasciconnect.com/events/speaker-interest-form/\nOne submission covers multiple events:\nALIGN AI Executive Summit - ATL (5.20.2026)\nALIGN AI Executive Summit - NYC (6.25.2026)\nALIGN AI Executive Summit - CHI (7.15.2026)\nALIGN AI Executive Summit - SF (8.19.2026)\nThe AI Enterprise Conference - NYC (9.2.2026)\nCOLLIDE Data+AI Conference - ATL (10.1.2026)\nALIGN AI Executive Summit - DAL (10.21.2026)\nAI for Enterprise Webinar Series\n\nall event descriptions combined here: \nhttps://datasciconnect.com/events/"
+ },
+ {
+  "num": 253,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 254,
+  "status_tags": [
+   "Attending"
+  ],
+  "status": "Attending?",
+  "speaker": "Jerome",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 255,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · Invisible Attending.\n\nAlso one in Spring."
+ },
+ {
+  "num": 256,
+  "status_tags": [],
+  "status": "Date Conflict",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 258,
+  "status_tags": [
+   "Identified"
+  ],
+  "status": "Contact/Get Invited to speak",
+  "speaker": "Joe",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 269,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 270,
+  "status_tags": [
+   "Identified",
+   "Submitted"
+  ],
+  "status": "Submitted, Contact/Get Invited to speak",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 272,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Joe",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 274,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Joe",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 275,
+  "status_tags": [],
+  "status": "Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 276,
+  "status_tags": [],
+  "status": "Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 277,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · POC: https://mill-all.com/assemblies/healthcare-technology-ai-transformation-assembly-august-2026/"
+ },
+ {
+  "num": 278,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · events@forrester.com · Mostly Sponsorship, but some guest speakers invited. Rolling deadline until filled.\n\nSubmitted for all below Forrester Tech Forum Events 2026-- If your profile aligns with the needs of one of our upcoming events, a member of the Forrester Events team will be in touch: (Topic A)\nAI Forum Singapore - Aug 20, 2026\nAI Forum Sydney - Aug 25\nAustin - Technology & Innovation Forum Central - Sept 14-15\nLondon- Technology & Innovation Forum EMEA - Sept 30\nNYC Technology & Innovation Forum East - Nov 4-5\nDC- Security & Risk Forum - Nov 9-10"
+ },
+ {
+  "num": 279,
+  "status_tags": [],
+  "status": null,
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 280,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · events@forrester.com · Mostly Sponsorship, but some guest speakers invited. Rolling deadline until filled.\n\nSubmitted for all below Forrester Tech Forum Events 2026-- If your profile aligns with the needs of one of our upcoming events, a member of the Forrester Events team will be in touch: (Topic A)\nAI Forum Singapore - Aug 20, 2026\nAI Forum Sydney - Aug 25\nAustin - Technology & Innovation Forum Central - Sept 14-15\nLondon- Technology & Innovation Forum EMEA - Sept 30\nNYC Technology & Innovation Forum East - Nov 4-5\nDC- Security & Risk Forum - Nov 9-10"
+ },
+ {
+  "num": 285,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor, Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ },
+ {
+  "num": 288,
+  "status_tags": [],
+  "status": "Sponsorship Only",
+  "speaker": null,
+  "saved": false,
+  "hidden": true,
+  "interested": [],
+  "decision": "no-go",
+  "notes": null
+ },
+ {
+  "num": 293,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": "Status: Submitted · events@forrester.com · Mostly Sponsorship, but some guest speakers invited. Rolling deadline until filled.\n\nSubmitted for all below Forrester Tech Forum Events 2026-- If your profile aligns with the needs of one of our upcoming events, a member of the Forrester Events team will be in touch: \nAI Forum Singapore - Aug 20, 2026\nAI Forum Sydney - Aug 25\nAustin - Technology & Innovation Forum Central - Sept 14-15\nLondon- Technology & Innovation Forum EMEA - Sept 30\nNYC Technology & Innovation Forum East - Nov 4-5\nDC- Security & Risk Forum - Nov 9-10\n"
+ },
+ {
+  "num": 296,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted",
+  "speaker": "Thor, Verma",
+  "saved": false,
+  "hidden": false,
+  "interested": [],
+  "decision": null,
+  "notes": null
+ }
+]
