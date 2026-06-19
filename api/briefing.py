@@ -149,6 +149,19 @@ def effective_mode(persona, status_tags):
     return persona.get('mode', 'room')
 
 
+def activity_label(status_tags):
+    """The user-facing badge — plain and consistent. Two people both attending
+    the same event both read 'Attending' (room/stage is internal framing only)."""
+    tags = [str(t).strip().lower() for t in (status_tags or [])]
+    if 'booked' in tags:
+        return 'Speaking'
+    if 'attending' in tags:
+        return 'Attending'
+    if 'meeting held' in tags or 'submitted' in tags:
+        return 'In progress'
+    return 'Targeting'
+
+
 def _today():
     return date.today().isoformat()
 
@@ -169,11 +182,18 @@ def build_messages(event, persona, topic, mode):
         "pipeline in their ICP; stage = they're SPEAKING / own a platform — "
         "speaking route, prestige intros. Bend every section to this mode + the "
         "persona's buyer_titles, icp_industries, themes, and outcome_target.\n"
-        "ANGLES + WHY-WE'RE-HERE must be EVENT-SPECIFIC and grounded in this "
-        "event's real focus and the recent news you find — NOT a recited "
-        "marketing tagline. Use the persona's signature_angles only as the "
-        "underlying positioning lens; do NOT quote them verbatim. Each angle is a "
-        "concrete, usable talking point a smart peer would respect.\n"
+        "ANGLES + WHY-WE'RE-HERE must be EVENT-SPECIFIC. Each angle ties a "
+        "concrete fact about THIS event (a theme on its agenda, a speaker, a "
+        "recent news item you found) to ArcticBlue's value. HARD RULE: the "
+        "'angles' array must NOT contain the persona's positioning-lens phrases "
+        "verbatim or any recited marketing tagline — write FRESH lines. "
+        "Good angle (sovereignty-themed summit): 'Rome's strategic-autonomy "
+        "agenda is the opening — frame go/pivot/kill experimentation as how "
+        "sovereign-AI ambitions skip the 12-18-month roadmap trap.' If you can't "
+        "ground an angle in an event specific, drop it.\n"
+        "KEEP IT TIGHT + phone-scannable so the JSON never truncates: at most 3 "
+        "speakers in speaker_spotlight, 5 people_to_find, 3 topic_news, 3 angles; "
+        "1-2 news items per speaker.\n"
         "USE WEB SEARCH for: (a) the event's speakers + their recent news, "
         "(b) audience signal vs the persona's ICP, (c) for stage mode, whether a "
         "speaking route / CFP is currently open (give the link), and (d) 2-3 news "
@@ -193,8 +213,13 @@ def build_messages(event, persona, topic, mode):
         "Output ONLY the raw JSON object — no markdown code fences, no commentary "
         "before or after it."
     )
+    # Keep signature_angles OUT of the copyable persona blob — pass them as a
+    # do-not-quote lens, or the model just pastes them into 'angles'.
+    persona_blob = {k: v for k, v in persona.items() if k != 'signature_angles'}
     user = (
-        "ATTENDEE PERSONA:\n" + json.dumps(persona, ensure_ascii=False) + "\n\n"
+        "ATTENDEE PERSONA:\n" + json.dumps(persona_blob, ensure_ascii=False) + "\n\n"
+        "POSITIONING LENS (background ONLY — NEVER copy these phrases into "
+        "'angles'): " + '; '.join(persona.get('signature_angles') or []) + "\n\n"
         "SPEAKER TOPIC (drives the topic_news search): " + (topic or '(none given — infer from the event + persona themes)') + "\n\n"
         "EVENT:\n" + json.dumps(event, ensure_ascii=False) + "\n\n"
         "Today is " + _today() + ". Write the brief now."
@@ -208,11 +233,11 @@ def _call_openai(messages, model):
         headers={'Authorization': 'Bearer ' + OPENAI_API_KEY},
         # NB: the *-search-preview models reject response_format=json_object, so
         # we ask for raw JSON in the prompt and extract it (see generate_brief).
-        body={'model': model, 'messages': messages, 'max_tokens': 3000}, timeout=120)
+        body={'model': model, 'messages': messages, 'max_tokens': 4500}, timeout=150)
     return st, data
 
 
-def generate_brief(event, persona, topic, mode):
+def generate_brief(event, persona, topic, mode, activity):
     messages = build_messages(event, persona, topic, mode)
     st, data = _call_openai(messages, BRIEFING_MODEL)
     # Fall back if the configured model id is rejected (e.g. not yet available).
@@ -233,10 +258,10 @@ def generate_brief(event, persona, topic, mode):
             except (json.JSONDecodeError, TypeError):
                 brief = {}
     model_used = data.get('model') if isinstance(data, dict) else None
-    return normalize_brief(brief, event, persona, mode), model_used
+    return normalize_brief(brief, event, persona, mode, activity), model_used
 
 
-def normalize_brief(brief, event, persona, mode):
+def normalize_brief(brief, event, persona, mode, activity):
     """Guarantee every §3 section exists so the UI renders deterministically."""
     if not isinstance(brief, dict):
         brief = {}
@@ -249,7 +274,10 @@ def normalize_brief(brief, event, persona, mode):
     # covered_by + mode are authoritative from the persona — never let the model
     # override them (it sometimes echoes the event source, e.g. 'arcticscout').
     g['covered_by'] = persona.get('name')
-    g['mode'] = mode
+    # Plain, consistent badge (Attending / Speaking). room/stage is internal
+    # framing only and is NOT shown as a label — it confused the read.
+    g['activity'] = activity
+    g.pop('mode', None)
     brief['at_a_glance'] = g
     brief.setdefault('why_were_here', '')
     wir = brief.get('who_in_room') or {}
@@ -274,6 +302,10 @@ def normalize_brief(brief, event, persona, mode):
     for k in ('speaker_spotlight', 'topic_news', 'angles', 'unconfirmed'):
         if not isinstance(brief.get(k), list):
             brief[k] = []
+    # Belt-and-suspenders: a canned signature_angle must never reach the output,
+    # even if the model parrots it. Drop verbatim matches; cap at 3.
+    sig = {str(s).strip().lower() for s in (persona.get('signature_angles') or [])}
+    brief['angles'] = [a for a in brief['angles'] if str(a).strip().lower() not in sig][:3]
     lw = brief.get('logistics_win') or {}
     if not isinstance(lw, dict):
         lw = {}
@@ -358,15 +390,16 @@ def _one(kind, key, host, regenerate):
     persona = load_personas()['personas'][keys[0]]
     row = state if kind == 'event_state' else facts
     mode = effective_mode(persona, row.get('status_tags'))
+    activity = activity_label(row.get('status_tags'))
     if not regenerate and state.get('briefing_json') and not is_stale(state):
         return {'brief': state['briefing_json'], 'generated_at': state.get('briefing_generated_at'),
-                'cached': True, 'persona': keys[0]}, 200
+                'cached': True, 'persona': keys[0], 'activity': activity}, 200
     ev = event_facts_for(kind, facts, state)
-    brief, model_used = generate_brief(ev, persona, ev.get('speaker_topic'), mode)
+    brief, model_used = generate_brief(ev, persona, ev.get('speaker_topic'), mode, activity)
     when = datetime.utcnow().isoformat() + 'Z'
     cache_brief(kind, key, brief, when)
-    return {'brief': brief, 'generated_at': when, 'cached': False,
-            'persona': keys[0], 'mode': mode, 'model': model_used}, 200
+    return {'brief': brief, 'generated_at': when, 'cached': False, 'persona': keys[0],
+            'activity': activity, 'mode': mode, 'model': model_used}, 200
 
 
 class handler(BaseHTTPRequestHandler):
@@ -430,6 +463,7 @@ class handler(BaseHTTPRequestHandler):
         persona = load_personas()['personas'][keys[0]]
         row = state if kind == 'event_state' else facts
         mode = effective_mode(persona, row.get('status_tags'))
+        activity = activity_label(row.get('status_tags'))
         ev = event_facts_for(kind, facts, state)
-        brief, _model = generate_brief(ev, persona, ev.get('speaker_topic'), mode)
+        brief, _model = generate_brief(ev, persona, ev.get('speaker_topic'), mode, activity)
         cache_brief(kind, key, brief, datetime.utcnow().isoformat() + 'Z')
