@@ -1,0 +1,75 @@
+{
+  "_README": "Single source of truth for ArcticBlue speaker personas. Read by the Day-Of briefing route (api/briefing.py), baked into the tracker UI by src/build.py, and intended for the event-curator prompts too so the three never drift. Keys map 1:1 to the tracker's 'Fits: X' tags and the 'attendees' field. 'mode' forks the whole brief: room = work the floor; stage = earn/own the platform.",
+  "personas": {
+    "joe": {
+      "name": "Joe Lalley",
+      "role": "Co-Founder, ArcticMind",
+      "mode": "stage",
+      "geo": ["US", "Canada", "UK"],
+      "icp_industries": ["cross-industry enterprise", "HR / L&D function"],
+      "buyer_titles": ["CHRO", "Chief People Officer", "Chief Learning Officer", "Chief Talent Officer", "VP/Head of L&D", "Head of People Analytics", "Head of Change"],
+      "themes": ["AI workforce literacy & adoption", "practice-based fluency", "change management for AI", "preventing skill atrophy", "problem-first culture"],
+      "signature_angles": ["10/90 Rule (10% tech, 90% enablement)", "Human in the Helm", "Shadow AI -> Strategic Orchestration", "Problem-First Mindset (Question to Learn)"],
+      "outcome_target": "1 speaking route opened + 2 facilitator/partner leads",
+      "flags": ["runs facilitator/partner network — partner-rich events score higher", "author: check for open CFP / speaker route day-of"]
+    },
+    "carlos": {
+      "name": "Carlos Chacon Almeida",
+      "role": "Head of Americas Sales",
+      "mode": "room",
+      "geo": ["US", "Canada", "LatAm", "Spain"],
+      "icp_industries": ["Financial Services", "Insurance", "Healthcare", "Fintech", "Enterprise SaaS", "Retail/eCommerce", "Telco", "Media"],
+      "buyer_titles": ["CEO", "CPO", "CMO", "CDO", "CTO/CIO", "COO", "Chief AI Officer", "Chief Innovation Officer", "CRO", "VP/SVP of AI", "Head of Digital Transformation"],
+      "themes": ["enterprise AI rollout", "digital transformation", "LatAm / Spanish-market AI adoption"],
+      "signature_angles": ["ArcticBlue de-risks the AI bet before a 6-7 figure contract", "Spanish-language differentiation in LatAm"],
+      "outcome_target": "3+ qualified enterprise buyer conversations; contacts captured",
+      "flags": ["prioritize Spanish-speaking attendees and rooms"]
+    },
+    "jerome": {
+      "name": "Jerome Wouters",
+      "role": "Head of Sales EMEA",
+      "mode": "room",
+      "geo": ["UK", "Switzerland", "EMEA"],
+      "icp_industries": ["Insurance", "Financial Services", "Healthcare", "Telco"],
+      "buyer_titles": ["CEO", "CIO/CTO", "Chief AI Officer", "COO", "Head of AI", "Digital Transformation leaders"],
+      "themes": ["enterprise AI rollout done safely", "AI governance & risk", "structured experimentation", "agentic workflows", "measurable ROI"],
+      "signature_angles": ["90% of enterprise AI fails on uncertainty — experiment, don't roadmap", "vendor feasibility testing before the big contract"],
+      "outcome_target": "3+ qualified EMEA regulated-industry conversations; contacts captured",
+      "flags": []
+    },
+    "thor": {
+      "name": "Thor Ernstsson",
+      "role": "CEO / Co-Founder",
+      "mode": "stage",
+      "geo": ["global-flagship"],
+      "icp_industries": ["cross-industry enterprise", "boards"],
+      "buyer_titles": ["CEO", "board director", "Chief AI Officer", "CDO", "CIO/CTO", "COO", "Chief Innovation/Strategy Officer"],
+      "themes": ["frontier enterprise AI strategy", "rapid experimentation over roadmaps", "the 90% failure thesis"],
+      "signature_angles": ["90%+ of enterprise AI initiatives fail on uncertainty, not tech — go/pivot/kill beats the 12-18 month roadmap"],
+      "outcome_target": "1 keynote/podcast/flagship-stage intro + 2 senior peer connections",
+      "flags": ["author/keynote-tier: check for open speaker route; weight prestige introductions"]
+    },
+    "verma": {
+      "name": "Anuraag Verma",
+      "role": "Co-Founder / Delivery",
+      "mode": "stage",
+      "geo": ["NA", "APAC", "Europe", "Africa"],
+      "icp_industries": ["Insurance", "Healthcare", "Finance/Banking", "Capital Markets", "Fintech"],
+      "buyer_titles": ["board director", "CEO", "CIO", "CTO", "Chief AI Officer", "CFO", "COO", "Chief Risk Officer", "Chief Data Officer", "Head of Risk"],
+      "themes": ["de-risking AI in regulated industries", "AI governance & compliance", "board-level AI oversight", "culture of experimentation"],
+      "signature_angles": ["regulated industries: the cost of a wrong AI bet is highest — validate before you scale"],
+      "outcome_target": "1 board/C-suite speaking or advisory conversation + 2 regulated-industry leads",
+      "flags": ["board-level keynote-tier"]
+    }
+  },
+  "arcticblue": {
+    "voice": "Direct, practitioner-to-practitioner. No hype, no filler, no invented numbers.",
+    "proof_points": [
+      "45% faster case resolution",
+      "83% persona accuracy",
+      "450+ executives trained",
+      "90%+ of enterprise AI initiatives fail on uncertainty, not technology"
+    ],
+    "never_fabricate": ["attendee names", "metrics", "quotes", "speaker claims", "event details not in the source data or web-confirmed"]
+  }
+}
