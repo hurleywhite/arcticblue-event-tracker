@@ -135,13 +135,26 @@ SECTIONS = ['at_a_glance', 'why_were_here', 'who_in_room', 'targets',
             'speaker_spotlight', 'topic_news', 'angles', 'logistics_win', 'unconfirmed']
 
 
+def effective_mode(persona, status_tags):
+    """What the person is actually doing at THIS event drives the brief's mode —
+    NOT the persona's static default. Booked = speaking -> stage (own the
+    platform); Attending = on the floor -> room (work the room). Falls back to
+    the persona default only when the event carries no pipeline status. This is
+    why two people 'just attending' the same event both read as room."""
+    tags = [str(t).strip().lower() for t in (status_tags or [])]
+    if 'booked' in tags:
+        return 'stage'
+    if 'attending' in tags:
+        return 'room'
+    return persona.get('mode', 'room')
+
+
 def _today():
     return date.today().isoformat()
 
 
-def build_messages(event, persona, topic):
+def build_messages(event, persona, topic, mode):
     ab = load_personas()['arcticblue']
-    mode = persona.get('mode', 'room')
     sys = (
         "You are ArcticBlue's Day-Of event-briefing engine. You write a sharp, "
         "phone-scannable brief for ONE ArcticBlue person attending ONE event "
@@ -151,10 +164,16 @@ def build_messages(event, persona, topic):
         "quotes, or speaker claims. Only state a named person/news item if web "
         "search confirms it; otherwise put it in `unconfirmed`. The ONLY metrics "
         "you may cite are these whitelisted proof points: " + '; '.join(ab['proof_points']) + ".\n"
-        "PERSONA MODE = '" + mode + "'. room = work the floor (pipeline in their "
-        "ICP); stage = earn/own the platform (speaking route, prestige intros). "
-        "Bend every section to the persona's mode, buyer_titles, icp_industries, "
-        "themes, signature_angles, and outcome_target.\n"
+        "MODE FOR THIS EVENT = '" + mode + "' (derived from what they're doing "
+        "here, not a generic label): room = they're ATTENDING — work the floor, "
+        "pipeline in their ICP; stage = they're SPEAKING / own a platform — "
+        "speaking route, prestige intros. Bend every section to this mode + the "
+        "persona's buyer_titles, icp_industries, themes, and outcome_target.\n"
+        "ANGLES + WHY-WE'RE-HERE must be EVENT-SPECIFIC and grounded in this "
+        "event's real focus and the recent news you find — NOT a recited "
+        "marketing tagline. Use the persona's signature_angles only as the "
+        "underlying positioning lens; do NOT quote them verbatim. Each angle is a "
+        "concrete, usable talking point a smart peer would respect.\n"
         "USE WEB SEARCH for: (a) the event's speakers + their recent news, "
         "(b) audience signal vs the persona's ICP, (c) for stage mode, whether a "
         "speaking route / CFP is currently open (give the link), and (d) 2-3 news "
@@ -193,8 +212,8 @@ def _call_openai(messages, model):
     return st, data
 
 
-def generate_brief(event, persona, topic):
-    messages = build_messages(event, persona, topic)
+def generate_brief(event, persona, topic, mode):
+    messages = build_messages(event, persona, topic, mode)
     st, data = _call_openai(messages, BRIEFING_MODEL)
     # Fall back if the configured model id is rejected (e.g. not yet available).
     if st in (400, 404) and BRIEFING_FALLBACK and BRIEFING_FALLBACK != BRIEFING_MODEL:
@@ -214,10 +233,10 @@ def generate_brief(event, persona, topic):
             except (json.JSONDecodeError, TypeError):
                 brief = {}
     model_used = data.get('model') if isinstance(data, dict) else None
-    return normalize_brief(brief, event, persona), model_used
+    return normalize_brief(brief, event, persona, mode), model_used
 
 
-def normalize_brief(brief, event, persona):
+def normalize_brief(brief, event, persona, mode):
     """Guarantee every §3 section exists so the UI renders deterministically."""
     if not isinstance(brief, dict):
         brief = {}
@@ -230,7 +249,7 @@ def normalize_brief(brief, event, persona):
     # covered_by + mode are authoritative from the persona — never let the model
     # override them (it sometimes echoes the event source, e.g. 'arcticscout').
     g['covered_by'] = persona.get('name')
-    g['mode'] = persona.get('mode')
+    g['mode'] = mode
     brief['at_a_glance'] = g
     brief.setdefault('why_were_here', '')
     wir = brief.get('who_in_room') or {}
@@ -247,7 +266,7 @@ def normalize_brief(brief, event, persona):
     if not isinstance(t.get('people_to_find'), list):
         t['people_to_find'] = []
     t.setdefault('outcome_target', persona.get('outcome_target'))
-    if persona.get('mode') != 'stage':
+    if mode != 'stage':
         t['speaking_route_open'] = t.get('speaking_route_open') or None
     if persona.get('name') != load_personas()['personas']['joe']['name']:
         t['facilitator_leads'] = t.get('facilitator_leads') if isinstance(t.get('facilitator_leads'), list) else []
@@ -337,15 +356,17 @@ def _one(kind, key, host, regenerate):
     if not keys:
         return {'error': 'no attendees on this event'}, 400
     persona = load_personas()['personas'][keys[0]]
+    row = state if kind == 'event_state' else facts
+    mode = effective_mode(persona, row.get('status_tags'))
     if not regenerate and state.get('briefing_json') and not is_stale(state):
         return {'brief': state['briefing_json'], 'generated_at': state.get('briefing_generated_at'),
                 'cached': True, 'persona': keys[0]}, 200
     ev = event_facts_for(kind, facts, state)
-    brief, model_used = generate_brief(ev, persona, ev.get('speaker_topic'))
+    brief, model_used = generate_brief(ev, persona, ev.get('speaker_topic'), mode)
     when = datetime.utcnow().isoformat() + 'Z'
     cache_brief(kind, key, brief, when)
     return {'brief': brief, 'generated_at': when, 'cached': False,
-            'persona': keys[0], 'model': model_used}, 200
+            'persona': keys[0], 'mode': mode, 'model': model_used}, 200
 
 
 class handler(BaseHTTPRequestHandler):
@@ -407,6 +428,8 @@ class handler(BaseHTTPRequestHandler):
         if not keys:
             return
         persona = load_personas()['personas'][keys[0]]
+        row = state if kind == 'event_state' else facts
+        mode = effective_mode(persona, row.get('status_tags'))
         ev = event_facts_for(kind, facts, state)
-        brief, _model = generate_brief(ev, persona, ev.get('speaker_topic'))
+        brief, _model = generate_brief(ev, persona, ev.get('speaker_topic'), mode)
         cache_brief(kind, key, brief, datetime.utcnow().isoformat() + 'Z')
