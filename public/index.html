@@ -2275,7 +2275,13 @@
       h += ef('Type', inp('type', rec.type, 'e.g. Enterprise'));
       h += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) { return opt(v, rec.audience_type); }).join('') + '</select>');
       h += ef('Meetings & networking (1:1s)', inp('meeting_formats', rec.meeting_formats, 'e.g. Hosted 1:1 meetings; roundtables'));
+      h += ef('Price to attend', inp('pricing', rec.pricing, 'e.g. $1,995 delegate pass; free for buyers'));
+      h += ef('Attendee count', inp('attendee_count', rec.attendee_count, 'e.g. 1,500+'));
       h += ef('Track', '<select class="me-input" data-edit="track">' + ['', 'Sponsor', 'Earned', 'Both', 'Unknown'].map(function (v) { return opt(v, rec.track); }).join('') + '</select>');
+      // The free-text "legacy status" label that shows on the card face
+      // (e.g. "Sponsorship Only") — editable + clearable; the soft-delete
+      // sentinel is hidden so it can't be edited by accident.
+      h += ef('Status label (shown on the card)', inp('status', rec.workflow_status === '__deleted__' ? '' : rec.workflow_status, 'e.g. Sponsorship only · clear to remove'));
     } else {
       h += ef('Region', '<select class="me-input" data-edit="region">' + ['', 'US & Canada', 'Latin America', 'Europe', 'Africa', 'MENA', 'Asia-Pacific', 'Global'].map(function (v) { return opt(v, rec.region); }).join('') + '</select>');
       h += ef('Type', inp('type', rec.type));
