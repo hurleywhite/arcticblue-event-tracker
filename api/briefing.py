@@ -423,29 +423,6 @@ class handler(BaseHTTPRequestHandler):
             if CRON_SECRET and secret != CRON_SECRET:
                 return _send(self, 403, {'error': 'bad cron secret'})
             return self._cron()
-        # Diagnostic: which models does this OpenAI account actually have, and
-        # does a given id work? (temporary; same-origin guarded)
-        if qs.get('probe'):
-            if not _same_origin(self):
-                return _send(self, 403, {'error': 'forbidden'})
-            p = qs.get('probe', [''])[0]
-            if p == 'models':
-                st, data = _http_json('GET', OPENAI_BASE + '/models',
-                                      headers={'Authorization': 'Bearer ' + OPENAI_API_KEY}, timeout=20)
-                ids = sorted([m.get('id') for m in (data.get('data') or [])]) if isinstance(data, dict) else []
-                hit = [i for i in ids if any(t in (i or '') for t in ('gpt-5', 'gpt-4', 'search', 'o1', 'o3', 'o4'))]
-                return _send(self, 200, {'http': st, 'total': len(ids), 'matched': hit})
-            if p == 'ping':
-                model = qs.get('model', ['gpt-5'])[0]
-                pbody = {'model': model, 'messages': [{'role': 'user', 'content': 'Reply with the word ok.'}]}
-                pbody.update(_tok(model, 16))
-                st, data = _http_json('POST', OPENAI_BASE + '/chat/completions',
-                                      headers={'Authorization': 'Bearer ' + OPENAI_API_KEY},
-                                      body=pbody, timeout=30)
-                served = data.get('model') if isinstance(data, dict) else None
-                err = data.get('error') if isinstance(data, dict) else str(data)[:300]
-                return _send(self, 200, {'requested': model, 'http': st, 'served': served, 'error': err})
-            return _send(self, 400, {'error': 'probe=models|ping'})
         return _send(self, 405, {'error': 'POST {kind,key} or GET ?cron=1'})
 
     def do_POST(self):
