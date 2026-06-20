@@ -264,32 +264,51 @@ def _call_openai(messages, model):
 def _url_ok(url):
     """True if the link is real + reachable. A hallucinated path 404s; a fake
     domain errors. Bot-blocks (401/403/405) or rate limits mean the URL is real,
-    so we keep those — only a definitive 404/410 or a network failure drops it."""
+    so we keep those — only a definitive 404/410 or a network failure drops it.
+    A slow-but-not-dead host should not block: we time out at 4s and keep the
+    link rather than dropping a probably-real URL we couldn't reach in time."""
     u = str(url or '')
     if not u.startswith(('http://', 'https://')):
         return False
     try:
         req = urllib.request.Request(u, method='GET', headers={
             'User-Agent': 'Mozilla/5.0 (ArcticBlueTracker)', 'Range': 'bytes=0-2048'})
-        with urllib.request.urlopen(req, timeout=6) as r:
+        with urllib.request.urlopen(req, timeout=4) as r:
             return r.status < 400
     except urllib.error.HTTPError as e:
         return e.code not in (404, 410)
+    except (urllib.error.URLError, TimeoutError, OSError):
+        # timeout / transient network failure → don't punish a likely-real link
+        return True
     except Exception:
         return False
 
 
+# Cap how many links we probe per brief so a run of slow hosts can't stack
+# sequential timeouts toward Vercel's maxDuration (4s each, budget below).
+_VERIFY_BUDGET = 8
+
+
 def _verify_news(brief):
     """Drop any news item whose source URL doesn't resolve — kills the model's
-    plausible-looking-but-fabricated links. Surfaced honestly in unconfirmed."""
+    plausible-looking-but-fabricated links. Surfaced honestly in unconfirmed.
+    Only the first _VERIFY_BUDGET links are probed; the rest are kept as-is."""
+    budget = [_VERIFY_BUDGET]
+
+    def ok(url):
+        if budget[0] <= 0:
+            return True  # out of probe budget — keep without checking
+        budget[0] -= 1
+        return _url_ok(url)
+
     dropped = 0
     tn = brief.get('topic_news') or []
-    keep = [n for n in tn if _url_ok(n.get('url'))]
+    keep = [n for n in tn if ok(n.get('url'))]
     dropped += len(tn) - len(keep)
     brief['topic_news'] = keep
     for s in (brief.get('speaker_spotlight') or []):
         ns = s.get('news') or []
-        k = [n for n in ns if _url_ok(n.get('url'))]
+        k = [n for n in ns if ok(n.get('url'))]
         dropped += len(ns) - len(k)
         s['news'] = k
     if dropped:
@@ -307,7 +326,12 @@ def generate_brief(event, persona, topic, mode, activity):
         st, data = _call_openai(messages, BRIEFING_FALLBACK)
     if st != 200 or not isinstance(data, dict):
         raise RuntimeError('openai %s: %s' % (st, str(data)[:300]))
-    content = data['choices'][0]['message']['content'] or ''
+    # A 200 can still carry an empty/refused completion (content filter, no
+    # choices). Degrade to a skeleton brief instead of throwing a 502.
+    try:
+        content = data['choices'][0]['message']['content'] or ''
+    except (KeyError, IndexError, TypeError):
+        content = ''
     brief = {}
     try:
         brief = json.loads(content)
@@ -486,8 +510,11 @@ class handler(BaseHTTPRequestHandler):
                 return _send(self, 500, {'error': 'OPENAI_API_KEY missing'})
             if not _same_origin(self):
                 return _send(self, 403, {'error': 'forbidden: call from the tracker site'})
-            length = int(self.headers.get('Content-Length', '0'))
-            body = json.loads(self.rfile.read(length).decode('utf-8') or '{}') if length else {}
+            try:
+                length = int(self.headers.get('Content-Length', '0') or '0')
+                body = json.loads(self.rfile.read(length).decode('utf-8') or '{}') if length else {}
+            except (ValueError, json.JSONDecodeError):
+                return _send(self, 400, {'error': 'invalid JSON body'})
             kind = body.get('kind') or 'event_state'
             key = body.get('key')
             if key is None:
@@ -505,7 +532,7 @@ class handler(BaseHTTPRequestHandler):
         st, data = _http_json('GET', 'https://%s/events.json' % host, timeout=20)
         st2, states = _http_json('GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,attendees,speaker,speaker_topic,briefing_generated_at,briefing_json',
                                  headers=_sb_headers(service=True))
-        smap = {r['event_num']: r for r in states} if isinstance(states, list) else {}
+        smap = {r.get('event_num'): r for r in states if isinstance(r, dict)} if isinstance(states, list) else {}
         for e in (data.get('events') or []) if isinstance(data, dict) else []:
             s = smap.get(e.get('num'), {})
             lo, hi = e.get('start_date'), e.get('end_date') or e.get('start_date')

@@ -960,12 +960,11 @@ class handler(BaseHTTPRequestHandler):
         try:
             self._handle()
         except Exception as e:
-            import traceback
+            # Don't leak a full traceback (file paths / internals) to callers.
             _send(self, 500, {
                 'error': 'unhandled exception',
                 'type':  type(e).__name__,
-                'msg':   str(e),
-                'trace': traceback.format_exc()[-2000:],
+                'msg':   str(e)[:300],
             })
 
     def _handle(self):
