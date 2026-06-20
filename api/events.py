@@ -360,6 +360,7 @@ def _norm_audience(v):
 _DEDUPE_STOP = {
     'the', 'a', 'an', 'and', 'or', 'of', 'for', 'to', 'in', 'on', 'at', 'by', 'with',
     'summit', 'summits', 'conference', 'conferences', 'expo', 'forum', 'event', 'events',
+    'usa', 'edition',
 }
 _YEAR_RE = re.compile(r'^(?:19|20)\d{2}$')
 
@@ -367,7 +368,10 @@ _YEAR_RE = re.compile(r'^(?:19|20)\d{2}$')
 def _fingerprint(name):
     """Order-independent dedupe key. May be '' if the name is all stop-words
     (callers must treat an empty fingerprint as 'no fingerprint match')."""
-    s = re.sub(r'[^a-z0-9]+', ' ', (name or '').lower())
+    s = (name or '').lower()
+    s = re.sub(r'(\d)([a-z])', r'\1 \2', s)   # split digit/letter so
+    s = re.sub(r'([a-z])(\d)', r'\1 \2', s)   # "money20/20" == "money 20 20"
+    s = re.sub(r'[^a-z0-9]+', ' ', s)
     toks = [t for t in s.split() if t not in _DEDUPE_STOP and not _YEAR_RE.match(t)]
     return ' '.join(sorted(set(toks)))
 

@@ -4863,9 +4863,20 @@ def build():
       return '<span class="mode-badge mode-' + m + '">' + m + '</span>';
     }}
 
+    // Event-level activity (what they're DOING here) — same plain badge as the
+    // brief, not the persona's static room/stage label.
+    function dayofActivity(it) {{
+      var t = (it.stages || []).map(function (s) {{ return String(s).toLowerCase(); }});
+      if (t.indexOf('booked') !== -1) return 'Speaking';
+      if (t.indexOf('attending') !== -1) return 'Attending';
+      return 'Targeting';
+    }}
     function dayofCard(it, isToday) {{
       var P = window.AB_PERSONAS;
-      var who = it._keys.map(function (k) {{ return '<span class="dayof-who">' + escapeHtml((P[k] || {{}}).name || k) + ' ' + modeBadge(k) + '</span>'; }}).join('');
+      var act = dayofActivity(it);
+      var actClass = act === 'Speaking' ? 'mode-stage' : 'mode-room';
+      var who = '<span class="mode-badge ' + actClass + '">' + escapeHtml(act) + '</span> ' +
+        it._keys.map(function (k) {{ return '<span class="dayof-who">' + escapeHtml((P[k] || {{}}).name || k) + '</span>'; }}).join(', ');
       var loc = [it.region, it.location].filter(Boolean).join(' · ');
       var ready = it.briefing_json ? '<span class="dayof-ready">&#10003; brief ready</span>' : '';
       return '<div class="dayof-card' + (isToday ? ' is-today' : '') + '">' +
@@ -5555,7 +5566,15 @@ def build():
     // "AI Summit Brasil – Sao Paulo 2026" and "AI Summit Brasil — Sao Paulo
     // (IPT Edition)" collapse to the SAME key and are caught as one event.
     function dupNameCore(name) {{
-      return abFold(name).replace(/\\(.*?\\)/g, ' ').replace(/\\b20\\d\\d\\b/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\\s+/g, ' ').trim();
+      return abFold(name)
+        .replace(/\\(.*?\\)/g, ' ')                         // parentheticals
+        .replace(/\\b20\\d\\d\\b/g, ' ')                     // years (city+year keyed separately)
+        .replace(/(\\d)([a-z])/g, '$1 $2').replace(/([a-z])(\\d)/g, '$1 $2')  // money20 -> money 20
+        .replace(/[^a-z0-9 ]/g, ' ')
+        // strip generic region/edition words so "X USA" == "X North America" ==
+        // "X" (the CITY in dupKeyOf still disambiguates real different editions).
+        .replace(/\\b(usa|us|u s a|united states|na|north america|emea|apac|edition|series)\\b/g, ' ')
+        .replace(/\\s+/g, ' ').trim();
     }}
     function dupCityOf(o) {{ return abFold(o.city || ((o.location || '').split(',')[0]) || ''); }}
     function dupYearOf(o) {{ var m = ((o.start_date || '') + ' ' + (o.date_str || '')).match(/20\\d\\d/); return m ? m[0] : ''; }}
