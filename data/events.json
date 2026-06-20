@@ -323,7 +323,8 @@
    "meeting_formats": "NEXT Hackathon; city-wide Singapore AI Week satellite events including networking mixers, investor roundtables, demo days, and workshops",
    "audience_type": "Mixed",
    "typical_attendees": "AI leaders, frontier technologists, investors, researchers, builders, startups, and enterprise/industry attendees",
-   "attendee_count": "10,000+"
+   "attendee_count": "10,000+",
+   "past_speakers": "Balaji Srinivasan; Benedict Evans; Ned Koh, Aaru; OpenAI leaders; Google leaders; AWS leaders; Arm leaders"
   },
   {
    "num": 26,
@@ -546,7 +547,12 @@
    "country": "USA",
    "notes": "IMPORTANT:\nOur “earned” speaking spots are available to end-user type companies only (ex. hospitals, banks, retailers, etc). Anyone with an AI or tech-related product/service MUST apply to speak via our sponsor form.",
    "external_id": "fad698ba-b80c-4ee5-99c9-0e2491bb97f5",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Not verifiable from provided results",
+   "past_speakers": "Not verifiable from provided results",
+   "meeting_formats": "Attendee app for networking and pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "12,000+"
   },
   {
    "num": 68,
@@ -686,7 +692,8 @@
    "typical_attendees": "Fortune 500 decision-makers, enterprise data and AI leaders, solution providers",
    "attendee_count": "150+",
    "venue": "Pier Sixty NYC | Chelsea, Manhattan",
-   "pricing": "$499 early-bird; $999 standard"
+   "pricing": "$499 early-bird; $999 standard",
+   "pay_to_play": "Yes"
   },
   {
    "num": 69,
@@ -1386,7 +1393,11 @@
    "notes": "Can apply for below events in one application:\n- UNLEASH America\n- UNLEASH World\n- ONGOING: Editorial - News, Opinion, Interview, Insight, Feature, and/or Case Studies",
    "external_id": "f1f7e625-0ea3-49c8-8566-e1f8b32eb1f8",
    "source": "arcticscout",
-   "contact_info": "unleash.ai/unleashworld"
+   "contact_info": "unleash.ai/unleashworld",
+   "past_speakers": "Microsoft executive; SAP executive; BP executive; L'Oréal executive; Visa executive",
+   "meeting_formats": "hosted meetings; curated summit/salon experiences; invitation-only forums; attendee networking",
+   "audience_type": "Mixed",
+   "attendee_count": "10,000+"
   },
   {
    "num": 78,
@@ -4493,7 +4504,12 @@
    "external_id": "b3f299b4-3bc0-4aef-96da-1b05bc3abf03",
    "source": "arcticscout",
    "start_date": "2026-09-29",
-   "end_date": "2026-09-29"
+   "end_date": "2026-09-29",
+   "pricing": "Free Ticket For Industry Professionals",
+   "past_speakers": "C-Level Executives, Directors, and Heads of Technology",
+   "meeting_formats": "Networking and knowledge sharing among industry experts and attendees",
+   "audience_type": "Mixed",
+   "attendee_count": "100 Delegates"
   },
   {
    "num": 193,
@@ -4863,7 +4879,8 @@
    "external_id": "d54a9dca-c35d-4e8c-a753-07d9748fab38",
    "source": "arcticscout",
    "start_date": "2026-03-23",
-   "end_date": "2026-03-23"
+   "end_date": "2026-03-23",
+   "url": "https://www.innoveytion-summit.com/"
   },
   {
    "num": 207,
@@ -6048,7 +6065,8 @@
    "external_id": "24d696e8-8379-4213-b8fb-8712c673e26d",
    "source": "arcticscout",
    "start_date": "2026-05-19",
-   "end_date": "2026-05-20"
+   "end_date": "2026-05-20",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 253,
@@ -6275,7 +6293,11 @@
    "focus_areas": "SAP Joule AI agents and enterprise automation; SAP BTP AI services and cloud-native AI integration; Enterprise AI governance and compliance (SAP ecosystem); AI-driven ERP/HCM/SCM transformation for SAP customers; Developer and architect tools for enterprise AI on SAP",
    "seed": false,
    "urgent": false,
-   "external_id": "d1796a9e-4ebe-4dcc-abc7-3f59f4c92f31"
+   "external_id": "d1796a9e-4ebe-4dcc-abc7-3f59f4c92f31",
+   "venue": "Messe Berlin",
+   "pricing": "Paid access; early nerd rates save €300 on individual tickets and €270 on discounted group tickets",
+   "meeting_formats": "Hands-on workshops; networking opportunities; global developer community interactions",
+   "audience_type": "Mixed"
   },
   {
    "num": 262,
