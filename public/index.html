@@ -302,6 +302,7 @@
     .event-name {
       font-family: var(--ab-sans); font-size: 1.1rem; font-weight: 700;
       line-height: 1.25; margin: 0; color: var(--ab-fg); letter-spacing: -0.01em;
+      overflow-wrap: anywhere;
     }
     /* The event name doubles as the website link — underlined + very bold. */
     .event-name-link {
@@ -438,7 +439,7 @@
     }
     .modal-visit:hover { background: #1f5fa3; }
     .modal-nolink {
-      font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-mute);
+      font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg-3);
       align-self: center;
     }
     /* Editable modal — one-tap quick-action bar at the top of the body. */
@@ -757,6 +758,13 @@
     }
     .alert.warn { background: #fff4e5; color: #7c2d12; }
     .alert.error { background: #fee2e2; color: #991b1b; }
+    /* The save/error toast must follow the user, not sit at the top of the
+       panel where it's off-screen when you act on a card further down. */
+    #ops-status {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      z-index: 1300; margin: 0; max-width: min(560px, calc(100vw - 32px));
+      box-shadow: 0 8px 28px rgba(0,0,0,0.20);
+    }
     .alert button.inline {
       font: inherit; color: inherit;
       background: transparent; border: 0; padding: 0;
@@ -765,6 +773,15 @@
 
     /* Ops grid — same skeleton as .event-grid but with edit controls */
     .ops-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .ops-empty { grid-column: 1 / -1; text-align: center; padding: 56px 24px; color: var(--ab-fg-2); }
+    .ops-empty-title { font-size: 1.05rem; font-weight: 600; color: var(--ab-fg); margin: 0 0 6px; }
+    .ops-empty-sub { font-size: 0.9rem; margin: 0 0 16px; }
+    .ops-empty-btn {
+      font-family: var(--ab-sans); font-size: 0.85rem; font-weight: 600;
+      padding: 9px 18px; border-radius: 8px; border: 1px solid var(--ab-rule);
+      background: var(--ab-bg); color: var(--ab-fg); cursor: pointer;
+    }
+    .ops-empty-btn:hover { background: var(--ab-bg-3); }
 
     /* Month dividers inside the For-Angela ops grid. Mirrors the public
        .month-header but is clickable to collapse/expand that month's cards. */
@@ -859,7 +876,7 @@
     .ops-card .event-name {
       font-family: var(--ab-sans); font-weight: 700;
       font-size: 1.05rem; line-height: 1.3; letter-spacing: -0.01em;
-      margin: 0 0 4px; color: var(--ab-fg);
+      margin: 0 0 4px; color: var(--ab-fg); overflow-wrap: anywhere;
     }
     .ops-card .event-loc {
       font-size: 0.85rem; color: var(--ab-fg-2); margin: 0 0 12px;
@@ -1216,8 +1233,8 @@
 
     /* View toggle (Grid / Calendar) */
     .view-toggle {
-      display: inline-flex; gap: 2px;
-      padding: 3px; background: var(--ab-bg-3);
+      display: inline-flex; flex-wrap: wrap; gap: 2px;
+      max-width: 100%; padding: 3px; background: var(--ab-bg-3);
       border-radius: 8px; margin-bottom: 16px;
     }
     .view-toggle button {
@@ -1740,7 +1757,12 @@
       .kpi { padding: 20px 20px 20px 0; }
       .filter-bar { flex-direction: column; align-items: stretch; }
       .filter-group { min-width: 0; }
-      .event-grid, .archive-grid { grid-template-columns: 1fr; }
+      .event-grid, .archive-grid, .ops-grid { grid-template-columns: 1fr; }
+    }
+    /* Touch screens: give the small card controls a tappable target. */
+    @media (pointer: coarse) {
+      .ops-details-btn, .ops-chip { min-height: 40px; padding-top: 8px; padding-bottom: 8px; }
+      .bf-close, .saved-star { min-width: 40px; min-height: 40px; }
     }
     @media (max-width: 500px) {
       .nav { padding: 16px 0; }
@@ -2648,10 +2670,15 @@
     }
 
     function status(msg, kind) {
+      if (window._opsStatusT) { clearTimeout(window._opsStatusT); window._opsStatusT = null; }
       if (!msg) { $opsStatus.setAttribute('hidden', ''); return; }
       $opsStatus.removeAttribute('hidden');
       $opsStatus.textContent = msg;
       $opsStatus.className = 'alert' + (kind ? ' ' + kind : '');
+      // Auto-dismiss confirmations; keep errors up until the next action.
+      if (kind !== 'error') {
+        window._opsStatusT = setTimeout(function () { $opsStatus.setAttribute('hidden', ''); }, 4000);
+      }
     }
 
     function escapeHtml(s) {
@@ -4175,6 +4202,23 @@
       });
       var $shown = document.getElementById('ops-shown');
       if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + $opsGrid.querySelectorAll('.ops-card').length;
+      // Empty state — a fully-filtered grid should explain itself, not blank out.
+      var $empty = document.getElementById('ops-empty');
+      if (shown === 0) {
+        if (!$empty) {
+          $empty = document.createElement('div');
+          $empty.id = 'ops-empty'; $empty.className = 'ops-empty';
+          $empty.innerHTML = '<p class="ops-empty-title">No events match your filters.</p>'
+            + '<p class="ops-empty-sub">Try a different search term or loosen a filter.</p>'
+            + '<button type="button" class="ops-empty-btn" id="ops-empty-clear">Clear search &amp; filters</button>';
+          $opsGrid.appendChild($empty);
+          var _b = document.getElementById('ops-empty-clear');
+          if (_b) _b.addEventListener('click', clearOpsFilters);
+        }
+        $empty.style.display = '';
+      } else if ($empty) {
+        $empty.style.display = 'none';
+      }
       // The map mirrors the grid's filters — keep its pins in sync.
       if (currentView === 'map' && _opsMapLayer) renderOpsMap();
     }
@@ -4187,6 +4231,25 @@
         var ev = (el.tagName === 'INPUT' && el.type !== 'checkbox') ? 'input' : 'change';
         el.addEventListener(ev, applyFilters);
       });
+    }
+
+    function clearOpsFilters() {
+      // Reset every ops filter to its default, then re-run. Safe because
+      // applyFilters reads all state fresh from these controls each call.
+      ['ops-search','ops-region','ops-price','ops-fits'].forEach(function (id) {
+        var el = document.getElementById(id); if (el) el.value = '';
+      });
+      ['ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-nogo'].forEach(function (id) {
+        var el = document.getElementById(id); if (el) el.checked = false;
+      });
+      Array.prototype.forEach.call(
+        document.querySelectorAll('#stage-filters .stage-chip.is-on, .status-filters .status-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
+        function (c) { c.classList.remove('is-on'); }
+      );
+      opsStatFilter = '';
+      var $stats = document.getElementById('ops-stats');
+      if ($stats) Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (x) { x.classList.remove('is-activestat'); });
+      applyFilters();
     }
 
     function renderStats(evs, stateRows, manualRows) {
@@ -4446,14 +4509,17 @@
             '<button type="button" class="bf-btn bf-close" aria-label="Close">&times;</button>' +
           '</div></div><div class="briefing-body" id="briefing-body"></div></div>';
         document.body.appendChild(ov);
-        ov.addEventListener('click', function (e) { if (e.target === ov) ov.classList.remove('show'); });
-        ov.querySelector('.bf-close').addEventListener('click', function () { ov.classList.remove('show'); });
+        var _closeBf = function () { ov.classList.remove('show'); document.body.style.overflow = ''; };
+        ov.addEventListener('click', function (e) { if (e.target === ov) _closeBf(); });
+        ov.querySelector('.bf-close').addEventListener('click', _closeBf);
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && ov.classList.contains('show')) _closeBf(); });
       }
       ov._it = it;
       ov.querySelector('.bf-regen').onclick = function () { loadBrief(it, true); };
       ov.querySelector('.bf-copy').onclick = function () { copyBrief(it); };
       ov.querySelector('.bf-print').onclick = function () { window.print(); };
       ov.classList.add('show');
+      document.body.style.overflow = 'hidden';  // lock the page behind the drawer
       if (it.briefing_json) renderBrief(it.briefing_json, it, true);
       else loadBrief(it, false);
     }
