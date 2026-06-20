@@ -198,11 +198,26 @@ def build_messages(event, persona, topic, mode):
         "(b) audience signal vs the persona's ICP, (c) for stage mode, whether a "
         "speaking route / CFP is currently open (give the link), and (d) 2-3 news "
         "items from the LAST 3 DAYS relevant to the speaker_topic.\n"
+        "TARGETS = the actionable core. people_to_find must be SPECIFIC, "
+        "web-confirmed people or orgs actually at THIS event — prioritize "
+        "NON-OBVIOUS targets (sponsors, exhibitors, partner-org reps, "
+        "organizers / program leads, named confirmed attendees) over headline "
+        "speakers (those are obvious and everyone chases them). For each give "
+        "name, org, role, why (tie to the attendee's ICP), and where to find "
+        "them (booth / session / track) if known. confidence:'confirmed' ONLY "
+        "when web search verifies they are attending/speaking/sponsoring; else "
+        "'estimated'. Do NOT pad this list with generic title categories — if "
+        "you genuinely cannot web-confirm specific names/orgs, return at most 2 "
+        "'estimated' role-types AND add an unconfirmed note that no attendee "
+        "roster was found.\n"
+        "URLS: every news url MUST be a REAL, working article link you actually "
+        "opened via web search — never invent, guess, or pattern-construct a "
+        "URL. If you are not certain a url is real, omit that item.\n"
         "Return ONLY a JSON object with EXACTLY these keys: "
         "at_a_glance {event, dates, venue, format, priority, track, region, covered_by, mode}; "
         "why_were_here (string, 2-3 sentences); "
         "who_in_room {confidence:'estimated'|'confirmed', titles:[..], industries:[..], named:[{name,title,org}]}; "
-        "targets {people_to_find:[..], outcome_target:string, speaking_route_open:string|null, facilitator_leads:[..]}; "
+        "targets {people_to_find:[{name, org, role, why, where, confidence:'confirmed'|'estimated'}], outcome_target:string, speaking_route_open:string|null, facilitator_leads:[..]}; "
         "speaker_spotlight:[{name, who, news:[{headline,date,url}], hook}]; "
         "topic_news:[{headline,date,url,relevance}]; "
         "angles:[string,..]; "
@@ -246,6 +261,44 @@ def _call_openai(messages, model):
     return st, data
 
 
+def _url_ok(url):
+    """True if the link is real + reachable. A hallucinated path 404s; a fake
+    domain errors. Bot-blocks (401/403/405) or rate limits mean the URL is real,
+    so we keep those — only a definitive 404/410 or a network failure drops it."""
+    u = str(url or '')
+    if not u.startswith(('http://', 'https://')):
+        return False
+    try:
+        req = urllib.request.Request(u, method='GET', headers={
+            'User-Agent': 'Mozilla/5.0 (ArcticBlueTracker)', 'Range': 'bytes=0-2048'})
+        with urllib.request.urlopen(req, timeout=6) as r:
+            return r.status < 400
+    except urllib.error.HTTPError as e:
+        return e.code not in (404, 410)
+    except Exception:
+        return False
+
+
+def _verify_news(brief):
+    """Drop any news item whose source URL doesn't resolve — kills the model's
+    plausible-looking-but-fabricated links. Surfaced honestly in unconfirmed."""
+    dropped = 0
+    tn = brief.get('topic_news') or []
+    keep = [n for n in tn if _url_ok(n.get('url'))]
+    dropped += len(tn) - len(keep)
+    brief['topic_news'] = keep
+    for s in (brief.get('speaker_spotlight') or []):
+        ns = s.get('news') or []
+        k = [n for n in ns if _url_ok(n.get('url'))]
+        dropped += len(ns) - len(k)
+        s['news'] = k
+    if dropped:
+        u = brief.get('unconfirmed') or []
+        u.append('%d news link(s) could not be verified and were removed.' % dropped)
+        brief['unconfirmed'] = u
+    return brief
+
+
 def generate_brief(event, persona, topic, mode, activity):
     messages = build_messages(event, persona, topic, mode)
     st, data = _call_openai(messages, BRIEFING_MODEL)
@@ -267,7 +320,9 @@ def generate_brief(event, persona, topic, mode, activity):
             except (json.JSONDecodeError, TypeError):
                 brief = {}
     model_used = data.get('model') if isinstance(data, dict) else None
-    return normalize_brief(brief, event, persona, mode, activity), model_used
+    b = normalize_brief(brief, event, persona, mode, activity)
+    b = _verify_news(b)
+    return b, model_used
 
 
 def normalize_brief(brief, event, persona, mode, activity):

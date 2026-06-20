@@ -4946,9 +4946,10 @@ def build():
       function sec(title, inner) {{ return inner ? '<section class="bf-sec"><h3>' + title + '</h3>' + inner + '</section>' : ''; }}
       function newsLi(n) {{ return '<li>' + (n.url ? '<a href="' + esc(n.url) + '" target="_blank" rel="noopener">' + esc(n.headline) + '</a>' : esc(n.headline)) + (n.date ? ' <span class="bf-date">' + esc(n.date) + '</span>' : '') + (n.relevance ? '<br><span class="bf-muted">' + esc(n.relevance) + '</span>' : '') + '</li>'; }}
       var g = b.at_a_glance || {{}}, t = b.targets || {{}}, wir = b.who_in_room || {{}}, lw = b.logistics_win || {{}};
-      var mode = g.mode || ((window.AB_PERSONAS[(it._keys || [])[0]] || {{}}).mode) || 'room';
+      var act = g.activity || (g.mode === 'stage' ? 'Speaking' : 'Attending');
+      var actClass = act === 'Speaking' ? 'mode-stage' : 'mode-room';
       var html = '<div class="bf-head"><h2>' + esc(g.event || it.name) + '</h2>' +
-        '<span class="mode-badge mode-' + mode + '">' + mode + '</span>' +
+        '<span class="mode-badge ' + actClass + '">' + esc(act) + '</span>' +
         '<p class="bf-sub">' + esc(g.dates || it.date_str || '') + (g.venue ? ' · ' + esc(g.venue) : (it.location ? ' · ' + esc(it.location) : '')) +
         (g.covered_by ? ' · covered by <strong>' + esc(g.covered_by) + '</strong>' : '') + '</p>' +
         (cached ? '<p class="bf-stamp">cached &middot; hit Regenerate for a fresh pass</p>' : '') + '</div>';
@@ -4958,7 +4959,15 @@ def build():
         (wir.industries && wir.industries.length ? '<p class="bf-muted">' + esc((wir.industries || []).join(' · ')) + '</p>' : '') +
         (wir.named && wir.named.length ? '<ul class="bf-list">' + list(wir.named, function (n) {{ return '<li><strong>' + esc(n.name) + '</strong>' + (n.title ? ' &mdash; ' + esc(n.title) : '') + (n.org ? ', ' + esc(n.org) : '') + '</li>'; }}) + '</ul>' : ''));
       var tgt = '';
-      if (t.people_to_find && t.people_to_find.length) tgt += '<p class="bf-label">People to find</p><ul class="bf-list">' + list(t.people_to_find, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>';
+      if (t.people_to_find && t.people_to_find.length) tgt += '<p class="bf-label">People to find</p><ul class="bf-list">' + list(t.people_to_find, function (x) {{
+        if (!x || typeof x === 'string') return '<li>' + esc(x) + '</li>';
+        var head = esc(x.name || x.org || x.role || '');
+        var sub = [x.name ? x.org : null, x.role].filter(Boolean).join(' · ');
+        return '<li><strong>' + head + '</strong>' + (sub ? ' &mdash; ' + esc(sub) : '') +
+          (x.confidence ? ' <span class="bf-conf">' + esc(x.confidence) + '</span>' : '') +
+          (x.why ? '<br><span class="bf-muted">' + esc(x.why) + '</span>' : '') +
+          (x.where ? '<br><span class="bf-where">&#128205; ' + esc(x.where) + '</span>' : '') + '</li>';
+      }}) + '</ul>';
       if (t.outcome_target) tgt += '<p class="bf-label">Win target</p><p class="bf-win">' + esc(t.outcome_target) + '</p>';
       if (t.speaking_route_open) tgt += '<p class="bf-label">Speaking route</p><p>' + esc(t.speaking_route_open) + '</p>';
       if (t.facilitator_leads && t.facilitator_leads.length) tgt += '<p class="bf-label">Facilitator / partner leads</p><ul class="bf-list">' + list(t.facilitator_leads, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>';
