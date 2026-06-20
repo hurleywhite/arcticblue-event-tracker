@@ -2138,7 +2138,16 @@
       (summary
         ? '<span class="qa-int-summary">' + summary + '</span>'
         : '<span class="qa-int-summary qa-int-empty">No one yet — Angela applies for whoever\'s interested</span>');
+    // Go / No-go decision — single field. Tapping the active one CLEARS it (so a
+    // no-go can be removed); the card un-greys when decision is empty.
+    var dec = rec.decision || '';
+    var decRow =
+      '<span class="qa-row-label">Decision:</span>' +
+      '<button type="button" class="qa' + (dec === 'go' ? ' on' : '') + '" data-qa="go">' + (dec === 'go' ? '✓ Go' : 'Go') + '</button>' +
+      '<button type="button" class="qa' + (dec === 'no-go' ? ' on' : '') + '" data-qa="nogo">' + (dec === 'no-go' ? '✓ No-go' : 'No-go') + '</button>' +
+      (dec ? '<span class="qa-int-summary">tap the active button to clear</span>' : '');
     return '<div class="modal-quickbar"><div class="qa-row">' + b.join('') + '</div>' +
+           '<div class="qa-row" style="margin-top:6px;align-items:center;">' + decRow + '</div>' +
            '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div></div>';
   }
   // Natural-language list of who's interested: "Joe is interested" /
@@ -2180,6 +2189,11 @@
         if (order.length) tags = order.filter(function (s) { return tags.indexOf(s) !== -1; });
         rec.stage_tags = tags;
         patch.status_tags = tags;
+      }
+      else if (qa === 'go' || qa === 'nogo') {
+        var want = (qa === 'go') ? 'go' : 'no-go';
+        rec.decision = (rec.decision === want) ? '' : want;  // tap active -> clear
+        patch.decision = rec.decision || null;
       } else { return; }
       // Optimistic: re-render the modal with the updated rec, preserving the
       // scroll position so quick edits don't jump the reader.
@@ -3099,15 +3113,19 @@
       card.dataset.priority = (st.priority_override || ev.priority || '');
       card.dataset.track    = (st.track || '');
       card.dataset.speaker  = (st.speaker || '');
-      // Attending signals (catalog fields; verdict is ops-editable state)
-      card.dataset.audience = (ev.audience_type || '');
-      var _pn = priceNumOf(ev.pricing);
+      // Attending signals — an event_state override (edited on the card) wins
+      // over the catalog value, so audience / 1:1 / price edits show on the face.
+      var _aud   = (st.audience_type  && String(st.audience_type).trim())  ? st.audience_type  : ev.audience_type;
+      var _meet  = (st.meeting_formats && String(st.meeting_formats).trim()) ? st.meeting_formats : ev.meeting_formats;
+      var _price = (st.pricing && String(st.pricing).trim()) ? st.pricing : ev.pricing;
+      card.dataset.audience = (_aud || '');
+      var _pn = priceNumOf(_price);
       card.dataset.price    = (_pn == null ? '' : String(_pn));
-      card.dataset.meetings = (ev.meeting_formats ? '1' : '');
+      card.dataset.meetings = (_meet ? '1' : '');
       card.dataset.attend   = (st.attend_verdict || '');
       card.dataset.interested = (st.interested && st.interested.length) ? '1' : '';
       card.dataset.interestedNames = (st.interested || []).map(function (n) { return String(n).toLowerCase(); }).join('|');
-      card.dataset.fitText = abFold([ev.name, ev.about, ev.focus_areas, ev.typical_attendees, ev.location, ev.city, ev.country, ev.type, ev.past_speakers, ev.audience_type].join(' '));
+      card.dataset.fitText = abFold([ev.name, ev.about, ev.focus_areas, ev.typical_attendees, ev.location, ev.city, ev.country, ev.type, ev.past_speakers, _aud].join(' '));
       var _opsPast = isPastEvent(ev);
       card.dataset.past = _opsPast ? '1' : '';
       if (_opsPast) card.classList.add('is-past');
@@ -3132,8 +3150,8 @@
 
       // Attending-signal strip + one-click apply (the booking shortcut).
       var sigBits = [];
-      if (ev.audience_type) sigBits.push('<span class="badge ' + audienceClass(ev.audience_type) + '">' + escapeHtml(ev.audience_type) + '</span>');
-      if (ev.meeting_formats) sigBits.push('<span class="attend-sig" title="' + escapeHtml(ev.meeting_formats) + '">1:1 meetings</span>');
+      if (_aud) sigBits.push('<span class="badge ' + audienceClass(_aud) + '">' + escapeHtml(_aud) + '</span>');
+      if (_meet) sigBits.push('<span class="attend-sig" title="' + escapeHtml(_meet) + '">1:1 meetings</span>');
       var sigRow = sigBits.length ? '<p class="attend-signals">' + sigBits.join('') + '</p>' : '';
       var applyUrl = speakingRouteUrl(ev.speaking_route);
       var applyBtn = applyUrl
