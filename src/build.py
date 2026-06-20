@@ -2361,11 +2361,11 @@ def build():
           </select>
           <select id="ops-fits" aria-label="Show events that fit a teammate" title="Show only events matching one teammate's target profile (geography, audience, industry, themes)">
             <option value="">Fits: anyone</option>
-            <option value="Jerome">Fits: Jerome (Europe)</option>
-            <option value="Joe">Fits: Joe (HR / L&amp;D)</option>
-            <option value="Thor">Fits: Thor (C-suite)</option>
-            <option value="Verma">Fits: Verma (regulated)</option>
-            <option value="Carlos">Fits: Carlos (LatAm)</option>
+            <option value="Jerome">Fits: Jerome</option>
+            <option value="Joe">Fits: Joe</option>
+            <option value="Thor">Fits: Thor</option>
+            <option value="Verma">Fits: Verma</option>
+            <option value="Carlos">Fits: Carlos</option>
           </select>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-speaker">Has speaker</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
@@ -3494,19 +3494,10 @@ def build():
       if (st.track) {{
         tags.push('<span class="ops-tag">' + escapeHtml(st.track) + '</span>');
       }}
-      // Legacy single status — kept as a small muted detail so nothing
-      // Angela typed is lost, but visually demoted beneath the stages.
-      // Suppressed when it merely repeats a stage pill already shown
-      // (status "Booked" + stage Booked was rendering "Booked" twice).
-      if (st.status) {{
-        var _legacyLow = String(st.status).trim().toLowerCase();
-        var dupOfStage = stages.some(function (k) {{ return k.toLowerCase() === _legacyLow; }});
-        if (!dupOfStage) {{
-          var style = statusStyle(st.status);
-          var styleAttr = style ? ' style="' + style + '"' : '';
-          tags.push('<span class="ops-tag status legacy"' + styleAttr + ' title="Legacy status detail">' + escapeHtml(st.status) + '</span>');
-        }}
-      }}
+      // The legacy single status (imported Replit label, e.g. "Sponsorship
+      // Only") is NO LONGER shown on the card face — 148 of them were cluttering
+      // the cards. It's preserved in event_state and editable/clearable in
+      // Details → "Status label", so nothing Angela typed is lost.
       if (tags.length === 0) return '';
       return '<div class="ops-tags">' + tags.join('') + '</div>';
     }}
@@ -5226,8 +5217,7 @@ def build():
         gaps.sort(function (a, b) {{ return a.sort - b.sort; }});
         html += '<div class="gap-owner"><div class="gap-owner-head">' +
             '<span class="gap-owner-name">' + escapeHtml(terr.who) + '</span>' +
-            '<span class="gap-owner-terr">' + escapeHtml(terr.label) + '</span>' +
-            '<span class="gap-owner-stat">' + inTerr.length + ' in territory &middot; ' + covered.length + ' covered &middot; <b>' + gaps.length + ' open</b></span>' +
+            '<span class="gap-owner-stat">' + inTerr.length + ' events &middot; ' + covered.length + ' covered &middot; <b>' + gaps.length + ' open</b></span>' +
           '</div>';
         if (!gaps.length) {{
           html += '<p class="gap-none">&#10003; All ' + inTerr.length + ' covered &mdash; nothing open.</p>';
