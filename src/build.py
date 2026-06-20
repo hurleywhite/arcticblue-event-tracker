@@ -2829,7 +2829,9 @@ def build():
         var i = list.indexOf(n);
         if (cb.checked && i === -1) list.push(n);
         else if (!cb.checked && i !== -1) list.splice(i, 1);
-        list = AB_ROSTER.filter(function (x) {{ return list.indexOf(x) !== -1; }});
+        // de-dupe but keep everyone — don't drop non-roster collaborators
+        // added via the quick-bar "+ I'm interested".
+        list = list.filter(function (x, idx) {{ return list.indexOf(x) === idx; }});
         rec.interested = list;
         var lbl = cb.closest('.me-int'); if (lbl) lbl.classList.toggle('on', cb.checked);
         window.opsWrite(rec._table, rec._key, {{ interested: list }});
@@ -4847,7 +4849,12 @@ def build():
     // Day-Of view — events happening now that an ArcticBlue person attends.
     // ════════════════════════════════════════════════════════════════
     function dayofItems() {{
-      var today = new Date().toISOString().slice(0, 10);
+      // Local date (not UTC) — toISOString() rolls to tomorrow after ~4pm
+      // Pacific, which would push today's events out of the Day-Of tab.
+      var _n = new Date();
+      var today = _n.getFullYear() + '-' +
+        String(_n.getMonth() + 1).padStart(2, '0') + '-' +
+        String(_n.getDate()).padStart(2, '0');
       var todayList = [], soon = [];
       opsAllItems().forEach(function (it) {{
         if (it.hidden) return;
@@ -5420,10 +5427,10 @@ def build():
       var months = 'January|February|March|April|May|June|July|August|September|October|November|December';
       var monthsShort = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec';
       var dateRes = [
-        new RegExp('(?:' + months + ')\\s+\\d{{1,2}}\\s*[–—-]\\s*(?:(?:' + months + ')\\s+)?\\d{{1,2}},\\s+\\d{{4}}', 'i'),
-        new RegExp('(?:' + months + ')\\s+\\d{{1,2}},\\s+\\d{{4}}', 'i'),
-        new RegExp('(?:' + monthsShort + ')\\s+\\d{{1,2}}\\s*[–—-]\\s*\\d{{1,2}},\\s+\\d{{4}}', 'i'),
-        new RegExp('(?:' + monthsShort + ')\\s+\\d{{1,2}},\\s+\\d{{4}}', 'i')
+        new RegExp('(?:' + months + ')\\\\s+\\\\d{{1,2}}\\\\s*[–—-]\\\\s*(?:(?:' + months + ')\\\\s+)?\\\\d{{1,2}},\\\\s+\\\\d{{4}}', 'i'),
+        new RegExp('(?:' + months + ')\\\\s+\\\\d{{1,2}},\\\\s+\\\\d{{4}}', 'i'),
+        new RegExp('(?:' + monthsShort + ')\\\\s+\\\\d{{1,2}}\\\\s*[–—-]\\\\s*\\\\d{{1,2}},\\\\s+\\\\d{{4}}', 'i'),
+        new RegExp('(?:' + monthsShort + ')\\\\s+\\\\d{{1,2}},\\\\s+\\\\d{{4}}', 'i')
       ];
       for (var j = 0; j < dateRes.length; j++) {{
         var dm = text.match(dateRes[j]);
