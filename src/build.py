@@ -3777,6 +3777,14 @@ def build():
       v = (v == null ? '' : String(v)).trim();
       if (!v) return null;
       if (!/^https?:\\/\\//i.test(v)) v = 'https://' + v.replace(/^\\/+/, '');
+      // Reject obviously-broken input (whitespace inside, unparseable, or a host
+      // with no dot/TLD) so we never store a dead link that renders as a real
+      // one. Only runs on save — existing stored URLs are untouched.
+      if (/\\s/.test(v)) return null;
+      try {{
+        var u = new URL(v);
+        if (!u.hostname || u.hostname.indexOf('.') === -1) return null;
+      }} catch (e) {{ return null; }}
       return v;
     }}
 
@@ -4046,6 +4054,8 @@ def build():
         var derived = deriveDatesFromText(patch.date_str);
         if (derived.start_date) patch.start_date = derived.start_date;
         if (derived.end_date)   patch.end_date   = derived.end_date;
+        // Unreadable date → start_date null → event won't show on the calendar.
+        var unparsedDate = (patch.date_str !== 'Date TBD') && !patch.start_date;
         // Rename-into-existing guard: a fresh name must not collide with
         // another manual event or anything in the catalog.
         var dup = findDuplicate(patch.name, id, patch);
@@ -4072,6 +4082,8 @@ def build():
           if (resp.strippedMigrationCols) {{
             status('Saved — but ' + resp.strippedMigrationCols.join(', ') +
                    ' could not be stored until the DB migration runs.', 'warn');
+          }} else if (unparsedDate) {{
+            status('Saved, but I couldn’t read a date from "' + patch.date_str + '" — it won’t show on the calendar until you enter a date like "September 12, 2026".', 'warn');
           }} else {{
             flashOk('Manual event saved');
           }}
@@ -5936,6 +5948,10 @@ def build():
         var derived = deriveDatesFromText(row.date_str);
         if (derived.start_date) row.start_date = derived.start_date;
         if (derived.end_date)   row.end_date   = derived.end_date;
+        // The user typed a real date the parser couldn't read (e.g. "Q3 2026",
+        // "next spring") → start_date stays null and the event silently never
+        // shows on the calendar / iCal. Flag it so we can warn on save.
+        var unparsedDate = (row.date_str !== 'Date TBD') && !row.start_date;
         // Year is redundant with the date — strip a trailing year on save.
         row.name = stripTrailingYear(row.name);
         // Auto-flag whoever adds the event as interested, so it lands in
@@ -5986,7 +6002,11 @@ def build():
           regroupOpsByMonth();   // slot the new card into its month section
           applyFilters();
           loadKnownNames();   // keep the dup index fresh
-          flashOk('Event added');
+          if (unparsedDate) {{
+            status('Added "' + newRow.name + '" — but I couldn’t read a date from "' + row.date_str + '", so it won’t show on the calendar until you edit it to a date like "September 12, 2026".', 'warn');
+          }} else {{
+            flashOk('Event added');
+          }}
         }});
       }});
     }}
@@ -6816,12 +6836,13 @@ def build():
           return out;
         }}
       }}
-      // 5. "M/D - D" (same month) with optional year
-      var n2 = s.match(/(\\d{{1,2}})\\/(\\d{{1,2}})(?:\\/(\\d{{2,4}}))?\\s*[–—-]\\s*(\\d{{1,2}})(?!\\d*\\/)/);
+      // 5. "M/D - D" (same month) with optional year — incl. a trailing
+      //    comma-year like "9/10-12, 2026" (n2[5]); prefer it over inference.
+      var n2 = s.match(/(\\d{{1,2}})\\/(\\d{{1,2}})(?:\\/(\\d{{2,4}}))?\\s*[–—-]\\s*(\\d{{1,2}})(?!\\d*\\/)(?:,?\\s*(\\d{{2,4}}))?/);
       if (n2) {{
         var c1 = parseInt(n2[1], 10), c2 = parseInt(n2[2], 10), c3 = parseInt(n2[4], 10);
         if (okMD(c1, c2) && c3 >= 1 && c3 <= 31) {{
-          var yc = yr(n2[3]) || inferYear(c1, c2);
+          var yc = yr(n2[3]) || yr(n2[5]) || inferYear(c1, c2);
           out.start_date = iso(yc, c1, c2);
           out.end_date   = iso(yc, c1, c3);
           return out;

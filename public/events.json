@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-21T07:51:18.406152Z",
+  "generated_at": "2026-06-21T07:55:38.022205Z",
   "build_date": "2026-06-21",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
