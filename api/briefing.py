@@ -860,6 +860,21 @@ def _ground_people(people, ctx):
     return out
 
 
+def _ground_signal_urls(people, findings):
+    """Blank any signal url that isn't actually present in the retrieved news
+    findings — so a source link is ALWAYS a real, Exa-returned URL, never one the
+    model recalled (which can be a fabricated path on a paywalled domain that the
+    reachability check can't catch). The summary stays; only the link drops."""
+    if not findings:
+        return
+    low = findings.lower()
+    for p in people:
+        sig = p.get('recent_signal') or {}
+        u = (sig.get('url') or '').strip()
+        if u and u.rstrip('/').lower() not in low:
+            sig['url'] = ''
+
+
 def generate_targets(event, persona):
     # Retrieve the roster first (gpt-5.4's own search rarely reaches the agenda
     # page) and hand it to gpt-5.4 to filter to budget-holders, structure, draft.
@@ -886,6 +901,7 @@ def generate_targets(event, persona):
             sourced = normalize_targets(_extract_json(_content_of(st2, data2)), event, persona)
             if ctx:
                 sourced['people'] = _ground_people(sourced['people'], ctx)
+            _ground_signal_urls(sourced['people'], news)   # source must be a real Exa-returned URL
             # Keep the sourced version only if it didn't drop people, and only if
             # it actually added at least one real source.
             if (len(sourced['people']) >= len(result['people'])

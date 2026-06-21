@@ -1347,6 +1347,7 @@
     .tg-line a { color: var(--ab-blue); }
     .tg-muted { color: var(--ab-fg-3); }
     .tg-unver { font-size: 0.74rem; color: #92600a; background: #fef3c7; border-radius: 4px; padding: 1px 6px; }
+    .tg-verify { font-size: 0.78rem; color: #92600a; margin: 0 0 12px; }
     .tg-warm { font-size: 0.78rem; color: #166534; background: #dcfce7; border-radius: 5px; padding: 4px 8px; margin: 8px 0 0; display: inline-block; }
     .tg-draft { margin: 10px 0 0; }
     .tg-draft-h { display: flex; align-items: center; justify-content: space-between; }
@@ -4671,6 +4672,7 @@
         '<button type="button" class="bf-btn tg-back">&larr; Brief</button>' +
         '<button type="button" class="bf-btn tg-regen" title="Re-run the research (uses credits)">&#8635; Regenerate targets</button>' +
         '<span class="tg-count">' + people.length + ' ' + (people.length === 1 ? 'person' : 'people') + '</span></div>';
+      if (people.length) html += '<p class="tg-verify">&#9888; Starting points &mdash; confirm each person &amp; their news before you reach out.</p>';
       if (t.note) html += '<p class="tg-note">' + esc(t.note) + '</p>';
       if (!people.length) html += '<p class="bf-muted">No web-confirmed senior targets found yet — usually means the speaker list isn’t public. Worth a re-run closer to the date.</p>';
       people.forEach(function (p, i) {
