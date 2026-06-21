@@ -577,9 +577,12 @@ def build_targets_messages(event, persona, extra_context=''):
         "panel/talk title + day/time if on the agenda, else their confirmed role "
         "at the event); recent_signal = ONE item from roughly the LAST TWO "
         "MONTHS (a company launch/announcement, their interview/podcast/post, a "
-        "board/hire move) as {summary (1 line), date (approx), url (a REAL link "
-        "you actually opened — never invent or pattern-build a url; omit the url "
-        "if unsure)}; linkedin_url (their real profile if findable, else null); "
+        "board/hire move) as {summary (1 line), date (approx), url}. For `url` "
+        "use ONLY a link that appears in the RESEARCH FINDINGS below (those are "
+        "real, retrieved pages); if the signal is not backed by such a url, set "
+        "url to '' — NEVER invent, guess, or pattern-build a url, and never cite "
+        "a generic homepage. Set linkedin_url to null (the app adds a reliable "
+        "LinkedIn search link itself); "
         "draft_email = a 3-5 sentence opener in the VOICE above, FROM " + first +
         " TO that person, opening 'Hi <first name>,', referencing the "
         "recent_signal AND their event session, tying to an ArcticBlue theme ("
@@ -669,9 +672,32 @@ def _perplexity_lookup(event, persona):
     return _content_of(st, data)
 
 
-def _clean_linkedin(u):
-    u = (u or '').strip()
-    return u if (u and 'linkedin.com/in' in u.lower()) else None
+def _url_ok_strict(url):
+    """Stricter than _url_ok: for an outreach source, a fabricated link is worse
+    than none. DROP on 404/410, DNS failure, connection error, and timeout —
+    keep only a clearly-reachable page or a known bot-gate (401/403/405/429/999:
+    the host is real but blocks bots)."""
+    u = str(url or '')
+    if not u.startswith(('http://', 'https://')):
+        return False
+    try:
+        req = urllib.request.Request(u, method='GET', headers={
+            'User-Agent': 'Mozilla/5.0 (ArcticBlueTracker)', 'Range': 'bytes=0-2048'})
+        with urllib.request.urlopen(req, timeout=5) as r:
+            return r.status < 400
+    except urllib.error.HTTPError as e:
+        return e.code in (401, 403, 405, 429, 999)  # real host, bot-gated
+    except Exception:
+        return False  # DNS fail / refused / timeout -> can't confirm -> drop
+
+
+def _linkedin_search(name, org):
+    """A LinkedIn people-search link (always lands on the right person) instead
+    of an unverifiable — possibly fabricated — direct profile URL."""
+    kw = ' '.join([x for x in [(name or '').strip(), (org or '').strip()] if x]).strip()
+    if not kw:
+        return None
+    return 'https://www.linkedin.com/search/results/people/?keywords=' + urllib.parse.quote(kw)
 
 
 def normalize_targets(data, event, persona):
@@ -687,18 +713,19 @@ def normalize_targets(data, event, persona):
         name = (p.get('name') or '').strip()
         if not name:
             continue
+        org = (p.get('org') or '').strip()
         sig = p.get('recent_signal') if isinstance(p.get('recent_signal'), dict) else {}
         url = (sig.get('url') or '').strip()
-        # Verify the signal source (shared probe budget) — drop a dead/fake link
-        # but keep the signal text so the lead is still usable.
+        # Strictly verify the signal source (shared probe budget) — a fabricated
+        # "verified" link is worse than none. Keep the summary either way.
         if url and budget[0] > 0:
             budget[0] -= 1
-            if not _url_ok(url):
+            if not _url_ok_strict(url):
                 url = ''
         out.append({
             'name': name,
             'title': (p.get('title') or '').strip(),
-            'org': (p.get('org') or '').strip(),
+            'org': org,
             'segment_fit': (p.get('segment_fit') or '').strip(),
             'session': (p.get('session') or '').strip(),
             'recent_signal': {
@@ -706,7 +733,7 @@ def normalize_targets(data, event, persona):
                 'date': (sig.get('date') or '').strip(),
                 'url': url,
             },
-            'linkedin_url': _clean_linkedin(p.get('linkedin_url')),
+            'linkedin_url': _linkedin_search(name, org),   # reliable search link
             'draft_email': (p.get('draft_email') or '').strip(),
             'warm_via': None,   # reserved for the connections-CSV feature
             'confidence': 'confirmed' if p.get('confidence') == 'confirmed' else 'estimated',

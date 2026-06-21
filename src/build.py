@@ -5179,7 +5179,7 @@ def build():
           (sig.summary ? '<div class="tg-line">&#128240; ' + esc(sig.summary) +
               (sig.date ? ' <span class="tg-muted">(' + esc(sig.date) + ')</span>' : '') +
               (sig.url ? ' <a href="' + esc(sig.url) + '" target="_blank" rel="noopener">source &#8599;</a>' : '') + '</div>' : '') +
-          (p.linkedin_url ? '<div class="tg-line"><a href="' + esc(p.linkedin_url) + '" target="_blank" rel="noopener">LinkedIn &#8599;</a></div>' : '') +
+          (p.linkedin_url ? '<div class="tg-line"><a href="' + esc(p.linkedin_url) + '" target="_blank" rel="noopener">Find on LinkedIn &#8599;</a></div>' : '') +
           (p.warm_via ? '<div class="tg-warm">&#128279; Warm via ' + esc(p.warm_via) + '</div>' : '') +
           (p.draft_email ? '<div class="tg-draft"><div class="tg-draft-h"><span class="bf-label">Draft opener</span>' +
               '<button type="button" class="tg-copy" data-i="' + i + '">Copy</button></div>' +
