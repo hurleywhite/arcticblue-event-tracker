@@ -595,8 +595,14 @@ def build_targets_messages(event, persona, extra_context=''):
         + (("RESEARCH FINDINGS to ground your answer (from a web-search engine — "
             "verify, then structure these named people/signals; do not add "
             "unconfirmed names):\n" + extra_context + "\n\n") if extra_context else "")
-        + "Start from the event's official site / agenda. Today is " + _today()
-        + ". Find the people and draft now."
+        + "RESEARCH STEPS: (1) Open the event's official URL above and actively "
+        "look for its Speakers / Agenda / Programme / Sponsors pages (try the "
+        "site's /speakers, /agenda, /programme, /line-up paths). Most enterprise "
+        "conferences publish a named speaker + session list — read it. (2) From "
+        "that list, keep only the senior budget-holders in the persona's ICP. "
+        "(3) For each, search their name for a recent signal + LinkedIn. Only "
+        "after genuinely checking the official agenda should you conclude no "
+        "roster is public. Today is " + _today() + ". Find the people and draft now."
     )
     return [{'role': 'system', 'content': sys}, {'role': 'user', 'content': user}]
 
