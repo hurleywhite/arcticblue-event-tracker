@@ -186,6 +186,33 @@ def parse_date(date_str):
         mn, d1, d2, y = m.group(1).lower(), int(m.group(2)), int(m.group(3)), int(m.group(4))
         if mn in months:
             return date(y, months[mn], d1), date(y, months[mn], d2)
+    # Numeric (Angela's spreadsheet style) — "6/3/2026", "6/3-5/2026",
+    # "6/3-6/5/2026", "3/6/26". Mirrors the client deriveDatesFromText so the
+    # iCal feed + classification don't silently skip these.
+    def _yr(v):
+        v = int(v)
+        return v + 2000 if v < 100 else v
+    m = re.match(r'^(\d{1,2})/(\d{1,2})\s*[–-]\s*(\d{1,2})/(\d{1,2})/(\d{2,4})$', s_clean)  # M/D-M/D/Y
+    if m:
+        try:
+            return date(_yr(m.group(5)), int(m.group(1)), int(m.group(2))), \
+                   date(_yr(m.group(5)), int(m.group(3)), int(m.group(4)))
+        except ValueError:
+            pass
+    m = re.match(r'^(\d{1,2})/(\d{1,2})\s*[–-]\s*(\d{1,2})/(\d{2,4})$', s_clean)  # M/D-D/Y (same month)
+    if m:
+        try:
+            mo, y = int(m.group(1)), _yr(m.group(4))
+            return date(y, mo, int(m.group(2))), date(y, mo, int(m.group(3)))
+        except ValueError:
+            pass
+    m = re.match(r'^(\d{1,2})/(\d{1,2})/(\d{2,4})$', s_clean)  # single M/D/Y
+    if m:
+        try:
+            d = date(_yr(m.group(3)), int(m.group(1)), int(m.group(2)))
+            return d, d
+        except ValueError:
+            pass
     return None, None
 
 
