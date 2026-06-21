@@ -1561,6 +1561,7 @@
       transition: filter 120ms ease;
     }
     .cal-evt:hover { filter: brightness(0.96); }
+    .cal-evt:focus-visible { outline: 2px solid var(--ab-blue); outline-offset: 1px; }
     .cal-evt.is-saved { background: rgba(39,115,194,0.12); border-left-color: var(--ab-blue); }
     .cal-evt.is-urgent { background: rgba(185,28,28,0.10); border-left-color: var(--ab-red); }
 
@@ -2239,7 +2240,17 @@
       return '<option value="' + esc(v) + '"' + (String(cur || '') === v ? ' selected' : '') + '>' + (v || '—') + '</option>';
     }
     function ef(label, control) {
-      return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' + control + '</div>';
+      // A single labelable control → wrap in <label> so the field name is
+      // programmatically associated (and clicking it focuses the control).
+      // Groups (stage chips, interested/attending checkboxes) carry their own
+      // per-item <label>s, so wrap them as a named role="group" instead — never
+      // a <label> (that would nest labels and hijack clicks).
+      var nControls = (control.match(/<(input|select|textarea)/g) || []).length;
+      var isGroup = nControls !== 1 || control.indexOf('me-ints') !== -1 || control.indexOf('me-stages') !== -1;
+      if (isGroup) {
+        return '<div class="modal-field" role="group" aria-label="' + esc(label) + '"><span class="k">' + esc(label) + '</span>' + control + '</div>';
+      }
+      return '<label class="modal-field"><span class="k">' + esc(label) + '</span>' + control + '</label>';
     }
     function inp(f, val, ph) {
       return '<input class="me-input" type="text" data-edit="' + f + '" value="' + esc(val || '') + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>';
@@ -2571,6 +2582,18 @@
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
   window.openEventModal = openEventModal;
+  // Focus trap shared by both overlays (modal here, briefing drawer in the ops
+  // closure) — keeps Tab inside the dialog instead of walking the page behind.
+  window.trapTab = function (container, e) {
+    if (!container || e.key !== 'Tab') return;
+    var f = Array.prototype.slice.call(container.querySelectorAll(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(function (el) { return el.offsetParent !== null; });
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
   // Shared helpers — the ops tab lives in a SEPARATE closure, so these must
   // ride on window or buildManualCard's calls throw ReferenceError.
   window.audienceClass = audienceClass;
@@ -2583,7 +2606,9 @@
   closeBtn.addEventListener('click', closeModal);
   overlay.addEventListener('click', function (ev) { if (ev.target === overlay) closeModal(); });
   document.addEventListener('keydown', function (ev) {
-    if (ev.key === 'Escape' && !overlay.hasAttribute('hidden')) closeModal();
+    if (overlay.hasAttribute('hidden')) return;
+    if (ev.key === 'Escape') closeModal();
+    else if (window.trapTab) window.trapTab(overlay.querySelector('.modal-card'), ev);
   });
 
   // Public catalog cards: delegate clicks + keyboard activation.
@@ -3749,6 +3774,7 @@
       btn.className = 'extra-chip' + (extraClass ? ' ' + extraClass : '');
       btn.dataset.value = value;
       btn.textContent = label;
+      btn.setAttribute('aria-pressed', 'false');
       btn.title = 'Click to filter by ' + label;
       btn.addEventListener('click', function () {
         btn.classList.toggle('is-on');
@@ -3856,6 +3882,7 @@
         btn.type = 'button';
         btn.className = 'stage-chip';
         btn.dataset.stage = s.key;
+        btn.setAttribute('aria-pressed', 'false');
         btn.style.background = s.bg;
         btn.style.color = s.fg;
         btn.style.borderColor = s.bg;
@@ -3908,6 +3935,7 @@
           btn.type = 'button';
           btn.className = 'status-chip';
           btn.dataset.status = s.value;
+          btn.setAttribute('aria-pressed', 'false');
           btn.style.background = s.bg;
           btn.style.color = s.fg;
           btn.style.borderColor = s.bg;
@@ -4054,6 +4082,18 @@
       var noneBtn = document.getElementById('ops-months-none');
       if (allBtn)  allBtn.addEventListener('click', function () { setAllMonths(false); });
       if (noneBtn) noneBtn.addEventListener('click', function () { setAllMonths(true); });
+    }
+
+    // Keep aria-pressed in lock-step with the visual is-on/is-activestat state,
+    // centrally — every chip/tile toggle routes through applyFilters(), so one
+    // sync here covers them all instead of editing ~10 toggle sites.
+    function syncAriaPressed() {
+      Array.prototype.forEach.call(document.querySelectorAll('.stage-chip, .status-chip, .extra-chip'), function (b) {
+        b.setAttribute('aria-pressed', b.classList.contains('is-on') ? 'true' : 'false');
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('.ops-stat[data-stat]'), function (b) {
+        b.setAttribute('aria-pressed', b.classList.contains('is-activestat') ? 'true' : 'false');
+      });
     }
 
     function applyFilters() {
@@ -4219,6 +4259,7 @@
       } else if ($empty) {
         $empty.style.display = 'none';
       }
+      syncAriaPressed();  // reflect on/off state to screen readers
       // The map mirrors the grid's filters — keep its pins in sync.
       if (currentView === 'map' && _opsMapLayer) renderOpsMap();
     }
@@ -4291,9 +4332,9 @@
       });
       // Each tile is a one-click filter (data-stat). 'all' clears everything.
       function tile(key, num, label, cls) {
-        var on = opsStatFilter === key ? ' is-activestat' : '';
-        return '<button type="button" class="ops-stat' + (cls ? ' ' + cls : '') + on +
-          '" data-stat="' + key + '"><span class="num">' + num +
+        var sel = opsStatFilter === key;
+        return '<button type="button" class="ops-stat' + (cls ? ' ' + cls : '') + (sel ? ' is-activestat' : '') +
+          '" data-stat="' + key + '" aria-pressed="' + (sel ? 'true' : 'false') + '"><span class="num">' + num +
           '</span><span class="lbl">' + label + '</span></button>';
       }
       $stats.innerHTML =
@@ -4500,8 +4541,8 @@
       var ov = document.getElementById('briefing-overlay');
       if (!ov) {
         ov = document.createElement('div'); ov.id = 'briefing-overlay'; ov.className = 'briefing-overlay';
-        ov.innerHTML = '<div class="briefing-card" role="dialog" aria-modal="true">' +
-          '<div class="briefing-top"><span class="briefing-top-title">Day-Of brief</span>' +
+        ov.innerHTML = '<div class="briefing-card" role="dialog" aria-modal="true" aria-labelledby="bf-dlg-title">' +
+          '<div class="briefing-top"><span class="briefing-top-title" id="bf-dlg-title">Day-Of brief</span>' +
           '<div class="briefing-top-actions">' +
             '<button type="button" class="bf-btn bf-regen" title="Force a fresh research pass">&#8635; Regenerate</button>' +
             '<button type="button" class="bf-btn bf-copy">Copy</button>' +
@@ -4509,17 +4550,26 @@
             '<button type="button" class="bf-btn bf-close" aria-label="Close">&times;</button>' +
           '</div></div><div class="briefing-body" id="briefing-body"></div></div>';
         document.body.appendChild(ov);
-        var _closeBf = function () { ov.classList.remove('show'); document.body.style.overflow = ''; };
+        var _closeBf = function () {
+          ov.classList.remove('show'); document.body.style.overflow = '';
+          if (ov._lastFocus && ov._lastFocus.focus) ov._lastFocus.focus();  // return focus to trigger
+        };
         ov.addEventListener('click', function (e) { if (e.target === ov) _closeBf(); });
         ov.querySelector('.bf-close').addEventListener('click', _closeBf);
-        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && ov.classList.contains('show')) _closeBf(); });
+        document.addEventListener('keydown', function (e) {
+          if (!ov.classList.contains('show')) return;
+          if (e.key === 'Escape') _closeBf();
+          else if (window.trapTab) window.trapTab(ov.querySelector('.briefing-card'), e);
+        });
       }
       ov._it = it;
+      ov._lastFocus = document.activeElement;  // remember the trigger to restore later
       ov.querySelector('.bf-regen').onclick = function () { loadBrief(it, true); };
       ov.querySelector('.bf-copy').onclick = function () { copyBrief(it); };
       ov.querySelector('.bf-print').onclick = function () { window.print(); };
       ov.classList.add('show');
       document.body.style.overflow = 'hidden';  // lock the page behind the drawer
+      ov.querySelector('.bf-close').focus();     // move focus into the drawer
       if (it.briefing_json) renderBrief(it.briefing_json, it, true);
       else loadBrief(it, false);
     }
@@ -5934,6 +5984,11 @@
           if (st.saved) bar.classList.add('is-saved');
           if (st.urgent || isDeadlineUrgent(ev.deadline)) bar.classList.add('is-urgent');
           bar.dataset.eventNum = ev.num;
+          // Keyboard-reachable: a calendar chip is the only non-button control,
+          // so give it button semantics + Enter/Space activation.
+          bar.setAttribute('role', 'button');
+          bar.tabIndex = 0;
+          bar.setAttribute('aria-label', 'Open ' + (ev.name || 'event'));
           bar.style.gridColumn = (ws.startCol + 1) + ' / span ' + ws.span;
           bar.style.gridRow = (ws.lane + 2);
           var calStages = stageTagsOf(st);
@@ -5969,6 +6024,9 @@
             (calStages.length ? ' · ' + calStages.join(', ') : '') +
             (ev.end_date && ev.end_date !== ev.start_date ? ' · ' + ev.start_date + ' to ' + ev.end_date : '');
           bar.addEventListener('click', function () { onChipClick(ev.num); });
+          bar.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChipClick(ev.num); }
+          });
           weekDiv.appendChild(bar);
         });
 
