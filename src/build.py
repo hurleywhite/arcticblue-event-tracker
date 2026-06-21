@@ -5837,7 +5837,7 @@ def build():
           '<summary>Or paste from email / web copy…</summary>' +
           '<div class="ops-form" style="margin-top:8px;">' +
             '<label><span class="key">Paste here</span>' +
-              '<textarea id="paste-email-text" placeholder="Paste the full email or web event listing text. We\\u2019ll auto-fill name, date, location, region, and URL." style="min-height:120px;"></textarea>' +
+              '<textarea id="paste-email-text" placeholder="Paste the full email / web listing TEXT — or just the event LINK (we\\u2019ll scrape the page). Auto-fills name, date, location, region, URL." style="min-height:120px;"></textarea>' +
             '</label>' +
             '<div class="add-actions">' +
               '<button type="button" class="primary" id="paste-extract-btn">Extract fields</button>' +
@@ -6066,7 +6066,19 @@ def build():
       var meta       = form.querySelector('#paste-extract-meta');
       extractBtn.addEventListener('click', function () {{
         var text = pasteArea.value || '';
-        if (text.trim().length < 10) {{ meta.textContent = 'Nothing to extract from yet.'; return; }}
+        var trimmed = text.trim();
+        if (trimmed.length < 10) {{ meta.textContent = 'Nothing to extract from yet.'; return; }}
+        // Pasted just a link? Local text-parsing can't read a page — route it to
+        // the real scraper (Fill from URL → /api/vet) so name/date/location fill.
+        if (/^https?:\\/\\/\\S+$/i.test(trimmed)) {{
+          var urlInp2 = form.querySelector('input[name="url"]');
+          if (urlInp2) urlInp2.value = trimmed;
+          if (fillBtn) {{
+            meta.textContent = 'That\\u2019s a link — scraping the page (see the URL row above)…';
+            fillBtn.click();
+            return;
+          }}
+        }}
         var extracted = extractFromEmail(text);
         var report = applyExtractToForm(form, extracted, {{ overwrite: false }});
         if (report.total === 0) {{
