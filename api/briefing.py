@@ -46,9 +46,13 @@ OPENAI_API_KEY = _env('OPENAI_API_KEY')
 OPENAI_BASE = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
 BRIEFING_MODEL = _env('OPENAI_BRIEFING_MODEL', 'gpt-5.4')
 BRIEFING_FALLBACK = _env('OPENAI_BRIEFING_FALLBACK', 'gpt-5-search-api')
-# Deep-targets fallback retrieval — Perplexity (web-grounded) is the research API
-# already wired into this app (api/search.py); used only when gpt-5.4 surfaces
-# too few web-confirmed named people, to keep credit burn bounded.
+# Deep-targets retrieval — gpt-5.4's own web search rarely reaches a conference's
+# speaker/agenda page, so we retrieve the roster up front and hand it to gpt-5.4
+# to filter + structure + draft. Exa (neural search that returns page CONTENTS)
+# is the primary engine; Perplexity (web-grounded) is the secondary. One
+# retrieval call per generation keeps credit burn bounded.
+EXA_API_KEY = _env('EXA_API_KEY')
+EXA_BASE = _env('EXA_BASE_URL', 'https://api.exa.ai').rstrip('/')
 PERPLEXITY_API_KEY = _env('PERPLEXITY_API_KEY')
 PERPLEXITY_MODEL = _env('PERPLEXITY_MODEL', 'sonar')
 PERPLEXITY_BASE = _env('PERPLEXITY_BASE_URL', 'https://api.perplexity.ai').rstrip('/')
@@ -607,8 +611,40 @@ def build_targets_messages(event, persona, extra_context=''):
     return [{'role': 'system', 'content': sys}, {'role': 'user', 'content': user}]
 
 
+def _exa_lookup(event, persona):
+    """Primary retrieval — Exa neural search returns page CONTENTS, so we pull the
+    event's speaker/agenda page text (+ recent coverage) for gpt-5.4 to mine."""
+    if not EXA_API_KEY:
+        return ''
+    name = str(event.get('name') or '')
+    dates = str(event.get('date_str') or '')
+    queries = [
+        name + ' speakers agenda lineup ' + dates,
+        name + ' confirmed speakers panel keynote',
+    ]
+    chunks = []
+    for q in queries:
+        st, data = _http_json(
+            'POST', EXA_BASE + '/search',
+            headers={'x-api-key': EXA_API_KEY, 'Content-Type': 'application/json'},
+            body={'query': q, 'numResults': 4, 'type': 'auto',
+                  'contents': {'text': True}},
+            timeout=45)
+        if st == 200 and isinstance(data, dict):
+            for r in (data.get('results') or [])[:4]:
+                if not isinstance(r, dict):
+                    continue
+                text = (r.get('text') or '').strip()
+                if text:
+                    chunks.append('SOURCE: ' + str(r.get('title') or '') + ' (' +
+                                  str(r.get('url') or '') + ')\n' + text[:1800])
+        if len(chunks) >= 6:
+            break
+    return ('\n\n'.join(chunks))[:7000]
+
+
 def _perplexity_lookup(event, persona):
-    """Web-grounded retrieval fallback — returns a plain-text findings blob."""
+    """Secondary retrieval — returns a plain-text findings blob."""
     if not PERPLEXITY_API_KEY:
         return ''
     titles = ', '.join(persona.get('buyer_titles') or [])
@@ -680,23 +716,32 @@ def normalize_targets(data, event, persona):
     return {'people': out, 'note': (data.get('note') or '').strip()}
 
 
+def _retrieval_lookup(event, persona):
+    """Pull the event roster up front. Exa (page contents) preferred, Perplexity
+    second. Returns (engine_name, findings_text) — ('', '') if no key configured."""
+    if EXA_API_KEY:
+        txt = (_exa_lookup(event, persona) or '').strip()
+        if txt:
+            return 'Exa', txt
+    if PERPLEXITY_API_KEY:
+        txt = (_perplexity_lookup(event, persona) or '').strip()
+        if txt:
+            return 'Perplexity', txt
+    return '', ''
+
+
 def generate_targets(event, persona):
-    msgs = build_targets_messages(event, persona)
+    # Retrieve the roster first (gpt-5.4's own search rarely reaches the agenda
+    # page) and hand it to gpt-5.4 to filter to budget-holders, structure, draft.
+    engine, ctx = _retrieval_lookup(event, persona)
+    msgs = build_targets_messages(event, persona, extra_context=ctx)
     st, data = _call_openai(msgs, BRIEFING_MODEL)
     if st in (400, 404) and BRIEFING_FALLBACK and BRIEFING_FALLBACK != BRIEFING_MODEL:
         st, data = _call_openai(msgs, BRIEFING_FALLBACK)
     model_used = data.get('model') if isinstance(data, dict) else None
     result = normalize_targets(_extract_json(_content_of(st, data)), event, persona)
-    # Escalate to Perplexity retrieval only when gpt-5.4 found too few people.
-    if len(result['people']) < TARGETS_MIN and PERPLEXITY_API_KEY:
-        ctx = (_perplexity_lookup(event, persona) or '').strip()
-        if ctx:
-            st2, data2 = _call_openai(build_targets_messages(event, persona, extra_context=ctx), BRIEFING_MODEL)
-            merged = normalize_targets(_extract_json(_content_of(st2, data2)), event, persona)
-            if len(merged['people']) > len(result['people']):
-                result = merged
-                model_used = (data2.get('model') if isinstance(data2, dict) else model_used)
-                result['note'] = (result.get('note') + ' ' if result.get('note') else '') + '(augmented via Perplexity retrieval)'
+    if engine and result['people']:
+        result['note'] = ((result.get('note') + ' ') if result.get('note') else '') + '(roster via ' + engine + ')'
     return result, model_used
 
 
