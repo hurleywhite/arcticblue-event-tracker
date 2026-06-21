@@ -959,6 +959,11 @@ def _targets_one(kind, key, host, regenerate):
     keys = resolve_attendees(row)
     if not keys:
         return {'error': 'assign an attendee first — targets are tailored to that person\'s ICP'}, 400
+    # Outreach targets only make sense before/at an event — skip past ones so we
+    # don't spend Exa/OpenAI on a list nobody can act on.
+    ended = (facts.get('end_date') or facts.get('start_date') or '')
+    if ended and ended < _today():
+        return {'error': 'this event has already passed — outreach targets are for upcoming events'}, 400
     persona = load_personas()['personas'].get(keys[0])
     if not persona:
         return {'error': 'unknown persona: %s' % keys[0]}, 400
