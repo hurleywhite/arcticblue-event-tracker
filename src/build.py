@@ -5123,7 +5123,7 @@ def build():
     function copyBrief(it) {{
       var b = it.briefing_json || {{}}; var g = b.at_a_glance || {{}}; var t = b.targets || {{}};
       var lines = [(g.event || it.name), (g.dates || it.date_str || ''), '', b.why_were_here || '', '',
-        'WIN: ' + (t.outcome_target || ''), '', 'ANGLES:'].concat((b.angles || []).map(function (a) {{ return '- ' + a; }}));
+        'ANGLES:'].concat((b.angles || []).map(function (a) {{ return '- ' + a; }}));
       try {{ navigator.clipboard.writeText(lines.join('\\n')); if (typeof flashOk === 'function') flashOk('Brief copied'); }} catch (e) {{}}
     }}
 
@@ -5156,7 +5156,8 @@ def build():
           (x.why ? '<br><span class="bf-muted">' + esc(x.why) + '</span>' : '') +
           (x.where ? '<br><span class="bf-where">&#128205; ' + esc(x.where) + '</span>' : '') + '</li>';
       }}) + '</ul>';
-      if (t.outcome_target) tgt += '<p class="bf-label">Win target</p><p class="bf-win">' + esc(t.outcome_target) + '</p>';
+      // 'Win target' (outcome_target) removed — a generic "have N good
+      // conversations" line is a no-brainer, not signal.
       if (t.speaking_route_open) tgt += '<p class="bf-label">Speaking route</p><p>' + esc(t.speaking_route_open) + '</p>';
       if (t.facilitator_leads && t.facilitator_leads.length) tgt += '<p class="bf-label">Facilitator / partner leads</p><ul class="bf-list">' + list(t.facilitator_leads, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>';
       html += sec('&#127919; Targets', tgt || '<p class="bf-muted">No specific targets surfaced yet.</p>');
