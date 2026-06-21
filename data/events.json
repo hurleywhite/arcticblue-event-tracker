@@ -212,7 +212,9 @@
    "city": "San Jose",
    "country": "USA",
    "external_id": "43c9b8e9-d33a-415d-8655-d5d2444d4ec7",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "meeting_formats": "Attendee app for pre-booking meetings",
+   "audience_type": "Mixed"
   },
   {
    "num": 22,
@@ -1908,7 +1910,12 @@
    "priority_full": "High",
    "why": "Senior US CDAO audience in NYC; \"America's top data, analytics, and AI leaders\" per Corinium — direct pipeline opportunity with exact ArcticBlue buyer in home city.",
    "url": "https://cdao-ny.coriniumintelligence.com/",
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "W Hoboken",
+   "pricing": "End-User Tickets: $499; Vendor Tickets: $2,499",
+   "meeting_formats": "roundtables; attendee networking opportunities; interactive polling and Q&A",
+   "audience_type": "Mixed",
+   "typical_attendees": "Senior data, analytics, and AI leaders; enterprise and public-sector practitioners; solution providers and consultants"
   },
   {
    "num": 15,
@@ -3350,7 +3357,10 @@
    "external_id": "5e23920b-c9f4-43de-9b81-14b6f6bc5035",
    "source": "arcticscout",
    "start_date": "2026-04-26",
-   "end_date": "2026-04-29"
+   "end_date": "2026-04-29",
+   "past_speakers": "Dave Frankland, VP Research Director, Forrester",
+   "meeting_formats": "attendee app for pre-booking meetings; curated roundtables; hosted interactive sessions requiring pre-registration",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 150,
@@ -5574,7 +5584,10 @@
    "external_id": "ac87a1e8-1a16-40a7-95ca-88cb4aaf4e2b",
    "source": "arcticscout",
    "start_date": "2026-11-04",
-   "end_date": "2026-11-05"
+   "end_date": "2026-11-05",
+   "meeting_formats": "In-person and digital pass; attendee networking with peers",
+   "audience_type": "Buyer-rich",
+   "deadline": "2026 agenda now available; no call-for-speakers deadline published"
   },
   {
    "num": 234,
@@ -5599,7 +5612,10 @@
    "external_id": "5046ac08-a725-43e9-ad89-a8396234cae9",
    "source": "arcticscout",
    "start_date": "2027-03-09",
-   "end_date": "2027-03-11"
+   "end_date": "2027-03-11",
+   "meeting_formats": "Invitation-only exchange format; likely pre-scheduled meetings, but this exact edition's meeting mechanics are not explicitly verified in the available results",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Finance executives, CFOs, and senior finance leaders"
   },
   {
    "num": 235,
@@ -5838,7 +5854,9 @@
    "external_id": "fac1d2bf-50a7-44da-97e2-1c37fc7748fe",
    "source": "arcticscout",
    "start_date": "2026-06-09",
-   "end_date": "2026-06-10"
+   "end_date": "2026-06-10",
+   "meeting_formats": "hosted face-to-face assembly with pre-approval/invitation-based attendance",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 244,
