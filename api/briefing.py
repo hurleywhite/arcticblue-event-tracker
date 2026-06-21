@@ -565,12 +565,17 @@ def build_targets_messages(event, persona, extra_context=''):
         "EMPTY people list and explain in `note` — never pad with guesses. The "
         "ONLY metrics a draft may cite are these whitelisted proof points: "
         + '; '.join(ab['proof_points']) + ". Never invent metrics or quotes.\n"
-        "WHO TO PICK: senior decision-makers with BUDGET AUTHORITY in the "
-        "persona's segment — titles like " + titles + " — at " + inds + " "
-        "organizations. EXCLUDE operators, individual contributors, engineers, "
-        "junior/mid managers, vendors selling competing tooling, and generic "
-        "startup traffic. Prefer people on the published agenda (speakers / "
-        "panelists / fireside guests) and named hosts/sponsors.\n"
+        "WHO TO PICK: senior BUYERS with BUDGET AUTHORITY who work AT an end-user "
+        "enterprise in " + inds + " — i.e. they buy/own AI at an insurer, bank, "
+        "FSI, healthcare or telco. Titles like " + titles + ". HARD EXCLUDE "
+        "technology VENDORS and sellers — anyone whose employer SELLS AI / "
+        "software / cloud / consulting (e.g. Oracle, IBM/Apptio, Microsoft, AWS, "
+        "Google, Salesforce, Accenture, any AI platform or startup), EVEN IF "
+        "they're speaking — they are peers/competitors, not buyers. Also exclude "
+        "operators, ICs, engineers, and junior/mid managers. QUALITY OVER "
+        "QUANTITY: return ONLY genuine ICP buyers — 2 real buyers beats 4 padded "
+        "with vendors; an empty list is better than off-ICP names. Prefer people "
+        "on the published agenda (speakers / panelists / fireside guests).\n"
         "BE CONCISE — these are skimmed on a phone between sessions. Every field "
         "is tight: no preamble, no filler, no restating the obvious.\n"
         "FOR EACH PERSON (max " + str(TARGETS_MAX) + "): name; title; org; "
@@ -718,6 +723,13 @@ def normalize_targets(data, event, persona):
             continue
         name = (p.get('name') or '').strip()
         if not name:
+            continue
+        # Safety net: drop anyone the model itself flags as off-ICP / a vendor
+        # (it sometimes pads a thin roster and labels them honestly in fit).
+        fit = (p.get('segment_fit') or '').strip()
+        fl = fit.lower()
+        if ('not icp' in fl or 'not a buyer' in fl or 'not an icp' in fl
+                or 'vendor' in fl or 'seller' in fl):
             continue
         org = (p.get('org') or '').strip()
         sig = p.get('recent_signal') if isinstance(p.get('recent_signal'), dict) else {}
