@@ -447,8 +447,10 @@ class handler(BaseHTTPRequestHandler):
             })
 
         write = dict(patch)
-        write['updated_by'] = 'Enrichment'
         if table == 'manual_events':
+            # manual_events has NO updated_by column (it tracks created_by) —
+            # writing one makes PostgREST reject the whole patch (PGRST204).
+            # Just write the enriched fields.
             st, data = _http_json(
                 'PATCH',
                 SUPABASE_URL + '/rest/v1/manual_events?id=eq.%s' % urllib.parse.quote(str(key)),
@@ -456,6 +458,7 @@ class handler(BaseHTTPRequestHandler):
                 body=write, timeout=20)
             ok = st in (200, 204)
         else:
+            write['updated_by'] = 'Enrichment'   # event_state has this column
             write['event_num'] = key
             st, data = _http_json(
                 'POST',
