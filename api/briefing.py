@@ -630,23 +630,26 @@ def _exa_lookup(event, persona):
         return ''
     name = str(event.get('name') or '')
     dates = str(event.get('date_str') or '')
+    # One search call (vs the old two) is the real Exa saving; keep enough
+    # content per page that the speaker list is actually captured (1200 was too
+    # shallow — the names sit below the page header).
     st, data = _http_json(
         'POST', EXA_BASE + '/search',
         headers={'x-api-key': EXA_API_KEY, 'Content-Type': 'application/json'},
         body={'query': (name + ' speakers agenda ' + dates).strip(),
-              'numResults': 5, 'type': 'auto',
-              'contents': {'text': {'maxCharacters': 1200}}},
+              'numResults': 4, 'type': 'auto',
+              'contents': {'text': {'maxCharacters': 3000}}},
         timeout=45)
     chunks = []
     if st == 200 and isinstance(data, dict):
-        for r in (data.get('results') or [])[:5]:
+        for r in (data.get('results') or [])[:4]:
             if not isinstance(r, dict):
                 continue
             text = (r.get('text') or '').strip()
             if text:
                 chunks.append('SOURCE: ' + str(r.get('title') or '') + ' (' +
-                              str(r.get('url') or '') + ')\n' + text[:1200])
-    return ('\n\n'.join(chunks))[:5500]
+                              str(r.get('url') or '') + ')\n' + text[:3000])
+    return ('\n\n'.join(chunks))[:9000]
 
 
 def _perplexity_lookup(event, persona):
