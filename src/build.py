@@ -5348,10 +5348,13 @@ def build():
       html += '<div class="planner-section"><div class="planner-sec-head"><span class="planner-sec-title">&#128506; Coverage gaps by territory</span><span class="planner-sec-sub">upcoming events with no speaker assigned</span></div>';
       var CAP = 12;
       AB_TERRITORIES.forEach(function (terr) {{
-        var inTerr = items.filter(function (it) {{ return !it.past && !it.hidden && terr.test(it); }});
+        // Exclude no-go (passed) events from the territory roll-up entirely, so
+        // the three numbers reconcile (total = covered + open) and we never
+        // claim "all covered" while passed, speaker-less events sit uncounted.
+        var inTerr = items.filter(function (it) {{ return !it.past && !it.hidden && it.decision !== 'no-go' && terr.test(it); }});
         if (!inTerr.length) return;
         var covered = inTerr.filter(function (it) {{ return it.speaker && it.speaker.trim(); }});
-        var gaps = inTerr.filter(function (it) {{ return !(it.speaker && it.speaker.trim()) && it.decision !== 'no-go'; }});
+        var gaps = inTerr.filter(function (it) {{ return !(it.speaker && it.speaker.trim()); }});
         gaps.sort(function (a, b) {{ return a.sort - b.sort; }});
         html += '<div class="gap-owner"><div class="gap-owner-head">' +
             '<span class="gap-owner-name">' + escapeHtml(terr.who) + '</span>' +
@@ -6406,7 +6409,7 @@ def build():
       // Resolve ops state for an event (catalog → event_state; manual → baked on).
       function stOf(ev) {{
         return ev._manual
-          ? {{ status_tags: ev._manualStatusTags, speaker: ev._manualSpeaker }}
+          ? {{ status_tags: ev._manualStatusTags, speaker: ev._manualSpeaker, hidden: ev._manualHidden }}
           : (stateMap[ev.num] || {{}});
       }}
 
@@ -6565,7 +6568,8 @@ def build():
           // can color-tint by pipeline stage + show speaker initials.
           _manualStatus:     m.status || '',
           _manualStatusTags: m.status_tags || [],
-          _manualSpeaker:    m.speaker || ''
+          _manualSpeaker:    m.speaker || '',
+          _manualHidden:     !!m.hidden
         }});
       }});
 
@@ -6573,7 +6577,10 @@ def build():
       var earliest = null, latest = null;
       combined.forEach(function (ev) {{
         if (!ev.start_date) return;
-        var d = new Date(ev.start_date);
+        // Parse as LOCAL midnight (not UTC) so getMonth() matches the ISO
+        // string's month — a bare new Date('2026-06-01') is UTC and rolls back
+        // a day in the Americas, prepending a spurious empty month here.
+        var d = new Date(ev.start_date + 'T00:00:00');
         if (isNaN(d)) return;
         if (!earliest || d < earliest) earliest = d;
         if (!latest || d > latest) latest = d;
