@@ -318,6 +318,8 @@ _VERIFY_BUDGET = 8
 def _verify_news(brief):
     """Drop any news item whose source URL doesn't resolve — kills the model's
     plausible-looking-but-fabricated links. Surfaced honestly in unconfirmed.
+    Uses the STRICT check (a broken/dead link in a brief is worse than a missing
+    one): drops 404/410/DNS-fail/timeout, keeps only reachable or bot-gated.
     Only the first _VERIFY_BUDGET links are probed; the rest are kept as-is."""
     budget = [_VERIFY_BUDGET]
 
@@ -325,7 +327,7 @@ def _verify_news(brief):
         if budget[0] <= 0:
             return True  # out of probe budget — keep without checking
         budget[0] -= 1
-        return _url_ok(url)
+        return _url_ok_strict(url)
 
     dropped = 0
     tn = brief.get('topic_news') or []
