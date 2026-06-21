@@ -659,6 +659,66 @@ def _exa_lookup(event, persona):
     return ('\n\n'.join(chunks))[:12000]
 
 
+def _exa_news(people):
+    """Second Exa pass — ONE search across the shortlisted orgs for recent news,
+    so gpt-5.4 can attach a REAL source url to each person's signal. Short
+    snippets (headlines are short) keep this cheap."""
+    if not EXA_API_KEY or not people:
+        return ''
+    orgs = []
+    for p in people:
+        o = (p.get('org') or '').strip()
+        if o and o.lower() not in [x.lower() for x in orgs]:
+            orgs.append(o)
+    if not orgs:
+        return ''
+    q = ' '.join(orgs[:5]) + ' recent AI announcement partnership launch 2026'
+    st, data = _http_json(
+        'POST', EXA_BASE + '/search',
+        headers={'x-api-key': EXA_API_KEY, 'Content-Type': 'application/json'},
+        body={'query': q, 'numResults': 8, 'type': 'auto',
+              'contents': {'text': {'maxCharacters': 700}}},
+        timeout=45)
+    chunks = []
+    if st == 200 and isinstance(data, dict):
+        for r in (data.get('results') or [])[:8]:
+            if not isinstance(r, dict):
+                continue
+            chunks.append('URL: ' + str(r.get('url') or '') + '\nTITLE: ' +
+                          str(r.get('title') or '') + '\n' + (r.get('text') or '')[:500])
+    return ('\n\n'.join(chunks))[:6000]
+
+
+def build_source_messages(people, news, persona):
+    """gpt-5.4 pass 2: attach a REAL source url to each signal from the Exa news
+    findings (or leave blank), and tighten the draft to reference it."""
+    ab = load_personas()['arcticblue']
+    first = (persona.get('name') or '').split(' ')[0]
+    sys = (
+        "You attach a REAL source link to each person's recent_signal using the "
+        "NEWS FINDINGS below (real retrieved articles, each with a URL). VOICE: "
+        + ab['voice'] + "\n"
+        "For EACH person: pick the single NEWS FINDING that best matches a recent "
+        "(~2 month) development at THEIR company or about them, and set "
+        "recent_signal to {summary (1 tight line drawn from that article), date "
+        "(approx), url (that finding's EXACT url)}. If no finding genuinely "
+        "matches that person, keep a short summary but set url to '' — NEVER "
+        "attach a url that isn't about them, never invent one, never use a "
+        "homepage. Then rewrite draft_email as a TIGHT 2-3 sentence opener (<=~70 "
+        "words) opening 'Hi <first name>,', landing the sourced signal + their "
+        "session in one breath, ending '" + first + "'. Keep name, title, org, "
+        "segment_fit, session, confidence UNCHANGED.\n"
+        "Return ONLY JSON {people:[{name,title,org,segment_fit,session,"
+        "recent_signal:{summary,date,url},draft_email,confidence}], note:string}. "
+        "Raw JSON only — no fences, no commentary."
+    )
+    user = ("PEOPLE (current, mostly unsourced signals):\n" +
+            json.dumps(people, ensure_ascii=False) + "\n\n"
+            "NEWS FINDINGS (use ONLY these urls for sources):\n" + news + "\n\n"
+            "Today is " + _today() + ". Re-source and tighten now.")
+    return [{'role': 'system', 'content': sys}, {'role': 'user', 'content': user}]
+
+
 def _perplexity_lookup(event, persona):
     """Secondary retrieval — returns a plain-text findings blob."""
     if not PERPLEXITY_API_KEY:
@@ -787,6 +847,24 @@ def generate_targets(event, persona):
         st, data = _call_openai(msgs, BRIEFING_FALLBACK)
     model_used = data.get('model') if isinstance(data, dict) else None
     result = normalize_targets(_extract_json(_content_of(st, data)), event, persona)
+    base_note = result.get('note') or ''
+    # Pass 2: source the signals. One more Exa search across the shortlisted orgs
+    # gives gpt-5.4 real article URLs to attach (turns the 'unverified' hooks into
+    # sourced ones). Only runs if some signal still lacks a verified url.
+    if EXA_API_KEY and result['people'] and any(
+            not ((p.get('recent_signal') or {}).get('url')) for p in result['people']):
+        news = (_exa_news(result['people']) or '').strip()
+        if news:
+            st2, data2 = _call_openai(build_source_messages(result['people'], news, persona), BRIEFING_MODEL)
+            sourced = normalize_targets(_extract_json(_content_of(st2, data2)), event, persona)
+            # Keep the sourced version only if it didn't drop people, and only if
+            # it actually added at least one real source.
+            if (len(sourced['people']) >= len(result['people'])
+                    and sum(1 for p in sourced['people'] if (p.get('recent_signal') or {}).get('url')) >
+                        sum(1 for p in result['people'] if (p.get('recent_signal') or {}).get('url'))):
+                result = sourced
+                result['note'] = base_note
+                model_used = (data2.get('model') if isinstance(data2, dict) else model_used)
     if engine and result['people']:
         result['note'] = ((result.get('note') + ' ') if result.get('note') else '') + '(roster via ' + engine + ')'
     return result, model_used
