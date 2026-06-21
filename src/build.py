@@ -1741,6 +1741,28 @@ def build():
     .bf-spin {{ width: 16px; height: 16px; border: 2px solid var(--ab-rule); border-top-color: #1fa0dc; border-radius: 50%; animation: bfspin 0.7s linear infinite; }}
     @keyframes bfspin {{ to {{ transform: rotate(360deg); }} }}
     .bf-error {{ color: #b91c1c; font-size: 0.88rem; padding: 24px 0; line-height: 1.5; }}
+    /* Deep outreach targets */
+    .tg-bar {{ display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }}
+    .tg-count {{ margin-left: auto; font-family: var(--ab-mono); font-size: 0.66rem; color: var(--ab-fg-3); }}
+    .tg-note {{ font-size: 0.82rem; color: var(--ab-fg-2); background: var(--ab-bg-3); border-radius: 6px; padding: 8px 10px; margin: 0 0 14px; line-height: 1.45; }}
+    .tg-card {{ border: 1px solid var(--ab-rule); border-radius: 10px; padding: 12px 14px; margin: 0 0 12px; }}
+    .tg-head {{ display: flex; align-items: center; gap: 8px; }}
+    .tg-head strong {{ font-size: 0.98rem; color: var(--ab-fg); }}
+    .tg-conf {{ font-family: var(--ab-mono); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; }}
+    .tg-conf.ok {{ background: #dcfce7; color: #166534; }}
+    .tg-conf.est {{ background: var(--ab-bg-3); color: var(--ab-fg-3); }}
+    .tg-role {{ font-size: 0.86rem; font-weight: 600; color: var(--ab-fg); margin: 2px 0 0; }}
+    .tg-fit {{ font-size: 0.82rem; color: var(--ab-fg-2); margin: 4px 0 0; line-height: 1.45; }}
+    .tg-line {{ font-size: 0.82rem; color: var(--ab-fg-2); margin: 6px 0 0; line-height: 1.45; }}
+    .tg-line a {{ color: var(--ab-blue); }}
+    .tg-muted {{ color: var(--ab-fg-3); }}
+    .tg-warm {{ font-size: 0.78rem; color: #166534; background: #dcfce7; border-radius: 5px; padding: 4px 8px; margin: 8px 0 0; display: inline-block; }}
+    .tg-draft {{ margin: 10px 0 0; }}
+    .tg-draft-h {{ display: flex; align-items: center; justify-content: space-between; }}
+    .tg-copy {{ font-family: var(--ab-mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border: 1px solid var(--ab-rule); border-radius: 5px; background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
+    .tg-copy:hover {{ border-color: #1fa0dc; color: #1271a8; }}
+    .tg-pre {{ white-space: pre-wrap; font-family: var(--ab-sans); font-size: 0.84rem; line-height: 1.5; color: var(--ab-fg); background: var(--ab-bg-3); border-radius: 6px; padding: 10px 12px; margin: 4px 0 0; }}
+    .tg-foot {{ font-family: var(--ab-mono); font-size: 0.62rem; color: var(--ab-fg-3); margin: 14px 0 0; }}
     @media (max-width: 560px) {{ .briefing-card {{ max-width: 100%; }} }}
     .queue-intro, .planner-intro {{
       font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 18px; max-width: 70ch; line-height: 1.5;
@@ -5078,6 +5100,7 @@ def build():
         ov.innerHTML = '<div class="briefing-card" role="dialog" aria-modal="true" aria-labelledby="bf-dlg-title">' +
           '<div class="briefing-top"><span class="briefing-top-title" id="bf-dlg-title">Day-Of brief</span>' +
           '<div class="briefing-top-actions">' +
+            '<button type="button" class="bf-btn bf-targets" title="Find senior, budget-owning people to reach out to before this event (deeper research pass)">&#127919; Targets</button>' +
             '<button type="button" class="bf-btn bf-regen" title="Force a fresh research pass">&#8635; Regenerate</button>' +
             '<button type="button" class="bf-btn bf-copy">Copy</button>' +
             '<button type="button" class="bf-btn bf-print">Print</button>' +
@@ -5098,6 +5121,7 @@ def build():
       }}
       ov._it = it;
       ov._lastFocus = document.activeElement;  // remember the trigger to restore later
+      ov.querySelector('.bf-targets').onclick = function () {{ loadTargets(it, false); }};
       ov.querySelector('.bf-regen').onclick = function () {{ loadBrief(it, true); }};
       ov.querySelector('.bf-copy').onclick = function () {{ copyBrief(it); }};
       ov.querySelector('.bf-print').onclick = function () {{ window.print(); }};
@@ -5118,6 +5142,65 @@ def build():
         if (resp && resp.brief) {{ it.briefing_json = resp.brief; renderBrief(resp.brief, it, !!resp.cached); if (currentView === 'dayof') renderDayOf(); }}
         else body.innerHTML = '<div class="bf-error">Could not generate the brief: ' + escapeHtml((resp && resp.error) || 'unknown error') + '</div>';
       }}).catch(function (e) {{ body.innerHTML = '<div class="bf-error">Briefing service unavailable (it runs on the deployed site). ' + escapeHtml(String(e)) + '</div>'; }});
+    }}
+
+    // ── Deep outreach targets (separate heavier pass) ────────────────
+    function loadTargets(it, regenerate) {{
+      var body = document.getElementById('briefing-body');
+      body.innerHTML = '<div class="bf-loading"><span class="bf-spin"></span> Finding senior, budget-owning people, recent signals, and drafting openers&hellip; this is a deeper pass (~20–40s).</div>';
+      fetch('/api/briefing', {{
+        method: 'POST', headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ kind: kindToTable(it.kind), key: it.key, deep_targets: true, regenerate: !!regenerate }})
+      }}).then(function (r) {{ return r.json(); }}).then(function (resp) {{
+        if (resp && resp.targets) {{ it.targets_json = resp.targets; renderTargets(resp.targets, it, resp); }}
+        else body.innerHTML = '<div class="bf-error">Could not find targets: ' + escapeHtml((resp && resp.error) || 'unknown error') + '</div>';
+      }}).catch(function (e) {{ body.innerHTML = '<div class="bf-error">Targets service unavailable (runs on the deployed site). ' + escapeHtml(String(e)) + '</div>'; }});
+    }}
+
+    function renderTargets(t, it, resp) {{
+      t = t || {{}}; var people = t.people || [];
+      function esc(s) {{ return escapeHtml(s == null ? '' : String(s)); }}
+      var html = '<div class="tg-wrap"><div class="tg-bar">' +
+        '<button type="button" class="bf-btn tg-back">&larr; Brief</button>' +
+        '<button type="button" class="bf-btn tg-regen" title="Re-run the research (uses credits)">&#8635; Regenerate targets</button>' +
+        '<span class="tg-count">' + people.length + ' ' + (people.length === 1 ? 'person' : 'people') + '</span></div>';
+      if (t.note) html += '<p class="tg-note">' + esc(t.note) + '</p>';
+      if (!people.length) html += '<p class="bf-muted">No web-confirmed senior targets found yet — usually means the speaker list isn’t public. Worth a re-run closer to the date.</p>';
+      people.forEach(function (p, i) {{
+        var sig = p.recent_signal || {{}};
+        var conf = (p.confidence === 'confirmed')
+          ? '<span class="tg-conf ok">confirmed</span>'
+          : '<span class="tg-conf est">estimated</span>';
+        html += '<div class="tg-card">' +
+          '<div class="tg-head"><strong>' + esc(p.name) + '</strong>' + conf + '</div>' +
+          (p.title || p.org ? '<div class="tg-role">' + esc([p.title, p.org].filter(Boolean).join(', ')) + '</div>' : '') +
+          (p.segment_fit ? '<div class="tg-fit">' + esc(p.segment_fit) + '</div>' : '') +
+          (p.session ? '<div class="tg-line">&#128197; ' + esc(p.session) + '</div>' : '') +
+          (sig.summary ? '<div class="tg-line">&#128240; ' + esc(sig.summary) +
+              (sig.date ? ' <span class="tg-muted">(' + esc(sig.date) + ')</span>' : '') +
+              (sig.url ? ' <a href="' + esc(sig.url) + '" target="_blank" rel="noopener">source &#8599;</a>' : '') + '</div>' : '') +
+          (p.linkedin_url ? '<div class="tg-line"><a href="' + esc(p.linkedin_url) + '" target="_blank" rel="noopener">LinkedIn &#8599;</a></div>' : '') +
+          (p.warm_via ? '<div class="tg-warm">&#128279; Warm via ' + esc(p.warm_via) + '</div>' : '') +
+          (p.draft_email ? '<div class="tg-draft"><div class="tg-draft-h"><span class="bf-label">Draft opener</span>' +
+              '<button type="button" class="tg-copy" data-i="' + i + '">Copy</button></div>' +
+              '<pre class="tg-pre">' + esc(p.draft_email) + '</pre></div>' : '') +
+          '</div>';
+      }});
+      if (resp && resp.persona) html += '<p class="tg-foot">For ' + esc(resp.persona) +
+        (resp.model ? ' &middot; ' + esc(resp.model) : '') + (resp.cached ? ' &middot; cached' : '') + '</p>';
+      html += '</div>';
+      var body = document.getElementById('briefing-body');
+      body.innerHTML = html;
+      body.querySelector('.tg-back').onclick = function () {{ if (it.briefing_json) renderBrief(it.briefing_json, it, true); else loadBrief(it, false); }};
+      body.querySelector('.tg-regen').onclick = function () {{ loadTargets(it, true); }};
+      Array.prototype.forEach.call(body.querySelectorAll('.tg-copy'), function (btn) {{
+        btn.onclick = function () {{
+          var p = people[parseInt(btn.dataset.i, 10)];
+          if (p && p.draft_email) {{
+            try {{ navigator.clipboard.writeText(p.draft_email); btn.textContent = 'Copied'; setTimeout(function () {{ btn.textContent = 'Copy'; }}, 1500); }} catch (e) {{}}
+          }}
+        }};
+      }});
     }}
 
     function copyBrief(it) {{

@@ -46,6 +46,23 @@ OPENAI_API_KEY = _env('OPENAI_API_KEY')
 OPENAI_BASE = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
 BRIEFING_MODEL = _env('OPENAI_BRIEFING_MODEL', 'gpt-5.4')
 BRIEFING_FALLBACK = _env('OPENAI_BRIEFING_FALLBACK', 'gpt-5-search-api')
+# Deep-targets fallback retrieval — Perplexity (web-grounded) is the research API
+# already wired into this app (api/search.py); used only when gpt-5.4 surfaces
+# too few web-confirmed named people, to keep credit burn bounded.
+PERPLEXITY_API_KEY = _env('PERPLEXITY_API_KEY')
+PERPLEXITY_MODEL = _env('PERPLEXITY_MODEL', 'sonar')
+PERPLEXITY_BASE = _env('PERPLEXITY_BASE_URL', 'https://api.perplexity.ai').rstrip('/')
+
+
+def _int_env(k, d):
+    try:
+        return int(_env(k) or d)
+    except (ValueError, TypeError):
+        return d
+
+
+TARGETS_MAX = _int_env('TARGETS_MAX', 5)   # cap people per event
+TARGETS_MIN = _int_env('TARGETS_MIN', 2)   # below this, escalate to Perplexity
 # Vercel auto-sends `Authorization: Bearer ${CRON_SECRET}` on cron invocations
 # when a CRON_SECRET env var exists; accept that or an explicit override.
 CRON_SECRET = _env('CRON_SECRET') or _env('BRIEFING_CRON_SECRET')
@@ -496,6 +513,220 @@ def _one(kind, key, host, regenerate):
             'activity': activity, 'mode': mode, 'model': model_used}, 200
 
 
+# ── Deep outreach targets ─────────────────────────────────────────────────────
+# A heavier, on-demand pass (separate from the cheap auto-brief): finds the
+# senior, BUDGET-OWNING decision-makers worth reaching out to before an event,
+# with a recent signal + a drafted opener for each. gpt-5.4 (web search) first;
+# Perplexity retrieval only when too few web-confirmed people surface.
+def _content_of(st, data):
+    if st != 200 or not isinstance(data, dict):
+        return ''
+    try:
+        return data['choices'][0]['message']['content'] or ''
+    except (KeyError, IndexError, TypeError):
+        return ''
+
+
+def _extract_json(content):
+    if not content:
+        return {}
+    try:
+        return json.loads(content)
+    except (json.JSONDecodeError, TypeError):
+        m = re.search(r'\{.*\}', content, re.S)
+        if m:
+            try:
+                return json.loads(m.group(0))
+            except (json.JSONDecodeError, TypeError):
+                return {}
+    return {}
+
+
+def build_targets_messages(event, persona, extra_context=''):
+    ab = load_personas()['arcticblue']
+    titles = ', '.join(persona.get('buyer_titles') or [])
+    inds = ', '.join(persona.get('icp_industries') or [])
+    themes = ', '.join(persona.get('themes') or [])
+    first = (persona.get('name') or '').split(' ')[0]
+    sys = (
+        "You are ArcticBlue's pre-event outreach researcher. For ONE event you "
+        "find the SENIOR, BUDGET-OWNING decision-makers worth contacting before "
+        "it, and draft a short personalized opener for each.\n"
+        "VOICE for the drafts: " + ab['voice'] + "\n"
+        "ANTI-FABRICATION (hard rules): NEVER invent a person, title, org, "
+        "session, quote, date, or news item. Only include a named person if web "
+        "search confirms they are SPEAKING at, hosting, sponsoring, or confirmed "
+        "attending THIS event (from the official agenda/speaker page or a "
+        "credible source). If you cannot web-confirm any such people, return an "
+        "EMPTY people list and explain in `note` — never pad with guesses. The "
+        "ONLY metrics a draft may cite are these whitelisted proof points: "
+        + '; '.join(ab['proof_points']) + ". Never invent metrics or quotes.\n"
+        "WHO TO PICK: senior decision-makers with BUDGET AUTHORITY in the "
+        "persona's segment — titles like " + titles + " — at " + inds + " "
+        "organizations. EXCLUDE operators, individual contributors, engineers, "
+        "junior/mid managers, vendors selling competing tooling, and generic "
+        "startup traffic. Prefer people on the published agenda (speakers / "
+        "panelists / fireside guests) and named hosts/sponsors.\n"
+        "FOR EACH PERSON (max " + str(TARGETS_MAX) + "): name; title; org; "
+        "segment_fit (one line: why they're an ICP budget-holder, e.g. owns the "
+        "AI/transformation budget at a regulated enterprise); session (their "
+        "panel/talk title + day/time if on the agenda, else their confirmed role "
+        "at the event); recent_signal = ONE item from roughly the LAST TWO "
+        "MONTHS (a company launch/announcement, their interview/podcast/post, a "
+        "board/hire move) as {summary (1 line), date (approx), url (a REAL link "
+        "you actually opened — never invent or pattern-build a url; omit the url "
+        "if unsure)}; linkedin_url (their real profile if findable, else null); "
+        "draft_email = a 3-5 sentence opener in the VOICE above, FROM " + first +
+        " TO that person, opening 'Hi <first name>,', referencing the "
+        "recent_signal AND their event session, tying to an ArcticBlue theme ("
+        + themes + "), ending with '" + first + "'. No invented mutual "
+        "connections. confidence:'confirmed' only if web-confirmed at this event, "
+        "else 'estimated'.\n"
+        "Return ONLY a JSON object: {people:[{name,title,org,segment_fit,session,"
+        "recent_signal:{summary,date,url},linkedin_url,draft_email,confidence}],"
+        "note:string}. `note` states coverage honestly (e.g. 'No public speaker "
+        "list yet — these are confirmed sponsors only' or 'Full agenda found'). "
+        "Output ONLY the raw JSON object — no markdown fences, no commentary."
+    )
+    persona_blob = {k: v for k, v in persona.items() if k != 'signature_angles'}
+    user = (
+        "PERSONA (the sender):\n" + json.dumps(persona_blob, ensure_ascii=False) + "\n\n"
+        "EVENT:\n" + json.dumps(event, ensure_ascii=False) + "\n\n"
+        + (("RESEARCH FINDINGS to ground your answer (from a web-search engine — "
+            "verify, then structure these named people/signals; do not add "
+            "unconfirmed names):\n" + extra_context + "\n\n") if extra_context else "")
+        + "Start from the event's official site / agenda. Today is " + _today()
+        + ". Find the people and draft now."
+    )
+    return [{'role': 'system', 'content': sys}, {'role': 'user', 'content': user}]
+
+
+def _perplexity_lookup(event, persona):
+    """Web-grounded retrieval fallback — returns a plain-text findings blob."""
+    if not PERPLEXITY_API_KEY:
+        return ''
+    titles = ', '.join(persona.get('buyer_titles') or [])
+    inds = ', '.join(persona.get('icp_industries') or [])
+    q = (
+        "List the senior, budget-owning decision-makers (titles like " + titles +
+        ") from " + inds + " organizations who are confirmed SPEAKING, hosting, "
+        "sponsoring, or attending this event: '" + str(event.get('name') or '') +
+        "' on " + str(event.get('date_str') or '') + " in " +
+        str(event.get('location') or '') + " (official site: " +
+        str(event.get('url') or 'n/a') + "). For each give name, title, company, "
+        "the session/panel they're on (day/time if listed), and ONE recent "
+        "(~last 2 months) company or personal news item WITH its source URL. Only "
+        "include people you can confirm from the official agenda or a credible "
+        "source. If no speaker list is public, say so plainly."
+    )
+    st, data = _http_json('POST', PERPLEXITY_BASE + '/chat/completions',
+                          headers={'Authorization': 'Bearer ' + PERPLEXITY_API_KEY},
+                          body={'model': PERPLEXITY_MODEL,
+                                'messages': [{'role': 'user', 'content': q}]},
+                          timeout=60)
+    return _content_of(st, data)
+
+
+def _clean_linkedin(u):
+    u = (u or '').strip()
+    return u if (u and 'linkedin.com/in' in u.lower()) else None
+
+
+def normalize_targets(data, event, persona):
+    """Enforce the schema, drop nameless rows, verify signal URLs, cap at MAX."""
+    if not isinstance(data, dict):
+        data = {}
+    people = data.get('people') if isinstance(data.get('people'), list) else []
+    budget = [_VERIFY_BUDGET]
+    out = []
+    for p in people:
+        if not isinstance(p, dict):
+            continue
+        name = (p.get('name') or '').strip()
+        if not name:
+            continue
+        sig = p.get('recent_signal') if isinstance(p.get('recent_signal'), dict) else {}
+        url = (sig.get('url') or '').strip()
+        # Verify the signal source (shared probe budget) — drop a dead/fake link
+        # but keep the signal text so the lead is still usable.
+        if url and budget[0] > 0:
+            budget[0] -= 1
+            if not _url_ok(url):
+                url = ''
+        out.append({
+            'name': name,
+            'title': (p.get('title') or '').strip(),
+            'org': (p.get('org') or '').strip(),
+            'segment_fit': (p.get('segment_fit') or '').strip(),
+            'session': (p.get('session') or '').strip(),
+            'recent_signal': {
+                'summary': (sig.get('summary') or '').strip(),
+                'date': (sig.get('date') or '').strip(),
+                'url': url,
+            },
+            'linkedin_url': _clean_linkedin(p.get('linkedin_url')),
+            'draft_email': (p.get('draft_email') or '').strip(),
+            'warm_via': None,   # reserved for the connections-CSV feature
+            'confidence': 'confirmed' if p.get('confidence') == 'confirmed' else 'estimated',
+        })
+        if len(out) >= TARGETS_MAX:
+            break
+    return {'people': out, 'note': (data.get('note') or '').strip()}
+
+
+def generate_targets(event, persona):
+    msgs = build_targets_messages(event, persona)
+    st, data = _call_openai(msgs, BRIEFING_MODEL)
+    if st in (400, 404) and BRIEFING_FALLBACK and BRIEFING_FALLBACK != BRIEFING_MODEL:
+        st, data = _call_openai(msgs, BRIEFING_FALLBACK)
+    model_used = data.get('model') if isinstance(data, dict) else None
+    result = normalize_targets(_extract_json(_content_of(st, data)), event, persona)
+    # Escalate to Perplexity retrieval only when gpt-5.4 found too few people.
+    if len(result['people']) < TARGETS_MIN and PERPLEXITY_API_KEY:
+        ctx = (_perplexity_lookup(event, persona) or '').strip()
+        if ctx:
+            st2, data2 = _call_openai(build_targets_messages(event, persona, extra_context=ctx), BRIEFING_MODEL)
+            merged = normalize_targets(_extract_json(_content_of(st2, data2)), event, persona)
+            if len(merged['people']) > len(result['people']):
+                result = merged
+                model_used = (data2.get('model') if isinstance(data2, dict) else model_used)
+                result['note'] = (result.get('note') + ' ' if result.get('note') else '') + '(augmented via Perplexity retrieval)'
+    return result, model_used
+
+
+def cache_targets(kind, key, targets, when):
+    """Best-effort cache — no-ops if the targets_json column isn't there yet."""
+    col = 'event_num' if kind == 'event_state' else 'id'
+    patch = {'targets_json': targets, 'targets_generated_at': when}
+    url = '%s/rest/v1/%s?%s=eq.%s' % (SUPABASE_URL, kind, col, urllib.parse.quote(str(key)))
+    h = dict(_sb_headers(service=True)); h['Prefer'] = 'return=minimal'
+    return _http_json('PATCH', url, headers=h, body=patch)
+
+
+def _targets_one(kind, key, host, regenerate):
+    facts, state = load_event(kind, key, host)
+    row = state if kind == 'event_state' else facts
+    keys = resolve_attendees(row)
+    if not keys:
+        return {'error': 'assign an attendee first — targets are tailored to that person\'s ICP'}, 400
+    persona = load_personas()['personas'].get(keys[0])
+    if not persona:
+        return {'error': 'unknown persona: %s' % keys[0]}, 400
+    cached = row.get('targets_json')
+    if not regenerate and isinstance(cached, dict) and isinstance(cached.get('people'), list):
+        return {'targets': cached, 'cached': True, 'persona': keys[0],
+                'generated_at': row.get('targets_generated_at')}, 200
+    ev = event_facts_for(kind, facts, state)
+    targets, model_used = generate_targets(ev, persona)
+    when = datetime.utcnow().isoformat() + 'Z'
+    try:
+        cache_targets(kind, key, targets, when)
+    except Exception:  # noqa: BLE001
+        pass
+    return {'targets': targets, 'cached': False, 'persona': keys[0],
+            'generated_at': when, 'model': model_used}, 200
+
+
 class handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         _send(self, 204, {})
@@ -525,7 +756,12 @@ class handler(BaseHTTPRequestHandler):
             key = body.get('key')
             if key is None:
                 return _send(self, 400, {'error': 'key required'})
-            payload, status = _one(kind, key, self.headers.get('Host', ''), bool(body.get('regenerate')))
+            host = self.headers.get('Host', '')
+            # Deep outreach targets are a separate, heavier on-demand pass.
+            if body.get('deep_targets'):
+                payload, status = _targets_one(kind, key, host, bool(body.get('regenerate')))
+                return _send(self, status, payload)
+            payload, status = _one(kind, key, host, bool(body.get('regenerate')))
             return _send(self, status, payload)
         except Exception as e:  # noqa: BLE001
             return _send(self, 502, {'error': 'briefing failed: %s' % str(e)[:300]})
