@@ -311,9 +311,15 @@ def _verify_news(brief):
         k = [n for n in ns if ok(n.get('url'))]
         dropped += len(ns) - len(k)
         s['news'] = k
+    # The logistics 'link' is model-supplied too — verify it so a fabricated
+    # venue/agenda URL doesn't ship. Blank just the link, keep the section.
+    lw = brief.get('logistics_win')
+    if isinstance(lw, dict) and lw.get('link') and not ok(lw.get('link')):
+        lw['link'] = None
+        dropped += 1
     if dropped:
         u = brief.get('unconfirmed') or []
-        u.append('%d news link(s) could not be verified and were removed.' % dropped)
+        u.append('%d link(s) could not be verified and were removed.' % dropped)
         brief['unconfirmed'] = u
     return brief
 
