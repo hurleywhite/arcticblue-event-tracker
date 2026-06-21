@@ -571,9 +571,11 @@ def build_targets_messages(event, persona, extra_context=''):
         "junior/mid managers, vendors selling competing tooling, and generic "
         "startup traffic. Prefer people on the published agenda (speakers / "
         "panelists / fireside guests) and named hosts/sponsors.\n"
+        "BE CONCISE — these are skimmed on a phone between sessions. Every field "
+        "is tight: no preamble, no filler, no restating the obvious.\n"
         "FOR EACH PERSON (max " + str(TARGETS_MAX) + "): name; title; org; "
-        "segment_fit (one line: why they're an ICP budget-holder, e.g. owns the "
-        "AI/transformation budget at a regulated enterprise); session (their "
+        "segment_fit (<= 12 words: why they hold the budget, e.g. 'owns AI/"
+        "transformation budget at a regulated bank'); session (their "
         "panel/talk title + day/time if on the agenda, else their confirmed role "
         "at the event); recent_signal = ONE recent (~last 2 months) COMPANY or "
         "PERSONAL news item that gives a real reason to reach out — a product/"
@@ -587,16 +589,17 @@ def build_targets_messages(event, persona, extra_context=''):
         "a url, and NEVER cite the event agenda or a company homepage as the "
         "signal source. Set linkedin_url to null (the app adds a reliable "
         "LinkedIn search link itself); "
-        "draft_email = a 3-5 sentence opener in the VOICE above, FROM " + first +
-        " TO that person, opening 'Hi <first name>,', referencing the "
-        "recent_signal AND their event session, tying to an ArcticBlue theme ("
-        + themes + "), ending with '" + first + "'. No invented mutual "
-        "connections. confidence:'confirmed' only if web-confirmed at this event, "
-        "else 'estimated'.\n"
+        "draft_email = a TIGHT 2-3 sentence opener (<= ~70 words — people skim) "
+        "in the VOICE above, FROM " + first + " TO that person, opening 'Hi "
+        "<first name>,', landing the recent_signal + their session in one breath, "
+        "ONE ArcticBlue hook (" + themes + "), a soft ask to meet, ending '" +
+        first + "'. No filler sentences, no invented mutual connections. "
+        "confidence:'confirmed' only if web-confirmed at this event, else "
+        "'estimated'.\n"
         "Return ONLY a JSON object: {people:[{name,title,org,segment_fit,session,"
         "recent_signal:{summary,date,url},linkedin_url,draft_email,confidence}],"
-        "note:string}. `note` states coverage honestly (e.g. 'No public speaker "
-        "list yet — these are confirmed sponsors only' or 'Full agenda found'). "
+        "note:string}. `note` = ONE short honest sentence on coverage (e.g. 'Only "
+        "the opening panel was published yet' or 'Full agenda found'). "
         "Output ONLY the raw JSON object — no markdown fences, no commentary."
     )
     persona_blob = {k: v for k, v in persona.items() if k != 'signature_angles'}
@@ -620,34 +623,30 @@ def build_targets_messages(event, persona, extra_context=''):
 
 def _exa_lookup(event, persona):
     """Primary retrieval — Exa neural search returns page CONTENTS, so we pull the
-    event's speaker/agenda page text (+ recent coverage) for gpt-5.4 to mine."""
+    event's speaker/agenda page for gpt-5.4 to mine. ONE query with capped
+    content (Exa bills on content length) — Exa's strength is finding the right
+    page; gpt-5.4 does the extraction/reasoning/drafting from there."""
     if not EXA_API_KEY:
         return ''
     name = str(event.get('name') or '')
     dates = str(event.get('date_str') or '')
-    queries = [
-        name + ' speakers agenda lineup ' + dates,
-        name + ' confirmed speakers panel keynote',
-    ]
+    st, data = _http_json(
+        'POST', EXA_BASE + '/search',
+        headers={'x-api-key': EXA_API_KEY, 'Content-Type': 'application/json'},
+        body={'query': (name + ' speakers agenda ' + dates).strip(),
+              'numResults': 5, 'type': 'auto',
+              'contents': {'text': {'maxCharacters': 1200}}},
+        timeout=45)
     chunks = []
-    for q in queries:
-        st, data = _http_json(
-            'POST', EXA_BASE + '/search',
-            headers={'x-api-key': EXA_API_KEY, 'Content-Type': 'application/json'},
-            body={'query': q, 'numResults': 4, 'type': 'auto',
-                  'contents': {'text': True}},
-            timeout=45)
-        if st == 200 and isinstance(data, dict):
-            for r in (data.get('results') or [])[:4]:
-                if not isinstance(r, dict):
-                    continue
-                text = (r.get('text') or '').strip()
-                if text:
-                    chunks.append('SOURCE: ' + str(r.get('title') or '') + ' (' +
-                                  str(r.get('url') or '') + ')\n' + text[:1800])
-        if len(chunks) >= 6:
-            break
-    return ('\n\n'.join(chunks))[:7000]
+    if st == 200 and isinstance(data, dict):
+        for r in (data.get('results') or [])[:5]:
+            if not isinstance(r, dict):
+                continue
+            text = (r.get('text') or '').strip()
+            if text:
+                chunks.append('SOURCE: ' + str(r.get('title') or '') + ' (' +
+                              str(r.get('url') or '') + ')\n' + text[:1200])
+    return ('\n\n'.join(chunks))[:5500]
 
 
 def _perplexity_lookup(event, persona):
