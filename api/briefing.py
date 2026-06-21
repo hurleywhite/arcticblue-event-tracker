@@ -635,26 +635,28 @@ def _exa_lookup(event, persona):
         return ''
     name = str(event.get('name') or '')
     dates = str(event.get('date_str') or '')
-    # One search call (vs the old two) is the real Exa saving; keep enough
-    # content per page that the speaker list is actually captured (1200 was too
-    # shallow — the names sit below the page header).
+    # Balance: ONE search call (vs the old two — the real Exa saving) but enough
+    # results/depth that the speaker list is reliably captured. Too few/short and
+    # the names (which sit below the page header) get cut, so a thin roster
+    # returns empty. 6 results x 2500 chars from one query is still fewer
+    # page-fetches than the old two-query, eight-result version.
     st, data = _http_json(
         'POST', EXA_BASE + '/search',
         headers={'x-api-key': EXA_API_KEY, 'Content-Type': 'application/json'},
         body={'query': (name + ' speakers agenda ' + dates).strip(),
-              'numResults': 4, 'type': 'auto',
-              'contents': {'text': {'maxCharacters': 3000}}},
+              'numResults': 6, 'type': 'auto',
+              'contents': {'text': {'maxCharacters': 2500}}},
         timeout=45)
     chunks = []
     if st == 200 and isinstance(data, dict):
-        for r in (data.get('results') or [])[:4]:
+        for r in (data.get('results') or [])[:6]:
             if not isinstance(r, dict):
                 continue
             text = (r.get('text') or '').strip()
             if text:
                 chunks.append('SOURCE: ' + str(r.get('title') or '') + ' (' +
-                              str(r.get('url') or '') + ')\n' + text[:3000])
-    return ('\n\n'.join(chunks))[:9000]
+                              str(r.get('url') or '') + ')\n' + text[:2500])
+    return ('\n\n'.join(chunks))[:12000]
 
 
 def _perplexity_lookup(event, persona):
