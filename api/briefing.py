@@ -844,6 +844,22 @@ def _retrieval_lookup(event, persona):
     return '', ''
 
 
+def _ground_people(people, ctx):
+    """Keep only people whose name actually appears in the retrieved roster text,
+    so the model can't pad with people it merely *believes* are speaking — that's
+    the source of run-to-run mis-attribution. Skipped when there's no retrieval
+    text to ground against (degraded mode)."""
+    if not ctx:
+        return people
+    low = ctx.lower()
+    out = []
+    for p in people:
+        toks = [t for t in (p.get('name') or '').lower().replace('.', ' ').split() if len(t) > 1]
+        if toks and toks[0] in low and toks[-1] in low:   # first + last both present
+            out.append(p)
+    return out
+
+
 def generate_targets(event, persona):
     # Retrieve the roster first (gpt-5.4's own search rarely reaches the agenda
     # page) and hand it to gpt-5.4 to filter to budget-holders, structure, draft.
@@ -854,6 +870,10 @@ def generate_targets(event, persona):
         st, data = _call_openai(msgs, BRIEFING_FALLBACK)
     model_used = data.get('model') if isinstance(data, dict) else None
     result = normalize_targets(_extract_json(_content_of(st, data)), event, persona)
+    # Ground to the retrieved roster — drop anyone not actually named in the
+    # agenda text we pulled (kills mis-attributed / guessed speakers).
+    if ctx:
+        result['people'] = _ground_people(result['people'], ctx)
     base_note = result.get('note') or ''
     # Pass 2: source the signals. One more Exa search across the shortlisted orgs
     # gives gpt-5.4 real article URLs to attach (turns the 'unverified' hooks into
@@ -864,6 +884,8 @@ def generate_targets(event, persona):
         if news:
             st2, data2 = _call_openai(build_source_messages(result['people'], news, persona), BRIEFING_MODEL)
             sourced = normalize_targets(_extract_json(_content_of(st2, data2)), event, persona)
+            if ctx:
+                sourced['people'] = _ground_people(sourced['people'], ctx)
             # Keep the sourced version only if it didn't drop people, and only if
             # it actually added at least one real source.
             if (len(sourced['people']) >= len(result['people'])
