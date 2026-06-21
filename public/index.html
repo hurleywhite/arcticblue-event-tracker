@@ -4156,9 +4156,20 @@
 
       var shown = 0;
       var monthMatched = {};
-      $opsGrid.querySelectorAll('.ops-card').forEach(function (card) {
+      // Query the card set once per pass (it's also the count denominator) —
+      // re-querying inside + again for the count walked the DOM twice/keystroke.
+      var opsCards = $opsGrid.querySelectorAll('.ops-card');
+      opsCards.forEach(function (card) {
         var on = true;
-        if (q && (card.textContent || '').toLowerCase().indexOf(q) === -1) on = false;
+        if (q) {
+          // Cache the lowercased search text on the node. textContent serializes
+          // the whole card subtree — doing it per card per keystroke was the
+          // biggest typing cost. Fresh nodes (re-render) recompute; in-place
+          // toggles don't change searchable text, so the cache stays valid.
+          var _blob = card._searchBlob;
+          if (_blob == null) _blob = card._searchBlob = (card.textContent || '').toLowerCase();
+          if (_blob.indexOf(q) === -1) on = false;
+        }
         if (rg && card.dataset.region !== rg) on = false;
         if (fitsProfile && !profileFits(fitsProfile, card.dataset.fitText, card.dataset.region)) on = false;
         if (fSaved && !card.classList.contains('is-saved'))  on = false;
@@ -4241,7 +4252,7 @@
         sp.textContent = (monthMatched[sp.getAttribute('data-mc-count')] || 0);
       });
       var $shown = document.getElementById('ops-shown');
-      if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + $opsGrid.querySelectorAll('.ops-card').length;
+      if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + opsCards.length;
       // Empty state — a fully-filtered grid should explain itself, not blank out.
       var $empty = document.getElementById('ops-empty');
       if (shown === 0) {
@@ -4264,13 +4275,25 @@
       if (currentView === 'map' && _opsMapLayer) renderOpsMap();
     }
 
+    function debounce(fn, ms) {
+      var t;
+      return function () {
+        var ctx = this, args = arguments;
+        clearTimeout(t);
+        t = setTimeout(function () { fn.apply(ctx, args); }, ms);
+      };
+    }
+
     function wireFilters() {
+      // Debounce only the free-text search (fires on every keystroke); selects
+      // and checkboxes change discretely, so apply those immediately.
+      var debouncedApply = debounce(applyFilters, 130);
       ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-nogo'].forEach(function (id) {
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
         var ev = (el.tagName === 'INPUT' && el.type !== 'checkbox') ? 'input' : 'change';
-        el.addEventListener(ev, applyFilters);
+        el.addEventListener(ev, ev === 'input' ? debouncedApply : applyFilters);
       });
     }
 
