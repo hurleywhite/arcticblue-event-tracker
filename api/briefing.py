@@ -67,6 +67,11 @@ def _int_env(k, d):
 
 TARGETS_MAX = _int_env('TARGETS_MAX', 5)   # cap people per event
 TARGETS_MIN = _int_env('TARGETS_MIN', 2)   # below this, escalate to Perplexity
+# Overnight cron for deep targets: outreach needs lead time, so generate for
+# attended events starting within the next N days (not just tomorrow), capped so
+# a busy calendar can't burn Exa credits in one run.
+TARGETS_CRON_DAYS = _int_env('TARGETS_CRON_DAYS', 14)
+TARGETS_CRON_MAX = _int_env('TARGETS_CRON_MAX', 6)
 # Vercel auto-sends `Authorization: Bearer ${CRON_SECRET}` on cron invocations
 # when a CRON_SECRET env var exists; accept that or an explicit override.
 CRON_SECRET = _env('CRON_SECRET') or _env('BRIEFING_CRON_SECRET')
@@ -879,6 +884,35 @@ def cache_targets(kind, key, targets, when):
     return _http_json('PATCH', url, headers=h, body=patch)
 
 
+def _warm_matches(people):
+    """Annotate warm_via from the connections table — a LOCAL name match; the
+    connection data is NEVER sent to OpenAI/Exa. No-ops if the table is absent."""
+    if not people:
+        return
+    names = sorted({(p.get('name') or '').strip().lower() for p in people if p.get('name')})
+    if not names:
+        return
+    try:
+        inlist = ','.join('"%s"' % n.replace('"', '').replace(',', ' ') for n in names)
+        st, rows = _http_json(
+            'GET', SUPABASE_URL + '/rest/v1/connections?select=owner,full_name&full_name=in.(%s)'
+            % urllib.parse.quote(inlist), headers=_sb_headers(service=True))
+        if st != 200 or not isinstance(rows, list):
+            return
+        by_name = {}
+        for r in rows:
+            if isinstance(r, dict) and r.get('full_name'):
+                by_name.setdefault(r['full_name'].strip().lower(), set()).add((r.get('owner') or '').strip())
+        for p in people:
+            owners = by_name.get((p.get('name') or '').strip().lower())
+            if owners:
+                names_ = sorted(o.title() for o in owners if o)
+                if names_:
+                    p['warm_via'] = ', '.join(names_)
+    except Exception:  # noqa: BLE001
+        return
+
+
 def _targets_one(kind, key, host, regenerate):
     facts, state = load_event(kind, key, host)
     row = state if kind == 'event_state' else facts
@@ -890,6 +924,7 @@ def _targets_one(kind, key, host, regenerate):
         return {'error': 'unknown persona: %s' % keys[0]}, 400
     cached = row.get('targets_json')
     if not regenerate and isinstance(cached, dict) and isinstance(cached.get('people'), list):
+        _warm_matches(cached.get('people'))   # annotate at serve time (always fresh)
         return {'targets': cached, 'cached': True, 'persona': keys[0],
                 'generated_at': row.get('targets_generated_at')}, 200
     ev = event_facts_for(kind, facts, state)
@@ -899,6 +934,7 @@ def _targets_one(kind, key, host, regenerate):
         cache_targets(kind, key, targets, when)
     except Exception:  # noqa: BLE001
         pass
+    _warm_matches(targets.get('people'))      # annotate after caching
     return {'targets': targets, 'cached': False, 'persona': keys[0],
             'generated_at': when, 'model': model_used}, 200
 
@@ -944,25 +980,40 @@ class handler(BaseHTTPRequestHandler):
 
     def _cron(self):
         host = self.headers.get('Host', '')
-        done, errors = [], []
-        target = (date.today() + timedelta(days=1)).isoformat()  # generate the night before
+        done, tgt_done, errors = [], [], []
+        today = date.today()
+        brief_target = (today + timedelta(days=1)).isoformat()       # brief: night-before
+        tgt_horizon = (today + timedelta(days=TARGETS_CRON_DAYS)).isoformat()
+        today_iso = today.isoformat()
+        tgt_budget = [TARGETS_CRON_MAX]
         # catalog: events.json in range + event_state attendees
         st, data = _http_json('GET', 'https://%s/events.json' % host, timeout=20)
-        st2, states = _http_json('GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,attendees,speaker,speaker_topic,briefing_generated_at,briefing_json',
+        st2, states = _http_json('GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,attendees,speaker,speaker_topic,briefing_generated_at,briefing_json,targets_json,targets_generated_at',
                                  headers=_sb_headers(service=True))
         smap = {r.get('event_num'): r for r in states if isinstance(r, dict)} if isinstance(states, list) else {}
         for e in (data.get('events') or []) if isinstance(data, dict) else []:
             s = smap.get(e.get('num'), {})
             lo, hi = e.get('start_date'), e.get('end_date') or e.get('start_date')
-            if not (lo and lo <= target <= (hi or lo)):
+            if not lo or not resolve_attendees(s):
                 continue
-            if not resolve_attendees(s):
-                continue
-            try:
-                self._gen_cache('event_state', e.get('num'), host); done.append(e.get('num'))
-            except Exception as ex:  # noqa: BLE001
-                errors.append({'num': e.get('num'), 'err': str(ex)[:120]})
-        return _send(self, 200, {'pre_generated': done, 'errors': errors, 'for_date': target})
+            # Brief: only for events happening tomorrow (day-of context).
+            if lo <= brief_target <= (hi or lo):
+                try:
+                    self._gen_cache('event_state', e.get('num'), host); done.append(e.get('num'))
+                except Exception as ex:  # noqa: BLE001
+                    errors.append({'num': e.get('num'), 'err': str(ex)[:120]})
+            # Deep targets: any upcoming event within the horizon, generated ONCE
+            # (skip if already cached), bounded by the per-run budget.
+            tj = s.get('targets_json')
+            already = isinstance(tj, dict) and isinstance(tj.get('people'), list)
+            if (today_iso <= lo <= tgt_horizon and tgt_budget[0] > 0 and not already):
+                try:
+                    self._gen_targets_cache('event_state', e.get('num'), host)
+                    tgt_done.append(e.get('num')); tgt_budget[0] -= 1
+                except Exception as ex:  # noqa: BLE001
+                    errors.append({'num': e.get('num'), 'err': 'targets: ' + str(ex)[:100]})
+        return _send(self, 200, {'pre_generated': done, 'targets_generated': tgt_done,
+                                 'errors': errors, 'for_date': brief_target})
 
     def _gen_cache(self, kind, key, host):
         facts, state = load_event(kind, key, host)
@@ -976,3 +1027,15 @@ class handler(BaseHTTPRequestHandler):
         ev = event_facts_for(kind, facts, state)
         brief, _model = generate_brief(ev, persona, ev.get('speaker_topic'), mode, activity)
         cache_brief(kind, key, brief, datetime.utcnow().isoformat() + 'Z')
+
+    def _gen_targets_cache(self, kind, key, host):
+        facts, state = load_event(kind, key, host)
+        keys = resolve_attendees(state if kind == 'event_state' else facts)
+        if not keys:
+            return
+        persona = load_personas()['personas'].get(keys[0])
+        if not persona:
+            return
+        ev = event_facts_for(kind, facts, state)
+        targets, _model = generate_targets(ev, persona)
+        cache_targets(kind, key, targets, datetime.utcnow().isoformat() + 'Z')

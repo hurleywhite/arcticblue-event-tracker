@@ -1820,6 +1820,11 @@ def build():
 
     /* ── Planner view (conflicts + coverage gaps) ─────────────────── */
     .planner-section {{ margin: 0 0 30px; }}
+    .conn-help {{ font-size: 0.82rem; color: var(--ab-fg-2); margin: 4px 0 8px; line-height: 1.45; }}
+    .conn-row {{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }}
+    .conn-row select, .conn-row input[type=file] {{ padding: 6px 8px; border: 1px solid var(--ab-rule); border-radius: 6px; font-size: 0.85rem; background: var(--ab-bg); }}
+    .conn-status {{ font-size: 0.8rem; color: var(--ab-fg-2); }}
+    .conn-counts {{ font-size: 0.8rem; color: var(--ab-fg-3); margin-top: 8px; }}
     .planner-sec-head {{
       display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px;
       padding-bottom: 6px; border-bottom: 1px solid var(--ab-rule);
@@ -5442,6 +5447,79 @@ def build():
       return conflicts;
     }}
 
+    // ── Warm-intro connections (LinkedIn CSV upload) ────────────────
+    function _csvLine(line) {{
+      var out = [], cur = '', q = false;
+      for (var i = 0; i < line.length; i++) {{
+        var c = line[i];
+        if (q) {{ if (c === '"') {{ if (line[i + 1] === '"') {{ cur += '"'; i++; }} else q = false; }} else cur += c; }}
+        else {{ if (c === '"') q = true; else if (c === ',') {{ out.push(cur); cur = ''; }} else cur += c; }}
+      }}
+      out.push(cur); return out;
+    }}
+    function parseConnectionsCsv(text, owner) {{
+      var lines = text.split(/\\r\\n|\\n|\\r/);
+      var hi = -1;
+      for (var i = 0; i < lines.length; i++) {{ if (/^"?First Name"?\\s*,/i.test(lines[i])) {{ hi = i; break; }} }}
+      if (hi === -1) return [];
+      var h = _csvLine(lines[hi]).map(function (x) {{ return x.trim().toLowerCase(); }});
+      var ci = {{ first: h.indexOf('first name'), last: h.indexOf('last name'),
+                 company: h.indexOf('company'), position: h.indexOf('position'), url: h.indexOf('url') }};
+      if (ci.first === -1 || ci.last === -1) return [];
+      var rows = [];
+      for (var j = hi + 1; j < lines.length; j++) {{
+        if (!lines[j].trim()) continue;
+        var f = _csvLine(lines[j]);
+        var full = ((f[ci.first] || '').trim() + ' ' + (f[ci.last] || '').trim()).trim();
+        if (!full) continue;
+        rows.push({{ owner: owner, full_name: full.toLowerCase(), display_name: full,
+          company: ci.company >= 0 ? (f[ci.company] || '').trim() : null,
+          position: ci.position >= 0 ? (f[ci.position] || '').trim() : null,
+          profile_url: ci.url >= 0 ? (f[ci.url] || '').trim() : null }});
+      }}
+      return rows;
+    }}
+    function refreshConnCounts() {{
+      var el = document.getElementById('conn-counts'); if (!el) return;
+      sb.from('connections').select('owner').then(function (r) {{
+        if (r.error) {{ el.textContent = (/(does not exist|relation)/i.test(r.error.message || '')) ? 'Run scripts/2026-06-21_connections.sql in Supabase to enable this.' : ''; return; }}
+        var counts = {{}}; (r.data || []).forEach(function (x) {{ counts[x.owner] = (counts[x.owner] || 0) + 1; }});
+        var parts = Object.keys(counts).sort().map(function (o) {{ return o + ': ' + counts[o]; }});
+        el.textContent = parts.length ? ('Stored — ' + parts.join(' · ')) : 'No connections uploaded yet.';
+      }});
+    }}
+    function wireConnectionsPanel() {{
+      var btn = document.getElementById('conn-upload'); if (!btn) return;
+      refreshConnCounts();
+      btn.addEventListener('click', function () {{
+        var owner = (document.getElementById('conn-owner') || {{}}).value;
+        var fileEl = document.getElementById('conn-file');
+        var status = document.getElementById('conn-status');
+        var file = fileEl && fileEl.files && fileEl.files[0];
+        if (!file) {{ status.textContent = 'Choose a CSV first.'; return; }}
+        status.textContent = 'Reading…';
+        var reader = new FileReader();
+        reader.onload = function () {{
+          var rows = parseConnectionsCsv(reader.result, owner);
+          if (!rows.length) {{ status.textContent = 'No connections found (expected a LinkedIn Connections.csv).'; return; }}
+          status.textContent = 'Uploading ' + rows.length + '…';
+          // Replace this teammate's set, then insert in chunks.
+          sb.from('connections').delete().eq('owner', owner).then(function (d) {{
+            if (d.error && /(does not exist|relation)/i.test(d.error.message || '')) {{ status.textContent = 'Run scripts/2026-06-21_connections.sql in Supabase first.'; return; }}
+            var CHUNK = 500, idx = 0;
+            (function next() {{
+              if (idx >= rows.length) {{ status.textContent = 'Saved ' + rows.length + ' connections for ' + owner + '.'; refreshConnCounts(); return; }}
+              sb.from('connections').insert(rows.slice(idx, idx + CHUNK)).then(function (r) {{
+                if (r.error) {{ status.textContent = 'Error: ' + r.error.message; return; }}
+                idx += CHUNK; next();
+              }});
+            }})();
+          }});
+        }};
+        reader.readAsText(file);
+      }});
+    }}
+
     function renderPlanner() {{
       var host = document.getElementById('ops-planner');
       if (!host) return;
@@ -5506,7 +5584,19 @@ def build():
         html += '</div>';
       }});
       html += '</div>';
+      // Warm-intro connections uploader — powers "warm via …" on Deep Targets.
+      html += '<div class="planner-section conn-panel"><div class="planner-sec-head">' +
+        '<span class="planner-sec-title">&#128279; Warm intros &mdash; team LinkedIn connections</span>' +
+        '<span class="planner-sec-sub">flags &ldquo;warm via&hellip;&rdquo; on Deep Targets &middot; stays in our DB, never sent to AI</span></div>' +
+        '<p class="conn-help">Each teammate: LinkedIn &rarr; Settings &rarr; Get a copy of your data &rarr; Connections &rarr; upload the CSV here.</p>' +
+        '<div class="conn-row"><select id="conn-owner" aria-label="Whose connections">' +
+        OPS_ROSTER.map(function (n) {{ return '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + '</option>'; }}).join('') +
+        '</select><input type="file" id="conn-file" accept=".csv" aria-label="Connections CSV">' +
+        '<button type="button" class="q-btn primary" id="conn-upload">Upload</button>' +
+        '<span id="conn-status" class="conn-status"></span></div>' +
+        '<div id="conn-counts" class="conn-counts"></div></div>';
       host.innerHTML = html;
+      wireConnectionsPanel();
 
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
