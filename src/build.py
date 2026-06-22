@@ -924,7 +924,6 @@ def build():
     .modal-quickbar .qa[data-qa="saved"].on {{ background: var(--ab-blue); border-color: var(--ab-blue); }}
     .modal-quickbar .qa[data-qa="hidden"].on {{ background: var(--ab-fg-3); border-color: var(--ab-fg-3); }}
     .modal-quickbar .qa[data-qa="go"].on {{ background: #1a8c54; border-color: #1a8c54; }}
-    .modal-quickbar .qa[data-qa="nogo"].on {{ background: #6b7280; border-color: #6b7280; }}
     .qa-row-label {{
       display: inline-flex; align-items: center; font-family: var(--ab-mono);
       font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
@@ -1692,7 +1691,7 @@ def build():
     .view-toggle button.active .vt-count {{ background: #1fa0dc; }}
     .vt-count.alert {{ background: #d64545; }}
 
-    /* Go / No-go decision badges (cards + modal + queue rows). */
+    /* Go decision badge (cards + modal + queue rows). */
     .decision-badge {{
       display: inline-flex; align-items: center; gap: 3px;
       font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 600;
@@ -1700,7 +1699,6 @@ def build():
       padding: 2px 7px; border-radius: 999px; white-space: nowrap;
     }}
     .decision-badge.go    {{ background: rgba(31,160,90,0.14); color: #1a8c54; }}
-    .decision-badge.nogo  {{ background: rgba(150,150,150,0.16); color: var(--ab-fg-3); }}
     .recent-badge {{
       display: inline-flex; align-items: center;
       font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 600;
@@ -1708,8 +1706,6 @@ def build():
       padding: 2px 7px; border-radius: 999px; white-space: nowrap;
       background: #fef3c7; color: #92600a; border: 1px solid #fde68a;
     }}
-    .ops-card.is-nogo {{ opacity: 0.55; }}
-    .ops-card.is-nogo:hover {{ opacity: 1; }}
 
     /* ── Queue view (Angela's application queue) ─────────────────── */
     .ops-queue, .ops-planner, .ops-dayof {{ display: none; }}
@@ -1817,7 +1813,6 @@ def build():
       transition: border-color 120ms ease, box-shadow 120ms ease;
     }}
     .queue-row:hover {{ border-color: #bfe3f5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }}
-    .queue-row.is-nogo {{ opacity: 0.6; }}
     .queue-main {{ min-width: 0; }}
     .queue-name {{
       font-family: var(--ab-sans); font-weight: 650; font-size: 0.98rem; color: var(--ab-fg);
@@ -2724,14 +2719,12 @@ def build():
       (summary
         ? '<span class="qa-int-summary">' + summary + '</span>'
         : '<span class="qa-int-summary qa-int-empty">No one yet — Angela applies for whoever\\'s interested</span>');
-    // Go / No-go decision — single field. Tapping the active one CLEARS it (so a
-    // no-go can be removed); the card un-greys when decision is empty.
+    // "Go" decision — a single optional flag. Tapping the active Go clears it.
     var dec = rec.decision || '';
     var decRow =
       '<span class="qa-row-label">Decision:</span>' +
       '<button type="button" class="qa' + (dec === 'go' ? ' on' : '') + '" data-qa="go">' + (dec === 'go' ? '✓ Go' : 'Go') + '</button>' +
-      '<button type="button" class="qa' + (dec === 'no-go' ? ' on' : '') + '" data-qa="nogo">' + (dec === 'no-go' ? '✓ No-go' : 'No-go') + '</button>' +
-      (dec ? '<span class="qa-int-summary">tap the active button to clear</span>' : '');
+      (dec === 'go' ? '<span class="qa-int-summary">tap to clear</span>' : '');
     return '<div class="modal-quickbar"><div class="qa-row">' + b.join('') + '</div>' +
            '<div class="qa-row" style="margin-top:6px;align-items:center;">' + decRow + '</div>' +
            '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div></div>';
@@ -2776,9 +2769,8 @@ def build():
         rec.stage_tags = tags;
         patch.status_tags = tags;
       }}
-      else if (qa === 'go' || qa === 'nogo') {{
-        var want = (qa === 'go') ? 'go' : 'no-go';
-        rec.decision = (rec.decision === want) ? '' : want;  // tap active -> clear
+      else if (qa === 'go') {{
+        rec.decision = (rec.decision === 'go') ? '' : 'go';  // tap active -> clear
         patch.decision = rec.decision || null;
       }} else {{ return; }}
       // Optimistic: re-render the modal with the updated rec, preserving the
@@ -3790,9 +3782,7 @@ def build():
       if (_soon) card.dataset.deadlineSoon = '1';
       if (st.urgent || (isDeadlineUrgent(ev.deadline) && !_opsPast)) card.classList.add('is-urgent');
       card.dataset.decision = (st.decision || '');
-      if (st.decision === 'no-go') card.classList.add('is-nogo');
-      var decBadge = st.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>'
-                   : st.decision === 'no-go' ? '<span class="decision-badge nogo">No-go</span>' : '';
+      var decBadge = st.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>' : '';
       // A link added/edited in event_state (override) wins over the catalog URL,
       // so adding a link to a link-less catalog event lights up the card ↗.
       var _cardUrl = (st.url && String(st.url).trim()) ? String(st.url).trim() : (ev.url || '');
@@ -3964,9 +3954,7 @@ def build():
       if (_manSoon) card.dataset.deadlineSoon = '1';
       if (isDeadlineUrgent(mev.deadline) && !_manPast) card.classList.add('is-urgent');
       card.dataset.decision = (mev.decision || '');
-      if (mev.decision === 'no-go') card.classList.add('is-nogo');
-      var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>'
-                    : mev.decision === 'no-go' ? '<span class="decision-badge nogo">No-go</span>' : '';
+      var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>' : '';
       var mRecent = isRecentlyAdded(mev.created_at);
       card.dataset.recent = mRecent ? '1' : '';
       var mRecentBadge = mRecent
@@ -5366,10 +5354,9 @@ def build():
       }}
       function rowHtml(it, actions) {{
         var ints = window.visibleInterested(it.interested, it.speaker, it.attendees).map(function (n) {{ return '<span class="q-int-chip">' + escapeHtml(n) + '</span>'; }}).join('');
-        var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>'
-                : it.decision === 'no-go' ? '<span class="decision-badge nogo">No-go</span>' : '';
+        var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>' : '';
         var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
-        return '<div class="queue-row' + (it.decision === 'no-go' ? ' is-nogo' : '') + '">' +
+        return '<div class="queue-row">' +
             '<div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<button type="button" class="ops-details-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
@@ -5380,9 +5367,8 @@ def build():
           '</div>';
       }}
 
-      var booked = [], submitted = [], toApply = [], passed = [];
+      var booked = [], submitted = [], toApply = [];
       items.forEach(function (it) {{
-        if (it.decision === 'no-go') {{ passed.push(it); return; }}
         if (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Attending') !== -1) booked.push(it);
         else if (it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Meeting held') !== -1) submitted.push(it);
         else toApply.push(it);
@@ -5424,7 +5410,6 @@ def build():
         html += section('To apply', toApply, 'toApply');
         html += section('Submitted / in progress', submitted, 'submitted');
         html += section('Booked / attending', booked, 'booked');
-        if (passed.length) html += section('Passed (No-go)', passed, 'passed');
       }}
       host.innerHTML = html;
 
@@ -5502,7 +5487,7 @@ def build():
     function findConflicts() {{
       var byWho = {{}};
       opsAllItems().forEach(function (it) {{
-        if (it.past || it.decision === 'no-go' || !it.speaker || it.hidden) return;
+        if (it.past || !it.speaker || it.hidden) return;
         // Only a real clash if the person is committed (Booked or Attending)
         // to both events — not merely considering them.
         if (it.stages.indexOf('Booked') === -1 && it.stages.indexOf('Attending') === -1) return;
@@ -5631,10 +5616,7 @@ def build():
       html += '<div class="planner-section"><div class="planner-sec-head"><span class="planner-sec-title">&#128506; Coverage gaps by territory</span><span class="planner-sec-sub">upcoming events with no speaker assigned</span></div>';
       var CAP = 12;
       AB_TERRITORIES.forEach(function (terr) {{
-        // Exclude no-go (passed) events from the territory roll-up entirely, so
-        // the three numbers reconcile (total = covered + open) and we never
-        // claim "all covered" while passed, speaker-less events sit uncounted.
-        var inTerr = items.filter(function (it) {{ return !it.past && !it.hidden && it.decision !== 'no-go' && terr.test(it); }});
+        var inTerr = items.filter(function (it) {{ return !it.past && !it.hidden && terr.test(it); }});
         if (!inTerr.length) return;
         var covered = inTerr.filter(function (it) {{ return it.speaker && it.speaker.trim(); }});
         var gaps = inTerr.filter(function (it) {{ return !(it.speaker && it.speaker.trim()); }});
@@ -5707,7 +5689,7 @@ def build():
       var pc = document.getElementById('vt-planner-count');
       if (qc) {{
         var n = opsAllItems().filter(function (it) {{
-          return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past && it.decision !== 'no-go' && it.stages.indexOf('Booked') === -1;
+          return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past && it.stages.indexOf('Booked') === -1;
         }}).length;
         if (n) {{ qc.textContent = n; qc.removeAttribute('hidden'); }} else {{ qc.setAttribute('hidden', ''); }}
       }}
