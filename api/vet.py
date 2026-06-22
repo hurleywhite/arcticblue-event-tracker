@@ -501,10 +501,10 @@ class handler(BaseHTTPRequestHandler):
         return _send(self, 200, {
             'fields':           fields,
             'raw':              agent_text[:8000] if agent_text else (text[:8000] if degraded else ''),
-            'status':           reply.get('status') if reply else None,
+            'engine':           ('openai' if OPENAI_API_KEY else 'dust'),
             'caller':           caller_email,
             'source':           {'url': url or None, 'exa': exa_meta},
             'degraded':         degraded,
             'degraded_reason':  degraded_reason,
-            'degraded_message': dust_error if degraded else None,
+            'degraded_message': ai_error if degraded else None,
         })
