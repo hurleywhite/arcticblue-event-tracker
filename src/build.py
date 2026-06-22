@@ -1701,6 +1701,13 @@ def build():
     }}
     .decision-badge.go    {{ background: rgba(31,160,90,0.14); color: #1a8c54; }}
     .decision-badge.nogo  {{ background: rgba(150,150,150,0.16); color: var(--ab-fg-3); }}
+    .recent-badge {{
+      display: inline-flex; align-items: center;
+      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+      background: #fef3c7; color: #92600a; border: 1px solid #fde68a;
+    }}
     .ops-card.is-nogo {{ opacity: 0.55; }}
     .ops-card.is-nogo:hover {{ opacity: 1; }}
 
@@ -3554,6 +3561,15 @@ def build():
       return dt;
     }}
 
+    // True if a row was created within the last 7 days (covers hand-added AND
+    // Dust-ingested manual events — both stamp created_at on insert).
+    function isRecentlyAdded(ts) {{
+      if (!ts) return false;
+      var t = new Date(ts).getTime();
+      if (isNaN(t)) return false;
+      return (Date.now() - t) < 7 * 86400000;
+    }}
+
     function optionRows(values, current) {{
       return values.map(function (v) {{
         var label = v || '— none —';
@@ -3921,6 +3937,11 @@ def build():
       if (mev.decision === 'no-go') card.classList.add('is-nogo');
       var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>'
                     : mev.decision === 'no-go' ? '<span class="decision-badge nogo">No-go</span>' : '';
+      var mRecent = isRecentlyAdded(mev.created_at);
+      card.dataset.recent = mRecent ? '1' : '';
+      var mRecentBadge = mRecent
+        ? '<span class="recent-badge" title="Added ' + escapeHtml(formatStamp(mev.created_at)) + '">Recently Added</span>'
+        : '';
       var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
       card.dataset.month = manualMeta.key;
       card.dataset.monthLabel = manualMeta.label;
@@ -3991,7 +4012,7 @@ def build():
             '<button class="saved-star' + (mev.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (mev.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (mev.saved ? '★' : '☆') + '</button>' +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             '<button class="ops-chip' + (mev.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (mev.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
-            mDecBadge +
+            mDecBadge + mRecentBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
         '</div>' +
