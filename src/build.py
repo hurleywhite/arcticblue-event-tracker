@@ -1249,7 +1249,7 @@ def build():
     /* "Months" hide/show dropdown in the ops filter bar */
     .ops-months {{ position: relative; display: inline-block; }}
     .ops-months-btn {{
-      font-family: var(--ab-mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
       text-transform: uppercase; color: var(--ab-fg-2);
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; padding: 8px 12px; cursor: pointer;
@@ -1598,7 +1598,7 @@ def build():
     /* Compact filter dropdown — same look as the Months menu. */
     .filter-dd {{ position: relative; display: inline-block; }}
     .filter-dd-btn {{
-      font-family: var(--ab-mono); font-size: 0.72rem; font-weight: 700;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.72rem; font-weight: 700;
       letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-fg-2);
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; padding: 8px 12px; cursor: pointer;
@@ -1659,7 +1659,7 @@ def build():
     }}
     .ops-filters input[type="search"] {{
       flex: 1 1 100%;   /* own full-width row; the other filters wrap below */
-      font-family: var(--ab-sans); font-size: 0.9rem;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.9rem; font-weight: 600;
       padding: 8px 12px; border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; background: var(--ab-bg);
       color: var(--ab-fg); outline: none;
@@ -1668,14 +1668,14 @@ def build():
       border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
     }}
     .ops-filters select {{
-      font-family: var(--ab-sans); font-size: 0.9rem;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.9rem; font-weight: 700;
       padding: 8px 12px; border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; background: var(--ab-bg);
       color: var(--ab-fg); outline: none;
     }}
     .ops-filter-chip {{
       display: inline-flex; align-items: center; gap: 6px;
-      font-family: var(--ab-mono); font-size: 0.72rem;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.72rem; font-weight: 700;
       letter-spacing: 0.06em; text-transform: uppercase;
       padding: 7px 12px; border-radius: 6px;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
