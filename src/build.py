@@ -1597,6 +1597,12 @@ def build():
       letter-spacing: 0.08em; text-transform: uppercase;
       color: var(--ab-fg-3); min-width: 84px;
     }}
+    /* Speaking vs Attending — distinct accents so the two are unmistakable. */
+    .ef-dot {{ display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }}
+    .ef-speak {{ background: #1271a8; }}   /* Speaking = blue  */
+    .ef-att   {{ background: #047857; }}   /* Attending = green */
+    .extra-chip.speak-chip.is-on {{ background: #1271a8; color: #fff; border-color: #1271a8; box-shadow: 0 0 0 2px #1271a8; }}
+    .extra-chip.att-chip.is-on   {{ background: #047857; color: #fff; border-color: #047857; box-shadow: 0 0 0 2px #047857; }}
     .extra-empty {{
       font-family: var(--ab-mono); font-size: 0.7rem;
       color: var(--ab-fg-3); font-style: italic;
@@ -2416,8 +2422,12 @@ def build():
             <span class="extra-filter-label">Track</span>
           </div>
           <div class="extra-filter-group" id="filter-speaker">
-            <span class="extra-filter-label">Speakers</span>
+            <span class="extra-filter-label"><span class="ef-dot ef-speak"></span>Speaking</span>
             <span class="extra-empty" id="filter-speaker-empty">No speakers assigned yet</span>
+          </div>
+          <div class="extra-filter-group" id="filter-attending">
+            <span class="extra-filter-label"><span class="ef-dot ef-att"></span>Attending</span>
+            <span class="extra-empty" id="filter-attending-empty">No attendees yet</span>
           </div>
         </div>
         <div class="ops-filters">
@@ -3758,6 +3768,8 @@ def build():
       card.dataset.priority = (st.priority_override || ev.priority || '');
       card.dataset.track    = (st.track || '');
       card.dataset.speaker  = (st.speaker || '');
+      var _att = st.attendees || ev.attendees || [];
+      card.dataset.attendees = (Array.isArray(_att) ? _att.join('|') : '').toLowerCase();
       // Attending signals — an event_state override (edited on the card) wins
       // over the catalog value, so audience / 1:1 / price edits show on the face.
       var _aud   = (st.audience_type  && String(st.audience_type).trim())  ? st.audience_type  : ev.audience_type;
@@ -3938,6 +3950,8 @@ def build():
       card.dataset.priority = mev.priority || '';
       card.dataset.track    = ''; // manual_events doesn't carry a track column
       card.dataset.speaker  = (mev.speaker || '');
+      var _matt = mev.attendees || [];
+      card.dataset.attendees = (Array.isArray(_matt) ? _matt.join('|') : '').toLowerCase();
       card.dataset.audience = (mev.audience_type || '');
       var _mpn = priceNumOf(mev.pricing);
       card.dataset.price    = (_mpn == null ? '' : String(_mpn));
@@ -4466,7 +4480,26 @@ def build():
       // Sort alphabetically, then build chips
       speakers.sort(function (a, b) {{ return a.localeCompare(b); }});
       speakers.forEach(function (name) {{
-        host.appendChild(_makeExtraChip(name, name));
+        host.appendChild(_makeExtraChip(name, name, 'speak-chip'));
+      }});
+      var clr = document.createElement('button');
+      clr.type = 'button'; clr.className = 'extra-clear'; clr.textContent = 'Clear';
+      clr.addEventListener('click', function () {{
+        host.querySelectorAll('.extra-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
+        applyFilters();
+      }});
+      host.appendChild(clr);
+    }}
+
+    // The Attending row — same roster, but filters by who's marked ATTENDING
+    // (the attendees field), distinct from who's SPEAKING (the speaker field).
+    function rebuildAttendingFilter() {{
+      var host = document.getElementById('filter-attending');
+      if (!host) return;
+      Array.prototype.slice.call(host.querySelectorAll('.extra-chip, .extra-clear, .extra-empty'))
+        .forEach(function (n) {{ n.remove(); }});
+      ['Carlos', 'Jerome', 'Jim', 'Joe', 'Scott', 'Thor', 'Verma'].forEach(function (name) {{
+        host.appendChild(_makeExtraChip(name, name, 'att-chip'));
       }});
       var clr = document.createElement('button');
       clr.type = 'button'; clr.className = 'extra-clear'; clr.textContent = 'Clear';
@@ -4759,6 +4792,10 @@ def build():
         document.querySelectorAll('#filter-speaker .extra-chip.is-on'),
         function (b) {{ return (b.dataset.value || '').toLowerCase(); }}
       );
+      var activeAttending = Array.prototype.map.call(
+        document.querySelectorAll('#filter-attending .extra-chip.is-on'),
+        function (b) {{ return (b.dataset.value || '').toLowerCase(); }}
+      );
 
       var shown = 0;
       var monthMatched = {{}};
@@ -4817,7 +4854,7 @@ def build():
         if (activeStatuses.length   > 0 && activeStatuses.indexOf(card.dataset.status   || '') === -1) on = false;
         if (activePriorities.length > 0 && activePriorities.indexOf(card.dataset.priority || '') === -1) on = false;
         if (activeTracks.length     > 0 && activeTracks.indexOf(card.dataset.track     || '') === -1) on = false;
-        // Speakers — the card's speaker field may carry multiple names
+        // Speaking — the card's speaker field may carry multiple names
         // ("Thor, Verma"). Treat ANY token-level overlap as a match.
         if (activeSpeakers.length > 0) {{
           var sp = (card.dataset.speaker || '').toLowerCase();
@@ -4828,6 +4865,12 @@ def build():
             var hit = activeSpeakers.some(function (a) {{ return tokens.indexOf(a) !== -1; }});
             if (!hit) on = false;
           }}
+        }}
+        // Attending — a separate dimension: who's marked attending (the
+        // attendees field, persona keys), NOT who's speaking.
+        if (activeAttending.length > 0) {{
+          var att = (card.dataset.attendees || '').split('|').filter(Boolean);
+          if (!activeAttending.some(function (a) {{ return att.indexOf(a) !== -1; }})) on = false;
         }}
         // Collapsing a month is a view convenience, not a filter: a card that
         // passes the filters still counts toward "shown" even when its month
@@ -4915,7 +4958,7 @@ def build():
         var el = document.getElementById(id); if (el) el.checked = false;
       }});
       Array.prototype.forEach.call(
-        document.querySelectorAll('#stage-filters .stage-chip.is-on, .status-filters .status-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
+        document.querySelectorAll('#stage-filters .stage-chip.is-on, .status-filters .status-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on, #filter-attending .extra-chip.is-on'),
         function (c) {{ c.classList.remove('is-on'); }}
       );
       opsStatFilter = '';
@@ -5767,6 +5810,7 @@ def build():
         updateOpsCount();
         renderStats(evs, stateRows, manualRows);
         rebuildSpeakerFilter(stateRows, manualRows);
+        rebuildAttendingFilter();
         regroupOpsByMonth();
         wireMonthsMenu();
         applyFilters();
