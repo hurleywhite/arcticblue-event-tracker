@@ -812,11 +812,11 @@
     /* "Months" hide/show dropdown in the ops filter bar */
     .ops-months { position: relative; display: inline-block; }
     .ops-months-btn {
-      font-family: var(--ab-mono); font-size: 0.66rem; letter-spacing: 0.06em;
+      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em;
       text-transform: uppercase; color: var(--ab-fg-2);
       background: var(--ab-bg-3); border: 1px solid var(--ab-rule);
-      border-radius: 6px; padding: 5px 10px; cursor: pointer;
-      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 6px; padding: 6px 11px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
     .ops-months-btn:hover { border-color: var(--ab-rule-strong); color: var(--ab-fg); }
@@ -1145,21 +1145,33 @@
     .ops-form .stage-picker label.is-on { box-shadow: 0 0 0 2px var(--ab-fg) inset; }
     .ops-form .stage-picker label input { margin: 0; width: auto; }
 
-    /* Extra filters — Priority / Track / Speakers rows */
+    /* Extra filters — Priority / Track / Speaking / Attending dropdowns */
     .extra-filters {
-      display: flex; flex-direction: column; gap: 8px;
-      padding: 10px 12px; margin-bottom: 16px;
-      border: 1px solid var(--ab-rule); border-radius: 10px;
-      background: var(--ab-bg);
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin-bottom: 12px;
     }
-    .extra-filter-group {
-      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-    }
-    .extra-filter-label {
+    /* Compact filter dropdown — same look as the Months menu. */
+    .filter-dd { position: relative; display: inline-block; }
+    .filter-dd-btn {
       font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--ab-fg-2); min-width: 84px;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-2);
+      background: var(--ab-bg-3); border: 1px solid var(--ab-rule);
+      border-radius: 6px; padding: 6px 11px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
+    .filter-dd-btn:hover { border-color: var(--ab-rule-strong); color: var(--ab-fg); }
+    .filter-dd-btn.has-active { background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }
+    .filter-dd-btn .dd-caret { font-size: 0.55rem; opacity: 0.6; }
+    .filter-dd-menu {
+      position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+      min-width: 200px; max-width: 330px; max-height: 360px; overflow-y: auto;
+      background: var(--ab-bg); border: 1px solid var(--ab-rule);
+      border-radius: 8px; padding: 10px; gap: 6px; flex-wrap: wrap;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.10); display: none;
+    }
+    .filter-dd-menu.open { display: flex; }
+    .filter-dd-menu .extra-clear { flex-basis: 100%; margin-top: 2px; }
     /* Speaking (blue) vs Attending (green) active chips keep the two distinct. */
     .extra-chip.speak-chip.is-on { background: #1271a8; color: #fff; border-color: #1271a8; box-shadow: 0 0 0 2px #1271a8; }
     .extra-chip.att-chip.is-on   { background: #047857; color: #fff; border-color: #047857; box-shadow: 0 0 0 2px #047857; }
@@ -1885,20 +1897,21 @@
           </div>
         </details>
         <div class="extra-filters" id="extra-filters">
-          <div class="extra-filter-group" id="filter-priority">
-            <span class="extra-filter-label">Priority</span>
-            <!-- chips injected by buildExtraFilters() -->
+          <div class="filter-dd" id="filter-priority">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Priority</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><!-- chips injected by buildExtraFilters() --></div>
           </div>
-          <div class="extra-filter-group" id="filter-track">
-            <span class="extra-filter-label">Track</span>
+          <div class="filter-dd" id="filter-track">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Track</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"></div>
           </div>
-          <div class="extra-filter-group" id="filter-speaker">
-            <span class="extra-filter-label">Speaking</span>
-            <span class="extra-empty" id="filter-speaker-empty">No speakers assigned yet</span>
+          <div class="filter-dd" id="filter-speaker">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Speaking</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><span class="extra-empty" id="filter-speaker-empty">No speakers assigned yet</span></div>
           </div>
-          <div class="extra-filter-group" id="filter-attending">
-            <span class="extra-filter-label">Attending</span>
-            <span class="extra-empty" id="filter-attending-empty">No attendees yet</span>
+          <div class="filter-dd" id="filter-attending">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Attending</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><span class="extra-empty" id="filter-attending-empty">No attendees yet</span></div>
           </div>
         </div>
         <div class="ops-filters">
@@ -1929,7 +1942,6 @@
             <option value="Verma">Fits: Verma</option>
             <option value="Carlos">Fits: Carlos</option>
           </select>
-          <label class="ops-filter-chip" title="Show only events where an ArcticBlue speaker is Booked to speak — not just attending"><input type="checkbox" id="ops-f-speaker">Speaking (booked)</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
           <div class="ops-months">
@@ -2147,10 +2159,15 @@
     if (p == null) return null;
     var s = String(p).toLowerCase();
     if (!s.trim()) return null;
+    // Only count a number that's actually a PRICE — tied to a currency symbol or
+    // code. Otherwise attendee counts ("32,000"), years ("2026"), etc. get read
+    // as prices, so "Price known" showed events with no real price.
+    var clean = s.replace(/,/g, ''), nums = [], x;
+    var re = /(?:[$£€]\s?(\d{2,6}(?:\.\d+)?))|(?:(\d{2,6}(?:\.\d+)?)\s?(?:usd|eur|gbp|dollars?|euros?|pounds?))/g;
+    while ((x = re.exec(clean)) !== null) { var n = x[1] || x[2]; if (n) nums.push(parseFloat(n)); }
+    if (nums.length) return Math.max.apply(null, nums);
     if (/\bfree\b|\bcomplimentary\b|\bno cost\b/.test(s)) return 0;
-    var m = s.replace(/,/g, '').match(/\d{2,6}(?:\.\d+)?/g);
-    if (!m) return null;
-    return Math.max.apply(null, m.map(parseFloat));
+    return null;
   }
   // First http(s) URL inside a speaking_route blob ('Apply to speak:
   // https://x.io/cfp') -> the URL, else null. Powers the Apply button.
@@ -3872,7 +3889,7 @@
 
     function buildExtraFilters() {
       // Priority (static)
-      var pri = document.getElementById('filter-priority');
+      var pri = document.querySelector('#filter-priority .filter-dd-menu');
       if (pri && pri.dataset.built !== '1') {
         ['High', 'Medium', 'Low'].forEach(function (v) {
           pri.appendChild(_makeExtraChip(v, v, 'pri-' + v.toLowerCase()));
@@ -3887,7 +3904,7 @@
         pri.dataset.built = '1';
       }
       // Track (static — values defined in the schema CHECK constraint)
-      var trk = document.getElementById('filter-track');
+      var trk = document.querySelector('#filter-track .filter-dd-menu');
       if (trk && trk.dataset.built !== '1') {
         [['Sponsor','track-sponsor'], ['Earned','track-earned'], ['Both','track-both'], ['Unknown','track-unknown']].forEach(function (pair) {
           trk.appendChild(_makeExtraChip(pair[0], pair[0], pair[1]));
@@ -3903,11 +3920,51 @@
       }
     }
 
+    // Priority / Track / Speaking / Attending are dropdowns (button + popup of
+    // chips) — same pattern as the Months menu. The chips inside keep their
+    // existing is-on toggle + applyFilters, so the filter logic is unchanged.
+    function updateFilterDropdownCounts() {
+      Array.prototype.forEach.call(document.querySelectorAll('.filter-dd'), function (dd) {
+        var n = dd.querySelectorAll('.filter-dd-menu .extra-chip.is-on').length;
+        var cnt = dd.querySelector('.dd-count');
+        var btn = dd.querySelector('.filter-dd-btn');
+        if (cnt) cnt.textContent = n ? (' · ' + n) : '';
+        if (btn) btn.classList.toggle('has-active', n > 0);
+      });
+    }
+
+    function _closeFilterDropdowns() {
+      Array.prototype.forEach.call(document.querySelectorAll('.filter-dd-menu.open'), function (m) { m.classList.remove('open'); });
+      Array.prototype.forEach.call(document.querySelectorAll('.filter-dd-btn[aria-expanded="true"]'), function (b) { b.setAttribute('aria-expanded', 'false'); });
+    }
+
+    function wireFilterDropdowns() {
+      Array.prototype.forEach.call(document.querySelectorAll('.filter-dd'), function (dd) {
+        var btn = dd.querySelector('.filter-dd-btn');
+        var menu = dd.querySelector('.filter-dd-menu');
+        if (!btn || !menu || menu.dataset.wired) return;
+        menu.dataset.wired = '1';
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var willOpen = !menu.classList.contains('open');
+          _closeFilterDropdowns();
+          if (willOpen) { menu.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); }
+        });
+        menu.addEventListener('click', function (e) { e.stopPropagation(); });
+      });
+      if (!document.body.dataset.ddOutside) {
+        document.body.dataset.ddOutside = '1';
+        document.addEventListener('click', _closeFilterDropdowns);
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') _closeFilterDropdowns(); });
+      }
+      updateFilterDropdownCounts();
+    }
+
     // Rebuild the Speakers row from the current data set. Called from
     // renderOps() so the chip list reflects who's actually assigned right
     // now (including changes that just synced in via realtime).
     function rebuildSpeakerFilter(stateRows, manualRows) {
-      var host = document.getElementById('filter-speaker');
+      var host = document.querySelector('#filter-speaker .filter-dd-menu');
       if (!host) return;
       // Wipe any prior chips/clear/empty markers but keep the label
       Array.prototype.slice.call(host.querySelectorAll('.extra-chip, .extra-clear, .extra-empty'))
@@ -3961,7 +4018,7 @@
     // The Attending row — same roster, but filters by who's marked ATTENDING
     // (the attendees field), distinct from who's SPEAKING (the speaker field).
     function rebuildAttendingFilter() {
-      var host = document.getElementById('filter-attending');
+      var host = document.querySelector('#filter-attending .filter-dd-menu');
       if (!host) return;
       Array.prototype.slice.call(host.querySelectorAll('.extra-chip, .extra-clear, .extra-empty'))
         .forEach(function (n) { n.remove(); });
@@ -4207,7 +4264,6 @@
       var $region  = document.getElementById('ops-region');
       var $saved   = document.getElementById('ops-f-saved');
       var $urgent  = document.getElementById('ops-f-urgent');
-      var $speaker = document.getElementById('ops-f-speaker');
       var $buyers  = document.getElementById('ops-f-buyers');
       var $meet    = document.getElementById('ops-f-meetings');
       var $worth   = document.getElementById('ops-f-worth');
@@ -4220,7 +4276,6 @@
       var rg = $region ? ($region.value || '') : '';
       var fSaved   = !!($saved && $saved.checked);
       var fUrgent  = !!($urgent && $urgent.checked);
-      var fSpeaker = !!($speaker && $speaker.checked);
       var fBuyers  = !!($buyers && $buyers.checked);
       var fMeet    = !!($meet && $meet.checked);
       var fWorth   = !!($worth && $worth.checked);
@@ -4231,7 +4286,7 @@
       var showHidden = !!($hidden && $hidden.checked);
       var fRecent    = !!($recent && $recent.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-buyers',$buyers],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-buyers',$buyers],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
@@ -4284,9 +4339,6 @@
         if (fitsProfile && !profileFits(fitsProfile, card.dataset.fitText, card.dataset.region)) on = false;
         if (fSaved && !card.classList.contains('is-saved'))  on = false;
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
-        // "Speaking (booked)" = an ArcticBlue speaker has a confirmed slot
-        // (Booked stage) — NOT events someone is merely attending.
-        if (fSpeaker && (card.dataset.statusTags || '').split('|').indexOf('Booked') === -1) on = false;
         if (fBuyers && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
         if (fMeet && card.dataset.meetings !== '1') on = false;
         if (fRecent && card.dataset.recent !== '1') on = false;
@@ -4389,6 +4441,7 @@
         $empty.style.display = 'none';
       }
       syncAriaPressed();  // reflect on/off state to screen readers
+      updateFilterDropdownCounts();  // keep dropdown buttons' active counts current
       // The map mirrors the grid's filters — keep its pins in sync.
       if (currentView === 'map' && _opsMapLayer) renderOpsMap();
     }
@@ -4406,7 +4459,7 @@
       // Debounce only the free-text search (fires on every keystroke); selects
       // and checkboxes change discretely, so apply those immediately.
       var debouncedApply = debounce(applyFilters, 130);
-      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
+      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -4421,7 +4474,7 @@
       ['ops-search','ops-region','ops-price','ops-fits'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.value = '';
       });
-      ['ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
+      ['ops-f-saved','ops-f-urgent','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.checked = false;
       });
       Array.prototype.forEach.call(
@@ -7690,6 +7743,7 @@
       buildStageFilters();
       buildStatusFilters();
       buildExtraFilters();
+      wireFilterDropdowns();
       renderOps(who);
       wireAddEvent(who);
       setupRealtime(who);
