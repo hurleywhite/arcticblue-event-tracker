@@ -2191,7 +2191,7 @@
     // who want Angela to apply for them. This feeds Angela's Queue.
     var me = (window.opsCurrentUser ? window.opsCurrentUser() : '') || '';
     var iAmIn = !!(me && (rec.interested || []).some(function (n) { return String(n).toLowerCase() === me.toLowerCase(); }));
-    var summary = formatInterested(rec.interested);
+    var summary = formatInterested(window.visibleInterested(rec.interested, rec.speaker, rec.attendees));
     var intRow =
       '<span class="qa-row-label">Interested:</span>' +
       '<button type="button" class="qa' + (iAmIn ? ' on' : '') + '" data-qa="interested">' + (iAmIn ? '✓ Interested' : "+ I'm interested") + '</button>' +
@@ -2522,9 +2522,10 @@
 
     // Read-only view. The edit form below mirrors this exact layout.
     var v = '';
-    if (rec.interested && rec.interested.length) {
+    var _visInt = window.visibleInterested(rec.interested, rec.speaker, rec.attendees);
+    if (_visInt.length) {
       v += field('Interested — wants Angela to apply',
-        rec.interested.map(function (n) { return '<span class="int-chip">' + esc(n) + '</span>'; }).join(''), true);
+        _visInt.map(function (n) { return '<span class="int-chip">' + esc(n) + '</span>'; }).join(''), true);
     }
     v += field('Why it fits ArcticBlue', rec.why);
     v += field('About', rec.about);
@@ -2638,6 +2639,21 @@
   window.attendClass = attendClass;
   window.closeEventModal = closeModal;
   window.openEventByNum = function (num) { openEventModal(CATALOG[String(num)]); };
+  // "Interested" = people who want Angela to apply for them. Drop anyone who's
+  // ALREADY booked (the assigned speaker) or attending (in attendees) for this
+  // event — no need to apply for someone already going. Keeps everyone else.
+  window.visibleInterested = function (interested, speaker, attendees) {
+    if (!interested || !interested.length) return [];
+    var covered = {};
+    (attendees || []).forEach(function (a) { var k = String(a).toLowerCase().trim(); if (k) covered[k] = 1; });
+    String(speaker || '').toLowerCase().replace(/\s+and\s+/g, ',').split(/[,;\/&]/).forEach(function (s) {
+      s = s.trim(); if (s) { covered[s] = 1; covered[s.split(/\s+/)[0]] = 1; }
+    });
+    return interested.filter(function (n) {
+      var low = String(n).toLowerCase().trim();
+      return !(covered[low] || covered[low.split(/\s+/)[0]]);
+    });
+  };
 
   closeBtn.addEventListener('click', closeModal);
   overlay.addEventListener('click', function (ev) { if (ev.target === overlay) closeModal(); });
@@ -4799,7 +4815,9 @@
       var host = document.getElementById('ops-queue');
       if (!host) return;
       var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Attending'];
-      var items = opsAllItems().filter(function (it) { return it.interested.length && !it.past; });
+      // Queue = events still needing an application. Count only interested
+      // people NOT already booked/attending (window.visibleInterested).
+      var items = opsAllItems().filter(function (it) { return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past; });
 
       function deadlineHtml(it) {
         if (!it.deadline || isDeadlinePast(it.deadline)) return '';
@@ -4807,7 +4825,7 @@
         return '<span class="q-deadline' + (soon ? ' soon' : '') + '">&#9203; ' + escapeHtml(it.deadline) + '</span>';
       }
       function rowHtml(it, actions) {
-        var ints = it.interested.map(function (n) { return '<span class="q-int-chip">' + escapeHtml(n) + '</span>'; }).join('');
+        var ints = window.visibleInterested(it.interested, it.speaker, it.attendees).map(function (n) { return '<span class="q-int-chip">' + escapeHtml(n) + '</span>'; }).join('');
         var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>'
                 : it.decision === 'no-go' ? '<span class="decision-badge nogo">No-go</span>' : '';
         var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
@@ -5149,7 +5167,7 @@
       var pc = document.getElementById('vt-planner-count');
       if (qc) {
         var n = opsAllItems().filter(function (it) {
-          return it.interested.length && !it.past && it.decision !== 'no-go' && it.stages.indexOf('Booked') === -1;
+          return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past && it.decision !== 'no-go' && it.stages.indexOf('Booked') === -1;
         }).length;
         if (n) { qc.textContent = n; qc.removeAttribute('hidden'); } else { qc.setAttribute('hidden', ''); }
       }
