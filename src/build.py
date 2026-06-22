@@ -1249,7 +1249,7 @@ def build():
     /* "Months" hide/show dropdown in the ops filter bar */
     .ops-months {{ position: relative; display: inline-block; }}
     .ops-months-btn {{
-      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.86rem; font-weight: 800; letter-spacing: 0.04em;
       text-transform: uppercase; color: var(--ab-fg-2);
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; padding: 8px 12px; cursor: pointer;
@@ -1598,8 +1598,8 @@ def build():
     /* Compact filter dropdown — same look as the Months menu. */
     .filter-dd {{ position: relative; display: inline-block; }}
     .filter-dd-btn {{
-      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.72rem; font-weight: 700;
-      letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-fg-2);
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.86rem; font-weight: 800;
+      letter-spacing: 0.04em; text-transform: uppercase; color: var(--ab-fg-2);
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; padding: 8px 12px; cursor: pointer;
       display: inline-flex; align-items: center; gap: 5px;
@@ -1652,15 +1652,21 @@ def build():
 
     /* Filter bar */
     .ops-filters {{
-      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px; align-items: stretch;
       padding: 12px; margin-bottom: 16px;
       border: 1px solid var(--ab-rule); border-radius: 10px;
       background: var(--ab-bg);
     }}
+    /* Each filter fills its column so the bar reads as a tidy 5-up grid */
+    .ops-filters > .filter-dd, .ops-filters > .ops-months {{ display: block; }}
+    .ops-filters .filter-dd-btn, .ops-filters .ops-months-btn {{
+      width: 100%; justify-content: space-between;
+    }}
     .ops-filters input[type="search"] {{
-      flex: 1 1 100%;   /* own full-width row; the other filters wrap below */
-      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.9rem; font-weight: 600;
-      padding: 8px 12px; border: 1px solid var(--ab-rule-strong);
+      grid-column: 1 / -1;   /* own full-width row; the other filters sit 5-up below */
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.98rem; font-weight: 700;
+      padding: 10px 13px; border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; background: var(--ab-bg);
       color: var(--ab-fg); outline: none;
     }}
@@ -1668,16 +1674,17 @@ def build():
       border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
     }}
     .ops-filters select {{
-      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.9rem; font-weight: 700;
-      padding: 8px 12px; border: 1px solid var(--ab-rule-strong);
+      width: 100%;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.86rem; font-weight: 800;
+      padding: 10px 13px; border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; background: var(--ab-bg);
       color: var(--ab-fg); outline: none;
     }}
     .ops-filter-chip {{
-      display: inline-flex; align-items: center; gap: 6px;
-      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.72rem; font-weight: 700;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 7px 12px; border-radius: 6px;
+      display: flex; width: 100%; align-items: center; gap: 6px;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.86rem; font-weight: 800;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 10px 13px; border-radius: 6px; white-space: nowrap;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
       color: var(--ab-fg-2); cursor: pointer; user-select: none;
     }}
@@ -1685,9 +1692,10 @@ def build():
     .ops-filter-chip input {{ accent-color: var(--ab-blue); }}
     .ops-filter-chip.has-active {{ background: var(--ab-bg-3); border-color: var(--ab-fg); color: var(--ab-fg); }}
     .ops-shown {{
-      font-family: var(--ab-mono); font-size: 0.74rem;
+      grid-column: 1 / -1;
+      font-family: var(--ab-mono); font-size: 0.76rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
-      margin-left: auto;
+      text-align: right;
     }}
 
     /* View toggle (Grid / Calendar) */
