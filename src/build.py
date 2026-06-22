@@ -1249,10 +1249,10 @@ def build():
     /* "Months" hide/show dropdown in the ops filter bar */
     .ops-months {{ position: relative; display: inline-block; }}
     .ops-months-btn {{
-      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em;
+      font-family: var(--ab-mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
       text-transform: uppercase; color: var(--ab-fg-2);
-      background: var(--ab-bg-3); border: 1px solid var(--ab-rule);
-      border-radius: 6px; padding: 6px 11px; cursor: pointer;
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
+      border-radius: 6px; padding: 8px 12px; cursor: pointer;
       display: inline-flex; align-items: center; gap: 5px;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }}
@@ -1582,18 +1582,26 @@ def build():
     .ops-form .stage-picker label.is-on {{ box-shadow: 0 0 0 2px var(--ab-fg) inset; }}
     .ops-form .stage-picker label input {{ margin: 0; width: auto; }}
 
-    /* Extra filters — Priority / Track / Speaking / Attending dropdowns */
+    /* Extra filters (used by the Dust event-search panel: Types / Quarters / …) */
     .extra-filters {{
-      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-      margin-bottom: 12px;
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 10px 12px; margin-bottom: 16px;
+      border: 1px solid var(--ab-rule); border-radius: 10px;
+      background: var(--ab-bg);
+    }}
+    .extra-filter-group {{ display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }}
+    .extra-filter-label {{
+      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ab-fg-2); min-width: 84px;
     }}
     /* Compact filter dropdown — same look as the Months menu. */
     .filter-dd {{ position: relative; display: inline-block; }}
     .filter-dd-btn {{
-      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 700;
-      letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-2);
-      background: var(--ab-bg-3); border: 1px solid var(--ab-rule);
-      border-radius: 6px; padding: 6px 11px; cursor: pointer;
+      font-family: var(--ab-mono); font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-fg-2);
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
+      border-radius: 6px; padding: 8px 12px; cursor: pointer;
       display: inline-flex; align-items: center; gap: 5px;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }}
@@ -2415,31 +2423,6 @@ def build():
           <span class="label">Pipeline:</span>
           <!-- 5 stage chips injected by buildStageFilters() -->
         </div>
-        <details class="legacy-status-wrap">
-          <summary>Legacy status filters (detail)</summary>
-          <div class="status-filters" id="status-filters">
-            <span class="label">Status:</span>
-            <!-- chips injected by buildStatusFilters() -->
-          </div>
-        </details>
-        <div class="extra-filters" id="extra-filters">
-          <div class="filter-dd" id="filter-priority">
-            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Priority</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
-            <div class="filter-dd-menu"><!-- chips injected by buildExtraFilters() --></div>
-          </div>
-          <div class="filter-dd" id="filter-track">
-            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Track</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
-            <div class="filter-dd-menu"></div>
-          </div>
-          <div class="filter-dd" id="filter-speaker">
-            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Speaking</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
-            <div class="filter-dd-menu"><span class="extra-empty" id="filter-speaker-empty">No speakers assigned yet</span></div>
-          </div>
-          <div class="filter-dd" id="filter-attending">
-            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Attending</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
-            <div class="filter-dd-menu"><span class="extra-empty" id="filter-attending-empty">No attendees yet</span></div>
-          </div>
-        </div>
         <div class="ops-filters">
           <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
           <select id="ops-region" aria-label="Filter region">
@@ -2468,6 +2451,22 @@ def build():
             <option value="Verma">Fits: Verma</option>
             <option value="Carlos">Fits: Carlos</option>
           </select>
+          <div class="filter-dd" id="filter-priority">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Priority</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><!-- chips injected by buildExtraFilters() --></div>
+          </div>
+          <div class="filter-dd" id="filter-track">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Track</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"></div>
+          </div>
+          <div class="filter-dd" id="filter-speaker">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Speaking</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><span class="extra-empty" id="filter-speaker-empty">No speakers assigned yet</span></div>
+          </div>
+          <div class="filter-dd" id="filter-attending">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Attending</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><span class="extra-empty" id="filter-attending-empty">No attendees yet</span></div>
+          </div>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
           <div class="ops-months">
