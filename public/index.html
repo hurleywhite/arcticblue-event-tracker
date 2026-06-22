@@ -1930,6 +1930,7 @@
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-speaker">Has speaker</label>
           <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
           <label class="ops-filter-chip" title="Show only events marked No-go, to review or restore them"><input type="checkbox" id="ops-f-nogo">Passed (no-go)</label>
+          <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
           <div class="ops-months">
             <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
               Months <span class="mb-caret" aria-hidden="true">&#9660;</span>
@@ -4171,6 +4172,7 @@
       var $past    = document.getElementById('ops-f-past');
       var $hidden  = document.getElementById('ops-f-hidden');
       var $nogo    = document.getElementById('ops-f-nogo');
+      var $recent  = document.getElementById('ops-f-recent');
       if (!$search || !$opsGrid) return;
       var q = ($search.value || '').toLowerCase().trim();
       var rg = $region ? ($region.value || '') : '';
@@ -4186,8 +4188,9 @@
       var showPast   = !!($past && $past.checked);
       var showHidden = !!($hidden && $hidden.checked);
       var fNogo      = !!($nogo && $nogo.checked);
+      var fRecent    = !!($recent && $recent.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-buyers',$buyers],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-nogo',$nogo]].forEach(function (pair) {
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-speaker',$speaker],['ops-f-buyers',$buyers],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-nogo',$nogo],['ops-f-recent',$recent]].forEach(function (pair) {
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
@@ -4240,6 +4243,7 @@
         if (fBuyers && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
         if (fMeet && card.dataset.meetings !== '1') on = false;
         if (fNogo && card.dataset.decision !== 'no-go') on = false;
+        if (fRecent && card.dataset.recent !== '1') on = false;
         if (fWorth && (card.dataset.attend || '').toLowerCase().indexOf('worth attending') !== 0) on = false;
         if (fPrice) {
           var pn = card.dataset.price === '' || card.dataset.price == null ? null : parseFloat(card.dataset.price);
@@ -4350,7 +4354,7 @@
       // Debounce only the free-text search (fires on every keystroke); selects
       // and checkboxes change discretely, so apply those immediately.
       var debouncedApply = debounce(applyFilters, 130);
-      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-nogo'].forEach(function (id) {
+      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-nogo','ops-f-recent'].forEach(function (id) {
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -4365,7 +4369,7 @@
       ['ops-search','ops-region','ops-price','ops-fits'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.value = '';
       });
-      ['ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-nogo'].forEach(function (id) {
+      ['ops-f-saved','ops-f-urgent','ops-f-speaker','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-nogo','ops-f-recent'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.checked = false;
       });
       Array.prototype.forEach.call(
