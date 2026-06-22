@@ -5315,7 +5315,15 @@
     // Apply extracted fields to the form (only fills empty inputs by default)
     function applyExtractToForm(form, extracted, opts) {
       opts = opts || {};
-      var keys = ['name', 'date_str', 'location', 'region', 'url'];
+      // Map every field the scraper can return — not just the basic 5. Selects
+      // (region/type/priority/audience_type/pay_to_play) fill only if the value
+      // matches an option; text fields always fill. Best-effort, never clobbers
+      // a value the user already typed (overwrite:false).
+      var keys = ['name', 'date_str', 'location', 'region', 'url', 'type',
+        'priority', 'why', 'about', 'focus_areas', 'typical_attendees',
+        'speaking_route', 'contact_info', 'audience_type', 'pay_to_play',
+        'pricing', 'attendee_count', 'past_speakers', 'venue', 'deadline',
+        'speaker', 'meeting_formats'];
       var filled = 0, skipped = 0;
       keys.forEach(function (k) {
         var el = form.querySelector('[name="' + k + '"]');
@@ -5405,6 +5413,7 @@
     var _knownNames = null;          // Set of lowercased names
     var _knownNameSource = {};      // map: name_lower → 'catalog' | 'manual'
     var _knownKeys = {};            // map: fuzzy name+city+year key → source
+    var _knownRec = {};             // map: name_lower / fuzzy key → {name,location,date_str} for clearer dup messages
     // Fuzzy duplicate key: reduce the name to its core (drop parentheticals like
     // "(IPT Edition)", the year, and punctuation), then pin to city + year. So
     // "AI Summit Brasil – Sao Paulo 2026" and "AI Summit Brasil — Sao Paulo
@@ -5474,31 +5483,41 @@
         return ((r && r.data) || []);
       });
       return Promise.all([p1, p2]).then(function (a) {
-        _knownNameSource = {}; _knownKeys = {};
-        a[0].forEach(function (e) {
-          var n = (e.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'catalog';
-          var k = dupKeyOf(e); if (k && !_knownKeys[k]) _knownKeys[k] = 'catalog';
-        });
-        a[1].forEach(function (e) {
-          var n = (e.name || '').toLowerCase().trim(); if (n) _knownNameSource[n] = 'manual:' + e.id;
-          var k = dupKeyOf(e); if (k) _knownKeys[k] = 'manual:' + e.id;
-        });
+        _knownNameSource = {}; _knownKeys = {}; _knownRec = {};
+        function remember(e, src) {
+          var rec = { name: e.name || '', location: e.location || e.city || '', date_str: e.date_str || '' };
+          var n = (e.name || '').toLowerCase().trim();
+          if (n) { _knownNameSource[n] = src; _knownRec[n] = rec; }
+          var k = dupKeyOf(e);
+          if (k) { if (!_knownKeys[k] || src.indexOf('manual') === 0) _knownKeys[k] = src; if (!_knownRec[k]) _knownRec[k] = rec; }
+        }
+        a[0].forEach(function (e) { remember(e, 'catalog'); });
+        a[1].forEach(function (e) { remember(e, 'manual:' + e.id); });
         _knownNames = Object.keys(_knownNameSource);
         return _knownNames;
       });
     }
-    // Returns null if name is fine, or an object describing the conflict.
+    // Returns null if name is fine, or an object describing the conflict
+    // (incl. the matched event's details for a clear message).
     // selfId optional — when editing, ignores a match against the row being edited.
     function findDuplicate(name, selfId, o) {
       var n = (name || '').toLowerCase().trim();
       if (!_knownNameSource) return null;
-      // 1) exact name match (original behavior)
-      var src = n ? _knownNameSource[n] : null;
-      // 2) fuzzy name+city+year match — catches "… 2026" vs "… (IPT Edition)"
-      if (!src && o) { var k = dupKeyOf(o); if (k) src = _knownKeys[k] || null; }
+      var src = n ? _knownNameSource[n] : null;       // 1) exact name match
+      var rec = src ? _knownRec[n] : null;
+      if (!src && o) {                                 // 2) fuzzy name+city+year
+        var k = dupKeyOf(o);
+        if (k) { src = _knownKeys[k] || null; rec = src ? _knownRec[k] : null; }
+      }
       if (!src) return null;
       if (selfId && src === 'manual:' + selfId) return null;
-      return { name_lower: n, source: src };
+      return { name_lower: n, source: src, rec: rec || null };
+    }
+    // "TEDAI (Vienna, Austria · October 28–30, 2026)" for dup messages.
+    function dupLabel(dup) {
+      var r = dup && dup.rec; if (!r) return '';
+      var bits = [r.location, r.date_str].filter(Boolean).join(' · ');
+      return (r.name || '') + (bits ? ' (' + bits + ')' : '');
     }
     function isDuplicateName(name, selfId, o) { return !!findDuplicate(name, selfId, o); }
 
@@ -5654,20 +5673,27 @@
         // separate entries with two UIDs, which produces double-rendered
         // events in subscribed calendars. The unique index on the DB
         // (scripts/2026-05-26_dedup_manual_events.sql) is the final defense.
+        // Exact-name match. Show WHICH event (location + date) so the user can
+        // tell if it's truly the same, and let them override if it's genuinely
+        // different (e.g. same name, different city/year) — the DB unique index
+        // is the final backstop.
         var dup = findDuplicate(row.name);
         if (dup) {
-          var srcLabel = dup.source === 'catalog'
-            ? 'the public ArcticBlue catalog (events.json)'
-            : 'manual events';
-          alert('"' + row.name + '" already exists in ' + srcLabel + '. Use the existing entry instead of adding a duplicate.');
-          return;
+          var where = dup.source === 'catalog' ? 'the ArcticBlue catalog' : 'your manual events';
+          var lbl = dupLabel(dup) || ('"' + row.name + '"');
+          if (!confirm(lbl + ' is already in ' + where + '. If that\u2019s the same event, open it instead of adding a duplicate. Add it anyway?')) {
+            return;
+          }
         }
         // Fuzzy guard — same core name + city + year as an existing event (e.g.
         // "… 2026" vs "… (IPT Edition)"). Likely the same event; let the user
         // override in case it's genuinely a different edition.
-        var fuzzyDup = findDuplicate(null, null, row);
-        if (fuzzyDup && !confirm('This looks like a duplicate of an event already in ' + (fuzzyDup.source === 'catalog' ? 'the catalog' : 'manual events') + ' — same name, city and year. Add it anyway?')) {
-          return;
+        var fuzzyDup = dup ? null : findDuplicate(null, null, row);
+        if (fuzzyDup) {
+          var flbl = dupLabel(fuzzyDup) || 'an event';
+          if (!confirm('This looks like a duplicate of ' + flbl + ' already in ' + (fuzzyDup.source === 'catalog' ? 'the catalog' : 'your manual events') + ' — same name, city and year. Add it anyway?')) {
+            return;
+          }
         }
         var submitBtn = form.querySelector('button.primary[type="submit"]');
         submitBtn.disabled = true; submitBtn.textContent = 'Saving…';

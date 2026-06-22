@@ -295,7 +295,9 @@ def _extract_json(text):
 VET_PROMPT = """You are evaluating a potential AI event for ArcticBlue (an applied-AI consultancy
 that does enterprise + halo events). Given the candidate event text below, do TWO things:
 
-1. Extract the event details into a single JSON object with this exact schema:
+1. Extract the event details into a single JSON object with this exact schema.
+   Fill EVERY field you can support from the page text; use null only when the
+   page genuinely doesn't say. Do NOT invent facts.
    {{
      "name":        "<event name>",
      "date_str":    "<original date string, e.g. 'September 14–16, 2026'>",
@@ -304,6 +306,17 @@ that does enterprise + halo events). Given the candidate event text below, do TW
      "type":        "<Enterprise | Halo | Research | Industry>",
      "priority":    "<High | Medium | Low>",
      "why":         "<one sentence on why this is or isn't a fit for ArcticBlue>",
+     "about":       "<1-2 sentence description of the event, from the page>",
+     "focus_areas": "<the event's themes/tracks as a short comma-separated list>",
+     "typical_attendees": "<who attends — titles / company types>",
+     "speaking_route": "<how to speak: CFP / nominate / apply link or note, else null>",
+     "contact_info": "<organiser email / contact page if shown, else null>",
+     "audience_type": "<Buyer-rich | Mixed | Vendor-heavy, your best read>",
+     "pay_to_play": "<Yes | No | Both — is speaking sponsor-gated? else null>",
+     "pricing":     "<ticket / attendance price if shown, else null>",
+     "attendee_count": "<approx attendee count if shown, e.g. '1100+', else null>",
+     "venue":       "<venue name if shown, else null>",
+     "past_speakers": "<a few notable past/confirmed speakers if shown, else null>",
      "url":         "<the event's homepage URL if you can verify one, else null>",
      "recommend":   "<yes | maybe | no>",
      "reasoning":   "<one or two sentences explaining the recommendation>"
@@ -311,8 +324,9 @@ that does enterprise + halo events). Given the candidate event text below, do TW
 
 2. Return ONLY that JSON object inside a ```json ``` fenced block. No prose before or after.
 
-CRITICAL: do not invent URLs. If you don't have a verified URL for this exact event,
-set "url" to null. This is the no-hallucination rule from AGENT-CONTEXT.md.
+CRITICAL: do not invent URLs or facts. If you don't have a verified URL for this
+exact event, set "url" to null. Use null for any field the page doesn't support.
+This is the no-hallucination rule from AGENT-CONTEXT.md.
 
 Candidate event text:
 ---
