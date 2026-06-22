@@ -2477,7 +2477,7 @@ def build():
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Attending</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><span class="extra-empty" id="filter-attending-empty">No attendees yet</span></div>
           </div>
-          <label class="ops-filter-chip"><input type="checkbox" id="ops-f-buyers">Buyer-rich only</label>
+          <label class="ops-filter-chip" title="Show only events at the Submitted stage — a speaker application is in"><input type="checkbox" id="ops-f-submitted">Submitted</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
           <div class="ops-months">
             <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
@@ -4799,7 +4799,7 @@ def build():
       var $region  = document.getElementById('ops-region');
       var $saved   = document.getElementById('ops-f-saved');
       var $urgent  = document.getElementById('ops-f-urgent');
-      var $buyers  = document.getElementById('ops-f-buyers');
+      var $submitted = document.getElementById('ops-f-submitted');
       var $meet    = document.getElementById('ops-f-meetings');
       var $worth   = document.getElementById('ops-f-worth');
       var $price   = document.getElementById('ops-price');
@@ -4811,7 +4811,7 @@ def build():
       var rg = $region ? ($region.value || '') : '';
       var fSaved   = !!($saved && $saved.checked);
       var fUrgent  = !!($urgent && $urgent.checked);
-      var fBuyers  = !!($buyers && $buyers.checked);
+      var fSubmitted = !!($submitted && $submitted.checked);
       var fMeet    = !!($meet && $meet.checked);
       var fWorth   = !!($worth && $worth.checked);
       var fPrice   = $price ? ($price.value || '') : '';
@@ -4821,7 +4821,7 @@ def build():
       var showHidden = !!($hidden && $hidden.checked);
       var fRecent    = !!($recent && $recent.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-buyers',$buyers],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {{
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-submitted',$submitted],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {{
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
@@ -4874,7 +4874,7 @@ def build():
         if (fitsProfile && !profileFits(fitsProfile, card.dataset.fitText, card.dataset.region)) on = false;
         if (fSaved && !card.classList.contains('is-saved'))  on = false;
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
-        if (fBuyers && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
+        if (fSubmitted && (card.dataset.statusTags || '').split('|').indexOf('Submitted') === -1) on = false;
         if (fMeet && card.dataset.meetings !== '1') on = false;
         if (fRecent && card.dataset.recent !== '1') on = false;
         if (fWorth && (card.dataset.attend || '').toLowerCase().indexOf('worth attending') !== 0) on = false;
@@ -4994,7 +4994,7 @@ def build():
       // Debounce only the free-text search (fires on every keystroke); selects
       // and checkboxes change discretely, so apply those immediately.
       var debouncedApply = debounce(applyFilters, 130);
-      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
+      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -5009,7 +5009,7 @@ def build():
       ['ops-search','ops-region','ops-price','ops-fits'].forEach(function (id) {{
         var el = document.getElementById(id); if (el) el.value = '';
       }});
-      ['ops-f-saved','ops-f-urgent','ops-f-buyers','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
+      ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
         var el = document.getElementById(id); if (el) el.checked = false;
       }});
       Array.prototype.forEach.call(
