@@ -49,7 +49,8 @@ PPLX_BASE    = _env('PERPLEXITY_BASE_URL', 'https://api.perplexity.ai').rstrip('
 # enrich-columns migration, event_state).
 WRITABLE = ('url', 'venue', 'pay_to_play', 'speaking_route', 'pricing',
             'past_speakers', 'meeting_formats', 'audience_type',
-            'typical_attendees', 'attendee_count', 'deadline')
+            'typical_attendees', 'attendee_count', 'deadline',
+            'about', 'focus_areas')
 
 
 def _http_json(method, url, headers=None, body=None, timeout=20):
@@ -200,7 +201,13 @@ _PPLX_SYSTEM = (
     '  "typical_attendees": one short line on who attends (roles/seniority)\n'
     '  "attendee_count": approximate attendance, e.g. "5,000+"\n'
     '  "deadline": call-for-speakers deadline if published\n'
-    "OMIT every key you are not confident about. Never invent URLs."
+    '  "about": a factual 1-2 sentence description of what this event IS '
+    "(what it covers, who runs it) — the kind of summary on the official site\n"
+    '  "focus_areas": the event\'s main themes / tracks / topics as a short '
+    "comma-separated list (e.g. 'AI governance, agentic workflows, fintech')\n"
+    '  "speaking_route": how a speaker gets on stage — a CFP / speaker-'
+    "application / nomination URL or a one-line note, if published\n"
+    "OMIT every key you are not confident about. Never invent URLs or facts."
 )
 
 
@@ -365,6 +372,15 @@ def merge_missing(row, facts):
         dl = str(facts['deadline']).strip()[:120]
         if _deadline_sane(dl, row.get('start_date')):
             patch['deadline'] = dl
+    # The "bigger" descriptive sections Angela wants filled (not just small facts).
+    if empty('about') and not _junk(facts.get('about')):
+        patch['about'] = str(facts['about']).strip()[:600]
+    if empty('focus_areas') and not _junk(facts.get('focus_areas')):
+        v = facts['focus_areas']
+        if isinstance(v, list):
+            v = ', '.join(str(x) for x in v)
+        if not _junk(v):
+            patch['focus_areas'] = str(v).strip()[:400]
     return patch
 
 
@@ -379,14 +395,19 @@ def enrich_one(row):
             home = None
         if home:
             patch['url'] = home
-    if not (row.get('speaking_route') or '').strip() and home:
+    if not (row.get('speaking_route') or '').strip():
         route = None
-        try:
-            route = find_speaking_route(row.get('name'), home)
-        except Exception:
-            route = None
+        if home:
+            try:
+                route = find_speaking_route(row.get('name'), home)
+            except Exception:
+                route = None
         if route:
             patch['speaking_route'] = 'Apply to speak: ' + route
+        elif not _junk(facts.get('speaking_route')):
+            # Perplexity fallback when the Exa speaker-page search finds nothing
+            # (so Angela doesn't have to add the route by hand).
+            patch['speaking_route'] = str(facts['speaking_route']).strip()[:300]
     return patch
 
 
