@@ -427,7 +427,8 @@
    "typical_attendees": "Government officials, industry leaders, academics, civil society, technical community, policymakers, UN agencies, and researchers",
    "attendee_count": "1,000+ speakers; 200+ exhibitors",
    "pricing": "Free for ITU Member State delegations (and Resolution 99), UN agencies, UN accredited NGOs, and those under 18; discounted for ITU Sector Members, Associates, Academia members, and students; paid passes available for other attendees, including Discovery Pass CHF 50, Gold Pass CHF 890, Leaders Pass C",
-   "deadline": "1 September 2026"
+   "deadline": "1 September 2026",
+   "past_speakers": "will.i.am, AI Skills Coalition (speaking at 2026 summit)[9]"
   },
   {
    "num": 28,
@@ -1099,7 +1100,11 @@
    "typical_attendees": "Head of Data, VP Data Science, CDOs, enterprise AI practitioners from Fortune 500; Southeast enterprise ecosystem (financial services, healthcare, logistics)",
    "speaking_route": "Speaker interest form: datasciconnect.com/events/speaker-interest-form/ (lists COLLIDE ATL 10.1.2026)",
    "contact_info": "datasciconnect.com",
-   "focus_areas": "Enterprise data and AI strategy; Agentic AI for data-driven organizations; AI governance and responsible enterprise data use; Data architecture for AI at enterprise scale; AI ROI and performance measurement"
+   "focus_areas": "Enterprise data and AI strategy; Agentic AI for data-driven organizations; AI governance and responsible enterprise data use; Data architecture for AI at enterprise scale; AI ROI and performance measurement",
+   "venue": "Sandy Springs Performing Arts Center",
+   "pricing": "$599–$999 in-person all-access; complimentary in-person pass for qualified attendees only; $999 regular price",
+   "meeting_formats": "roundtables; attendee app for pre-booking meetings; networking receptions",
+   "audience_type": "Mixed"
   },
   {
    "num": 40,
@@ -2162,7 +2167,10 @@
    "external_id": "a9a21ec6-4259-4fb7-8302-cee2ed359156",
    "source": "arcticscout",
    "start_date": "2026-05-05",
-   "end_date": "2026-05-07"
+   "end_date": "2026-05-07",
+   "past_speakers": "Amit Zavery, ServiceNow; Bill McDermott, ServiceNow; Amy Lokey, ServiceNow; Eric McGrath, ServiceNow; Taimur Rashid, ServiceNow",
+   "meeting_formats": "Attendee portal for pre-booked meetings; expo floor; hosted sponsor meeting spaces and executive receptions",
+   "audience_type": "Mixed"
   },
   {
    "num": 105,
@@ -2611,7 +2619,9 @@
    "external_id": "10ec2099-9269-4a00-8e43-116baa095ca0",
    "source": "arcticscout",
    "start_date": "2026-06-23",
-   "end_date": "2026-06-24"
+   "end_date": "2026-06-24",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "60+ senior speakers"
   },
   {
    "num": 122,
@@ -3118,7 +3128,11 @@
    "external_id": "a98e2c9a-03d4-4ad5-86dc-720025821945",
    "source": "arcticscout",
    "start_date": "2026-04-29",
-   "end_date": "2026-04-30"
+   "end_date": "2026-04-30",
+   "pay_to_play": "No",
+   "meeting_formats": "Curated peer networking and in-person discussion; attendee/app-based pre-booking not verified",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "Strictly limited"
   },
   {
    "num": 141,
@@ -3938,7 +3952,10 @@
    "external_id": "89fce8fd-21d4-4dfb-956b-ed8f9bb08fd4",
    "source": "arcticscout",
    "start_date": "2026-06-22",
-   "end_date": "2026-06-26"
+   "end_date": "2026-06-26",
+   "pricing": "Available on official ticket page; exact delegate pricing not visible in the provided results. A discount of up to 25% is advertised with the Fullstack subscription.",
+   "meeting_formats": "workshops; bootcamps; main conference + expo; power workshops; online option",
+   "audience_type": "Mixed"
   },
   {
    "num": 172,
@@ -6109,7 +6126,10 @@
    "external_id": "ddcd4553-67f9-4fc1-8906-e4c76dc583a0",
    "source": "arcticscout",
    "start_date": "2026-08-18",
-   "end_date": "2026-08-19"
+   "end_date": "2026-08-19",
+   "meeting_formats": "guaranteed/hosted 1:1 meetings; curated roundtables",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "0-300 delegates"
   },
   {
    "num": 254,
