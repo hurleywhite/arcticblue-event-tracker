@@ -1593,14 +1593,11 @@ def build():
       display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
     }}
     .extra-filter-label {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--ab-fg-3); min-width: 84px;
+      color: var(--ab-fg-2); min-width: 84px;
     }}
-    /* Speaking vs Attending — distinct accents so the two are unmistakable. */
-    .ef-dot {{ display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }}
-    .ef-speak {{ background: #1271a8; }}   /* Speaking = blue  */
-    .ef-att   {{ background: #047857; }}   /* Attending = green */
+    /* Speaking (blue) vs Attending (green) active chips keep the two distinct. */
     .extra-chip.speak-chip.is-on {{ background: #1271a8; color: #fff; border-color: #1271a8; box-shadow: 0 0 0 2px #1271a8; }}
     .extra-chip.att-chip.is-on   {{ background: #047857; color: #fff; border-color: #047857; box-shadow: 0 0 0 2px #047857; }}
     .extra-empty {{
@@ -2422,11 +2419,11 @@ def build():
             <span class="extra-filter-label">Track</span>
           </div>
           <div class="extra-filter-group" id="filter-speaker">
-            <span class="extra-filter-label"><span class="ef-dot ef-speak"></span>Speaking</span>
+            <span class="extra-filter-label">Speaking</span>
             <span class="extra-empty" id="filter-speaker-empty">No speakers assigned yet</span>
           </div>
           <div class="extra-filter-group" id="filter-attending">
-            <span class="extra-filter-label"><span class="ef-dot ef-att"></span>Attending</span>
+            <span class="extra-filter-label">Attending</span>
             <span class="extra-empty" id="filter-attending-empty">No attendees yet</span>
           </div>
         </div>
