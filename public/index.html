@@ -2207,14 +2207,18 @@
     var stages = rec.stage_tags || [];
     function has(s) { return stages.indexOf(s) !== -1; }
     var isCat = rec._table === 'event_state';
+    // "Should Attend" reuses the attend_verdict field — a leading "worth" is the
+    // canonical yes (drives the blue attend-yes badge + the "Worth attending" filter).
+    var worthAttend = String(rec.attend_verdict || '').toLowerCase().indexOf('worth') === 0;
     var b = [];
     if (isCat) {
       b.push('<button type="button" class="qa' + (rec.saved ? ' on' : '') + '" data-qa="saved">' + (rec.saved ? '★ Saved' : '☆ Save') + '</button>');
       b.push('<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unhide' : 'Hide') + '</button>');
     }
-    b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Mark Submitted') + '</button>');
+    b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
     b.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
     b.push('<button type="button" class="qa' + (has('Attending') ? ' on' : '') + '" data-qa="attending">' + (has('Attending') ? '✓ Attending' : 'Attending') + '</button>');
+    b.push('<button type="button" class="qa' + (worthAttend ? ' on' : '') + '" data-qa="should-attend">' + (worthAttend ? '✓ Should Attend' : 'Should Attend') + '</button>');
     // "Interested" — the current teammate adds themselves to the list of people
     // who want Angela to apply for them. This feeds Angela's Queue.
     var me = (window.opsCurrentUser ? window.opsCurrentUser() : '') || '';
@@ -2275,6 +2279,11 @@
         if (order.length) tags = order.filter(function (s) { return tags.indexOf(s) !== -1; });
         rec.stage_tags = tags;
         patch.status_tags = tags;
+      }
+      else if (qa === 'should-attend') {
+        var wa = String(rec.attend_verdict || '').toLowerCase().indexOf('worth') === 0;
+        rec.attend_verdict = wa ? '' : 'Worth attending';  // tap active -> clear
+        patch.attend_verdict = rec.attend_verdict || null;
       }
       else if (qa === 'go') {
         rec.decision = (rec.decision === 'go') ? '' : 'go';  // tap active -> clear
