@@ -2984,7 +2984,6 @@ def build():
     if (!btn) return;
     btn.addEventListener('click', function () {{
       if (btn.getAttribute('aria-busy')) return;
-      if (!window.confirm('Search the web to fill in any missing details for "' + (rec.name || 'this event') + '"?\\n\\nThis runs one research lookup (uses a credit).')) return;
       btn.setAttribute('aria-busy', '1');
       var prev = btn.innerHTML;
       btn.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">⏳</span> Enriching…';
@@ -3654,6 +3653,21 @@ def build():
     // when they were added. Undated rows sort last (99999999).
     var OPS_MONTH_NAMES = ['January','February','March','April','May','June',
       'July','August','September','October','November','December'];
+    // Card date label: drop the year when it's THIS year (the month divider
+    // above the card already shows it) — but keep it for other years (next year)
+    // as an at-a-glance signal.
+    function cardDate(dateStr, startIso) {{
+      var s = (dateStr || '').trim();
+      if (!s) return s;
+      var y = (startIso && /^\\d{{4}}-/.test(startIso)) ? startIso.slice(0, 4) : '';
+      if (!y) {{ var m = s.match(/\\b20\\d\\d\\b/); if (m) y = m[0]; }}
+      if (y && y === String(new Date().getFullYear())) {{
+        s = s.split(y).join('');
+        s = s.replace(/[\\s,\\/]+$/, '').replace(/^[\\s,\\/]+/, '').trim();
+      }}
+      return s;
+    }}
+
     function opsMonthMeta(startIso, dateStr) {{
       // Prefer a well-formed ISO start_date; if it's missing OR malformed,
       // fall back to parsing the free-form date_str before giving up to TBD.
@@ -3805,7 +3819,7 @@ def build():
             '<button class="ops-chip' + (st.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (st.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
             decBadge +
           '</div>' +
-          '<p class="event-date">' + escapeHtml(ev.date_str) + '</p>' +
+          '<p class="event-date">' + escapeHtml(cardDate(ev.date_str, ev.start_date)) + '</p>' +
         '</div>' +
         '<h3 class="event-name">' +
           (_cardUrl
@@ -4030,7 +4044,7 @@ def build():
             '<button class="ops-chip' + (mev.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (mev.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
             mDecBadge + mRecentBadge +
           '</div>' +
-          '<p class="event-date">' + escapeHtml(mev.date_str || '') + '</p>' +
+          '<p class="event-date">' + escapeHtml(cardDate(mev.date_str, mev.start_date)) + '</p>' +
         '</div>' +
         '<h3 class="event-name">' +
           (mev.url
