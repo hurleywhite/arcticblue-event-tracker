@@ -6063,7 +6063,7 @@ def build():
             return;
           }}
           fillBtn.disabled = true; fillBtn.textContent = 'Scraping…';
-          fillMeta.textContent = 'Fetching page via Exa.ai, then asking the Dust agent to structure it. Usually 10\\u201340 seconds.';
+          fillMeta.textContent = 'Fetching the page via Exa, then structuring it with AI (gpt-5.4). Usually 10\\u201340 seconds.';
           sb.auth.getSession().then(function (r) {{
             var token = r && r.data && r.data.session && r.data.session.access_token;
             var _vh = {{ 'Content-Type': 'application/json' }};
@@ -6089,12 +6089,7 @@ def build():
               var note = 'Filled ' + report.filled + ' of ' + report.total + ' fields in ' + dur + 's' +
                 (report.skipped ? ' (' + report.skipped + ' skipped — already had values).' : '.');
               if (data.degraded) {{
-                var why = data.degraded_reason === 'dust_rate_limited'
-                  ? 'Dust hit its rate limit — used the scraped page directly with basic extraction. Please double-check the fields.'
-                  : data.degraded_reason === 'dust_timeout'
-                    ? 'Dust took too long — used the scraped page directly with basic extraction. Please double-check the fields.'
-                    : 'Dust unavailable — used the scraped page directly with basic extraction. Please double-check the fields.';
-                note += ' ' + why;
+                note += ' (AI structuring was unavailable — used the scraped page with basic extraction, so please double-check the fields.)';
               }}
               fillMeta.textContent = note;
             }}).catch(function (err) {{

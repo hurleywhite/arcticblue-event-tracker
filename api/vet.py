@@ -39,12 +39,37 @@ def _env(key, default=''):
 SUPABASE_URL          = _env('SUPABASE_URL', 'https://efkvhlmfdwlobvdmvqiq.supabase.co').rstrip('/')
 SUPABASE_PUBLISHABLE  = _env('SUPABASE_PUBLISHABLE_KEY')
 
-DUST_API_KEY     = _env('DUST_API_KEY')
+DUST_API_KEY     = _env('DUST_API_KEY')   # legacy fallback only
 DUST_WORKSPACE   = _env('DUST_WORKSPACE_ID', 'G5QCSmfJhK')
 DUST_AGENT       = _env('DUST_AGENT_ID', 'Dir04hvKfi')
 DUST_DOMAIN      = _env('DUST_DOMAIN', 'https://dust.tt').rstrip('/')
 
 EXA_API_KEY      = _env('EXA_API_KEY')
+
+# Exa fetches the page; OpenAI (gpt-5.4) structures it — same pattern as the
+# rest of the app. (Dust kept only as a no-key fallback.)
+OPENAI_API_KEY   = _env('OPENAI_API_KEY')
+OPENAI_BASE      = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
+VET_MODEL        = _env('OPENAI_VET_MODEL', 'gpt-5.4')
+
+
+def _openai_extract(prompt):
+    """Structure the scraped page text into the field schema with gpt-5.4."""
+    if not OPENAI_API_KEY:
+        raise RuntimeError('OPENAI_API_KEY not configured')
+    m = (VET_MODEL or '').lower()
+    tok = 'max_completion_tokens' if m.startswith(('gpt-5', 'o1', 'o3', 'o4')) else 'max_tokens'
+    st, data = _http_json(
+        'POST', OPENAI_BASE + '/chat/completions',
+        headers={'Authorization': 'Bearer ' + OPENAI_API_KEY},
+        body={'model': VET_MODEL, 'messages': [{'role': 'user', 'content': prompt}], tok: 3000},
+        timeout=90)
+    if st != 200 or not isinstance(data, dict):
+        raise RuntimeError('openai %s: %s' % (st, str(data)[:200]))
+    try:
+        return data['choices'][0]['message']['content'] or ''
+    except (KeyError, IndexError, TypeError):
+        return ''
 
 MAX_POLL_SECONDS = 90
 POLL_INTERVAL    = 3.0
@@ -386,8 +411,8 @@ class handler(BaseHTTPRequestHandler):
 
     def _handle_post(self):
         # Config sanity
-        if not DUST_API_KEY:
-            return _send(self, 500, {'error': 'server not configured: DUST_API_KEY missing'})
+        if not (OPENAI_API_KEY or DUST_API_KEY):
+            return _send(self, 500, {'error': 'server not configured: OPENAI_API_KEY missing'})
         if not SUPABASE_PUBLISHABLE:
             return _send(self, 500, {'error': 'server not configured: SUPABASE_PUBLISHABLE_KEY missing'})
 
@@ -441,39 +466,33 @@ class handler(BaseHTTPRequestHandler):
             except Exception as e:
                 return _send(self, 502, {'error': f'scrape failed: {e}'})
 
-        # Call Dust — fall back gracefully if rate-limited or unreachable
-        # so the user still gets a useful pre-fill from the Exa scrape.
-        dust_error    = None
-        agent_text    = ''
-        reply         = None
+        # Structure the scraped page into fields with gpt-5.4 (OpenAI). Exa did
+        # the fetch; OpenAI does the structuring — same Exa+OpenAI pattern as the
+        # briefs/targets. Legacy Dust path runs only if no OpenAI key is set.
+        ai_error   = None
+        agent_text = ''
         try:
-            conv_id = _dust_start(_build_prompt(text), caller_email)
-            reply   = _dust_poll(conv_id)
-            agent_text = _agent_text(reply)
-        except TimeoutError as e:
-            dust_error = f'dust timeout: {e}'
-        except Exception as e:
-            dust_error = f'dust call failed: {e}'
+            if OPENAI_API_KEY:
+                agent_text = _openai_extract(_build_prompt(text))
+            else:
+                conv_id = _dust_start(_build_prompt(text), caller_email)
+                agent_text = _agent_text(_dust_poll(conv_id))
+        except Exception as e:  # noqa: BLE001
+            ai_error = str(e)
 
         fields = _extract_json(agent_text) or {}
-        # If Dust failed at any stage, run the local regex extractor on
-        # whatever we have (scraped page text or the user's pasted text).
-        # The user still gets a usable pre-fill plus a clear "degraded"
-        # signal so they treat it as draft, not vetted output.
+        # If structuring failed, run the local regex extractor on whatever we
+        # have (scraped page text or the user's pasted text) so the user still
+        # gets a usable pre-fill, flagged "degraded" so they treat it as a draft.
         degraded = False
         degraded_reason = None
-        if dust_error:
+        if ai_error or not fields:
             fallback = _fallback_extract(text, url, exa_meta)
             for k, v in fallback.items():
                 fields.setdefault(k, v)
-            degraded = True
-            err_lower = dust_error.lower()
-            if 'rate_limit' in err_lower:
-                degraded_reason = 'dust_rate_limited'
-            elif 'timeout' in err_lower:
-                degraded_reason = 'dust_timeout'
-            else:
-                degraded_reason = 'dust_unavailable'
+            if ai_error:
+                degraded = True
+                degraded_reason = 'ai_unavailable'
 
         # If the agent didn't return a URL but we scraped one, use it.
         if url and not fields.get('url'):
