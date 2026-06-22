@@ -1607,7 +1607,7 @@ def build():
     }}
     .filter-dd-btn:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg); }}
     .filter-dd-btn.has-active {{ background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }}
-    .filter-dd-btn .dd-caret {{ font-size: 0.55rem; opacity: 0.6; }}
+    .filter-dd-btn .dd-caret {{ font-size: 0.55rem; color: var(--ab-fg-3); }}
     .filter-dd-menu {{
       position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
       min-width: 200px; max-width: 330px; max-height: 360px; overflow-y: auto;
@@ -1675,10 +1675,12 @@ def build():
     }}
     .ops-filters select {{
       width: 100%;
+      appearance: none; -webkit-appearance: none; -moz-appearance: none;
       font-family: "Nunito Sans", var(--ab-sans); font-size: 0.86rem; font-weight: 800;
-      padding: 10px 13px; border: 1px solid var(--ab-rule-strong);
-      border-radius: 6px; background: var(--ab-bg);
-      color: var(--ab-fg); outline: none;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 10px 32px 10px 13px; border: 1px solid var(--ab-rule-strong);
+      border-radius: 6px; cursor: pointer; color: var(--ab-fg); outline: none;
+      background: var(--ab-bg) url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='10'%20height='6'%20viewBox='0%200%2010%206'%3E%3Cpath%20d='M0%200h10L5%206z'%20fill='%23737373'/%3E%3C/svg%3E") no-repeat right 13px center;
     }}
     .ops-filter-chip {{
       display: flex; width: 100%; align-items: center; gap: 6px;
