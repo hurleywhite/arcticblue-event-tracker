@@ -5006,7 +5006,7 @@ def build():
       }}
       $stats.innerHTML =
         tile('all', total, 'Upcoming', '') +
-        tile('myinterested', myInterested, 'My interested', 'saved') +
+        tile('myinterested', myInterested, 'My Event Interests', 'saved') +
         tile('urgent', urgent, 'Urgent', 'urgent') +
         tile('pipeline', inPipeline, 'In pipeline', '') +
         tile('booked', booked, 'Booked', '') +
