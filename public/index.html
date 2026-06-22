@@ -1540,6 +1540,8 @@
       font-family: var(--ab-sans);
     }
     .map-sb-ev:hover { background: var(--ab-bg-3); }
+    .map-sb-ev.past { opacity: 0.5; }      /* past event — grayed, sorted below upcoming */
+    .map-sb-ev.past:hover { opacity: 0.75; }
     .map-sb-ev .nm { font-size: 0.92rem; line-height: 1.35; color: var(--ab-fg); font-weight: 500; }
     .map-sb-ev .meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
     .map-sb-ev .dt { font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg-3); white-space: nowrap; }
@@ -1569,6 +1571,11 @@
     }
     .map-pin:hover { transform: scale(1.12); }
     .map-pin.single { font-size: 0; }  /* lone event: clean dot, no number */
+    /* Past-only location: grayed so upcoming-event pins clearly stand out. */
+    .map-pin.past {
+      background: #9ca3af;
+      box-shadow: 0 0 0 4px rgba(156, 163, 175, 0.22), 0 2px 6px rgba(0,0,0,0.25);
+    }
     .calendar-month { margin-bottom: 32px; }
     .calendar-month-head {
       font-family: var(--ab-sans); font-weight: 700;
@@ -3018,6 +3025,13 @@
       if (!first) return parts[0];
       return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
     }
+    // ArcticBlue sales-support staff: they run the tracker but don't attend
+    // events, so they should never be auto-flagged "interested" on upload.
+    var AB_SUPPORT_NAMES = ['hurley', 'angela'];
+    function isSupportPerson(name) {
+      var first = String(name || '').trim().toLowerCase().split(/[ @]/)[0];
+      return AB_SUPPORT_NAMES.indexOf(first) !== -1;
+    }
 
     // Drop a trailing year (e.g. "Databricks Data + AI Summit 2026" → "…Summit")
     // — the year is redundant with the event's date. Keeps the name if stripping
@@ -4416,6 +4430,9 @@
         var _tier = opsCardTier(card);
         var mkey = _tier === 1 ? 'hidden' : (_tier === 2 ? 'archive' : (card.dataset.month || 'tbd'));
         if (on) { monthMatched[mkey] = (monthMatched[mkey] || 0) + 1; shown++; }
+        // Did the card pass the real filters? (independent of month/archive
+        // collapse) — the Map view uses this so past events still appear.
+        card.dataset.passed = on ? '1' : '0';
         // An active search overrides month collapsing — a match inside a
         // folded month must be visible or the event looks like it's missing.
         card.style.display = (on && (!opsCollapsedMonths[mkey] || q)) ? '' : 'none';
@@ -5805,9 +5822,10 @@
         // Year is redundant with the date — strip a trailing year on save.
         row.name = stripTrailingYear(row.name);
         // Auto-flag whoever adds the event as interested, so it lands in
-        // Angela's Queue ("apply for me") immediately.
+        // Angela's Queue ("apply for me") immediately — EXCEPT sales-support
+        // staff (Hurley/Angela), who run the tracker but don't attend.
         var _adder = getCollabName() || (email ? firstNameFromEmail(email) : '') || 'Team';
-        row.interested = [_adder];
+        row.interested = isSupportPerson(_adder) ? [] : [_adder];
         // HARD duplicate-name guard — case-insensitive across catalog + manual_events.
         // No confirm() escape hatch: duplicates land in the calendar as two
         // separate entries with two UIDs, which produces double-rendered
@@ -6140,15 +6158,22 @@
       // Use the cards as the data source so the map honors the SAME filters
       // as the grid (price, buyer-rich, months, search, ...).
       var byCoord = {};
-      var unplaced = 0, placed = 0;
+      var unplaced = 0, placed = 0, pastPlaced = 0, upcomingPlaced = 0;
       $opsGrid.querySelectorAll('.ops-card').forEach(function (card) {
-        if (card.style.display === 'none') return;  // filtered out
+        // Use the filter-pass flag, NOT display — past events live in the
+        // collapsed Archive group (display:none) but should still map, grayed.
+        if (card.dataset.passed !== '1') return;           // failed an active filter
+        if (card.classList.contains('is-hidden')) return;  // user-hidden — keep off the map
         var rec = card._modalRec || {};
         var ll = geoOf(rec);
         if (!ll) { unplaced++; return; }
         placed++;
+        var cardPast = card.dataset.past === '1';
+        if (cardPast) pastPlaced++; else upcomingPlaced++;
         var key = ll[0].toFixed(3) + ',' + ll[1].toFixed(3);
-        (byCoord[key] = byCoord[key] || { ll: ll, evs: [] }).evs.push(rec);
+        var g = (byCoord[key] = byCoord[key] || { ll: ll, evs: [], hasUpcoming: false });
+        g.evs.push(rec);
+        if (!cardPast) g.hasUpcoming = true;
       });
       Object.keys(byCoord).forEach(function (key) {
         var g = byCoord[key];
@@ -6159,7 +6184,7 @@
         var size = n === 1 ? 14 : Math.min(26 + n * 1.2, 44);
         var icon = L.divIcon({
           className: '',  // suppress Leaflet's default white square
-          html: '<div class="map-pin' + (n === 1 ? ' single' : '') + '">' +
+          html: '<div class="map-pin' + (n === 1 ? ' single' : '') + (g.hasUpcoming ? '' : ' past') + '">' +
                 (n === 1 ? '' : n) + '</div>',
           iconSize: [size, size],
           iconAnchor: [size / 2, size / 2],
@@ -6173,8 +6198,9 @@
       var note = document.getElementById('ops-map-note');
       if (note) {
         note.textContent = placed + ' events on the map' +
+          (pastPlaced ? ' (' + upcomingPlaced + ' upcoming · ' + pastPlaced + ' past, grayed)' : '') +
           (unplaced ? ' · ' + unplaced + ' without a mappable location (Remote / TBD / Podcast)' : '') +
-          ' — pins follow the filters above; click a pin to list its events.';
+          ' — click a pin to list its events.';
       }
     }
 
@@ -6190,7 +6216,10 @@
     function openMapSidebar(g) {
       var sb = document.getElementById('map-sidebar');
       if (!sb) return;
+      var _past = function (r) { return (typeof isPastEvent === 'function') && isPastEvent(r); };
       var evs = g.evs.slice().sort(function (a, b) {
+        var ap = _past(a) ? 1 : 0, bp = _past(b) ? 1 : 0;
+        if (ap !== bp) return ap - bp;  // upcoming first, past sinks to the bottom
         return String(a.start_date || a.date_str || '').localeCompare(String(b.start_date || b.date_str || ''));
       });
       var city = (evs[0].city || (evs[0].location || '').split(',')[0] || '').trim() || 'Location';
@@ -6201,7 +6230,7 @@
       evs.forEach(function (r) {
         var row = document.createElement('button');
         row.type = 'button';
-        row.className = 'map-sb-ev';
+        row.className = 'map-sb-ev' + (_past(r) ? ' past' : '');
         var topStage = (r.stage_tags && r.stage_tags.length && typeof mostAdvancedStage === 'function')
           ? mostAdvancedStage(r.stage_tags) : null;
         var badge = '';
