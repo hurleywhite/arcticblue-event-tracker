@@ -1252,7 +1252,7 @@ def build():
       font-family: "Nunito Sans", var(--ab-sans); font-size: 0.86rem; font-weight: 800; letter-spacing: 0.04em;
       text-transform: uppercase; color: var(--ab-fg-2);
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
-      border-radius: 6px; padding: 8px 12px; cursor: pointer;
+      border-radius: 6px; padding: 10px 13px; cursor: pointer;
       display: inline-flex; align-items: center; gap: 5px;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }}
@@ -1601,7 +1601,7 @@ def build():
       font-family: "Nunito Sans", var(--ab-sans); font-size: 0.86rem; font-weight: 800;
       letter-spacing: 0.04em; text-transform: uppercase; color: var(--ab-fg-2);
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
-      border-radius: 6px; padding: 8px 12px; cursor: pointer;
+      border-radius: 6px; padding: 10px 13px; cursor: pointer;
       display: inline-flex; align-items: center; gap: 5px;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }}
@@ -1661,7 +1661,7 @@ def build():
     /* Each filter fills its column so the bar reads as a tidy 5-up grid */
     .ops-filters > .filter-dd, .ops-filters > .ops-months {{ display: block; }}
     .ops-filters .filter-dd-btn, .ops-filters .ops-months-btn {{
-      width: 100%; justify-content: space-between;
+      width: 100%; height: 100%; justify-content: space-between;
     }}
     .ops-filters input[type="search"] {{
       grid-column: 1 / -1;   /* own full-width row; the other filters sit 5-up below */
