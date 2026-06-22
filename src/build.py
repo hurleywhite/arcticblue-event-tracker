@@ -1674,17 +1674,17 @@ def build():
       border-radius: 8px; margin-bottom: 16px;
     }}
     .view-toggle button {{
-      font-family: var(--ab-sans); font-weight: 500; font-size: 0.85rem;
-      padding: 6px 14px; border-radius: 6px; border: 0;
+      font-family: var(--ab-sans); font-weight: 600; font-size: 1.02rem;
+      letter-spacing: -0.01em; padding: 8px 17px; border-radius: 6px; border: 0;
       background: transparent; color: var(--ab-fg-2);
       cursor: pointer; transition: background 120ms ease, color 120ms ease;
     }}
     .view-toggle button:hover {{ color: var(--ab-fg); }}
-    .view-toggle button.active {{ background: var(--ab-bg); color: var(--ab-fg); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }}
+    .view-toggle button.active {{ background: var(--ab-bg); color: var(--ab-fg); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }}
     /* Small count pill inside a view-toggle tab (Queue / Planner alerts). */
     .vt-count {{
-      display: inline-block; min-width: 16px; margin-left: 6px; padding: 0 5px;
-      font-family: var(--ab-mono); font-size: 0.64rem; line-height: 16px;
+      display: inline-block; min-width: 18px; margin-left: 7px; padding: 0 6px;
+      font-family: var(--ab-mono); font-size: 0.7rem; line-height: 18px;
       text-align: center; border-radius: 9px; vertical-align: middle;
       background: var(--ab-fg-3); color: #fff;
     }}
