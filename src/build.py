@@ -2749,6 +2749,7 @@ def build():
       b.push('<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unhide' : 'Hide') + '</button>');
     }}
     b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
+    b.push('<button type="button" class="qa' + (has('Followed up') ? ' on' : '') + '" data-qa="followed-up">' + (has('Followed up') ? '✓ Followed up' : 'Followed up') + '</button>');
     b.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
     b.push('<button type="button" class="qa' + (has('Attending') ? ' on' : '') + '" data-qa="attending">' + (has('Attending') ? '✓ Attending' : 'Attending') + '</button>');
     b.push('<button type="button" class="qa' + (worthAttend ? ' on' : '') + '" data-qa="should-attend">' + (worthAttend ? '✓ Should Attend' : 'Should Attend') + '</button>');
@@ -2803,8 +2804,8 @@ def build():
         rec.interested = ilist;
         patch.interested = ilist;
       }}
-      else if (qa === 'submitted' || qa === 'booked' || qa === 'attending') {{
-        var stage = qa === 'submitted' ? 'Submitted' : (qa === 'booked' ? 'Booked' : 'Attending');
+      else if (qa === 'submitted' || qa === 'followed-up' || qa === 'booked' || qa === 'attending') {{
+        var stage = qa === 'submitted' ? 'Submitted' : (qa === 'followed-up' ? 'Followed up' : (qa === 'booked' ? 'Booked' : 'Attending'));
         var tags = (rec.stage_tags || []).slice();
         var idx = tags.indexOf(stage);
         if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
@@ -2862,7 +2863,7 @@ def build():
       return '<textarea class="me-input" data-edit="' + f + '" rows="' + (rows || 3) + '">' + esc(val || '') + '</textarea>';
     }}
     var stages = rec.stage_tags || [];
-    var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Attending'];
+    var order = window.opsStageOrder || ['Identified', 'Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
     var chips = order.map(function (s) {{
       return '<button type="button" class="me-stage' + (stages.indexOf(s) !== -1 ? ' on' : '') + '" data-stage="' + esc(s) + '">' + esc(s) + '</button>';
     }}).join('');
@@ -3441,6 +3442,7 @@ def build():
     var STAGE_TAGS = [
       {{ key: 'Identified',   dot: '#737373', bg: '#e5e7eb', fg: '#374151' }},
       {{ key: 'Submitted',    dot: '#0ea5e9', bg: '#bae6fd', fg: '#075985' }},
+      {{ key: 'Followed up',  dot: '#d97706', bg: '#fde68a', fg: '#92400e' }},
       {{ key: 'Meeting held', dot: '#8b5cf6', bg: '#ddd6fe', fg: '#5b21b6' }},
       {{ key: 'Booked',       dot: '#047857', bg: '#bbf7d0', fg: '#14532d' }},
       {{ key: 'Attending',    dot: '#0d9488', bg: '#ccfbf1', fg: '#115e59' }}
@@ -3450,7 +3452,7 @@ def build():
     // "Most important" ranking for a single calendar tint when an event
     // carries several stages: a win (Booked) trumps everything, then
     // Attending, then progress backwards.
-    var STAGE_DISPLAY_RANK = ['Booked', 'Attending', 'Meeting held', 'Submitted', 'Identified'];
+    var STAGE_DISPLAY_RANK = ['Booked', 'Attending', 'Meeting held', 'Followed up', 'Submitted', 'Identified'];
 
     function stageStyle(key) {{
       var s = STAGE_BY_KEY[key];
@@ -3487,6 +3489,7 @@ def build():
       if (/book|self submitted|speaking|confirmed/i.test(s)) return ['Booked'];
       if (/not accept|declin|\\bskip\\b|passing|we.ll pass|no opening|date conflict|sponsorship only|don.?t call/i.test(s)) return [];
       if (/intro meeting|received intro|in contact|cc.?d on mtg|\\bmeeting\\b/i.test(s)) return ['Meeting held'];
+      if (/follow.?up|followed up|chased|nudged/i.test(s)) return ['Followed up'];
       if (/submit|application|finish submission/i.test(s)) return ['Submitted'];
       return ['Identified'];
     }}
@@ -5466,7 +5469,7 @@ def build():
     function renderQueue() {{
       var host = document.getElementById('ops-queue');
       if (!host) return;
-      var order = window.opsStageOrder || ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Attending'];
+      var order = window.opsStageOrder || ['Identified', 'Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
       // Queue = events still needing an application. Count only interested
       // people NOT already booked/attending (window.visibleInterested).
       var items = opsAllItems().filter(function (it) {{ return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past; }});
@@ -5494,7 +5497,7 @@ def build():
       var booked = [], submitted = [], toApply = [];
       items.forEach(function (it) {{
         if (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Attending') !== -1) booked.push(it);
-        else if (it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Meeting held') !== -1) submitted.push(it);
+        else if (it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1) submitted.push(it);
         else toApply.push(it);
       }});
       function bySoonThenDate(a, b) {{
@@ -8250,7 +8253,7 @@ def build():
     // The modal's quick-action buttons + "Edit Event" call these. opsWrite
     // routes a patch to the right table; opsOpenEditor expands the source
     // card's full edit form.
-    var _STAGE_ORDER = ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Attending'];
+    var _STAGE_ORDER = ['Identified', 'Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
     window.opsStageOrder = _STAGE_ORDER;
     window.opsWrite = function (table, key, patch) {{
       var who = getCollabName() || 'Team';
