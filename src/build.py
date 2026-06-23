@@ -8414,7 +8414,9 @@ def write_events_json(today_evs, upcoming, archived):
 
     payload = {
         'schema_version': 1,
-        'generated_at':   datetime.utcnow().isoformat() + 'Z',
+        # Per-DAY stamp (not per-second): same-day rebuilds stay byte-identical,
+        # so the daily auto-build commit never conflicts with a manual edit.
+        'generated_at':   TODAY.isoformat() + 'T00:00:00Z',
         'build_date':     TODAY.isoformat(),
         'source':         'arcticblue-event-tracker',
         'canonical_url':  'https://arcticblue-event-tracker-deploy.vercel.app/events.json',
@@ -8501,7 +8503,11 @@ def write_calendar_ics(today_evs, upcoming):
         from datetime import timedelta
         return (d + timedelta(days=1)).isoformat().replace('-', '')
 
-    now_iso = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+    # Per-DAY stamp (midnight UTC of the build date), NOT per-second wall-clock:
+    # keeps calendar.ics byte-identical across same-day rebuilds so the daily
+    # auto-build commit doesn't conflict with manual edits. Still refreshes daily
+    # as events roll into the past. (RFC 5545 only needs a valid UTC DTSTAMP.)
+    now_iso = TODAY.strftime('%Y%m%dT000000Z')
 
     lines = [
         'BEGIN:VCALENDAR',
