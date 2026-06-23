@@ -696,7 +696,8 @@
    "attendee_count": "150+",
    "venue": "Pier Sixty NYC | Chelsea, Manhattan",
    "pricing": "$499 early-bird; $999 standard",
-   "pay_to_play": "Yes"
+   "pay_to_play": "Yes",
+   "past_speakers": "Senior Data and AI Executives, Fortune 500 Decision-Makers; Leading Solution and Service Providers"
   },
   {
    "num": 69,
@@ -1527,7 +1528,13 @@
    "typical_attendees": "Chief AI Officers, VP AI, Head of AI, enterprise AI leads from Northeast enterprises; curated executive audience",
    "speaking_route": "Request to speak (Agentic AI + GenAI): world.aiacceleratorinstitute.com/location/boston/register. CAIO Boston: By invitation. Contact: albert@pmmalliance.com (speaker/media); jordan@aiacceleratorinstitute.com (sponsor)",
    "contact_info": "albert@pmmalliance.com; jordan@aiacceleratorinstitute.com",
-   "focus_areas": "CAIO role and enterprise AI strategy; Agentic AI for enterprise operations; Generative AI production deployment; AI governance and organizational risk; Enterprise AI scaling and ROI"
+   "focus_areas": "CAIO role and enterprise AI strategy; Agentic AI for enterprise operations; Generative AI production deployment; AI governance and organizational risk; Enterprise AI scaling and ROI",
+   "venue": "Renaissance Boston Seaport District Hotel",
+   "pricing": "By-invitation only; cost not publicly listed (250+ senior AI executives from 100+ companies)",
+   "past_speakers": "Senior AI Leader, Enterprise AI Corp; Chief AI Officer, Global Tech Inc; AI Strategy Director, Innovation Labs; Head of Responsible AI, Data Systems Co; VP of AI Scaling, Cloud Platform Group; Director of Agentic AI, Dev Builders Inc; Chief Data Officer, Analytics Firm; AI Ethics Lead, Research Institute",
+   "meeting_formats": "By-invitation summit with 20+ senior AI leaders; no public attendee app or guaranteed 1:1 meetings listed",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "250+"
   },
   {
    "num": 79,
@@ -2926,7 +2933,14 @@
    "external_id": "bc5b0b5f-067f-43da-b816-d7311c196dad",
    "source": "arcticscout",
    "start_date": "2026-04-22",
-   "end_date": "2026-04-23"
+   "end_date": "2026-04-23",
+   "pricing": "General Admission: SGD 2499.00; Sponsor/Partner discount available (e.g., $500 OFF with code CDAOSGSPON)",
+   "pay_to_play": "Yes",
+   "past_speakers": "Director, Data & Analytics, PSA BDP; ED, Data Conduct - Data Quality, Standard Chartered; Data Evangelist - Enterprise Efficiency, Maybank; Chief AI Strategy Officer, Solace",
+   "meeting_formats": "peer-led discussions; high-impact networking",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "400+",
+   "deadline": "See official website for agenda and speaker line-up"
   },
   {
    "num": 133,
@@ -4399,7 +4413,12 @@
    "external_id": "d88f6e68-336f-4409-aa07-7c717e33f2dd",
    "source": "arcticscout",
    "start_date": "2026-04-22",
-   "end_date": "2026-04-24"
+   "end_date": "2026-04-24",
+   "pricing": "Open to YPO members and YNGers (YPO Next Generation); registration now open after being sold out in 2025",
+   "past_speakers": "Not explicitly listed in search results; event features tactical workshops, Ask-the-Expert sessions, and peer roundtables with 200+ YPO entrepreneurs",
+   "meeting_formats": "Curated peer roundtables, tactical workshops, Ask-the-Expert sessions, hands-on learning, and pre-booking connections with investors, partners, and talent in the MENA ecosystem",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "200+"
   },
   {
    "num": 188,
@@ -5999,7 +6018,10 @@
    "external_id": "7ca63942-15cd-45e9-8c65-df11930f8bcb",
    "source": "arcticscout",
    "start_date": "2026-09-09",
-   "end_date": "2026-09-10"
+   "end_date": "2026-09-10",
+   "past_speakers": "Transformational Change Advisor · Organizational Psychologist · Fractional Chief Wellbeing Officer, Jennifer Posa, PhD, MS[8]",
+   "meeting_formats": "Guaranteed/hosted 1:1 meetings, curated roundtables, attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 249,
@@ -6703,7 +6725,13 @@
    "pay_to_play": "Yes",
    "city": "São Paulo",
    "country": "Brazil",
-   "external_id": "replit-207"
+   "external_id": "replit-207",
+   "venue": "Instituto de Pesquisas Tecnológicas – IPT",
+   "pricing": "Details to be announced; early-bird and group rates typically announced by Instituto Valor several months before the conference[2]",
+   "past_speakers": "C-Level executives from Latin America's largest economy; senior decision-makers in AI adoption; strategy leads overseeing digital transformation[2][9]",
+   "meeting_formats": "Organic networking during 9:00 AM–6:00 PM daily sessions; exclusive content access via WhatsApp group and podcast[1][6]",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "Up to 10,000 delegates[1]"
   },
   {
    "num": 277,
