@@ -1354,6 +1354,7 @@
     .bf-muted { color: var(--ab-fg-3) !important; font-size: 0.82rem !important; }
     .bf-label { font-family: var(--ab-mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ab-fg-3); margin: 10px 0 4px !important; }
     .bf-win { font-weight: 650; color: #b45309 !important; }
+    .bf-move { color: #15803d !important; }
     .bf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .bf-chip { font-size: 0.76rem; background: var(--ab-bg-3); border-radius: 4px; padding: 2px 8px; color: var(--ab-fg-2); }
     .bf-list, .bf-news { margin: 4px 0 10px; padding-left: 18px; }
@@ -4933,8 +4934,10 @@
       if (b.topic_news && b.topic_news.length) html += sec('Fresh news on your topic', '<ul class="bf-news">' + list(b.topic_news, newsLi) + '</ul>');
       if (b.angles && b.angles.length) html += sec('Angles', '<ul class="bf-list">' + list(b.angles, function (x) { return '<li>' + esc(x) + '</li>'; }) + '</ul>');
       var lwh = '';
-      ['time', 'room', 'link'].forEach(function (k) { if (lw[k]) lwh += '<p><strong>' + k + ':</strong> ' + (k === 'link' ? '<a href="' + esc(lw[k]) + '" target="_blank" rel="noopener">' + esc(lw[k]) + '</a>' : esc(lw[k])) + '</p>'; });
-      if (lw.win) lwh += '<p class="bf-win">&#127937; ' + esc(lw.win) + '</p>';
+      var lwLabel = { time: 'When', room: 'Where', link: 'Agenda' };
+      ['time', 'room', 'link'].forEach(function (k) { if (lw[k]) lwh += '<p><strong>' + lwLabel[k] + ':</strong> ' + (k === 'link' ? '<a href="' + esc(lw[k]) + '" target="_blank" rel="noopener">' + esc(lw[k]) + '</a>' : esc(lw[k])) + '</p>'; });
+      if (lw.move) lwh += '<p class="bf-move">&#9654; <strong>First move:</strong> ' + esc(lw.move) + '</p>';
+      if (lw.win) lwh += '<p class="bf-win">&#127937; <strong>Win:</strong> ' + esc(lw.win) + '</p>';
       html += sec('Logistics &amp; win', lwh);
       if (b.unconfirmed && b.unconfirmed.length) html += sec('&#9888; Unconfirmed &mdash; verify on the ground', '<ul class="bf-list bf-unconf">' + list(b.unconfirmed, function (x) { return '<li>' + esc(x) + '</li>'; }) + '</ul>');
       document.getElementById('briefing-body').innerHTML = html;

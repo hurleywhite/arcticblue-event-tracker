@@ -192,7 +192,7 @@ def _today():
     return date.today().isoformat()
 
 
-def build_messages(event, persona, topic, mode):
+def build_messages(event, persona, topic, mode, roster_ctx='', news_ctx=''):
     ab = load_personas()['arcticblue']
     sys = (
         "You are ArcticBlue's Day-Of event-briefing engine. You write a sharp, "
@@ -220,22 +220,43 @@ def build_messages(event, persona, topic, mode):
         "KEEP IT TIGHT + phone-scannable so the JSON never truncates: at most 3 "
         "speakers in speaker_spotlight, 5 people_to_find, 3 topic_news, 3 angles; "
         "1-2 news items per speaker.\n"
-        "USE WEB SEARCH for: (a) the event's speakers + their recent news, "
-        "(b) audience signal vs the persona's ICP, (c) for stage mode, whether a "
-        "speaking route / CFP is currently open (give the link), and (d) 2-3 news "
-        "items from the LAST 3 DAYS relevant to the speaker_topic.\n"
-        "TARGETS = the actionable core. people_to_find must be SPECIFIC, "
-        "web-confirmed people or orgs actually at THIS event — prioritize "
-        "NON-OBVIOUS targets (sponsors, exhibitors, partner-org reps, "
-        "organizers / program leads, named confirmed attendees) over headline "
-        "speakers (those are obvious and everyone chases them). For each give "
-        "name, org, role, why (tie to the attendee's ICP), and where to find "
-        "them (booth / session / track) if known. confidence:'confirmed' ONLY "
-        "when web search verifies they are attending/speaking/sponsoring; else "
-        "'estimated'. Do NOT pad this list with generic title categories — if "
-        "you genuinely cannot web-confirm specific names/orgs, return at most 2 "
-        "'estimated' role-types AND add an unconfirmed note that no attendee "
-        "roster was found.\n"
+        "GROUND IN THE RESEARCH FINDINGS: you are GIVEN real retrieved content "
+        "from THIS event's agenda / speaker / sponsor pages plus recent news "
+        "(below the event). MINE IT — pull real named people, their sessions, "
+        "sponsoring orgs, and the recent items straight from the findings to "
+        "fill who_in_room.named, speaker_spotlight, topic_news and targets. If "
+        "the findings contain ANY speaker / agenda / sponsor / attendee list, "
+        "you MUST surface real names from it — do NOT write 'no roster found' "
+        "when one is present. Supplement with your own web search only to enrich "
+        "(recent news on a named person/org; for stage mode, whether a speaking "
+        "route / CFP is open + its link). topic_news = 2-3 of the most recent "
+        "items relevant to the speaker_topic, each with a REAL url FROM the news "
+        "findings.\n"
+        "TARGETS = the actionable core, held to the SAME bar as a pre-event "
+        "outreach list: real, named, agenda/web-confirmed people who are SENIOR "
+        "BUDGET OWNERS in the persona's ICP (buyer_titles at icp_industries "
+        "end-user enterprises) — the people worth crossing the room for. HARD "
+        "EXCLUDE vendors/sellers (anyone whose employer sells AI/software/cloud/"
+        "consulting), ICs, and juniors — they are peers, not buyers. Prefer "
+        "non-obvious confirmed attendees / sponsors / program leads over the "
+        "headline keynote everyone already chases. For each: name, org, role, "
+        "why (tie to THIS person's ICP + what they would actually buy), and "
+        "where to find them (their session / booth / track, from the findings). "
+        "confidence:'confirmed' ONLY when the findings or web search verify they "
+        "are at THIS event; else 'estimated'. NEVER pad with generic title "
+        "categories — 2 real budget-owners beat 5 role-type guesses. Only if the "
+        "findings AND search truly yield no roster: return an empty "
+        "people_to_find and say so honestly in unconfirmed.\n"
+        "LOGISTICS_WIN must be concrete + actionable, grounded in the agenda when "
+        "the findings have it. time = the single most important time block to "
+        "protect (a key session/keynote with its time from the agenda, or "
+        "'registration + morning coffee — densest networking' if no agenda time "
+        "is known); room = where to be (that session's room / the sponsor hall / "
+        "the highest-traffic area); link = the REAL agenda or venue URL; win = "
+        "ONE sharp, event-specific definition of a winning day for THIS person "
+        "(never a generic 'have N good conversations'); move = the very FIRST "
+        "concrete action on arrival (e.g. 'Head to the FSI track room and catch "
+        "<name> right after their 10:00 panel'). One tight line each.\n"
         "URLS: every news url MUST be a REAL, working article link you actually "
         "opened via web search — never invent, guess, or pattern-construct a "
         "URL. If you are not certain a url is real, omit that item.\n"
@@ -247,7 +268,7 @@ def build_messages(event, persona, topic, mode):
         "speaker_spotlight:[{name, who, news:[{headline,date,url}], hook}]; "
         "topic_news:[{headline,date,url,relevance}]; "
         "angles:[string,..]; "
-        "logistics_win {time, room, link, win}; "
+        "logistics_win {time, room, link, win, move}; "
         "unconfirmed:[string,..]. "
         "speaking_route_open and facilitator_leads apply to stage / Joe respectively; "
         "use null / [] otherwise. Every news item MUST carry a real source url.\n"
@@ -263,7 +284,20 @@ def build_messages(event, persona, topic, mode):
         "'angles'): " + '; '.join(persona.get('signature_angles') or []) + "\n\n"
         "SPEAKER TOPIC (drives the topic_news search): " + (topic or '(none given — infer from the event + persona themes)') + "\n\n"
         "EVENT:\n" + json.dumps(event, ensure_ascii=False) + "\n\n"
-        "Today is " + _today() + ". Write the brief now."
+        + (("RESEARCH FINDINGS — real retrieved content from THIS event's agenda / "
+            "speaker / sponsor pages (a web-search engine pulled these). Mine them "
+            "for real named people, sessions, sponsoring orgs → who_in_room.named, "
+            "speaker_spotlight, targets.people_to_find, logistics. Do NOT claim no "
+            "roster was found if a speaker/agenda/sponsor list appears here:\n"
+            + roster_ctx + "\n\n") if roster_ctx else
+           "RESEARCH FINDINGS: (none retrieved — the agenda/speaker page could not "
+           "be reached. Use your own web search; if it also fails, mark who_in_room "
+           "estimated and say so in unconfirmed.)\n\n")
+        + (("RECENT NEWS FINDINGS — real retrieved articles, each with a URL. Use "
+            "ONLY these URLs for topic_news + speaker news; attach the matching "
+            "article or omit the item. Never invent a URL:\n" + news_ctx + "\n\n")
+           if news_ctx else "")
+        + "Today is " + _today() + ". Write the brief now."
     )
     return [{'role': 'system', 'content': sys}, {'role': 'user', 'content': user}]
 
@@ -353,7 +387,13 @@ def _verify_news(brief):
 
 
 def generate_brief(event, persona, topic, mode, activity):
-    messages = build_messages(event, persona, topic, mode)
+    # Retrieve the event's real agenda / speaker / sponsor content + recent news
+    # up front (Exa, the same retrieval Deep-targets uses), then hand it to the
+    # model to STRUCTURE. The model's own web search rarely reaches a conference
+    # agenda page — that's what left briefs full of "no roster found".
+    _engine, roster_ctx = _retrieval_lookup(event, persona)
+    news_ctx = _brief_news(event, topic)
+    messages = build_messages(event, persona, topic, mode, roster_ctx=roster_ctx, news_ctx=news_ctx)
     st, data = _call_openai(messages, BRIEFING_MODEL)
     # Fall back if the configured model id is rejected (e.g. not yet available).
     if st in (400, 404) and BRIEFING_FALLBACK and BRIEFING_FALLBACK != BRIEFING_MODEL:
@@ -379,6 +419,7 @@ def generate_brief(event, persona, topic, mode, activity):
                 brief = {}
     model_used = data.get('model') if isinstance(data, dict) else None
     b = normalize_brief(brief, event, persona, mode, activity)
+    _ground_brief_urls(b, news_ctx)   # keep only news URLs Exa actually returned
     b = _verify_news(b)
     return b, model_used
 
@@ -694,6 +735,55 @@ def _exa_news(people):
             chunks.append('URL: ' + str(r.get('url') or '') + '\nTITLE: ' +
                           str(r.get('title') or '') + '\n' + (r.get('text') or '')[:500])
     return ('\n\n'.join(chunks))[:6000]
+
+
+def _brief_news(event, topic):
+    """Day-of brief retrieval: ONE Exa search for recent news on the event +
+    speaker_topic, so the brief's topic_news / speaker news carry REAL urls
+    instead of the model's plausible-but-fabricated links. Cheap (short snippets).
+    Returns '' when no Exa key (the brief then degrades to no-news honestly)."""
+    if not EXA_API_KEY:
+        return ''
+    name = str(event.get('name') or '')
+    t = str(topic or '')
+    q = (name + ' ' + t + ' news announcement 2026').strip()
+    st, data = _http_json(
+        'POST', EXA_BASE + '/search',
+        headers={'x-api-key': EXA_API_KEY, 'Content-Type': 'application/json'},
+        body={'query': q, 'numResults': 6, 'type': 'auto',
+              'contents': {'text': {'maxCharacters': 600}}},
+        timeout=45)
+    chunks = []
+    if st == 200 and isinstance(data, dict):
+        for r in (data.get('results') or [])[:6]:
+            if not isinstance(r, dict):
+                continue
+            chunks.append('URL: ' + str(r.get('url') or '') + '\nTITLE: ' +
+                          str(r.get('title') or '') + '\n' + (r.get('text') or '')[:500])
+    return ('\n\n'.join(chunks))[:5000]
+
+
+def _ground_brief_urls(brief, findings):
+    """Blank any topic_news / speaker-news url NOT present in the retrieved news
+    findings — so a brief link is always a real Exa-returned URL, never one the
+    model recalled or fabricated. Headline/summary stays; only the link drops
+    (then _verify_news still probes whatever survives)."""
+    if not findings or not isinstance(brief, dict):
+        return
+    low = findings.lower()
+
+    def grounded(u):
+        u = str(u or '').strip()
+        return bool(u) and u.rstrip('/').lower() in low
+
+    for n in (brief.get('topic_news') or []):
+        if isinstance(n, dict) and n.get('url') and not grounded(n['url']):
+            n['url'] = ''
+    for s in (brief.get('speaker_spotlight') or []):
+        if isinstance(s, dict):
+            for n in (s.get('news') or []):
+                if isinstance(n, dict) and n.get('url') and not grounded(n['url']):
+                    n['url'] = ''
 
 
 def build_source_messages(people, news, persona):
