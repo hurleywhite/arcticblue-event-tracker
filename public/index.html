@@ -2362,6 +2362,8 @@
     h += ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
     h += ef('ArcticBlue speaker', '<input class="me-input" type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
     h += ef('Interested — wants Angela to apply', '<div class="me-ints">' + intChips + '</div>');
+    // Notes lives here — the first free-text field, directly below Interested.
+    h += ef('Notes', ta('notes', rec.notes, 3));
     var attendees = rec.attendees || [];
     var attChips = Object.keys(window.AB_PERSONAS || {}).map(function (k) {
       var nm = (window.AB_PERSONAS[k] || {}).name || k;
@@ -2380,7 +2382,6 @@
     h += ef('Venue', inp('venue', rec.venue));
     h += ef('Contact info', inp('contact_info', rec.contact_info));
     h += ef('Deadline', inp('deadline', rec.deadline, 'e.g. July 10, 2026'));
-    h += ef('Notes', ta('notes', rec.notes, 2));
     // Fields that used to live only in the inline card editor — migrated here so
     // editing lives entirely in the Details pop-up (nothing lost).
     if (isCat) {
