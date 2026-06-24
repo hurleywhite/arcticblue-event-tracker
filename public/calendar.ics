@@ -16,6 +16,176 @@ DESCRIPTION:Omani enterprise AI expo for Gulf CXOs — potential supplementary M
 URL:https://aienterpriseexpo.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-257@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20270331
+DTEND;VALUE=DATE:20270403
+SUMMARY:YPO Global Entrepreneurship Summit (GES)
+LOCATION:San Francisco\, California
+DESCRIPTION:YPO network summit for top-tier entrepreneurial leaders — Thor has personal contacts in the YPO ecosystem via Ajit Shah\; invitation-only format with high-density CEO/founder audience.\nPriority: High\nAdded by: Ang
+URL:https://ypo.org/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-256@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261116
+DTEND;VALUE=DATE:20261118
+SUMMARY:Momentum AI Finance 2026
+LOCATION:New York\, NY\, USA
+DESCRIPTION:Reuters Events' hand-picked\, 100%-senior-decision-maker financial services AI summit (300 guests\, 70% buy-side FS) is Carlos's highest-density access to CIO\, CTO\, and COO-level enterprise finance buyers — ArcticBlue's prime fintech and banking vertical.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://events.reutersevents.com/momentum/finance
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-255@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260710
+SUMMARY:eCommerce Day Perú 2026
+LOCATION:Lima\, Peru
+DESCRIPTION:17th edition of LatAm's leading digital commerce + AI summit puts Carlos in a room with Peru's top retail and enterprise executives actively adopting AI-driven commerce platforms — strong Tier 3 LatAm pipeline builder.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://ecommerceday.pe/2026/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-254@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261103
+DTEND;VALUE=DATE:20261104
+SUMMARY:Evanta San Francisco CDAO Executive Summit 2026
+LOCATION:San Francisco\, CA
+DESCRIPTION:Gartner/Evanta's intimate C-level peer forum for CDAOs — closed-door format with trusted peer discussions\; ideal for ArcticBlue's senior enterprise data and AI leadership narrative.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/cdao/san-francisco/san-francisco-cdao-executive-summit-9344
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-253@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20260915
+DTEND;VALUE=DATE:20260917
+SUMMARY:Gartner Enterprise Risk\, Audit & Compliance Conference 2026 (US)
+LOCATION:Grapevine\, TX
+DESCRIPTION:Gartner's flagship gathering for enterprise risk and compliance leaders — directly relevant to ArcticBlue's AI governance\, responsible AI\, and risk management positioning.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.gartner.com/en/conferences/hub/erac-conferences
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-252@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261202
+DTEND;VALUE=DATE:20261204
+SUMMARY:Insurtech Insights Asia 2026
+LOCATION:Hong Kong\, SAR
+DESCRIPTION:Asia's largest insurtech conference with 5\,000+ executives at the Kerry Hotel\, Hong Kong — the definitive APAC platform for Verma's insurance AI leadership positioning\, with direct access to regional insurance C-suite from 30+ Asian markets.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.insurtechinsights.com/asia/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-251@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261119
+DTEND;VALUE=DATE:20261120
+SUMMARY:RegTech Summit New York 2026
+LOCATION:New York\, NY\, USA
+DESCRIPTION:A-Team Insight's 9th annual RegTech Summit NYC — compliance\, risk management\, and financial crime prevention leaders from regulated financial institutions including regulators (NYDFS) and tier-1 banks\; aligns with Verma's AI governance and regulated-industry compliance narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://a-teaminsight.com/events/regtech-summit-new-york-city/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-250@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261028
+DTEND;VALUE=DATE:20261030
+SUMMARY:AI Expo Africa 2026
+LOCATION:Johannesburg\, South Africa
+DESCRIPTION:Africa's largest enterprise AI trade show — 3\,500+ delegates\, 84% senior decision-makers\, 4-track speaking programme\; ideal platform for ArcticBlue's Africa market presence and Verma's regulated-industry experimentation narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://aiexpoafrica.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-249@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20260929
+DTEND;VALUE=DATE:20260930
+SUMMARY:Global RegTech Summit USA 2026
+LOCATION:New York\, NY\, USA
+DESCRIPTION:The largest gathering of RegTech leaders in the US — 400 RegTech buyers\, 81% Director+ — directly addresses Verma's AI governance\, compliance innovation\, and de-risking AI narrative for regulated financial institutions.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://fintech.global/globalregtechsummitusa/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-248@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20260826
+DTEND;VALUE=DATE:20260828
+SUMMARY:Asia Life Insurance Summit 2026
+LOCATION:Hong Kong\, SAR
+DESCRIPTION:APAC's premier life-insurance C-suite summit — CEOs\, CFOs\, CROs at regional life insurers with a 2026 AI-driven operating model agenda directly matching Verma's regulated-industry de-risking narrative.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.asiainsurancereview.com/Events/Home/Asia/Asialife2026
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-247@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261118
+DTEND;VALUE=DATE:20261119
+SUMMARY:Evanta Washington DC CHRO Executive Summit 2026
+LOCATION:Arlington\, VA
+DESCRIPTION:Gartner Evanta's DC-area CHRO Summit draws CHROs from federal\, healthcare\, finance\, and tech enterprises in the DC/Northern Virginia corridor — high-value CHRO audience for Joe's AI enablement and workforce transformation message.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/chro/washington-dc/washington-dc-chro-executive-summit-9388
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-246@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261026
+DTEND;VALUE=DATE:20261029
+SUMMARY:Gartner HR Symposium/Xpo™ Americas 2026
+LOCATION:Orlando\, FL
+DESCRIPTION:Gartner's flagship CHRO and HR executive gathering\; 'Powering Possibilities With AI' and workforce skills transformation are the 2026 centerpiece themes — Joe's exact ICP in one definitive room.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.gartner.com/en/conferences/na/hr-symposium-us
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-245@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261020
+DTEND;VALUE=DATE:20261021
+SUMMARY:Evanta Chicago CHRO Executive Summit 2026
+LOCATION:Chicago\, IL
+DESCRIPTION:Gartner Evanta's Chicago CHRO Summit convenes 75–100 Midwest Fortune 500 CHROs\; AI workforce strategy and people transformation confirmed 2026 topics\; sponsor speaking track available.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/chro/chicago/chicago-chro-executive-summit-9276
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-244@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261006
+DTEND;VALUE=DATE:20261007
+SUMMARY:Forbes Future of Work Summit 2026
+LOCATION:New York\, NY
+DESCRIPTION:Forbes' invitation-only Future of Work Summit in Joe's home city NYC explicitly brings together CHROs\, CPOs\, and talent leaders around AI and the skills-based economy — Joe's exact audience with an open application.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.forbes.com/connect/event/2026-forbes-future-of-work-summit/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-243@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261004
+DTEND;VALUE=DATE:20261007
+SUMMARY:McLean Signature 2026
+LOCATION:Las Vegas\, NV
+DESCRIPTION:McLean & Company's annual HR executive conference for CHROs\, CPOs\, and VP HR\; 2026 'Human Centric. Future-Ready.' theme is Joe's exact brand space\; confirmed speaker and exhibitor tracks.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://hr.mcleanco.com/events/mclean-company-signature
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-242@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20260915
+DTEND;VALUE=DATE:20260917
+SUMMARY:HRO Today Talent Acquisition Summit 2026
+LOCATION:Atlanta\, GA
+DESCRIPTION:HRO Today's Talent Acquisition Summit draws TA leaders\, VPs HR\, and CHROs exploring AI and skills-based hiring\; confirmed open speaker application\; AI workforce readiness and upskilling connect directly to Joe's message.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.hrotoday.com/hro-today-talent-acquisition-summit/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-241@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260821
+SUMMARY:Chief People Officer Summit Boston 2026
+LOCATION:Boston\, MA
+DESCRIPTION:People Alliance's CPO Summit Boston gathers 75+ Global CPOs\, CHROs\, and Chief Talent Officers from companies including VNS Health\, Charles River Associates\, WPP\, and SharkNinja — Joe's exact ICP.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://events.peoplealliance.com/location/boston
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-239@arcticblue-event-tracker
 DTSTAMP:20260624T000000Z
 DTSTART;VALUE=DATE:20261119

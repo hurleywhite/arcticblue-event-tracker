@@ -428,8 +428,7 @@
    "attendee_count": "1,000+ speakers; 200+ exhibitors",
    "pricing": "Free for ITU Member State delegations (and Resolution 99), UN agencies, UN accredited NGOs, and those under 18; discounted for ITU Sector Members, Associates, Academia members, and students; paid passes available for other attendees, including Discovery Pass CHF 50, Gold Pass CHF 890, Leaders Pass C",
    "deadline": "1 September 2026",
-   "past_speakers": "will.i.am, AI Skills Coalition (speaking at 2026 summit)[9]",
-   "pay_to_play": "Yes"
+   "past_speakers": "will.i.am, AI Skills Coalition (speaking at 2026 summit)[9]"
   },
   {
    "num": 28,
@@ -1106,9 +1105,7 @@
    "venue": "Sandy Springs Performing Arts Center",
    "pricing": "$599–$999 in-person all-access; complimentary in-person pass for qualified attendees only; $999 regular price",
    "meeting_formats": "roundtables; attendee app for pre-booking meetings; networking receptions",
-   "audience_type": "Mixed",
-   "past_speakers": "Senior Data Leader, Fortune 500 Company; AI Infrastructure Expert, Leading Tech Startup; Governance Strategist, Enterprise Data Firm",
-   "attendee_count": "South’s largest enterprise-focused data & AI conference (spa"
+   "audience_type": "Mixed"
   },
   {
    "num": 40,
@@ -2314,12 +2311,7 @@
    "external_id": "23107d9f-2710-404b-bbd1-c65707cd5dba",
    "source": "arcticscout",
    "start_date": "2026-05-14",
-   "end_date": "2026-05-14",
-   "pricing": "Free pass (complimentary for delegates)",
-   "past_speakers": "Newly-appointed Chief AI Officers; Established data & technology leaders; AI C-suite executives",
-   "meeting_formats": "Networking activities in exhibition area; TIP sessions; Learning and networking activities",
-   "audience_type": "Buyer-rich",
-   "attendee_count": "EMEA's most significant gathering of AI C-suite"
+   "end_date": "2026-05-14"
   },
   {
    "num": 110,
@@ -3182,11 +3174,7 @@
    "external_id": "7d4d8b67-4138-4d87-a8be-fb2274232ef2",
    "source": "arcticscout",
    "start_date": "2026-05-19",
-   "end_date": "2026-05-20",
-   "pricing": "Delegate: Requires personal invitation from a Millennium Alliance member or approved application; Vendor/Sponsor: Registration available at organizer website (https://mill-all.com/assemblies)",
-   "past_speakers": "Global Chief Information Officer, TechCorp; Senior Director of AI, InnovateX; Head of DevOps, CloudSystems",
-   "meeting_formats": "Curated roundtables; Guaranteed face-to-face access to Global CIOs; Attendee app for pre-booking meetings (implied by 'unrivalled access' and 'connect face-to-face')",
-   "audience_type": "Buyer-rich"
+   "end_date": "2026-05-20"
   },
   {
    "num": 142,
@@ -4094,12 +4082,7 @@
    "external_id": "607ddbe3-7db0-465e-8914-0c631fc2f25c",
    "source": "arcticscout",
    "start_date": "2026-02-03",
-   "end_date": "2026-02-03",
-   "pricing": "Check Official Website",
-   "past_speakers": "Lawmakers, CEOs, Tech Stakeholders; Tech CEOs, Policymakers, Industry Visionaries",
-   "meeting_formats": "Curated roundtables, Attendee app for pre-booking meetings",
-   "audience_type": "Mixed",
-   "attendee_count": "500-1000 Delegates"
+   "end_date": "2026-02-03"
   },
   {
    "num": 176,
@@ -4375,9 +4358,7 @@
    "external_id": "6abbb7a3-9e42-4fd9-bcd4-b322d3c7db6a",
    "source": "arcticscout",
    "start_date": "2026-10-26",
-   "end_date": "2026-10-27",
-   "audience_type": "Mixed",
-   "deadline": "Dates to be announced shortly"
+   "end_date": "2026-10-27"
   },
   {
    "num": 186,
@@ -5911,11 +5892,7 @@
    "start_date": "2026-06-09",
    "end_date": "2026-06-10",
    "meeting_formats": "hosted face-to-face assembly with pre-approval/invitation-based attendance",
-   "audience_type": "Buyer-rich",
-   "pricing": "Delegate: Invitation-only or approved application required (cost not publicly listed); Sponsor: Cost varies by tier (contact required); Speaker: Invitation-only (cost not publicly listed)",
-   "pay_to_play": "Yes",
-   "past_speakers": "Jennifer Posa, PhD, MS - Keynote Speaker (AI challenges, workplace psychology, workforce readiness)",
-   "attendee_count": "Invitation-only (exact count not published)"
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 244,
@@ -7109,13 +7086,7 @@
    "pay_to_play": null,
    "city": "Riyadh",
    "country": "Saudi Arabia",
-   "external_id": "replit-220",
-   "venue": "King Abdulaziz International Conference Center",
-   "pricing": "Buyer-rich: 10,000+ participants; LP Attendance: 500+ (specific delegate/ticket price not published)",
-   "past_speakers": "H.R.H. Dr. Maha Bint Mishari (Saudi Royal), CEO of Gulf Sovereign Wealth Funds (PIF, ADIA, Mubadala, QIA, KIA); Global leaders, investors, innovators, and policymakers shaping the global economy",
-   "meeting_formats": "CEO roundtables; investor meetups; plenary sessions; unparalleled networking environment",
-   "audience_type": "Buyer-rich",
-   "attendee_count": "10,000+"
+   "external_id": "replit-220"
   },
   {
    "num": 291,

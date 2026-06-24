@@ -1658,6 +1658,20 @@ def build():
       border: 1px solid var(--ab-rule); border-radius: 10px;
       background: var(--ab-bg);
     }}
+    /* Collapsible: by default the dropdowns hide behind the Filters toggle so
+       the filter bar isn't the dominant element — search + toggle stay visible. */
+    .ops-filter-toggle {{
+      grid-column: 1 / -1; justify-self: start;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.8rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--ab-fg-2);
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
+      border-radius: 6px; padding: 8px 13px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
+    }}
+    .ops-filter-toggle:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
+    .ops-filter-toggle .ft-active {{ color: var(--ab-blue); }}
+    .ops-filter-toggle .ft-caret {{ font-size: 0.6rem; color: var(--ab-fg-3); }}
+    .ops-filters.collapsed > :not(#ops-search):not(.ops-filter-toggle) {{ display: none; }}
     /* Each filter fills its column so the bar reads as a tidy 5-up grid */
     .ops-filters > .filter-dd, .ops-filters > .ops-months {{ display: block; }}
     .ops-filters .filter-dd-btn, .ops-filters .ops-months-btn {{
@@ -2441,8 +2455,9 @@ def build():
           <span class="label">Pipeline:</span>
           <!-- 5 stage chips injected by buildStageFilters() -->
         </div>
-        <div class="ops-filters">
+        <div class="ops-filters collapsed">
           <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
+          <button type="button" class="ops-filter-toggle" id="ops-filter-toggle" aria-expanded="false" aria-label="Show or hide filters">Filters <span class="ft-caret" aria-hidden="true">▾</span></button>
           <select id="ops-region" aria-label="Filter region">
             <option value="">All regions</option>
             <option value="US &amp; Canada">US &amp; Canada</option>
@@ -2453,12 +2468,12 @@ def build():
             <option value="Asia-Pacific">Asia-Pacific</option>
             <option value="Global">Global</option>
           </select>
-          <select id="ops-price" aria-label="Filter by ticket price" title="Higher ticket price usually means higher-clientele buyers in the room">
+          <select id="ops-price" aria-label="Filter by ticket price" title="Ticket price as a buyer signal: a pricier pass usually means real buyers in the room, not a hall of vendors">
             <option value="">Any ticket price</option>
             <option value="free">Free</option>
             <option value="lt1000">Under $1,000</option>
             <option value="1000-2500">$1,000 – $2,500</option>
-            <option value="gte2500">$2,500+ (high clientele)</option>
+            <option value="gte2500">$2,500+ (buyer-rich room)</option>
             <option value="known">Price known</option>
           </select>
           <select id="ops-fits" aria-label="Show events that fit a teammate" title="Show only events matching one teammate's target profile (geography, audience, industry, themes)">
@@ -2744,16 +2759,20 @@ def build():
     // "Should Attend" reuses the attend_verdict field — a leading "worth" is the
     // canonical yes (drives the blue attend-yes badge + the "Worth attending" filter).
     var worthAttend = String(rec.attend_verdict || '').toLowerCase().indexOf('worth') === 0;
-    var b = [];
+    // Card actions (Save / Hide) sit on their own row; the pipeline + verdict
+    // toggles are grouped under a "Status:" label so the modal reads as labeled
+    // groups, not a wall of buttons (Thor's feedback).
+    var bAct = [];
     if (isCat) {{
-      b.push('<button type="button" class="qa' + (rec.saved ? ' on' : '') + '" data-qa="saved">' + (rec.saved ? '★ Saved' : '☆ Save') + '</button>');
-      b.push('<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unhide' : 'Hide') + '</button>');
+      bAct.push('<button type="button" class="qa' + (rec.saved ? ' on' : '') + '" data-qa="saved">' + (rec.saved ? '★ Saved' : '☆ Save') + '</button>');
+      bAct.push('<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unhide' : 'Hide') + '</button>');
     }}
-    b.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
-    b.push('<button type="button" class="qa' + (has('Followed up') ? ' on' : '') + '" data-qa="followed-up">' + (has('Followed up') ? '✓ Followed up' : 'Followed up') + '</button>');
-    b.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
-    b.push('<button type="button" class="qa' + (has('Attending') ? ' on' : '') + '" data-qa="attending">' + (has('Attending') ? '✓ Attending' : 'Attending') + '</button>');
-    b.push('<button type="button" class="qa' + (worthAttend ? ' on' : '') + '" data-qa="should-attend">' + (worthAttend ? '✓ Should Attend' : 'Should Attend') + '</button>');
+    var bStage = [];
+    bStage.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
+    bStage.push('<button type="button" class="qa' + (has('Followed up') ? ' on' : '') + '" data-qa="followed-up">' + (has('Followed up') ? '✓ Followed up' : 'Followed up') + '</button>');
+    bStage.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
+    bStage.push('<button type="button" class="qa' + (has('Attending') ? ' on' : '') + '" data-qa="attending">' + (has('Attending') ? '✓ Attending' : 'Attending') + '</button>');
+    bStage.push('<button type="button" class="qa' + (worthAttend ? ' on' : '') + '" data-qa="should-attend">' + (worthAttend ? '✓ Should Attend' : 'Should Attend') + '</button>');
     // "Interested" — the current teammate adds themselves to the list of people
     // who want Angela to apply for them. This feeds Angela's Queue.
     var me = (window.opsCurrentUser ? window.opsCurrentUser() : '') || '';
@@ -2764,14 +2783,16 @@ def build():
       '<button type="button" class="qa' + (iAmIn ? ' on' : '') + '" data-qa="interested">' + (iAmIn ? '✓ Interested' : "+ I'm interested") + '</button>' +
       (summary
         ? '<span class="qa-int-summary">' + summary + '</span>'
-        : '<span class="qa-int-summary qa-int-empty">No one yet — Angela applies for whoever\\'s interested</span>');
+        : '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>');
     // "Go" decision — a single optional flag. Tapping the active Go clears it.
     var dec = rec.decision || '';
     var decRow =
       '<span class="qa-row-label">Decision:</span>' +
       '<button type="button" class="qa' + (dec === 'go' ? ' on' : '') + '" data-qa="go">' + (dec === 'go' ? '✓ Go' : 'Go') + '</button>' +
       (dec === 'go' ? '<span class="qa-int-summary">tap to clear</span>' : '');
-    return '<div class="modal-quickbar"><div class="qa-row">' + b.join('') + '</div>' +
+    var actRow = bAct.length ? '<div class="qa-row">' + bAct.join('') + '</div>' : '';
+    return '<div class="modal-quickbar">' + actRow +
+           '<div class="qa-row" style="align-items:center;"><span class="qa-row-label">Status:</span>' + bStage.join('') + '</div>' +
            '<div class="qa-row" style="margin-top:6px;align-items:center;">' + decRow + '</div>' +
            '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div></div>';
   }}
@@ -2888,7 +2909,7 @@ def build():
     }}
     h += ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
     h += ef('ArcticBlue speaker', '<input class="me-input" type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
-    h += ef('Interested — wants Angela to apply', '<div class="me-ints">' + intChips + '</div>');
+    h += ef('Interested (joins Angela\\'s apply queue)', '<div class="me-ints">' + intChips + '</div>');
     // Notes lives here — the first free-text field, directly below Interested.
     h += ef('Notes', ta('notes', rec.notes, 3));
     var attendees = rec.attendees || [];
@@ -3091,11 +3112,7 @@ def build():
 
     // Read-only view. The edit form below mirrors this exact layout.
     var v = '';
-    var _visInt = window.visibleInterested(rec.interested, rec.speaker, rec.attendees);
-    if (_visInt.length) {{
-      v += field('Interested — wants Angela to apply',
-        _visInt.map(function (n) {{ return '<span class="int-chip">' + esc(n) + '</span>'; }}).join(''), true);
-    }}
+    // (Interest is shown once, in the quick-bar above — no duplicate field here.)
     v += field('Why it fits ArcticBlue', rec.why);
     v += field('About', rec.about);
     v += field('Focus areas', rec.focus_areas);
@@ -4523,6 +4540,41 @@ def build():
       updateFilterDropdownCounts();
     }}
 
+    // How many filters are currently engaged (so the collapsed toggle can say
+    // "Filters · N active" — otherwise an active filter would be invisible).
+    function countActiveOpsFilters() {{
+      var n = 0;
+      ['ops-region', 'ops-price', 'ops-fits'].forEach(function (id) {{ var e = document.getElementById(id); if (e && e.value) n++; }});
+      ['ops-f-submitted', 'ops-f-recent'].forEach(function (id) {{ var e = document.getElementById(id); if (e && e.checked) n++; }});
+      ['filter-priority', 'filter-track', 'filter-speaker', 'filter-attending'].forEach(function (id) {{
+        var box = document.getElementById(id);
+        if (box && box.querySelector('.filter-dd-btn.has-active')) n++;
+      }});
+      return n;
+    }}
+    function updateFilterToggle() {{
+      var $ft = document.getElementById('ops-filter-toggle');
+      if (!$ft) return;
+      var box = $ft.closest('.ops-filters');
+      var collapsed = !!(box && box.classList.contains('collapsed'));
+      var n = countActiveOpsFilters();
+      $ft.innerHTML = 'Filters' + (n ? ' <span class="ft-active">· ' + n + ' active</span>' : '') +
+        ' <span class="ft-caret" aria-hidden="true">' + (collapsed ? '▾' : '▴') + '</span>';
+    }}
+    function wireFilterToggle() {{
+      var $ft = document.getElementById('ops-filter-toggle');
+      if (!$ft || $ft.dataset.wired) return;
+      $ft.dataset.wired = '1';
+      $ft.addEventListener('click', function () {{
+        var box = $ft.closest('.ops-filters');
+        if (!box) return;
+        var collapsed = box.classList.toggle('collapsed');
+        $ft.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        updateFilterToggle();
+      }});
+      updateFilterToggle();
+    }}
+
     // Rebuild the Speakers row from the current data set. Called from
     // renderOps() so the chip list reflects who's actually assigned right
     // now (including changes that just synced in via realtime).
@@ -5008,8 +5060,10 @@ def build():
       }}
       syncAriaPressed();  // reflect on/off state to screen readers
       updateFilterDropdownCounts();  // keep dropdown buttons' active counts current
-      // The map mirrors the grid's filters — keep its pins in sync.
+      updateFilterToggle();          // keep the collapsed "Filters · N active" count fresh
+      // The map + calendar mirror the grid's filters — keep them in sync.
       if (currentView === 'map' && _opsMapLayer) renderOpsMap();
+      if (currentView === 'calendar' && _calEvents) recalcCalendar();
     }}
 
     function debounce(fn, ms) {{
@@ -6613,6 +6667,7 @@ def build():
       if (q) q.classList.toggle('show', name === 'queue');
       if (p) p.classList.toggle('show', name === 'planner');
       if (d) d.classList.toggle('show', name === 'dayof');
+      if (name === 'calendar') recalcCalendar();   // re-apply the live filters
       if (name === 'map') openOpsMap();
       if (name === 'queue') renderQueue();
       if (name === 'planner') renderPlanner();
@@ -7024,29 +7079,29 @@ def build():
           bar.style.gridColumn = (ws.startCol + 1) + ' / span ' + ws.span;
           bar.style.gridRow = (ws.lane + 2);
           var calStages = stageTagsOf(st);
-          var topStage = mostAdvancedStage(calStages);
-          var grpDot = topStage ? stageDot(topStage) : null;
-          // Color precedence so no chip is ever blank white: pipeline stage
-          // (fill + border) first; saved / urgent keep their CSS class colors;
-          // everything else falls back to a light tint of the event's region.
-          if (topStage && STAGE_BY_KEY[topStage]) {{
-            bar.style.background = STAGE_BY_KEY[topStage].bg;
-            if (grpDot) bar.style.borderLeftColor = grpDot;
-          }} else if (!st.saved && !(st.urgent || isDeadlineUrgent(ev.deadline))) {{
-            var _calReg = regionColor(canonicalRegion(ev));
-            bar.style.background = hexToRgba(_calReg, 0.13);
-            bar.style.borderLeftColor = _calReg;
+          // Calendar shows ONLY the three priority blocks — Submitted (blue),
+          // Booked (green), Attending (teal) — everything else stays grey. This
+          // kills the old region-color vs stage-color collision (Europe-purple
+          // read as 'Meeting held'-purple) and matches Angela's "color the
+          // status changes, keep the rest grey" ask.
+          var calBlock = calStages.indexOf('Booked') !== -1 ? 'Booked'
+                       : calStages.indexOf('Attending') !== -1 ? 'Attending'
+                       : calStages.indexOf('Submitted') !== -1 ? 'Submitted' : null;
+          if (calBlock && STAGE_BY_KEY[calBlock]) {{
+            bar.style.background = STAGE_BY_KEY[calBlock].bg;
+            bar.style.borderLeftColor = STAGE_BY_KEY[calBlock].dot;
+          }} else {{
+            bar.style.background = '#f3f4f6';
+            bar.style.borderLeftColor = '#d1d5db';
           }}
           var sp2 = st.speaker || '';
           var ini = sp2 ? initials(sp2) : '';
           var statusInline = '';
-          if (topStage && STAGE_BY_KEY[topStage]) {{
-            var s = STAGE_BY_KEY[topStage];
-            var extra = calStages.length > 1 ? ' +' + (calStages.length - 1) : '';
-            statusInline = '<span class="cal-evt-status" style="background:' + s.bg + ';color:' + s.fg + ';">' + escapeHtml(topStage) + extra + '</span>';
+          if (calBlock && STAGE_BY_KEY[calBlock]) {{
+            var s = STAGE_BY_KEY[calBlock];
+            statusInline = '<span class="cal-evt-status" style="background:' + s.bg + ';color:' + s.fg + ';">' + escapeHtml(calBlock) + '</span>';
           }}
           bar.innerHTML =
-            '<span class="cal-region-dot" style="background:' + regionColor(canonicalRegion(ev)) + ';"></span>' +
             '<span class="cal-evt-name">' + escapeHtml(ev.name) + '</span>' +
             (ini ? '<span class="cal-chip-initial" title="' + escapeHtml(sp2) + '">' + escapeHtml(ini) + '</span>' : '') +
             statusInline;
@@ -7069,10 +7124,28 @@ def build():
       return monthDiv;
     }}
 
+    // Cached full calendar inputs so we can re-render with the live filters
+    // applied — the calendar honors the SAME filters as the grid.
+    var _calEvents = null, _calStateMap = null, _calManual = null;
+    function recalcCalendar() {{ if (_calEvents) renderCalendar(_calEvents, _calStateMap, _calManual); }}
+    // Which events passed the active grid filters? Keyed to the calendar's
+    // ev.num (catalog = event_num, manual = 'm'+id). active=false when nothing
+    // is filtered out, so an unfiltered calendar shows every event.
+    function opsCalPassed() {{
+      var map = {{}}, total = 0, passed = 0;
+      var cards = $opsGrid ? $opsGrid.querySelectorAll('.ops-card') : [];
+      Array.prototype.forEach.call(cards, function (c) {{
+        total++;
+        var key = c.dataset.manualId ? ('m' + c.dataset.manualId) : c.dataset.eventNum;
+        if (c.dataset.passed === '1') {{ map[String(key)] = 1; passed++; }}
+      }});
+      return {{ map: map, active: total > 0 && passed < total }};
+    }}
     function renderCalendar(events, stateMap, manualEvents) {{
       var cal = document.getElementById('ops-calendar');
       if (!cal) return;
       cal.innerHTML = '';
+      _calEvents = events; _calStateMap = stateMap; _calManual = manualEvents;
 
       // Combine regular + manual events. Manual events use bigserial id namespace
       // distinct from event_num, so we tag them so the click handler can find
@@ -7102,6 +7175,11 @@ def build():
           _manualHidden:     !!m.hidden
         }});
       }});
+
+      // Honor the active grid filters (stage chips, search, price, region, …):
+      // when something is filtered, drop calendar events whose card didn't pass.
+      var _pf = opsCalPassed();
+      if (_pf.active) combined = combined.filter(function (ev) {{ return _pf.map[String(ev.num)]; }});
 
       // Determine month range
       var earliest = null, latest = null;
@@ -7180,21 +7258,16 @@ def build():
       monthHost.id = 'cal-month-host';
       cal.appendChild(monthHost);
 
-      // Legend: stage swatches rendered as the exact pill shown on events, then
-      // a region row documenting the colored region dots on each bar — so every
-      // color on the calendar maps to a label here.
+      // Legend: just the three priority color-blocks + grey for everything else.
+      // (Region colors were removed — they collided with the stage colors.)
       var legend = document.createElement('div');
       legend.className = 'cal-legend';
       legend.innerHTML =
-        '<span class="cal-legend-label">Stages:</span>' +
-        STAGE_TAGS.map(function (g) {{
-          return '<span class="cal-legend-pill" style="' + stageStyle(g.key) + '">' + escapeHtml(g.key) + '</span>';
+        '<span class="cal-legend-label">Calendar key:</span>' +
+        ['Submitted', 'Booked', 'Attending'].map(function (k) {{
+          return '<span class="cal-legend-pill" style="' + stageStyle(k) + '">' + escapeHtml(k) + '</span>';
         }}).join('') +
-        '<span class="cal-legend-sep"></span>' +
-        '<span class="cal-legend-label">Regions:</span>' +
-        Object.keys(REGION_COLORS).map(function (r) {{
-          return '<span class="cal-legend-item"><span class="cal-legend-dot" style="background:' + REGION_COLORS[r] + ';"></span>' + escapeHtml(r) + '</span>';
-        }}).join('');
+        '<span class="cal-legend-pill" style="background:#f3f4f6;color:#6b7280;">Other / no status</span>';
       cal.appendChild(legend);
 
       function onChipClick(num) {{
@@ -7289,6 +7362,55 @@ def build():
           var d3 = iso(parseInt(m3[3], 10), mn3, parseInt(m3[2], 10));
           out.start_date = d3;
           out.end_date   = d3;
+          return out;
+        }}
+      }}
+      // 3b. DAY-FIRST cross-month range — "D Month – D Month YYYY"
+      var df1 = s.match(/(\\d{{1,2}})\\s+([A-Za-z]+)\\s*[–—-]\\s*(\\d{{1,2}})\\s+([A-Za-z]+),?\\s+(\\d{{4}})/);
+      if (df1) {{
+        var dfa = months[df1[2].toLowerCase()], dfb = months[df1[4].toLowerCase()];
+        if (dfa && dfb) {{
+          var dfy = parseInt(df1[5], 10);
+          out.start_date = iso(dfy, dfa, parseInt(df1[1], 10));
+          out.end_date   = iso(dfy, dfb, parseInt(df1[3], 10));
+          return out;
+        }}
+      }}
+      // 3c. DAY-FIRST same-month range — "D–D Month YYYY"  (e.g. "4-6 May 2027")
+      var df2 = s.match(/(\\d{{1,2}})\\s*[–—-]\\s*(\\d{{1,2}})\\s+([A-Za-z]+),?\\s+(\\d{{4}})/);
+      if (df2) {{
+        var dfm = months[df2[3].toLowerCase()];
+        if (dfm) {{
+          var dfy2 = parseInt(df2[4], 10);
+          out.start_date = iso(dfy2, dfm, parseInt(df2[1], 10));
+          out.end_date   = iso(dfy2, dfm, parseInt(df2[2], 10));
+          return out;
+        }}
+      }}
+      // 3d. DAY-FIRST single — "D Month YYYY"  (e.g. "4 May 2027")
+      var df3 = s.match(/(\\d{{1,2}})\\s+([A-Za-z]+),?\\s+(\\d{{4}})/);
+      if (df3) {{
+        var dfm3 = months[df3[2].toLowerCase()];
+        if (dfm3) {{
+          var dfd = iso(parseInt(df3[3], 10), dfm3, parseInt(df3[1], 10));
+          out.start_date = dfd; out.end_date = dfd;
+          return out;
+        }}
+      }}
+      // 3e. ISO — "YYYY-MM-DD" (optionally a range)
+      var dfi = s.match(/(\\d{{4}})-(\\d{{1,2}})-(\\d{{1,2}})(?:\\s*[–—-]\\s*(\\d{{4}})-(\\d{{1,2}})-(\\d{{1,2}}))?/);
+      if (dfi) {{
+        out.start_date = iso(parseInt(dfi[1], 10), parseInt(dfi[2], 10), parseInt(dfi[3], 10));
+        out.end_date   = dfi[4] ? iso(parseInt(dfi[4], 10), parseInt(dfi[5], 10), parseInt(dfi[6], 10)) : out.start_date;
+        return out;
+      }}
+      // 3f. Month + year only — "Month YYYY"  (e.g. "May 2027") -> 1st of month
+      var dfmy = s.match(/([A-Za-z]+)\\s+(\\d{{4}})/);
+      if (dfmy) {{
+        var dmy = months[dfmy[1].toLowerCase()];
+        if (dmy) {{
+          var dmyd = iso(parseInt(dfmy[2], 10), dmy, 1);
+          out.start_date = dmyd; out.end_date = dmyd;
           return out;
         }}
       }}
@@ -8392,6 +8514,7 @@ def build():
       buildStatusFilters();
       buildExtraFilters();
       wireFilterDropdowns();
+      wireFilterToggle();
       renderOps(who);
       wireAddEvent(who);
       setupRealtime(who);
