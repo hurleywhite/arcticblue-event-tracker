@@ -5410,10 +5410,78 @@ def build():
     }}
 
     function copyBrief(it) {{
-      var b = it.briefing_json || {{}}; var g = b.at_a_glance || {{}}; var t = b.targets || {{}};
-      var lines = [(g.event || it.name), (g.dates || it.date_str || ''), '', b.why_were_here || '', '',
-        'ANGLES:'].concat((b.angles || []).map(function (a) {{ return '- ' + a; }}));
-      try {{ navigator.clipboard.writeText(lines.join('\\n')); if (typeof flashOk === 'function') flashOk('Brief copied'); }} catch (e) {{}}
+      // Plain-text dump of the WHOLE brief (mirrors the drawer, same order) so a
+      // paste into Slack / email / notes carries every section, not just the summary.
+      var b = it.briefing_json || {{}};
+      var g = b.at_a_glance || {{}}, t = b.targets || {{}}, wir = b.who_in_room || {{}}, lw = b.logistics_win || {{}};
+      var act = g.activity || (g.mode === 'stage' ? 'Speaking' : 'Attending');
+      var L = [];
+      function add(s) {{ L.push(s == null ? '' : String(s)); }}
+      function head(title) {{ add(''); add(title.toUpperCase()); }}
+      add(g.event || it.name);
+      add((g.dates || it.date_str || '') + (g.venue ? ' | ' + g.venue : (it.location ? ' | ' + it.location : '')));
+      add(act + (g.covered_by ? ' | covered by ' + g.covered_by : ''));
+      if (b.why_were_here) {{ add(''); add(b.why_were_here); }}
+      // Who is in the room
+      if ((wir.named && wir.named.length) || (wir.titles && wir.titles.length) || (wir.industries && wir.industries.length)) {{
+        head('Who is in the room (' + (wir.confidence || 'estimated') + ')');
+        if (wir.titles && wir.titles.length) add(wir.titles.join(', '));
+        if (wir.industries && wir.industries.length) add(wir.industries.join(' / '));
+        (wir.named || []).forEach(function (n) {{
+          var extra = [n.title, n.org].filter(Boolean).join(', ');
+          add('- ' + (n.name || '') + (extra ? ' (' + extra + ')' : ''));
+        }});
+      }}
+      // Targets
+      var tp = t.people_to_find || [];
+      if (tp.length || t.speaking_route_open || (t.facilitator_leads && t.facilitator_leads.length)) {{
+        head('Targets');
+        tp.forEach(function (x) {{
+          if (!x || typeof x === 'string') {{ add('- ' + x); return; }}
+          var sub = [x.name ? x.org : null, x.role].filter(Boolean).join(', ');
+          add('- ' + (x.name || x.org || x.role || '') + (sub ? ' (' + sub + ')' : '') + (x.confidence ? ' [' + x.confidence + ']' : ''));
+          if (x.why) add('    why: ' + x.why);
+          if (x.where) add('    where: ' + x.where);
+        }});
+        if (t.speaking_route_open) add('Speaking route: ' + t.speaking_route_open);
+        (t.facilitator_leads || []).forEach(function (x) {{ add('- ' + x); }});
+      }}
+      // Speaker spotlight
+      if (b.speaker_spotlight && b.speaker_spotlight.length) {{
+        head('Speaker spotlight');
+        b.speaker_spotlight.forEach(function (s) {{
+          add('- ' + (s.name || '') + (s.who ? ' - ' + s.who : ''));
+          (s.news || []).forEach(function (n) {{ add('    ' + (n.headline || '') + (n.date ? ' (' + n.date + ')' : '') + (n.url ? ' ' + n.url : '')); }});
+          if (s.hook) add('    hook: ' + s.hook);
+        }});
+      }}
+      // Topic news
+      if (b.topic_news && b.topic_news.length) {{
+        head('Fresh news on your topic');
+        b.topic_news.forEach(function (n) {{
+          add('- ' + (n.headline || '') + (n.date ? ' (' + n.date + ')' : '') + (n.url ? ' ' + n.url : ''));
+          if (n.relevance) add('    ' + n.relevance);
+        }});
+      }}
+      // Angles
+      if (b.angles && b.angles.length) {{
+        head('Angles');
+        b.angles.forEach(function (a) {{ add('- ' + a); }});
+      }}
+      // Logistics & win
+      var lwL = [];
+      if (lw.time) lwL.push('When: ' + lw.time);
+      if (lw.room) lwL.push('Where: ' + lw.room);
+      if (lw.link) lwL.push('Agenda: ' + lw.link);
+      if (lw.move) lwL.push('First move: ' + lw.move);
+      if (lw.win) lwL.push('Win: ' + lw.win);
+      if (lwL.length) {{ head('Logistics & win'); lwL.forEach(add); }}
+      // Unconfirmed
+      if (b.unconfirmed && b.unconfirmed.length) {{
+        head('Unconfirmed - verify on the ground');
+        b.unconfirmed.forEach(function (u) {{ add('- ' + u); }});
+      }}
+      try {{ navigator.clipboard.writeText(L.join('\\n')); if (typeof flashOk === 'function') flashOk('Brief copied'); }} catch (e) {{}}
     }}
 
     function renderBrief(b, it, cached) {{
