@@ -16,6 +16,66 @@ DESCRIPTION:Omani enterprise AI expo for Gulf CXOs — potential supplementary M
 URL:https://aienterpriseexpo.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-239@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261119
+DTEND;VALUE=DATE:20261120
+SUMMARY:Digital Transformation Conference London 2026
+LOCATION:London\, UK
+DESCRIPTION:Co-located with AI in Business Conference on Nov 19\; AstraZeneca\, HSBC\, NatWest\, BNP Paribas speaker alumni\; earned speaking route via direct email contact\; complementary to Jerome's FSI and healthcare relationships.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://www.digitaltransformationconf.co.uk/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-238@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261109
+DTEND;VALUE=DATE:20261113
+SUMMARY:Gartner IT Symposium/Xpo™ EMEA 2026 — Barcelona
+LOCATION:Barcelona\, Spain
+DESCRIPTION:The world's most important CIO gathering — 6\,000+ European IT leaders\; Agentic AI is the headline 2026 topic alongside AI governance\; exhibitor/sponsor route provides access to Jerome's primary ICP buyer audience.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.gartner.com/en/conferences/emea/symposium-spain
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-237@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261104
+DTEND;VALUE=DATE:20261105
+SUMMARY:CxO Institute London November 2026
+LOCATION:London\, UK
+DESCRIPTION:Exclusive C-suite gathering of 100+ UK IT decision-makers focused on AI-native enterprise\, agentic AI\, and data governance — intimate format with roundtables and boardrooms ideal for ArcticBlue pipeline building.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://cxo-institute.com/our-events/cxo-institute-london-november-2026/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-236@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20261013
+DTEND;VALUE=DATE:20261016
+SUMMARY:Network X Vienna 2026
+LOCATION:VIECON\, Vienna\, Austria
+DESCRIPTION:Europe's flagship telecom event — 5\,500+ operators including Swisscom CEO and A1 Group CEO\; dedicated 'Digital Elements/AI' track for AI-native networks\; Jerome's Liberty Global relationship makes this a natural fit.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://networkxevent.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-235@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20260924
+DTEND;VALUE=DATE:20260925
+SUMMARY:CIO 100 Awards & Conference UK 2026
+LOCATION:Royal Lancaster London\, London\, UK
+DESCRIPTION:UK's premier CIO gathering themed 'The AI-Native Enterprise: A CIO Blueprint for 2030' — senior IT decision-makers from UK financial services\, insurance\, and regulated industries\; sponsor speaking route available.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://event.foundryco.com/cio-100-uk/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-234@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20260921
+DTEND;VALUE=DATE:20260924
+SUMMARY:Responsible AI Summit Europe 2026
+LOCATION:Hilton London Syon Park\, London\, UK
+DESCRIPTION:Europe's premier closed-door RAI gathering — AXA UK\, NatWest\, Lloyds\, Zurich Insurance\, Mastercard\, Vodafone attendees match ArcticBlue's exact regulated-industry buyer profile for AI governance.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.aidataanalytics.network/events-responsible-ai-summit
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-233@arcticblue-event-tracker
 DTSTAMP:20260624T000000Z
 DTSTART;VALUE=DATE:20261119
