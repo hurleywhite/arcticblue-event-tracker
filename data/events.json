@@ -383,7 +383,12 @@
    "city": "Paris",
    "country": "France",
    "external_id": "63e7d25b-fbd1-4253-8778-681acbeb895c",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Buyer-rich: 180,000+ visitors from 170+ countries; 4,500+ exhibitors; +15,000 startups; specific delegate/ticket price not publicly listed in search results",
+   "past_speakers": "AI & Productivity thought leaders; Cybersecurity & Defense experts; Greentech & Energy pioneers; Deeptech innovators; public and private sector leaders[1]",
+   "meeting_formats": "Global Deep Tech Battle pitch competition; daily activations at swisstech pavilion; hosted roundtables at Orange stand's Agora[1][3]",
+   "audience_type": "Buyer-rich",
+   "deadline": "January 28, 2026 (Innosuisse support application deadline for swisstech pavilion)[7]"
   },
   {
    "num": 83,
@@ -1481,7 +1486,9 @@
    "speaking_route": "Sponsorship + speaking: cdao-fall.coriniumintelligence.com/sponsorship-opportunities. Download prospectus: cdao-fall.coriniumintelligence.com/sponsorship-prospectus",
    "contact_info": "cdao-fall.coriniumintelligence.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Chief CDAO priorities and roadmap for 2026–27; Enterprise AI strategy and production deployment; AI governance and data foundations; Agentic AI for enterprise analytics and operations; AI ROI measurement and business impact"
+   "focus_areas": "Chief CDAO priorities and roadmap for 2026–27; Enterprise AI strategy and production deployment; AI governance and data foundations; Agentic AI for enterprise analytics and operations; AI ROI measurement and business impact",
+   "past_speakers": "Senior Data Leader, Multiple Industries; Senior Analytics Leader, Multiple Industries; Senior AI Leader, Multiple Industries",
+   "deadline": "AGENDA COMING SOON"
   },
   {
    "num": 62,
@@ -5348,7 +5355,13 @@
    "external_id": "bd389134-8eee-4633-ba65-c649cbe0cbdf",
    "source": "arcticscout",
    "start_date": "2026-06-16",
-   "end_date": "2026-06-16"
+   "end_date": "2026-06-16",
+   "pricing": "Invitation only (no public delegate/ticket price listed)",
+   "past_speakers": "Business leaders and policymakers examining biggest issues #ReutersNEXT",
+   "meeting_formats": "Invitation-only roundtables and workshops led by senior executives and specialists",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Leaders, heads of state, CEOs, central bank governors, business leaders, and policymakers",
+   "attendee_count": "300 global leaders (inaugural event)"
   },
   {
    "num": 223,
@@ -5785,7 +5798,11 @@
    "external_id": "98eec1c9-f0b8-4c03-9fa6-fced72ca21d6",
    "source": "arcticscout",
    "start_date": "2026-06-24",
-   "end_date": "2026-06-24"
+   "end_date": "2026-06-24",
+   "pricing": "£479 plus VAT (Professional ticket for in-person & digital attendance)",
+   "past_speakers": "Senior executives from insurers, reinsurers, regulators and service providers; 40+ speakers decoding regulatory changes, insurtech and climate risk globally",
+   "meeting_formats": "Multi-stream sessions with two content tracks (Property & Casualty Stage and Life Insurance & Investment Stage); Networking breaks at 11:00 AM and 4:10 PM; Drinks reception & networking at 5:55 PM",
+   "audience_type": "Mixed"
   },
   {
    "num": 240,
