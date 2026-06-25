@@ -188,6 +188,21 @@ def activity_label(status_tags):
     return 'Targeting'
 
 
+def is_attending_or_speaking(state):
+    """Day-of briefs are ONLY for events someone is confirmed ATTENDING or
+    SPEAKING at — never a tentative 'Should Attend'. Confirmed = the pipeline
+    carries 'Booked' (speaking) or 'Attending', OR an explicit day-of attendee
+    was picked (`attendees`). A 'Should Attend' verdict (attend_verdict) alone,
+    or a speaker merely assigned to a not-yet-booked event, does NOT qualify."""
+    s = state or {}
+    tags = [str(t).strip().lower() for t in (s.get('status_tags') or [])]
+    if 'booked' in tags or 'attending' in tags:
+        return True
+    if s.get('attendees'):
+        return True
+    return False
+
+
 def _today():
     return date.today().isoformat()
 
@@ -550,8 +565,12 @@ def _one(kind, key, host, regenerate):
     keys = resolve_attendees(state if kind == 'event_state' else facts)
     if not keys:
         return {'error': 'no attendees on this event'}, 400
-    persona = load_personas()['personas'][keys[0]]
     row = state if kind == 'event_state' else facts
+    if not is_attending_or_speaking(row):
+        return {'error': "day-of briefs are only for events you're attending or "
+                         "speaking at — not 'Should Attend'. Mark Attending or "
+                         "Speaking Booked first."}, 400
+    persona = load_personas()['personas'][keys[0]]
     mode = effective_mode(persona, row.get('status_tags'))
     activity = activity_label(row.get('status_tags'))
     if not regenerate and state.get('briefing_json') and not is_stale(state):
@@ -1123,7 +1142,7 @@ class handler(BaseHTTPRequestHandler):
         tgt_budget = [TARGETS_CRON_MAX]
         # catalog: events.json in range + event_state attendees
         st, data = _http_json('GET', 'https://%s/events.json' % host, timeout=20)
-        st2, states = _http_json('GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,attendees,speaker,speaker_topic,briefing_generated_at,briefing_json,targets_json,targets_generated_at',
+        st2, states = _http_json('GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,attendees,speaker,speaker_topic,status_tags,briefing_generated_at,briefing_json,targets_json,targets_generated_at',
                                  headers=_sb_headers(service=True))
         smap = {r.get('event_num'): r for r in states if isinstance(r, dict)} if isinstance(states, list) else {}
         for e in (data.get('events') or []) if isinstance(data, dict) else []:
@@ -1131,8 +1150,9 @@ class handler(BaseHTTPRequestHandler):
             lo, hi = e.get('start_date'), e.get('end_date') or e.get('start_date')
             if not lo or not resolve_attendees(s):
                 continue
-            # Brief: only for events happening tomorrow (day-of context).
-            if lo <= brief_target <= (hi or lo):
+            # Brief: only for events happening tomorrow (day-of context) that
+            # someone is actually attending/speaking at — never "Should Attend".
+            if lo <= brief_target <= (hi or lo) and is_attending_or_speaking(s):
                 try:
                     self._gen_cache('event_state', e.get('num'), host); done.append(e.get('num'))
                 except Exception as ex:  # noqa: BLE001
@@ -1155,8 +1175,10 @@ class handler(BaseHTTPRequestHandler):
         keys = resolve_attendees(state if kind == 'event_state' else facts)
         if not keys:
             return
-        persona = load_personas()['personas'][keys[0]]
         row = state if kind == 'event_state' else facts
+        if not is_attending_or_speaking(row):   # skip "Should Attend" / unconfirmed
+            return
+        persona = load_personas()['personas'][keys[0]]
         mode = effective_mode(persona, row.get('status_tags'))
         activity = activity_label(row.get('status_tags'))
         ev = event_facts_for(kind, facts, state)

@@ -16,6 +16,16 @@ DESCRIPTION:Omani enterprise AI expo for Gulf CXOs — potential supplementary M
 URL:https://aienterpriseexpo.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-258@arcticblue-event-tracker
+DTSTAMP:20260624T000000Z
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260626
+SUMMARY:AI Forum Workshop
+LOCATION:London\, UK
+DESCRIPTION:This is a focused London enterprise AI workshop with senior business and digital leaders discussing AI’s economic and industrial impact\, making it a plausible fit for ArcticBlue’s enterprise positioning though likely smaller and more policy-oriented than a major flagship event.\nPriority: Medium\nAdded by: Ang
+URL:https://events.bizzabo.com/864955/home
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-257@arcticblue-event-tracker
 DTSTAMP:20260624T000000Z
 DTSTART;VALUE=DATE:20270331

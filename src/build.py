@@ -5279,6 +5279,11 @@ def build():
         if (it.hidden) return;
         it._keys = resolveAttendeeKeys(it);
         if (!it._keys.length) return;
+        // Only events someone is confirmed ATTENDING or SPEAKING at — never a
+        // tentative "Should Attend" (or a speaker merely assigned pre-booking).
+        var _st = (it.stages || []).map(function (x) {{ return String(x).toLowerCase(); }});
+        var _confirmed = _st.indexOf('booked') !== -1 || _st.indexOf('attending') !== -1 || (it.attendees && it.attendees.length);
+        if (!_confirmed) return;
         var s = it.start_date || '', e = it.end_date || it.start_date || '';
         if (s && s <= today && today <= (e || s)) todayList.push(it);
         else if (s && s > today) soon.push(it);
@@ -5298,7 +5303,7 @@ def build():
     function dayofActivity(it) {{
       var t = (it.stages || []).map(function (s) {{ return String(s).toLowerCase(); }});
       if (t.indexOf('booked') !== -1) return 'Speaking';
-      if (t.indexOf('attending') !== -1) return 'Attending';
+      if (t.indexOf('attending') !== -1 || (it.attendees && it.attendees.length)) return 'Attending';
       return 'Targeting';
     }}
     function dayofCard(it, isToday) {{
