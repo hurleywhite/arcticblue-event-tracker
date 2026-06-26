@@ -1378,7 +1378,8 @@
    "about": "European edition of the AI & Big Data Expo, part of the TechEx cluster in Amsterdam. 2-day in-person event for AI practitioners and enterprise leaders. Co-located with Cloud & 5G Expo, Cybersecurity & Cloud Expo, and IoT Tech Expo. Strong enterprise AI governance and agentic AI deployment content tracks.",
    "speaking_route": "Speaker application: ai-expo.net/europe/speakers. Sponsor/contact: ai-expo.net/europe",
    "contact_info": "ai-expo.net/europe",
-   "focus_areas": "Enterprise AI governance and responsible deployment; Agentic AI and intelligent automation; AI data platforms and architecture; Cloud-native AI infrastructure; Digital transformation with AI"
+   "focus_areas": "Enterprise AI governance and responsible deployment; Agentic AI and intelligent automation; AI data platforms and architecture; Cloud-native AI infrastructure; Digital transformation with AI",
+   "pricing": "FREE pass for attendees (delegate/ticket price); vendor/supplier rates not listed"
   },
   {
    "num": 91,
@@ -1963,7 +1964,12 @@
    "city": "Cambridge",
    "country": "USA",
    "external_id": "0646e11a-8ab4-4d5f-b1a7-651fd2409b69",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Ticket sales have ended; contact tina@mitcfo.com for registration details",
+   "past_speakers": "Allan Tate, SM '86, Executive Chair, MIT Sloan CIO Symposium",
+   "meeting_formats": "VIP access for Networking, Innovation Showcase finalists; pre-event networking dinner",
+   "audience_type": "Buyer-rich",
+   "deadline": "Ticket sales have ended"
   },
   {
    "num": 97,
@@ -2607,7 +2613,11 @@
    "external_id": "50bc624f-5939-438a-96ba-d6ac128c7bf3",
    "source": "arcticscout",
    "start_date": "2026-06-09",
-   "end_date": "2026-06-09"
+   "end_date": "2026-06-09",
+   "past_speakers": "Ganesh Sivakumar, Empowered Chief AI Officer",
+   "meeting_formats": "invite-only summit",
+   "audience_type": "Mixed",
+   "attendee_count": "400+"
   },
   {
    "num": 121,
@@ -3124,7 +3134,12 @@
    "external_id": "2b81ba9b-2a39-4b09-b3b1-b30320d3f8b2",
    "source": "arcticscout",
    "start_date": "2026-04-28",
-   "end_date": "2026-04-29"
+   "end_date": "2026-04-29",
+   "pay_to_play": "Yes",
+   "past_speakers": "Enterprise AI Strategists; Product Leaders & Innovators; Business Operations; AI Transformation Leaders; Corporate Technologists; AI Systems Architect",
+   "meeting_formats": "Strategic roundtables; curated leadership programming; executive-level sessions; networking with senior leaders",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "250 Exclusive Seats"
   },
   {
    "num": 140,
@@ -3766,7 +3781,12 @@
    "external_id": "c77bdd67-9ad0-4e61-8684-cce77243f7d2",
    "source": "arcticscout",
    "start_date": "2026-05-11",
-   "end_date": "2026-05-14"
+   "end_date": "2026-05-14",
+   "pricing": "Buyer-rich: 20,000+ attendees; 600+ investors; 750+ startups; vendors/suppliers pay different rates (specific delegate/ticket price not published in sources)",
+   "past_speakers": "CEO, Microsoft; CTO, Cloudflare; VP Innovation, IBM",
+   "meeting_formats": "Curated small group tours for investors; attendee app for pre-booking meetings (implied by 'fastest-growing tech conference' FAQ)",
+   "audience_type": "Buyer-rich",
+   "deadline": "Registration closed (as of June 26, 2026)"
   },
   {
    "num": 164,
@@ -5090,7 +5110,12 @@
    "external_id": "b65e98db-4363-4629-9248-e5d038c18330",
    "source": "arcticscout",
    "start_date": "2026-06-17",
-   "end_date": "2026-06-19"
+   "end_date": "2026-06-19",
+   "pricing": "Invite-only conclave for FII Institute Members; delegate/ticket price not publicly listed",
+   "past_speakers": "Richard Attias, Special; H.E. Giorgia Meloni, Prime Minister of Italy; Yasar Ruayan, Chairman of FII Institute",
+   "meeting_formats": "Invite-only access for Members; factsheet available for agenda and core topics",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "1,600+"
   },
   {
    "num": 213,
