@@ -69,8 +69,7 @@
    "city": "San Francisco",
    "country": "USA",
    "external_id": "49310e3d-f767-40e9-be14-929085c57e41",
-   "source": "arcticscout",
-   "deadline": "Likely passed (event June 2–3)"
+   "source": "arcticscout"
   },
   {
    "num": 18,
@@ -2160,7 +2159,10 @@
    "external_id": "b8a42359-c3e3-4e7d-a8bd-1a23a83b86eb",
    "source": "arcticscout",
    "start_date": "2026-05-04",
-   "end_date": "2026-05-05"
+   "end_date": "2026-05-05",
+   "past_speakers": "Humayum Sheikh, Fetch.ai; Rajashekar Vennavelli, AI Engineer",
+   "meeting_formats": "Demo Stage sessions, Agentic Hall Expo & Lunch for connection",
+   "audience_type": "Mixed"
   },
   {
    "num": 104,
@@ -2483,7 +2485,11 @@
    "external_id": "092efe64-fdc6-43cd-90b8-5ed0049c1241",
    "source": "arcticscout",
    "start_date": "2026-08-01",
-   "end_date": "2026-08-02"
+   "end_date": "2026-08-02",
+   "pricing": "Student Early-Bird: $149; Standard Early-Bird: $299 (limited capacity)",
+   "past_speakers": "Academic leaders, founders, executives, and investors from leading AI organizations (specific names not listed in source)",
+   "meeting_formats": "Keynotes, technical talks, panels, hands-on workshops, live demos",
+   "audience_type": "Mixed"
   },
   {
    "num": 116,
@@ -2982,7 +2988,12 @@
    "external_id": "b9e7ae8e-0b69-4b1f-91ae-d2c82fffa017",
    "source": "arcticscout",
    "start_date": "2026-04-23",
-   "end_date": "2026-04-24"
+   "end_date": "2026-04-24",
+   "pricing": "General Admission: SGD 1499.00",
+   "pay_to_play": "Yes",
+   "past_speakers": "C-suite executives, Corinium; Heads of AI, regional enterprise; Digital leaders, technology firm",
+   "meeting_formats": "5-minute networking session to meet three new people; curated roundtables implied by agenda focus on peer insight",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 134,
@@ -4686,7 +4697,12 @@
    "external_id": "63b60128-5b7a-4283-87b9-c6cc3e4a6e8b",
    "source": "arcticscout",
    "start_date": "2026-11-09",
-   "end_date": "2026-11-12"
+   "end_date": "2026-11-12",
+   "pricing": "Paid (delegate/ticket price not specified in search results; vendors/suppliers pay different rates not stated)",
+   "past_speakers": "Paddy Cosgrave, Founder; 900+ speakers including global tech giants and diverse international startups; 1,000+ speakers from 170+ countries",
+   "meeting_formats": "Full access pass to Web Summit; curated roundtables and hosted 1:1 meetings not explicitly detailed in search results",
+   "audience_type": "Mixed",
+   "deadline": "Applications for Road 2 Web Summit open soon (pre-register now); call-for-speakers deadline not published in search resu"
   },
   {
    "num": 197,
@@ -5329,7 +5345,12 @@
    "external_id": "2e82352e-b000-4d09-ab83-0b82fa4c6514",
    "source": "arcticscout",
    "start_date": "2026-04-13",
-   "end_date": "2026-04-17"
+   "end_date": "2026-04-17",
+   "pricing": "Buyer-rich tier: Not publicly listed (invite-only for enterprise buyers); Vendor-heavy tier: Not publicly listed (sponsorship required for speaking slots)",
+   "pay_to_play": "Yes",
+   "past_speakers": "Visionary speaker sharing future-shaping ideas; Global search for powerful speakers from every corner of planet Earth; 1800+ changemakers attending",
+   "meeting_formats": "TED Connect app for pre-booking meetings; Curated roundtables; Hosted 1:1 meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 221,
@@ -5538,7 +5559,9 @@
    "source": "arcticscout",
    "start_date": "2026-06-07",
    "end_date": "2026-06-11",
-   "url": "https://www.bahrain.bh/wps/portal/en/BNP/BahrainCalendar/!ut/p/z1/pZJdT8IwFIb_ijdcLud069rtckr4MCHooMB6Q8aoUGXdGGPov7fcmIjBYexdm_c9efL0gIQFSJM2epPWujDpzt4TyZZk6OMgeEB86lIXn2dhzO5HBEd9D-bfA2Qq0AaGUTzudQlSAvKWPl45Ed7W_wqE05Ahc92IupO-h-PW_gwkyDLTa0gUcfnKc6mDay9waIrcCTNGHOX7VDGuQu6zczozdVlvIVmZcplWHSzqraoOHcyOh7rIVXV3UFWjM3W3Oeq1uvZ-Sf4TTf4uZn5maXHfNuNiQihED1nQ71HKgpj7HBILya9CDq3_RqsTCFNUuV2XyR9tDhAe237IrqB-3e9lZM0XplbvNSz-qX6iDJS5ECIPvA_nLQ5O05ftrtl8Al0En9c!/dz/d5/L3dJdyEvd0ZNQUFzQUsvNE5sRS9aNl8zMThFR0pLMDE5NDBBMDZQNDFUN1VDMjAwMw!!/"
+   "url": "https://www.bahrain.bh/wps/portal/en/BNP/BahrainCalendar/!ut/p/z1/pZJdT8IwFIb_ijdcLud069rtckr4MCHooMB6Q8aoUGXdGGPov7fcmIjBYexdm_c9efL0gIQFSJM2epPWujDpzt4TyZZk6OMgeEB86lIXn2dhzO5HBEd9D-bfA2Qq0AaGUTzudQlSAvKWPl45Ed7W_wqE05Ahc92IupO-h-PW_gwkyDLTa0gUcfnKc6mDay9waIrcCTNGHOX7VDGuQu6zczozdVlvIVmZcplWHSzqraoOHcyOh7rIVXV3UFWjM3W3Oeq1uvZ-Sf4TTf4uZn5maXHfNuNiQihED1nQ71HKgpj7HBILya9CDq3_RqsTCFNUuV2XyR9tDhAe237IrqB-3e9lZM0XplbvNSz-qX6iDJS5ECIPvA_nLQ5O05ftrtl8Al0En9c!/dz/d5/L3dJdyEvd0ZNQUFzQUsvNE5sRS9aNl8zMThFR0pLMDE5NDBBMDZQNDFUN1VDMjAwMw!!/",
+   "audience_type": "Mixed",
+   "typical_attendees": "Researchers and professionals in water infrastructure systems"
   },
   {
    "num": 229,
