@@ -4456,7 +4456,8 @@
    "past_speakers": "Not explicitly listed in search results; event features tactical workshops, Ask-the-Expert sessions, and peer roundtables with 200+ YPO entrepreneurs",
    "meeting_formats": "Curated peer roundtables, tactical workshops, Ask-the-Expert sessions, hands-on learning, and pre-booking connections with investors, partners, and talent in the MENA ecosystem",
    "audience_type": "Buyer-rich",
-   "attendee_count": "200+"
+   "attendee_count": "200+",
+   "deadline": "Registration now open[1]"
   },
   {
    "num": 188,
@@ -4728,7 +4729,12 @@
    "external_id": "841146de-1cee-4754-824d-2be99a655fc4",
    "source": "arcticscout",
    "start_date": "2026-12-09",
-   "end_date": "2026-12-10"
+   "end_date": "2026-12-10",
+   "past_speakers": "Enterprise Leader, Tech Innovator; Tech Executive, AI Pioneer; Data Scientist, Business Strategist",
+   "meeting_formats": "event app for pre-booking meetings (available November); exclusive Hackathon with industry scouts; dedicated Happy Hour",
+   "audience_type": "Mixed",
+   "attendee_count": "5,000+",
+   "deadline": "TBC"
   },
   {
    "num": 198,
@@ -5021,7 +5027,13 @@
    "external_id": "4dc3ba64-41cf-47c8-9753-52b54058583f",
    "source": "arcticscout",
    "start_date": "2026-04-21",
-   "end_date": "2026-04-24"
+   "end_date": "2026-04-24",
+   "pricing": "Invitation-only for official delegates (cost not publicly listed); free virtual participation open to everyone",
+   "past_speakers": "Social entrepreneurs, government innovators, private-sector leaders, philanthropists (donors and doers)",
+   "meeting_formats": "Mobile app for pre-booking meetings and messaging delegates; intentional open time in mornings and mid-day; side convenings and private events",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "1,600+",
+   "deadline": "20/04/2026 (Registration Deadline for virtual participation)"
   },
   {
    "num": 209,
@@ -5484,7 +5496,10 @@
    "external_id": "f6487f1d-bca1-474c-b8b1-42673efdf48e",
    "source": "arcticscout",
    "start_date": "2026-06-08",
-   "end_date": "2026-06-08"
+   "end_date": "2026-06-08",
+   "past_speakers": "Senior finance leaders; policymakers; business executives",
+   "meeting_formats": "Online and in-person hybrid format",
+   "audience_type": "Mixed"
   },
   {
    "num": 226,
@@ -6495,7 +6510,12 @@
    "focus_areas": "Microsoft Copilot Studio: enterprise agentic AI deployment; Azure AI and multi-agent orchestration at enterprise scale; Enterprise AI governance, security, and compliance; AI-driven digital transformation across Microsoft 365 and cloud; IT operating model evolution with AI",
    "seed": false,
    "urgent": false,
-   "external_id": "c7d32ced-0569-4bba-9cc3-27ac5b65c2ff"
+   "external_id": "c7d32ced-0569-4bba-9cc3-27ac5b65c2ff",
+   "venue": "Moscone Center, San Francisco, CA",
+   "pricing": "In-person: $1,400–$2,200; Microsoft partners often receive discounted or complimentary passes through partnership agreements",
+   "past_speakers": "IT Leaders, Microsoft; Cloud Architects, Microsoft; Enterprise Technology Decision-Makers, Microsoft",
+   "meeting_formats": "Digital registration includes virtual interactive experiences; in-person attendees can connect with Microsoft engineering teams and industry experts",
+   "audience_type": "Mixed"
   },
   {
    "num": 265,
@@ -7309,7 +7329,13 @@
    "external_id": "replit-210",
    "source": "replit-reconcile",
    "pay_to_play": "No",
-   "deadline": "Rolling"
+   "deadline": "Rolling",
+   "venue": "Conrad Los Angeles",
+   "pricing": "One pass unlocks both Generative & Agentic AI tracks; save $100 on your pass (exact delegate price not listed)",
+   "past_speakers": "Chief AI Officer (Berlin Summit), Agentic AI Architect (LA Summit), MCP Framework Engineer (LA Summit)",
+   "meeting_formats": "One pass unlocks both tracks; no vast expo hall, 300+ builders & tech execs (guaranteed 1:1 or roundtables not explicitly stated)",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "300+"
   }
  ]
 }
