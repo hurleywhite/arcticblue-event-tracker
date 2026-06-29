@@ -125,7 +125,12 @@
    "city": "New York",
    "country": "USA",
    "external_id": "da41e672-026b-41f2-9052-3b41042ac6ca",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Chief AI Officer Summit Pass: FREE (for C-suite, VP & Sr. Director AI/Technology/Data leaders at companies with 200+ employees and/or $50M+ annual revenue); Vendor Pass: $2495",
+   "past_speakers": "C-suite AI Executive, World's Most Prestigious Organizations; VP AI/Technology, Global Finance Sector; Sr. Director Data, Healthcare Retail Leader",
+   "meeting_formats": "Hosted 1:1 meetings, curated roundtables, attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "5,000+"
   },
   {
    "num": 20,
@@ -525,7 +530,8 @@
    "typical_attendees": "Senior data, analytics, CIO, CDO, and enterprise AI leaders",
    "attendee_count": "100+",
    "pricing": "As of this writing, specific ticket prices have not been publicly detailed; prospective attendees are advised to check aim.media/discover-events for current pricing tiers and early-bird discounts[1]",
-   "past_speakers": "Chief Data Officer, Global Tech Corp; Chief Analytics Officer, Enterprise Solutions Inc; AI Leader, Data Innovations Group[3]"
+   "past_speakers": "Chief Data Officer, Global Tech Corp; Chief Analytics Officer, Enterprise Solutions Inc; AI Leader, Data Innovations Group[3]",
+   "deadline": "Ticket sale ends by 24 Jul, 3 PM (not a call-for-speakers deadline)"
   },
   {
    "num": 85,
@@ -678,7 +684,9 @@
    "about": "Data Science Connect's annual AI Enterprise Conference at Pier Sixty along the Hudson River, Chelsea Piers. Focused on bridging enterprise AI strategy and production deployment — covering agentic AI, LLM governance, ROI measurement, and enterprise AI operations. Part of DSC's full 2026 portfolio (COLLIDE Data+AI, ALIGN AI Executive Summits).",
    "speaking_route": "Speaker interest form: datasciconnect.com/events/speaker-interest-form/",
    "contact_info": "datasciconnect.com",
-   "focus_areas": "Enterprise AI deployment and production scaling; AI governance, risk, and compliance frameworks; Agentic AI for business operations; Measuring AI ROI and business impact; Enterprise data infrastructure for AI readiness"
+   "focus_areas": "Enterprise AI deployment and production scaling; AI governance, risk, and compliance frameworks; Agentic AI for business operations; Measuring AI ROI and business impact; Enterprise data infrastructure for AI readiness",
+   "pay_to_play": "Yes",
+   "past_speakers": "Senior Data Leader, Fortune 500; AI Strategy Director, Global Tech Firm; Head of Enterprise AI, Financial Services"
   },
   {
    "num": 88,
@@ -1058,7 +1066,9 @@
    "speaking_route": "Guest/sponsored speaking via Forrester events team: https://forms.office.com/pages/responsepage.aspx?id=2sKbs8jjkk-WDkFRoa4WrXFBU1PyiG1Ktfc8xotn595UOEROSUFVQ0c1SkhCNEhDSUhIU1gzOU9ZRCQlQCN0PWcu&utm_source=chatgpt.com&route=shorturl\n\nevents@forrester.com\nContact: events@forrester.com",
    "contact_info": "events@forrester.com",
    "deadline": "Rolling until filled",
-   "focus_areas": "Agentic AI and enterprise technology strategy (EMEA); EU AI Act compliance and enterprise governance; Digital transformation and CIO operating model (Europe); Data strategy and analytics leadership in European enterprises; AI investment planning and technology risk management"
+   "focus_areas": "Agentic AI and enterprise technology strategy (EMEA); EU AI Act compliance and enterprise governance; Digital transformation and CIO operating model (Europe); Data strategy and analytics leadership in European enterprises; AI investment planning and technology risk management",
+   "past_speakers": "No speakers announced yet[1]",
+   "meeting_formats": "Intimate gathering of executives; track sessions shaping dialogue; no explicit hosted 1:1 or attendee app mentioned[3]"
   },
   {
    "num": 89,
@@ -3876,7 +3886,10 @@
    "source": "arcticscout",
    "start_date": "2026-11-25",
    "end_date": "2026-11-26",
-   "priority_full": "High"
+   "priority_full": "High",
+   "past_speakers": "AI Leaders across industries; CXOs; Innovators; Technology and solution providers",
+   "meeting_formats": "Exclusive keynotes, discussions, practical workshops on AI Transformation, ethical frameworks, digital disruption",
+   "audience_type": "Mixed"
   },
   {
    "num": 167,
@@ -4204,7 +4217,9 @@
    "external_id": "5cefedfc-7220-4f05-b66a-7c208c82184a",
    "source": "arcticscout",
    "start_date": "2027-02-10",
-   "end_date": "2027-02-11"
+   "end_date": "2027-02-11",
+   "past_speakers": "320 expert speakers (2026 edition)",
+   "audience_type": "Mixed"
   },
   {
    "num": 179,
@@ -5944,7 +5959,9 @@
    "external_id": "2a2803ac-dd1f-426e-a8af-4ed74a85c56e",
    "source": "arcticscout",
    "start_date": "2027-04-13",
-   "end_date": "2027-04-15"
+   "end_date": "2027-04-15",
+   "past_speakers": "Richard Branson, Arianna Huffington",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 243,
@@ -6383,7 +6400,12 @@
    "focus_areas": "Enterprise AI strategy and transformation (Texas/South-Central US); AI deployment in financial services, energy, and healthcare; Agentic AI orchestration and operational AI; AI governance and organizational transformation; AI ROI and business outcome measurement",
    "seed": false,
    "urgent": false,
-   "external_id": "dd782d6d-836b-4649-b2cb-0897c907db09"
+   "external_id": "dd782d6d-836b-4649-b2cb-0897c907db09",
+   "venue": "Omni PGA Frisco Resort",
+   "past_speakers": "C-Suite Executive, Fortune 1000 AI Firm; Decision-Maker, Enterprise AI Strategy Group; AI Architect, Global Tech Innovator",
+   "meeting_formats": "Exclusive intimate event experience; application-only B2B format for curated peer dialogue",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "750+"
   },
   {
    "num": 260,
