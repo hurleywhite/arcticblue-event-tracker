@@ -1646,7 +1646,11 @@
    "audience_type": "Mixed",
    "typical_attendees": "Founders, executives, investors, policymakers, and startup/tech professionals",
    "attendee_count": "70,000+",
-   "speaking_route": "Apply to speak: https://websummit.com/speaker-application/"
+   "speaking_route": "Apply to speak: https://websummit.com/speaker-application/",
+   "pricing": "General attendee tickets start at EUR 895; Startup exhibitor packages (ALPHA program) start at EUR 1,500–3,000; Corporate/sponsorship packages range from EUR 25,000 to EUR 500,000+; Investor and media passes require separate application[5]",
+   "pay_to_play": "Yes",
+   "past_speakers": "Paddy Cosgrave, Founder of Web Summit; Piers Linney, Entrepreneur and TV Personality; Azeem Azhar, Author of 'The Exponential Era'; Sheryl Sandberg, Former COO of Meta; Brian Chesky, CEO of Airbnb; Ginni Rometty, Former CEO of IBM; Satya Nadella, CEO of Microsoft; Mark Zuckerberg, CEO of Meta[1][5]",
+   "deadline": "Q1 (early bird tickets open in Q1)[5]"
   },
   {
    "num": 63,
@@ -2745,7 +2749,11 @@
    "external_id": "65894b4c-aef3-4d14-9533-4cb5957a3ce6",
    "source": "arcticscout",
    "start_date": "2026-07-15",
-   "end_date": "2026-07-15"
+   "end_date": "2026-07-15",
+   "pricing": "$2,499 for all-access pass; Free for qualified non-vendor attendees (company not a vendor, 5K+ employees, director-level and up)",
+   "past_speakers": "Senior data and AI leaders from leading non-vendor organizations",
+   "meeting_formats": "Executive roundtables, expert panel discussions, networking reception, Executive Dinner",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 125,
@@ -3775,7 +3783,11 @@
    "external_id": "19e5ce33-5a83-4636-8e9c-90bafe3b1dc1",
    "source": "arcticscout",
    "start_date": "2026-05-11",
-   "end_date": "2026-05-14"
+   "end_date": "2026-05-14",
+   "pricing": "$1,999 for individual registration; $799 each for group passes (3+ people)",
+   "past_speakers": "IT Professional, Red Hat; Developer, Red Hat; Architect, Red Hat; Open Source Community Member, Ecosystem Partner; Hybrid Cloud Engineer, Red Hat; DevOps Specialist, Red Hat; AI Engineer, Red Hat; Automation Expert, AnsibleFest",
+   "meeting_formats": "Ecosystem Success Day; Community Day; session and lab sign-up via website/app for pre-booking",
+   "audience_type": "Mixed"
   },
   {
    "num": 163,
@@ -4133,7 +4145,12 @@
    "external_id": "607ddbe3-7db0-465e-8914-0c631fc2f25c",
    "source": "arcticscout",
    "start_date": "2026-02-03",
-   "end_date": "2026-02-03"
+   "end_date": "2026-02-03",
+   "pricing": "Entry fees listed as 'Check Official Website'; specific delegate/ticket price not publicly verified in search results",
+   "past_speakers": "Nick Andersen, Tech CEO; Lawmakers from DC; Industry CEOs",
+   "meeting_formats": "Not explicitly verified in search results",
+   "audience_type": "Mixed",
+   "attendee_count": "500-1000 Delegates"
   },
   {
    "num": 176,
@@ -6118,7 +6135,8 @@
    "end_date": "2026-09-10",
    "past_speakers": "Transformational Change Advisor · Organizational Psychologist · Fractional Chief Wellbeing Officer, Jennifer Posa, PhD, MS[8]",
    "meeting_formats": "Guaranteed/hosted 1:1 meetings, curated roundtables, attendee app for pre-booking meetings",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "attendee_count": "Exclusive (invitation-only)"
   },
   {
    "num": 249,
@@ -6561,7 +6579,13 @@
    "focus_areas": "AI-powered enterprise architecture and operating models (APAC); Enterprise AI deployment and governance in regulated APAC markets; Digital workplace transformation with AI; Data foundations for AI at enterprise scale (APAC); CIO/CTO priorities for 2027 in Southeast Asia",
    "seed": false,
    "urgent": false,
-   "external_id": "87dbea99-d1df-40bd-8b3a-96b45331d251"
+   "external_id": "87dbea99-d1df-40bd-8b3a-96b45331d251",
+   "venue": "Marina Bay Sands",
+   "pricing": "$700 USD (Director level or above, non-solution providers); Food & Refreshments not included",
+   "past_speakers": "CIOs, CTOs, Chief Digital Officers; CIOs, CTOs, and enterprise technology leaders",
+   "meeting_formats": "Access to event app and all onsite networking",
+   "audience_type": "Buyer-rich",
+   "deadline": "15 September, 2026"
   },
   {
    "num": 266,
