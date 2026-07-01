@@ -1148,7 +1148,8 @@
    "speaking_route": "Earned speaking (practitioners only): gotoagentic.ai (Apply to Speak form). Vendor/sponsor speaking: gotoagentic.ai/sponsorship",
    "contact_info": "gotoagentic.ai",
    "pay_to_play": "Mix",
-   "focus_areas": "Enterprise agentic AI deployment and multi-agent orchestration; AgentOps, evaluation, and enterprise AI governance; Autonomous workflows and enterprise process automation; AI compliance, guardrails, and risk management; Enterprise AI workforce augmentation and operating model"
+   "focus_areas": "Enterprise agentic AI deployment and multi-agent orchestration; AgentOps, evaluation, and enterprise AI governance; Autonomous workflows and enterprise process automation; AI compliance, guardrails, and risk management; Enterprise AI workforce augmentation and operating model",
+   "past_speakers": "75+ World-Class Speakers expected; specific notable past speakers not listed for this exact 2026 edition"
   },
   {
    "num": 74,
@@ -2581,7 +2582,8 @@
    "external_id": "7f120622-593a-459b-a427-1497202b169f",
    "source": "arcticscout",
    "start_date": "2026-05-20",
-   "end_date": "2026-05-20"
+   "end_date": "2026-05-20",
+   "past_speakers": "Robert Jaggers, CEO of the Institute for AI Transformation"
   },
   {
    "num": 119,
@@ -3306,7 +3308,11 @@
    "external_id": "84e8fb8a-fa3d-4dd8-b41e-6665119328b8",
    "source": "arcticscout",
    "start_date": "2026-04-12",
-   "end_date": "2026-04-14"
+   "end_date": "2026-04-14",
+   "pricing": "Members: $1,430 (early) / $1,765 (regular); Non-members: $1,865 (early) / $2,130 (regular); Students/Retired: $880; Rate with membership included: $1,865 (early) / $2,130 (regular); Presenters in track sessions: $1,315; Group (6+): $999/team member",
+   "past_speakers": "Data Scientist, Google; Operations Research Analyst, Amazon; Analytics Director, Microsoft; Chief Data Officer, JPMorgan Chase; Senior Analytics Manager, Netflix; Decision Scientist, Uber; AI Researcher, IBM",
+   "meeting_formats": "INFORMS App (Engagefully) for pre-booking meetings, attendee directory for messaging, full program viewing, and push notifications",
+   "audience_type": "Mixed"
   },
   {
    "num": 145,
@@ -3649,7 +3655,10 @@
    "external_id": "7541e872-6ac3-4701-aa22-f00b7e8e4dda",
    "source": "arcticscout",
    "start_date": "2026-05-03",
-   "end_date": "2026-05-06"
+   "end_date": "2026-05-06",
+   "past_speakers": "SEC Chairman Paul S. Atkins, Independent; Armando Christian Pérez (Armando Christian Pérez), Global Superstar",
+   "meeting_formats": "Livestream option for remote participation",
+   "audience_type": "Mixed"
   },
   {
    "num": 158,
@@ -4092,7 +4101,11 @@
    "external_id": "4494b543-18e5-4d46-8839-7c3def3f16a3",
    "source": "arcticscout",
    "start_date": "2026-02-01",
-   "end_date": "2026-02-04"
+   "end_date": "2026-02-04",
+   "pricing": "Buyer-rich: over 25,000 attendees from 124 countries, including 1,500 startups and 600 investors; vendor/supplier tier not specified",
+   "past_speakers": "Her Excellency Sheikha Al Mayassa bint Hamad bin Khalifa Al Thani, Chairperson of Qatar Museums; Cliff Obrecht, Co-founder and COO of Canva; Cristóbal Valenzuela, Founder and CEO of Runway",
+   "meeting_formats": "In-person networking, masterclasses, interactive Q&A sessions",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 174,
@@ -4236,7 +4249,9 @@
    "start_date": "2027-02-10",
    "end_date": "2027-02-11",
    "past_speakers": "320 expert speakers (2026 edition)",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "pricing": "Check Official Website",
+   "meeting_formats": "Curated roundtables; high value connections fostered through awards programme"
   },
   {
    "num": 179,
@@ -7092,7 +7107,13 @@
    "city": "Berlin",
    "country": "Germany",
    "external_id": "replit-215",
-   "deadline": "Rolling"
+   "deadline": "Rolling",
+   "venue": "The Ritz Carlton",
+   "pricing": "Buyer-rich: 300+ attendees representing 15+ industries; technical builders, developers & senior leaders",
+   "past_speakers": "Chief AI Officer, Global Brands; Senior Robotic Engineer, Innovative Startups; Data & AI Technology Expert, Corporate AI Innovators",
+   "meeting_formats": "Curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "300+"
   },
   {
    "num": 286,
