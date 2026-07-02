@@ -26,6 +26,16 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-337@arcticblue-event-tracker
+DTSTAMP:20260702T000000Z
+DTSTART;VALUE=DATE:20261208
+DTEND;VALUE=DATE:20261211
+SUMMARY:Gartner IT Infrastructure\, Operations & Cloud Strategies Conference 2026
+LOCATION:Las Vegas\, NV\, USA
+DESCRIPTION:Gartner's premier US I&O conference at The Venetian draws 4\,000+ VPs of Infrastructure\, CTOs\, and cloud strategy leaders from global enterprises — access to the enterprise buyers responsible for AI-ready infrastructure decisions.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.gartner.com/en/conferences/na/infrastructure-operations-cloud-us
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-336@arcticblue-event-tracker
 DTSTAMP:20260702T000000Z
 DTSTART;VALUE=DATE:20261103

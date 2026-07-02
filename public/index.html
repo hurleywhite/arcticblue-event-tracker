@@ -1998,10 +1998,6 @@
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Speaking</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><span class="extra-empty" id="filter-speaker-empty">No speakers assigned yet</span></div>
           </div>
-          <div class="filter-dd" id="filter-attending">
-            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Attending</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
-            <div class="filter-dd-menu"><span class="extra-empty" id="filter-attending-empty">No attendees yet</span></div>
-          </div>
           <label class="ops-filter-chip" title="Show only events at the Submitted stage — a speaker application is in"><input type="checkbox" id="ops-f-submitted">Submitted</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
           <label class="ops-filter-chip" title="Events flagged Should Attend — by a teammate or the AI recommend pass"><input type="checkbox" id="ops-f-worth">Should attend</label>
@@ -4125,7 +4121,7 @@
       var n = 0;
       ['ops-region', 'ops-price', 'ops-fits'].forEach(function (id) { var e = document.getElementById(id); if (e && e.value) n++; });
       ['ops-f-submitted', 'ops-f-recent'].forEach(function (id) { var e = document.getElementById(id); if (e && e.checked) n++; });
-      ['filter-priority', 'filter-track', 'filter-speaker', 'filter-attending'].forEach(function (id) {
+      ['filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {
         var box = document.getElementById(id);
         if (box && box.querySelector('.filter-dd-btn.has-active')) n++;
       });
@@ -4211,23 +4207,6 @@
 
     // The Attending row — same roster, but filters by who's marked ATTENDING
     // (the attendees field), distinct from who's SPEAKING (the speaker field).
-    function rebuildAttendingFilter() {
-      var host = document.querySelector('#filter-attending .filter-dd-menu');
-      if (!host) return;
-      Array.prototype.slice.call(host.querySelectorAll('.extra-chip, .extra-clear, .extra-empty'))
-        .forEach(function (n) { n.remove(); });
-      ['Carlos', 'Jerome', 'Jim', 'Joe', 'Scott', 'Thor', 'Verma'].forEach(function (name) {
-        host.appendChild(_makeExtraChip(name, name, 'att-chip'));
-      });
-      var clr = document.createElement('button');
-      clr.type = 'button'; clr.className = 'extra-clear'; clr.textContent = 'Clear';
-      clr.addEventListener('click', function () {
-        host.querySelectorAll('.extra-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
-        applyFilters();
-      });
-      host.appendChild(clr);
-    }
-
     // The new primary filter row: one chip per pipeline stage. Selecting
     // chips keeps any card carrying ANY of the chosen stages (OR).
     function buildStageFilters() {
@@ -4508,10 +4487,6 @@
         document.querySelectorAll('#filter-speaker .extra-chip.is-on'),
         function (b) { return (b.dataset.value || '').toLowerCase(); }
       );
-      var activeAttending = Array.prototype.map.call(
-        document.querySelectorAll('#filter-attending .extra-chip.is-on'),
-        function (b) { return (b.dataset.value || '').toLowerCase(); }
-      );
 
       var shown = 0;
       var monthMatched = {};
@@ -4567,23 +4542,15 @@
         if (activeStatuses.length   > 0 && activeStatuses.indexOf(card.dataset.status   || '') === -1) on = false;
         if (activePriorities.length > 0 && activePriorities.indexOf(card.dataset.priority || '') === -1) on = false;
         if (activeTracks.length     > 0 && activeTracks.indexOf(card.dataset.track     || '') === -1) on = false;
-        // The person tokens + their pipeline stage drive both Speaking and
-        // Attending. "Attending" = going but NOT speaking = the event is at the
-        // Attending stage and NOT Booked. "Speaking" = everything else where the
-        // person is the assigned speaker (booked, or pursuing a speaking slot).
-        if (activeSpeakers.length > 0 || activeAttending.length > 0) {
+        // Speaking filter — the assigned speaker (booked, or pursuing a slot),
+        // NOT an attending-only event.
+        if (activeSpeakers.length > 0) {
           var _sp = (card.dataset.speaker || '').toLowerCase();
           var _tok = _sp ? _sp.split(/[,;/&]| and |\bplus\b/i).map(function (s) { return s.trim(); }).filter(Boolean) : [];
           var _stg = (card.dataset.statusTags || '').split('|');
           var _attendingOnly = _stg.indexOf('Attending') !== -1 && _stg.indexOf('Booked') === -1;
-          if (activeSpeakers.length > 0) {
-            var _speakHit = !_attendingOnly && activeSpeakers.some(function (a) { return _tok.indexOf(a) !== -1; });
-            if (!_speakHit) on = false;
-          }
-          if (activeAttending.length > 0) {
-            var _attHit = _attendingOnly && activeAttending.some(function (a) { return _tok.indexOf(a) !== -1; });
-            if (!_attHit) on = false;
-          }
+          var _speakHit = !_attendingOnly && activeSpeakers.some(function (a) { return _tok.indexOf(a) !== -1; });
+          if (!_speakHit) on = false;
         }
         // Collapsing a month is a view convenience, not a filter: a card that
         // passes the filters still counts toward "shown" even when its month
@@ -4694,7 +4661,7 @@
         var el = document.getElementById(id); if (el) el.checked = false;
       });
       Array.prototype.forEach.call(
-        document.querySelectorAll('#stage-filters .stage-chip.is-on, .status-filters .status-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on, #filter-attending .extra-chip.is-on'),
+        document.querySelectorAll('#stage-filters .stage-chip.is-on, .status-filters .status-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
         function (c) { c.classList.remove('is-on'); }
       );
       opsStatFilter = '';
@@ -5694,7 +5661,6 @@
         updateOpsCount();
         renderStats(evs, stateRows, manualRows);
         rebuildSpeakerFilter(stateRows, manualRows);
-        rebuildAttendingFilter();
         regroupOpsByMonth();
         wireMonthsMenu();
         applyFilters();
