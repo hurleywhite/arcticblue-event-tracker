@@ -239,10 +239,13 @@ def classify(events):
             end = start
         ev['_start'] = start
         ev['_end'] = end
-        if start <= TODAY <= end:
-            today_events.append(ev)
-        elif end < TODAY:
+        # An event whose end date is today or earlier is over — archive it
+        # (single-day events happening today included). Only genuinely-ongoing
+        # multi-day events (still running past today) stay in "today".
+        if end <= TODAY:
             archived.append(ev)
+        elif start <= TODAY:
+            today_events.append(ev)
         else:
             upcoming.append(ev)
     upcoming.sort(key=lambda x: x.get('_start') or date(2099,1,1))
@@ -2606,7 +2609,7 @@ def build():
     </div><!-- /panel-angela -->
 
     <footer class="foot">
-      <p class="foot-text">ArcticBlue · Event Tracker · Auto-archives events one day after end-date.</p>
+      <p class="foot-text">ArcticBlue · Event Tracker · Auto-archives events from their event day onward.</p>
       <p class="foot-mono">v1.2 · {today_iso}</p>
     </footer>
   </main>
@@ -3672,7 +3675,10 @@ def build():
       var todayIso = now.getFullYear() + '-' +
         String(now.getMonth() + 1).padStart(2, '0') + '-' +
         String(now.getDate()).padStart(2, '0');
-      return iso < todayIso;  // strictly before today; an event ending today is NOT past
+      // Today OR earlier counts as past — an event happening today has nothing
+      // left to pursue, so it drops into the collapsed Archive (Angela's ask).
+      // Multi-day events still running (end date in the future) stay active.
+      return iso <= todayIso;
     }}
 
     // Normalize any event's messy/granular region (or country/city/location)
