@@ -1032,6 +1032,11 @@ def generate_targets(event, persona):
 # Booked/Attending, hidden, deleted, or past. Batch mode scores everything
 # once; the daily cron then auto-scores new arrivals.
 RECO_VERDICT = 'Worth attending (AI)'
+# Rejections are recorded too ('Not a fit (AI)') so each event is scored ONCE —
+# otherwise every batch/cron run would re-score the same verdict-less events
+# forever. 'Not…' deliberately does NOT match the Worth-attending filter or the
+# Should-Attend badge (both key on a 'worth' prefix); a human edit overrides it.
+RECO_NEG = 'Not a fit (AI)'
 RECO_CRON_MAX = _int_env('RECO_CRON_MAX', 25)
 
 
@@ -1130,18 +1135,19 @@ def _recommend_batch(host, limit=None):
         vmap = {str(v.get('id')): v for v in verdicts if isinstance(v, dict)}
         for c in chunk:
             v = vmap.get(str(c['id']))
-            if not v or not v.get('worth'):
-                continue
+            if not v:
+                continue   # model skipped it — stays unscored, next run retries
             kind = 'manual' if str(c['id']).startswith('m') else 'catalog'
             key = str(c['id'])[1:]
-            ws, _ = _reco_write(kind, key, RECO_VERDICT)
-            if ws in (200, 201, 204):
+            worth = bool(v.get('worth'))
+            ws, _ = _reco_write(kind, key, RECO_VERDICT if worth else RECO_NEG)
+            if ws not in (200, 201, 204):
+                errors.append({'id': c['id'], 'status': ws})
+            elif worth:
                 recommended.append(c['id'])
                 if len(sample) < 12:
                     sample.append({'id': c['id'], 'name': c['name'],
                                    'fit': v.get('fit'), 'reason': v.get('reason')})
-            else:
-                errors.append({'id': c['id'], 'status': ws})
     return {'checked': len(cands), 'recommended': len(recommended),
             'ids': recommended, 'sample': sample, 'errors': errors}
 
