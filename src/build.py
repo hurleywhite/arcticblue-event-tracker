@@ -2530,6 +2530,7 @@ def build():
           </div>
           <label class="ops-filter-chip" title="Show only events at the Submitted stage — a speaker application is in"><input type="checkbox" id="ops-f-submitted">Submitted</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
+          <label class="ops-filter-chip" title="Events flagged Should Attend — by a teammate or the AI recommend pass"><input type="checkbox" id="ops-f-worth">Should attend</label>
           <div class="ops-months">
             <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
               Months <span class="mb-caret" aria-hidden="true">&#9660;</span>

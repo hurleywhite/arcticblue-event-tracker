@@ -136,16 +136,6 @@ DESCRIPTION:Premier London AI-in-FS event with 500+ senior financial services ex
 URL:https://aiinfinancesummit.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-325@arcticblue-event-tracker
-DTSTAMP:20260702T000000Z
-DTSTART;VALUE=DATE:20261005
-DTEND;VALUE=DATE:20261008
-SUMMARY:AGENTIC AI Summit North America 2026
-LOCATION:Loudoun County (Leesburg)\, VA\, USA
-DESCRIPTION:Premier agentic AI practitioner summit with 1\,500+ attendees including CAIO-level speakers from McKesson\, Cox Communications\, Navy Federal Credit Union\, and General Motors — perfect alignment with ArcticBlue's agentic AI transformation positioning.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://gotoagentic.ai/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-324@arcticblue-event-tracker
 DTSTAMP:20260702T000000Z
 DTSTART;VALUE=DATE:20261018
@@ -2824,16 +2814,6 @@ SUMMARY:Gartner IT Symposium/Xpo EMEA 2026
 LOCATION:Barcelona\, Spain
 DESCRIPTION:Gartner's European CIO/IT leadership flagship — 5\,000+ EMEA CIOs and CTOs setting 2027 AI technology investment priorities\; essential European enterprise AI event.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.gartner.com/en/conferences/emea/symposium-spain
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-14@arcticblue-event-tracker
-DTSTAMP:20260702T000000Z
-DTSTART;VALUE=DATE:20261104
-DTEND;VALUE=DATE:20261106
-SUMMARY:Agentic Transformation Summit Europe
-LOCATION:Amsterdam\, Netherlands
-DESCRIPTION:Europe's only dedicated summit for enterprises scaling agentic AI — 200+ senior AI/data/transformation leaders from Mastercard\, LinkedIn\, AstraZeneca\, Siemens\, BP\; co-located with Business Transformation Europe Summit.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.aidataanalytics.network/events-agentic-ai-summit
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-13@arcticblue-event-tracker
