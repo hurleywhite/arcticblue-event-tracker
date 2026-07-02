@@ -3279,7 +3279,7 @@
       var att = (st.attendees || []).map(_personName).filter(Boolean);
       if (att.length) rows.push(_rosterRow('Attending', escapeHtml(att.join(', ')), stageStyle('Attending')));
       else if (stages.indexOf('Attending') !== -1) rows.push(_rosterRow('Attending', 'add who in Details &rarr; Edit', stageStyle('Attending'), true));
-      // Interested — wants Angela to apply.
+      // Interested — feeds Angela's apply queue.
       var intr = (st.interested || []).filter(Boolean);
       if (intr.length) rows.push(_rosterRow('Interested', '&#9733; ' + escapeHtml(intr.join(', ')), ''));
       // Secondary: small priority + track pills (kept, but out of the roster).
@@ -5258,7 +5258,7 @@
       }
 
       if (!items.length) {
-        html += '<div class="queue-empty">Nobody has flagged an event yet.<br>Open any event &rarr; <strong>Edit</strong> &rarr; tick a name under &ldquo;Interested &mdash; wants Angela to apply,&rdquo; and it lands here.</div>';
+        html += '<div class="queue-empty">Nobody has flagged an event yet.<br>Open any event &rarr; <strong>Edit</strong> &rarr; tick a name under &ldquo;Interested,&rdquo; and it lands here.</div>';
       } else {
         html += section('To apply', toApply, 'toApply');
         html += section('Submitted / in progress', submitted, 'submitted');
