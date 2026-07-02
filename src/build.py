@@ -1788,6 +1788,22 @@ def build():
     .dayof-actions {{ display: flex; align-items: center; gap: 10px; }}
     .dayof-ready {{ font-family: var(--ab-mono); font-size: 0.64rem; color: #15803d; }}
     .dayof-empty {{ border: 1px dashed var(--ab-rule); border-radius: 8px; padding: 22px; text-align: center; color: var(--ab-fg-3); font-size: 0.88rem; line-height: 1.6; }}
+    /* Load-failure / degraded / filtered-empty states — a blank grid is never OK. */
+    .ops-load-error {{
+      grid-column: 1 / -1; border: 1px dashed #f3b1b1; border-radius: 8px;
+      background: #fef7f7; color: #7f1d1d; padding: 24px; text-align: center;
+      font-size: 0.9rem; line-height: 1.7;
+    }}
+    .ops-sb-warning {{
+      border: 1px solid #fde68a; background: #fffbeb; color: #92400e;
+      border-radius: 8px; padding: 10px 14px; font-size: 0.85rem;
+      line-height: 1.5; margin: 0 0 14px;
+    }}
+    .ops-empty-note {{
+      grid-column: 1 / -1; border: 1px dashed var(--ab-rule); border-radius: 8px;
+      padding: 28px; text-align: center; color: var(--ab-fg-2);
+      font-size: 0.92rem; line-height: 1.9;
+    }}
     .mode-badge {{ font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; padding: 1px 7px; border-radius: 3px; }}
     .mode-room {{ background: #dbeafe; color: #1e40af; }}
     .mode-stage {{ background: #f3e8ff; color: #7e22ce; }}
@@ -3306,10 +3322,32 @@ def build():
   var SUPABASE_URL = '{SUPABASE_URL}';
   var SUPABASE_KEY = '{SUPABASE_PUBLISHABLE_KEY}';
 
-  // Wait for the deferred Supabase UMD script to attach window.supabase
+  // Wait for the deferred Supabase UMD script to attach window.supabase.
+  // Hardened: the old version polled silently FOREVER, so a blocked/failed CDN
+  // (ad-blocker, strict network) left the app on a blank loading state with no
+  // clue. Now: ~5s → inject a fallback CDN; ~20s → tell the user (keep trying).
   function ready(cb) {{
-    if (window.supabase && window.supabase.createClient) return cb();
-    setTimeout(function () {{ ready(cb); }}, 50);
+    var polls = 0, injectedFallback = false, warned = false;
+    (function poll() {{
+      if (window.supabase && window.supabase.createClient) return cb();
+      polls++;
+      if (polls >= 100 && !injectedFallback) {{
+        injectedFallback = true;
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js';
+        document.head.appendChild(s);
+      }}
+      if (polls >= 400 && !warned) {{
+        warned = true;
+        var el = document.getElementById('angela-loading');
+        if (el) {{
+          el.innerHTML = '<p class="alert">A required library couldn&rsquo;t load &mdash; check your network or ad&#8209;blocker. Still retrying&hellip; ' +
+            '<button type="button" onclick="location.reload()" style="cursor:pointer;">Reload page</button></p>';
+          el.style.display = '';
+        }}
+      }}
+      setTimeout(poll, 50);
+    }})();
   }}
 
   ready(function () {{
@@ -5107,6 +5145,23 @@ def build():
       }});
       var $shown = document.getElementById('ops-shown');
       if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + opsCards.length;
+      // Filtered-to-zero guard: an all-filtered grid LOOKS like "no events
+      // loaded" (that was Thor's read of it). Say so explicitly + one-tap reset.
+      var _emptyNote = document.getElementById('ops-empty-note');
+      if (shown === 0 && opsCards.length > 0) {{
+        if (!_emptyNote) {{
+          _emptyNote = document.createElement('div');
+          _emptyNote.id = 'ops-empty-note';
+          _emptyNote.className = 'ops-empty-note';
+          $opsGrid.appendChild(_emptyNote);
+        }}
+        _emptyNote.innerHTML = 'All ' + opsCards.length + ' events are hidden by the active filters &mdash; nothing is missing.<br>' +
+          '<button type="button" class="q-btn primary" id="ops-empty-clear">Show all events (clear filters)</button>';
+        var _ec = document.getElementById('ops-empty-clear');
+        if (_ec) _ec.addEventListener('click', clearOpsFilters);
+      }} else if (_emptyNote) {{
+        _emptyNote.remove();
+      }}
       // Empty state — a fully-filtered grid should explain itself, not blank out.
       var $empty = document.getElementById('ops-empty');
       if (shown === 0) {{
@@ -6024,6 +6079,73 @@ def build():
       }}
     }}
 
+    // ── Resilient data loading ─────────────────────────────────────
+    // fetch() does NOT reject on HTTP errors, and a mid-deploy edge can serve a
+    // non-JSON error page — so check r.ok AND retry twice with backoff before
+    // failing. Without this, one transient blip stranded the app on
+    // "Loading events…" forever (Thor's 30-minute "no events" outage).
+    function fetchEventsJson(attempt) {{
+      attempt = attempt || 1;
+      return fetch('events.json').then(function (r) {{
+        if (!r.ok) throw new Error('events.json HTTP ' + r.status);
+        return r.json();
+      }}).catch(function (err) {{
+        if (attempt >= 3) throw err;
+        return new Promise(function (res) {{ setTimeout(res, attempt * 1500); }})
+          .then(function () {{ return fetchEventsJson(attempt + 1); }});
+      }});
+    }}
+    // Never leave the grid blank: paint a visible error + keep retrying with
+    // escalating backoff (5s → 60s cap) until a load succeeds.
+    var _opsRetryTimer = null, _opsRetryDelay = 5000;
+    function showOpsLoadError(email, err) {{
+      var msg = (err && err.message) ? String(err.message) : 'network error';
+      // A re-render failure with cards already on screen keeps the old cards —
+      // stale data beats a wiped grid.
+      if ($opsGrid.querySelector('.ops-card')) {{
+        status('Refresh failed (' + msg + ') — showing the last loaded data.', 'error');
+        return;
+      }}
+      var delay = _opsRetryDelay;
+      _opsRetryDelay = Math.min(delay * 2, 60000);
+      $opsGrid.innerHTML =
+        '<div class="ops-load-error">' +
+          '<p><strong>Couldn&rsquo;t load the events.</strong> Usually a brief network or deploy hiccup (' + escapeHtml(msg) + ').</p>' +
+          '<p>Retrying automatically in ' + Math.round(delay / 1000) + 's&hellip; ' +
+          '<button type="button" class="q-btn primary" id="ops-retry-now">Retry now</button></p>' +
+        '</div>';
+      var btn = document.getElementById('ops-retry-now');
+      if (btn) btn.addEventListener('click', function () {{ clearTimeout(_opsRetryTimer); renderOps(email); }});
+      clearTimeout(_opsRetryTimer);
+      _opsRetryTimer = setTimeout(function () {{ renderOps(email); }}, delay);
+    }}
+    // Live tracking (Supabase) failed but the catalog loaded: warn loudly —
+    // cards silently losing their stages/attendees reads as data loss.
+    function showSbDegraded(errObj, email) {{
+      var host = document.getElementById('ops-sb-warning');
+      if (!errObj) {{ if (host) host.remove(); return; }}
+      if (!host) {{
+        host = document.createElement('div');
+        host.id = 'ops-sb-warning';
+        host.className = 'ops-sb-warning';
+        $opsGrid.parentNode.insertBefore(host, $opsGrid);
+      }}
+      host.innerHTML = '&#9888; Live tracking data couldn&rsquo;t load (' + escapeHtml(errObj.message || String(errObj)) + '). ' +
+        'Cards show catalog info only — stages, attendees and edits reappear when it reconnects. ' +
+        '<button type="button" class="q-btn" id="ops-sb-retry">Retry now</button>';
+      var b = document.getElementById('ops-sb-retry');
+      if (b) b.addEventListener('click', function () {{ renderOps(email); }});
+      clearTimeout(_opsRetryTimer);
+      _opsRetryTimer = setTimeout(function () {{ renderOps(email); }}, 30000);
+    }}
+    // Safety net: ANY unhandled async failure while the grid is still empty
+    // paints the retry card instead of stranding "Loading events…" forever.
+    window.addEventListener('unhandledrejection', function (e) {{
+      if ($opsGrid && !$opsGrid.querySelector('.ops-card') && !$opsGrid.querySelector('.ops-load-error')) {{
+        showOpsLoadError(getCollabName() || 'Team', (e && e.reason) || {{}});
+      }}
+    }});
+
     function renderOps(email) {{
       // Keep the reader's place across a re-render. A manual save AND the
       // realtime postgres_changes echo both call renderOps(); without this the
@@ -6051,13 +6173,19 @@ def build():
         $opsGrid.innerHTML = '<p style="grid-column:1/-1;color:var(--ab-fg-3);font-size:0.9rem;">Loading events…</p>';
       }}
       return Promise.all([
-        fetch('events.json').then(function (r) {{ return r.json(); }}),
+        fetchEventsJson(),
         sb.from('event_state').select('*'),
         sb.from('manual_events').select('*').order('created_at', {{ ascending: false }})
       ]).then(function (results) {{
         var data = results[0];
         var stateRows = (results[1] && results[1].data) || [];
         var manualRows = (results[2] && results[2].data) || [];
+        // Healthy catalog load: cancel any pending failure-retry + reset backoff.
+        clearTimeout(_opsRetryTimer);
+        _opsRetryDelay = 5000;
+        // Supabase erroring while events.json succeeds = cards silently losing
+        // all their tracking. Banner + auto-retry instead of silence.
+        showSbDegraded((results[1] && results[1].error) || (results[2] && results[2].error), email);
         // Soft-deleted catalog events carry a '__deleted__' sentinel on their
         // event_state row. Drop them EVERYWHERE — grid, stats, calendar, queue,
         // planner — by excluding both the catalog event AND its state row, so a
@@ -6128,6 +6256,10 @@ def build():
         // Re-seat the open toolbar panel (detached by the rebuild above).
         if (_panel) $opsGrid.insertBefore(_panel, $opsGrid.firstChild);
         window.scrollTo(0, _prevScrollY);
+      }}).catch(function (err) {{
+        // Fetch failed after retries, OR the render itself threw mid-build —
+        // either way, never leave a silent blank grid: show + auto-retry.
+        showOpsLoadError(email, err);
       }});
     }}
 
