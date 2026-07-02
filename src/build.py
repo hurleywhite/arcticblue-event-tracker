@@ -6799,14 +6799,31 @@ def build():
         if (st && st.urgent) lines.push('CATEGORIES:URGENT');
         lines.push('END:VEVENT');
       }}
+      // Dedup: a catalog row + a manual row for the SAME event (one holding
+      // speaking info, one attending) must not double in the exported calendar.
+      // Key = normalized name + start date (date included so different-city
+      // editions of a series don't false-match).
+      var _seenIcs = {{}};
+      function _icsKey(name, startIso) {{
+        var s = String(name || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ')
+          .replace(/\\b(20\\d\\d|usa|north america|europe|edition|the|annual)\\b/g, ' ')
+          .replace(/\\s+/g, ' ').trim();
+        return s + '|' + String(startIso || '');
+      }}
       (events || []).forEach(function (ev) {{
         var st = stateMap[ev.num];
         if (!st || !st.saved) return;
+        var k = _icsKey(ev.name, ev.start_date);
+        if (_seenIcs[k]) return;
+        _seenIcs[k] = 1;
         pushEvent(ev, st, 'event-' + ev.num + '@arcticblue-event-tracker');
       }});
       // Manual events: include all of them (since adding manually is a saved-intent action)
       (manualEvents || []).forEach(function (mev) {{
         if (!mev.start_date) return;
+        var k = _icsKey(mev.name, mev.start_date);
+        if (_seenIcs[k]) return;
+        _seenIcs[k] = 1;
         pushEvent({{
           name: mev.name, location: mev.location, why: mev.why, url: mev.url,
           start_date: mev.start_date, end_date: mev.end_date || mev.start_date,
@@ -8937,10 +8954,27 @@ def write_calendar_ics(today_evs, upcoming):
 
     # Saved events from the regular catalog
     saved_count = 0
+    # Dedup guard: the same real-world event can exist twice (a catalog row
+    # holding speaking info + a manual row holding attending info). Emitting
+    # both doubles it in every subscribed calendar (Angela's report), so key
+    # each VEVENT by normalized-name + start date and emit only the first.
+    # Date must match too — "HumanX" (Vegas, Apr) vs "HumanX Amsterdam" (Sep)
+    # share a name-core but are different events.
+    _seen_keys = set()
+    def _dedup_key(name, start_ymd):
+        import re as _re
+        s = _re.sub(r'[^a-z0-9 ]', ' ', str(name or '').lower())
+        s = _re.sub(r'\b(20\d\d|usa|north america|europe|edition|the|annual)\b', ' ', s)
+        return ' '.join(s.split()) + '|' + str(start_ymd or '')
+
     for ev in (today_evs + upcoming):
         st = state_by_num.get(ev.get('num'))
         if not st or not st.get('saved'):
             continue
+        _k = _dedup_key(ev.get('name'), ymd(ev.get('_start')))
+        if _k in _seen_keys:
+            continue
+        _seen_keys.add(_k)
         saved_count += 1
         start = ev.get('_start')
         end   = ev.get('_end') or start
@@ -8980,6 +9014,11 @@ def write_calendar_ics(today_evs, upcoming):
         if not sd:
             skipped_manual += 1
             continue
+        _k = _dedup_key(m.get('name'), ymd(sd))
+        if _k in _seen_keys:
+            skipped_manual += 1
+            continue
+        _seen_keys.add(_k)
         desc_parts = []
         if m.get('why'):  desc_parts.append(m['why'])
         if m.get('priority'): desc_parts.append('Priority: ' + m['priority'])

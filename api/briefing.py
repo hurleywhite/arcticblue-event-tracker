@@ -1024,6 +1024,128 @@ def generate_targets(event, persona):
     return result, model_used
 
 
+# ── AI "Should Attend" recommendations ────────────────────────────────────────
+# Scores upcoming events against the team's ICP profiles (personas.json) and
+# sets attend_verdict='Worth attending (AI)' — which lights the existing
+# Should-Attend badge + "Worth attending" filter. Conservative by design:
+# never overwrites an existing (human) verdict, never touches events already
+# Booked/Attending, hidden, deleted, or past. Batch mode scores everything
+# once; the daily cron then auto-scores new arrivals.
+RECO_VERDICT = 'Worth attending (AI)'
+RECO_CRON_MAX = _int_env('RECO_CRON_MAX', 25)
+
+
+def _reco_messages(batch):
+    p = load_personas()
+    ab = p['arcticblue']
+    team = {k: {'name': v.get('name'), 'regions': v.get('regions'),
+                'icp_industries': v.get('icp_industries'),
+                'buyer_titles': v.get('buyer_titles'), 'themes': v.get('themes')}
+            for k, v in p['personas'].items()}
+    sys = (
+        "You triage a conference list for ArcticBlue (enterprise AI enablement; "
+        "voice: " + ab['voice'] + "). Decide which events a teammate SHOULD "
+        "ATTEND to meet senior enterprise BUYERS.\n"
+        "RECOMMEND (worth=true) only when a specific teammate fits: buyer-rich "
+        "rooms (exec/C-suite audience, pricier delegate passes), regulated "
+        "industries (financial services, insurance, healthcare, telco), "
+        "flagship C-suite summits, or a clear region/theme match to ONE "
+        "teammate's profile below. REJECT (worth=false): vendor expos and "
+        "seller-heavy halls, developer/engineering conferences, hackathons, "
+        "webinars/podcasts/virtual-only, startup pitch events, academic "
+        "workshops, and events with no teammate fit. Be selective — a short "
+        "high-conviction list beats a long maybe list (roughly the top third).\n"
+        "TEAM PROFILES:\n" + json.dumps(team, ensure_ascii=False) + "\n"
+        "Return ONLY JSON: {\"verdicts\":[{\"id\":\"<id>\",\"worth\":true|false,"
+        "\"fit\":\"jerome|joe|thor|verma|carlos|none\",\"reason\":\"<= 12 words\"}]} "
+        "— one entry per input event, raw JSON only."
+    )
+    user = "EVENTS:\n" + json.dumps(batch, ensure_ascii=False) + "\nToday is " + _today() + "."
+    return [{'role': 'system', 'content': sys}, {'role': 'user', 'content': user}]
+
+
+def _reco_write(kind, key, verdict):
+    h = dict(_sb_headers(service=True)); h['Prefer'] = 'return=minimal'
+    if kind == 'manual':
+        return _http_json('PATCH', SUPABASE_URL + '/rest/v1/manual_events?id=eq.' + urllib.parse.quote(str(key)),
+                          headers=h, body={'attend_verdict': verdict})
+    # catalog events may have NO event_state row yet — upsert, merging into an
+    # existing row without touching its other columns.
+    h['Prefer'] = 'resolution=merge-duplicates,return=minimal'
+    return _http_json('POST', SUPABASE_URL + '/rest/v1/event_state?on_conflict=event_num',
+                      headers=h, body={'event_num': key, 'attend_verdict': verdict})
+
+
+def _reco_candidates(host, limit):
+    """Upcoming, visible, verdict-less, not Booked/Attending — both tables."""
+    st, data = _http_json('GET', 'https://%s/events.json' % host, timeout=20)
+    st2, states = _http_json('GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,status,status_tags,hidden,attend_verdict',
+                             headers=_sb_headers(service=True))
+    st3, manual = _http_json('GET', SUPABASE_URL + '/rest/v1/manual_events?select=id,name,date_str,start_date,end_date,location,region,type,audience_type,pricing,focus_areas,about,why,status_tags,hidden,attend_verdict',
+                             headers=_sb_headers(service=True))
+    smap = {r.get('event_num'): r for r in states if isinstance(r, dict)} if isinstance(states, list) else {}
+    today = _today()
+    out = []
+
+    def trim(v, n=220):
+        return (str(v)[:n] if v not in (None, '') else None)
+
+    for e in (data.get('events') or []) if isinstance(data, dict) else []:
+        s = smap.get(e.get('num')) or {}
+        tags = s.get('status_tags') or []
+        if (s.get('status') == '__deleted__' or s.get('hidden') or s.get('attend_verdict')
+                or 'Booked' in tags or 'Attending' in tags):
+            continue
+        if str(e.get('end_date') or e.get('start_date') or '') < today:
+            continue
+        out.append({'id': 'e' + str(e.get('num')), 'name': e.get('name'),
+                    'date': e.get('date_str'), 'region': e.get('region'),
+                    'location': e.get('location'), 'type': e.get('type'),
+                    'audience_type': e.get('audience_type'), 'pricing': trim(e.get('pricing'), 80),
+                    'focus': trim(e.get('focus_areas') or e.get('about') or e.get('why'))})
+    for m in (manual or []) if isinstance(manual, list) else []:
+        tags = m.get('status_tags') or []
+        if m.get('hidden') or m.get('attend_verdict') or 'Booked' in tags or 'Attending' in tags:
+            continue
+        if str(m.get('end_date') or m.get('start_date') or '') < today:
+            continue
+        out.append({'id': 'm' + str(m.get('id')), 'name': m.get('name'),
+                    'date': m.get('date_str'), 'region': m.get('region'),
+                    'location': m.get('location'), 'type': m.get('type'),
+                    'audience_type': m.get('audience_type'), 'pricing': trim(m.get('pricing'), 80),
+                    'focus': trim(m.get('focus_areas') or m.get('about') or m.get('why'))})
+    return out[:limit] if limit else out
+
+
+def _recommend_batch(host, limit=None):
+    cands = _reco_candidates(host, limit)
+    recommended, errors, sample = [], [], []
+    CHUNK = 20
+    for i in range(0, len(cands), CHUNK):
+        chunk = cands[i:i + CHUNK]
+        st, resp = _call_openai(_reco_messages(chunk), BRIEFING_MODEL)
+        if st in (400, 404) and BRIEFING_FALLBACK != BRIEFING_MODEL:
+            st, resp = _call_openai(_reco_messages(chunk), BRIEFING_FALLBACK)
+        verdicts = (_extract_json(_content_of(st, resp)) or {}).get('verdicts') or []
+        vmap = {str(v.get('id')): v for v in verdicts if isinstance(v, dict)}
+        for c in chunk:
+            v = vmap.get(str(c['id']))
+            if not v or not v.get('worth'):
+                continue
+            kind = 'manual' if str(c['id']).startswith('m') else 'catalog'
+            key = str(c['id'])[1:]
+            ws, _ = _reco_write(kind, key, RECO_VERDICT)
+            if ws in (200, 201, 204):
+                recommended.append(c['id'])
+                if len(sample) < 12:
+                    sample.append({'id': c['id'], 'name': c['name'],
+                                   'fit': v.get('fit'), 'reason': v.get('reason')})
+            else:
+                errors.append({'id': c['id'], 'status': ws})
+    return {'checked': len(cands), 'recommended': len(recommended),
+            'ids': recommended, 'sample': sample, 'errors': errors}
+
+
 def cache_targets(kind, key, targets, when):
     """Best-effort cache — no-ops if the targets_json column isn't there yet."""
     col = 'event_num' if kind == 'event_state' else 'id'
@@ -1120,9 +1242,14 @@ class handler(BaseHTTPRequestHandler):
                 return _send(self, 400, {'error': 'invalid JSON body'})
             kind = body.get('kind') or 'event_state'
             key = body.get('key')
+            host = self.headers.get('Host', '')
+            # Batch AI "Should Attend" recommendations over all candidate events
+            # (no key — it sweeps the whole list).
+            if body.get('recommend_all'):
+                result = _recommend_batch(host, body.get('limit'))
+                return _send(self, 200, result)
             if key is None:
                 return _send(self, 400, {'error': 'key required'})
-            host = self.headers.get('Host', '')
             # Deep outreach targets are a separate, heavier on-demand pass.
             if body.get('deep_targets'):
                 payload, status = _targets_one(kind, key, host, bool(body.get('regenerate')))
@@ -1167,8 +1294,16 @@ class handler(BaseHTTPRequestHandler):
                     tgt_done.append(e.get('num')); tgt_budget[0] -= 1
                 except Exception as ex:  # noqa: BLE001
                     errors.append({'num': e.get('num'), 'err': 'targets: ' + str(ex)[:100]})
+        # Auto-recommend: score any NEW verdict-less events (Dust ingest / manual
+        # adds since the last run) so "Should Attend" stays current hands-free.
+        reco = {}
+        try:
+            reco = _recommend_batch(host, RECO_CRON_MAX)
+        except Exception as ex:  # noqa: BLE001
+            errors.append({'num': 'recommend', 'err': str(ex)[:120]})
         return _send(self, 200, {'pre_generated': done, 'targets_generated': tgt_done,
-                                 'errors': errors, 'for_date': brief_target})
+                                 'recommended': reco.get('recommended'), 'errors': errors,
+                                 'for_date': brief_target})
 
     def _gen_cache(self, kind, key, host):
         facts, state = load_event(kind, key, host)

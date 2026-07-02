@@ -26,6 +26,66 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-336@arcticblue-event-tracker
+DTSTAMP:20260702T000000Z
+DTSTART;VALUE=DATE:20261103
+DTEND;VALUE=DATE:20261105
+SUMMARY:Next-Gen AI for Energy Summit 2026 (AI4E2026)
+LOCATION:Houston\, TX
+DESCRIPTION:Premier energy AI summit with 600+ CIOs\, CTOs\, and CDOs from Chevron\, Devon Energy\, ERCOT\, NRG Energy\, and Dominion Energy — Houston's concentrated enterprise AI executive audience where ArcticBlue's agentic AI operational thesis resonates directly.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.ai4energysummit.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-335@arcticblue-event-tracker
+DTSTAMP:20260702T000000Z
+DTSTART;VALUE=DATE:20261104
+DTEND;VALUE=DATE:20261106
+SUMMARY:World Business Forum New York 2026
+LOCATION:New York City\, USA
+DESCRIPTION:WOBI's premier CEO/C-suite leadership forum at Javits Center featuring Jim Collins\, Indra Nooyi\, and Zack Kass (former OpenAI GTM head) — high-prestige halo stage connecting ArcticBlue with senior business transformation decision-makers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://wobi.us/wbf-nyc/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-334@arcticblue-event-tracker
+DTSTAMP:20260702T000000Z
+DTSTART;VALUE=DATE:20260922
+DTEND;VALUE=DATE:20260925
+SUMMARY:HumanX Europe 2026
+LOCATION:Amsterdam\, Netherlands
+DESCRIPTION:2\,500+ attendees (60% VP+) across Europe's premier AI leadership conference — no pay-to-play speaker selection\, 200+ speakers from top enterprises including HubSpot CEO and Isomorphic Labs President\; strong European enterprise AI buyer audience for ArcticBlue expansion.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.humanx.co/europe/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-333@arcticblue-event-tracker
+DTSTAMP:20260702T000000Z
+DTSTART;VALUE=DATE:20261020
+DTEND;VALUE=DATE:20261021
+SUMMARY:Evanta Chicago CHRO Community Executive Summit 2026
+LOCATION:Chicago\, IL\, USA
+DESCRIPTION:Gartner/Evanta's one-day peer summit exclusively for Chicago-area CHROs at Chicago Marriott Downtown — direct access to Joe's ICP in the dense Midwest enterprise market.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/chro/chicago/chicago-chro-executive-summit-9276
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-332@arcticblue-event-tracker
+DTSTAMP:20260702T000000Z
+DTSTART;VALUE=DATE:20261005
+DTEND;VALUE=DATE:20261006
+SUMMARY:HRO Today CHRO Forum Midwest 2026
+LOCATION:Chicago\, IL\, USA
+DESCRIPTION:HRO Today's facilitated roundtable gathering of Midwest CHROs and Heads of HR — direct buyer ICP access for Joe's AI enablement content in Chicago's dense enterprise market.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.hrotoday.com/events/chro-forum-midwest/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-331@arcticblue-event-tracker
+DTSTAMP:20260702T000000Z
+DTSTART;VALUE=DATE:20260916
+DTEND;VALUE=DATE:20260917
+SUMMARY:HRO Today CHRO Forum South 2026
+LOCATION:Atlanta\, GA\, USA
+DESCRIPTION:HRO Today's invite-only facilitated Think Tank exclusively for CHROs and Heads of HR in the US South — direct ICP audience for Joe's AI enablement and workforce transformation message.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.hrotoday.com/events/chro-forum-south/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-330@arcticblue-event-tracker
 DTSTAMP:20260702T000000Z
 DTSTART;VALUE=DATE:20261103
@@ -1314,16 +1374,6 @@ SUMMARY:FStech Future of AI in Financial Services Conference 2026
 LOCATION:London\, UK
 DESCRIPTION:Annual gathering of UK banking\, insurance\, investment and regulatory leaders on agentic AI deployment\, EU AI Act compliance and AI ROI — ideal audience for ArcticBlue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.fstech.co.uk/futureai-finserv/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-198@arcticblue-event-tracker
-DTSTAMP:20260702T000000Z
-DTSTART;VALUE=DATE:20260921
-DTEND;VALUE=DATE:20260924
-SUMMARY:Responsible AI Summit 2026
-LOCATION:London\, UK
-DESCRIPTION:Closed-door European gathering with Zurich Insurance\, AXA UK\, Admiral\, Lloyds Banking Group\, NatWest\, Aviva and Mastercard — textbook ArcticBlue regulated-industry ICP.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.aidataanalytics.network/events-responsible-ai-summit
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-197@arcticblue-event-tracker

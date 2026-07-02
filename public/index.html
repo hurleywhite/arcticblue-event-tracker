@@ -6273,14 +6273,31 @@
         if (st && st.urgent) lines.push('CATEGORIES:URGENT');
         lines.push('END:VEVENT');
       }
+      // Dedup: a catalog row + a manual row for the SAME event (one holding
+      // speaking info, one attending) must not double in the exported calendar.
+      // Key = normalized name + start date (date included so different-city
+      // editions of a series don't false-match).
+      var _seenIcs = {};
+      function _icsKey(name, startIso) {
+        var s = String(name || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ')
+          .replace(/\b(20\d\d|usa|north america|europe|edition|the|annual)\b/g, ' ')
+          .replace(/\s+/g, ' ').trim();
+        return s + '|' + String(startIso || '');
+      }
       (events || []).forEach(function (ev) {
         var st = stateMap[ev.num];
         if (!st || !st.saved) return;
+        var k = _icsKey(ev.name, ev.start_date);
+        if (_seenIcs[k]) return;
+        _seenIcs[k] = 1;
         pushEvent(ev, st, 'event-' + ev.num + '@arcticblue-event-tracker');
       });
       // Manual events: include all of them (since adding manually is a saved-intent action)
       (manualEvents || []).forEach(function (mev) {
         if (!mev.start_date) return;
+        var k = _icsKey(mev.name, mev.start_date);
+        if (_seenIcs[k]) return;
+        _seenIcs[k] = 1;
         pushEvent({
           name: mev.name, location: mev.location, why: mev.why, url: mev.url,
           start_date: mev.start_date, end_date: mev.end_date || mev.start_date,
