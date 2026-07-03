@@ -2315,7 +2315,11 @@
    "external_id": "321da59e-7609-416d-8559-68976b1cab84",
    "source": "arcticscout",
    "start_date": "2026-05-12",
-   "end_date": "2026-05-14"
+   "end_date": "2026-05-14",
+   "pricing": "$799–$2,199",
+   "past_speakers": "Jason Lemkin, SaaStr; Howie Liu, Airtable; Jason Harris, Mekanism; David Cancel, Drift; Tien Nguyen, SaaStr; Sarah Frankel, SaaStr",
+   "meeting_formats": "SaaStr.ai attendee portal for pre-booking meetings; 2,000+ Networking Sessions; curated roundtables",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 109,
@@ -2395,7 +2399,9 @@
    "external_id": "87d74765-ed3a-482f-a542-1b3324cd2ca2",
    "source": "arcticscout",
    "start_date": "2026-06-10",
-   "end_date": "2026-06-10"
+   "end_date": "2026-06-10",
+   "audience_type": "Mixed",
+   "attendee_count": "500-1000 Delegates"
   },
   {
    "num": 112,
@@ -3117,7 +3123,12 @@
    "external_id": "1223829b-5e22-4318-9e1b-00ede4093e72",
    "source": "arcticscout",
    "start_date": "2026-05-11",
-   "end_date": "2026-05-13"
+   "end_date": "2026-05-13",
+   "pricing": "Buyer-rich: Vendors/suppliers pay different rates; specific delegate/ticket price not listed in search results",
+   "past_speakers": "Visionaries, industry leaders, and technology pioneers (specific names not listed in search results)",
+   "meeting_formats": "1:1 session booking (guaranteed/hosted 1:1 meetings); Booth #416 and Meeting Room #5007 for vendor-hosted meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "15,000+"
   },
   {
    "num": 138,
@@ -4313,7 +4324,11 @@
    "external_id": "e503305e-50fa-4916-8216-1f4d5dcef529",
    "source": "arcticscout",
    "start_date": "2026-03-02",
-   "end_date": "2026-03-05"
+   "end_date": "2026-03-05",
+   "pricing": "Tickets for MREG (Buyer-rich): ~€1,200; Vendor-heavy (exhibitors): ~€2,500+ (includes booth space)",
+   "past_speakers": "Cristina Aleson, GSMA; Dr. Jim Heppelmann, PTC; Dr. Rajeev Suri, Nokia; Dr. Thomas Novan, Qualcomm; Dr. Lars Rasmussen, Ericsson; Dr. Maria Kouneli, Orange",
+   "meeting_formats": "Hosted 1:1 meetings via MWC Connect app; curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 181,
@@ -6267,7 +6282,11 @@
    "source": "arcticscout",
    "start_date": "2026-05-19",
    "end_date": "2026-05-20",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "pricing": "76% of the Fortune 100 attends; specific delegate/ticket price not published in source[1]",
+   "past_speakers": "Global Chief Human Resource Officers & Chief Information Officers[1]",
+   "meeting_formats": "face-to-face meet-and-connect for current trends & challenges[1]",
+   "attendee_count": "76% of the Fortune 100 attends[1]"
   },
   {
    "num": 253,
