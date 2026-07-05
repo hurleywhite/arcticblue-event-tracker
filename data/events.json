@@ -491,7 +491,10 @@
    "typical_attendees": "Technology leaders, innovators, startups, and industry professionals",
    "attendee_count": "25,000+",
    "deadline": "4 April 2026",
-   "speaking_route": "Apply to speak: https://leapeast.com/become-speaker"
+   "speaking_route": "Apply to speak: https://leapeast.com/become-speaker",
+   "pricing": "Early Bird pricing ends 23:59 on 6 May 2026; tickets must be purchased online via the official LEAP East ticketing page; limited on-site registration may be available subject to capacity",
+   "past_speakers": "200+ expert speakers covering fintech, healthtech, smart cities, robotics, blockchain, and AI; 200+ global technology leaders including senior-level engagement participants",
+   "meeting_formats": "Official LEAP East event app available for download to pre-book meetings; face-to-face meetings with leading innovators and investors"
   },
   {
    "num": 53,
@@ -599,7 +602,12 @@
    "country": "USA",
    "notes": "*Topic E\n\nKey topics they are seeking include:\n-Data-Driven Decision Making\n-Leveraging AI to Drive Business Outcomes\n-Data Governance and Compliance\n-Personalization Through Analytics\n-The Ethics and Future of AI",
    "external_id": "af45eb18-9b56-4884-ab2d-071e24318906",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Free",
+   "past_speakers": "Chief Data Officer, Major Tech Firm; Chief Analytics Officer, Global Retailer; Head of AI, Leading Healthcare System",
+   "meeting_formats": "Curated roundtables; Professional-led networking sessions",
+   "audience_type": "Mixed",
+   "attendee_count": "250+"
   },
   {
    "num": 86,
@@ -1235,7 +1243,9 @@
    "speaking_route": "Partner/speaker applications: worldsummit.ai/commercial-partners/. Contact: worldsummit.ai",
    "contact_info": "worldsummit.ai",
    "pay_to_play": "Mix",
-   "focus_areas": "Enterprise AI adoption (ADOPT AI track); AI governance and responsible enterprise deployment; Sovereign AI and national AI policy; Frontier AI to enterprise application pipeline; AI leadership and organizational transformation"
+   "focus_areas": "Enterprise AI adoption (ADOPT AI track); AI governance and responsible enterprise deployment; Sovereign AI and national AI policy; Frontier AI to enterprise application pipeline; AI leadership and organizational transformation",
+   "pricing": "€1599 (standard); €999 + VAT (discounted tier)",
+   "past_speakers": "Enterprise Leaders, Big Tech Executives; Startup Founders; AI Researchers; Policymakers; Investors; Ethical Experts"
   },
   {
    "num": 58,
@@ -5616,7 +5626,9 @@
    "external_id": "75fa88b9-7fb9-4205-8ada-5a172875ad0d",
    "source": "arcticscout",
    "start_date": "2026-05-27",
-   "end_date": "2026-05-27"
+   "end_date": "2026-05-27",
+   "past_speakers": "Marianna Schapira, FT",
+   "audience_type": "Mixed"
   },
   {
    "num": 227,
@@ -6070,7 +6082,11 @@
    "start_date": "2026-06-09",
    "end_date": "2026-06-10",
    "meeting_formats": "hosted face-to-face assembly with pre-approval/invitation-based attendance",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "pricing": "Buyer-rich (Invitation-only for Global CHROs; cost to attend requires personal invitation from Millennium Alliance member or approved application)",
+   "pay_to_play": "Yes",
+   "past_speakers": "Jennifer Posa, PhD, MS (Keynote: AI challenges, workplace psychology, workforce readiness); Global Chief Human Resource Officers (Peer benchmarking on current trends & challenges)",
+   "attendee_count": "High-level peer forum (exact count not published; invitation"
   },
   {
    "num": 244,
