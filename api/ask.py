@@ -194,6 +194,16 @@ def _endish_iso(start_date, end_date, date_str):
     return None
 
 
+# A speaking application is IN once the event carries any of these stages.
+# 'Identified' (or no stage at all) means the event is only LOGGED — not yet
+# applied to — which is the distinction the team keeps tripping over.
+_APPLIED_STAGES = ('Submitted', 'Followed up', 'Meeting held', 'Booked')
+
+
+def _is_submitted(stages):
+    return any(s in (stages or []) for s in _APPLIED_STAGES)
+
+
 def _gather_events(host):
     """Compact, model-friendly list of every event: catalog (events.json) +
     manual (manual_events) merged with ops state (event_state). Each event is
@@ -237,6 +247,9 @@ def _gather_events(host):
                     'audience': e.get('audience_type'), 'price': e.get('pricing'),
                     'deadline': e.get('deadline'),
                     'stage': ', '.join(stages) if stages else None,
+                    # True only once a speaking application is actually IN.
+                    # 'Identified' / no stage => submitted=False (a candidate).
+                    'submitted': _is_submitted(stages),
                     'speaker': ops.get('speaker'),
                     'attend': ops.get('attend_verdict'),
                     'saved': bool(ops.get('saved')),
@@ -268,6 +281,7 @@ def _gather_events(host):
                 'audience': m.get('audience_type'), 'price': m.get('pricing'),
                 'deadline': m.get('deadline'),
                 'stage': ', '.join(stages) if stages else None,
+                'submitted': _is_submitted(stages),
                 'speaker': m.get('speaker'), 'attend': m.get('attend_verdict'),
                 'fits': _fits(blob, region),
                 'upcoming': (endish is None) or (endish >= today),
@@ -297,6 +311,17 @@ _SYSTEM = (
     "(max 8). Use each event's EXACT name from the data. Empty list if none fit.\n"
     "- Keep 'answer' short — the events render as cards below it, so don't repeat "
     "their dates/locations; just give the gist or the reasoning.\n"
+    "- PIPELINE STAGES: each event has 'stage' (its pipeline tags) and 'submitted' "
+    "(true/false). 'submitted' is the ONLY thing that says whether a speaking "
+    "application has been sent. Stage meanings: 'Identified' = we have merely "
+    "LOGGED this event as a candidate and have NOT applied — submitted=false; "
+    "'Submitted'/'Followed up'/'Meeting held'/'Booked' = an application is in or "
+    "progressing — submitted=true; 'Attending' = going without speaking. CRITICAL: "
+    "'Identified' and an empty/missing stage BOTH mean NOT SUBMITTED. For any "
+    "question about events \"not submitted to yet\", \"haven't applied to\", "
+    "\"still open to apply\", or \"what should we apply to\", return events where "
+    "submitted=false — and NEVER exclude 'Identified' events; they are exactly the "
+    "not-yet-submitted candidates.\n"
     "- Each event carries 'upcoming' (true/false), 'region' (canonical), and "
     "'fits' (the ArcticBlue people it suits). For 'upcoming' / 'next' / "
     "'this month' questions, return ONLY upcoming=true events, soonest first. "
@@ -376,7 +401,23 @@ def _ask_openai(question, history, events, user=''):
                  'content': _SYSTEM.format(today=date.today().isoformat())}]
     messages.append({'role': 'system', 'content': _TEAM_CONTEXT})
     user = (user or '').strip()
-    if user and user.lower() != 'team':
+    _first = user.split()[0].lower() if user.split() else ''
+    if _first in ('angela', 'hurley'):
+        # Sales-support: they run the tracker and Angela submits applications on
+        # behalf of the WHOLE team, so never scope answers to one person's ICP.
+        messages.append({'role': 'system', 'content': (
+            'The person asking is "%s" — ArcticBlue SALES SUPPORT. Angela submits '
+            'the speaking applications on behalf of the ENTIRE team, so "we", "us", '
+            '"I", and "should we" refer to the whole team, NOT one person\'s '
+            'coverage. When they ask what "we haven\'t submitted to yet", "still '
+            'need to apply to", or "should apply to", answer with events where '
+            'submitted=false across ALL teammates — this INCLUDES events tagged '
+            'only "Identified" and events with no stage (both mean not-yet-applied). '
+            'Do not restrict to any single territory; when helpful, note which '
+            'teammate each event fits via its "fits" list. Neither Angela nor '
+            'Hurley attend events themselves, so do not recommend events "for" '
+            'them personally.' % user)})
+    elif user and user.lower() != 'team':
         prof = PROFILE_BY_KEY.get(user) or (PROFILE_BY_KEY.get(user.split()[0]) if user.split() else None)
         if prof:
             messages.append({'role': 'system', 'content': (

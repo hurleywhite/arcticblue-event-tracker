@@ -3139,16 +3139,33 @@
       }
       return null;
     }
+    // Start (preferred) — for the "has it begun?" check below.
+    function eventStartIso(o) {
+      if (!o) return null;
+      if (o.start_date) return String(o.start_date).slice(0, 10);
+      if (o.end_date)   return String(o.end_date).slice(0, 10);
+      if (o.date_str) {
+        try {
+          var d = deriveDatesFromText(o.date_str);
+          if (d.start_date) return d.start_date;
+          if (d.end_date)   return d.end_date;
+        } catch (e) {}
+      }
+      return null;
+    }
     function isPastEvent(o) {
-      var iso = eventEndIso(o);
+      // Angela's ask: once we're AT the event (its start date has arrived) or
+      // past it, there's nothing left to submit to — so hide it into the
+      // collapsed Archive. Keyed on the START date, so a multi-day event that
+      // has already begun (today falls inside its run) is hidden too, not just
+      // after it ends. Day-Of briefs + the iCal feed use their own date windows,
+      // so today's attended events still surface there.
+      var iso = eventStartIso(o);
       if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return false;  // undated -> not past
       var now = new Date();
       var todayIso = now.getFullYear() + '-' +
         String(now.getMonth() + 1).padStart(2, '0') + '-' +
         String(now.getDate()).padStart(2, '0');
-      // Today OR earlier counts as past — an event happening today has nothing
-      // left to pursue, so it drops into the collapsed Archive (Angela's ask).
-      // Multi-day events still running (end date in the future) stay active.
       return iso <= todayIso;
     }
 
@@ -4212,6 +4229,16 @@
     // (the attendees field), distinct from who's SPEAKING (the speaker field).
     // The new primary filter row: one chip per pipeline stage. Selecting
     // chips keeps any card carrying ANY of the chosen stages (OR).
+    // Plain-English meaning of each pipeline stage — the team kept tripping over
+    // "Identified" (it means logged-but-not-applied, NOT submitted).
+    var STAGE_HELP = {
+      'Identified':   'Logged as a candidate — we have NOT applied yet. (not submitted)',
+      'Submitted':    'A speaking application has been sent.',
+      'Followed up':  'We chased/nudged after submitting.',
+      'Meeting held': 'An intro call / meeting with the organizer happened.',
+      'Booked':       'Confirmed to speak.',
+      'Attending':    'Going to the event (not speaking).'
+    };
     function buildStageFilters() {
       var host = document.getElementById('stage-filters');
       if (!host || host.dataset.built === '1') return;
@@ -4226,7 +4253,7 @@
         btn.style.color = s.fg;
         btn.style.borderColor = s.bg;
         btn.textContent = s.key;
-        btn.title = 'Filter by ' + s.key;
+        btn.title = (STAGE_HELP[s.key] ? s.key + ' — ' + STAGE_HELP[s.key] : 'Filter by ' + s.key);
         btn.addEventListener('click', function () {
           // Single-select: clicking a stage shows ONLY that stage and clears the
           // others, so swapping between pipeline views is one click (Angela's
