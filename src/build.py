@@ -1713,6 +1713,15 @@ def build():
       gap: 8px; margin: 0 0 14px;
     }}
     .ops-topfilters .filter-dd-btn {{ width: auto; }}
+    /* Shortened search, inline to the right of the Should-attend dropdown. */
+    .ops-topfilters #ops-search {{
+      flex: 0 1 260px; min-width: 150px; margin-left: auto;
+      font-family: "Nunito Sans", var(--ab-sans); font-size: 0.9rem; font-weight: 600;
+      padding: 9px 13px; border: 1px solid var(--ab-rule-strong);
+      border-radius: 6px; background: var(--ab-bg); color: var(--ab-fg); outline: none;
+    }}
+    .ops-topfilters #ops-search:focus {{ border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.12); }}
+    @media (max-width: 640px) {{ .ops-topfilters #ops-search {{ flex-basis: 100%; margin-left: 0; }} }}
     .ops-filters {{
       display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 10px; align-items: stretch;
@@ -2548,9 +2557,9 @@ def build():
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Should attend</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- Team pick / AI pick chips injected by buildExtraFilters() --></div>
           </div>
+          <input type="search" id="ops-search" placeholder="Search…" aria-label="Search events">
         </div>
         <div class="ops-filters collapsed">
-          <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
           <button type="button" class="ops-filter-toggle" id="ops-filter-toggle" aria-expanded="false" aria-label="Show or hide filters">Filters <span class="ft-caret" aria-hidden="true">▾</span></button>
           <div class="filter-dd" id="filter-price" title="Ticket price as a buyer signal: a pricier pass usually means real buyers, not a hall of vendors">
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Ticket price</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
@@ -3859,7 +3868,31 @@ def build():
         '<span class="ops-roster-who' + (muted ? ' muted' : '') + '">' + who + '</span>' +
       '</div>';
     }}
-    function renderOpsRoster(st) {{
+    // The card-face star means "I'm interested" — specific to whoever is signed
+    // in (Jerome stars it -> Jerome shows as interested). These drive the star's
+    // filled state + click, reusing the same interested list as the modal toggle.
+    function meInInterested(list) {{
+      var me = (getCollabName() || '').toLowerCase();
+      if (!me) return false;
+      return (list || []).some(function (n) {{ return String(n).toLowerCase() === me; }});
+    }}
+    function toggleMyInterest(kind, key, list) {{
+      var me = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || '';
+      if (!me) return;   // no name -> nothing to flag
+      var cur = (list || []).slice();
+      var lc = me.toLowerCase(), hit = -1;
+      for (var z = 0; z < cur.length; z++) {{ if (String(cur[z]).toLowerCase() === lc) {{ hit = z; break; }} }}
+      if (hit === -1) cur.push(me); else cur.splice(hit, 1);
+      if (window.opsWrite) window.opsWrite(kind === 'manual' ? 'manual_events' : 'event_state', key, {{ interested: cur }});
+    }}
+    function starButtonHtml(list) {{
+      var on = meInInterested(list);
+      return '<button class="saved-star' + (on ? ' is-on' : '') + '" data-star type="button"' +
+        ' aria-label="I\\'m interested" title="Star = I\\'m interested (adds you to the interested list + Angela\\'s queue)">' +
+        (on ? '\\u2605' : '\\u2606') + '</button>';
+    }}
+
+    function renderOpsRoster(st, extra) {{
       var stages = stageTagsOf(st);
       var rows = [];
       // Speaking track — the furthest active speaking stage, with the speaker.
@@ -3879,8 +3912,12 @@ def build():
       if (intr.length) rows.push(_rosterRow('Interested', '&#9733; ' + escapeHtml(intr.join(', ')), ''));
       // Secondary: small priority + track pills (kept, but out of the roster).
       var pills = [];
-      if (st.priority_override) pills.push('<span class="ops-tag pri-' + String(st.priority_override).toLowerCase() + '">' + escapeHtml(st.priority_override) + '</span>');
+      if (st.priority_override && (!window.isAngelaUser || window.isAngelaUser())) pills.push('<span class="ops-tag pri-' + String(st.priority_override).toLowerCase() + '">' + escapeHtml(st.priority_override) + '</span>');
       if (st.track) pills.push('<span class="ops-tag">' + escapeHtml(st.track) + '</span>');
+      // Audience badge (Buyer-rich etc.) shares this SAME row so the labels sit
+      // side-by-side instead of stacking (the card is a flex column, so two
+      // separate rows would each take a full line — wasted vertical space).
+      if (extra) pills.push(extra);
       var html = '';
       if (rows.length) html += '<div class="ops-roster">' + rows.join('') + '</div>';
       if (pills.length) html += '<div class="ops-tags ops-tags--meta">' + pills.join('') + '</div>';
@@ -4078,7 +4115,6 @@ def build():
       // Attending-signal strip + one-click apply (the booking shortcut).
       var sigBits = [];
       if (_aud && String(_aud).trim().toLowerCase() !== 'mixed') sigBits.push('<span class="badge ' + audienceClass(_aud) + '">' + escapeHtml(_aud) + '</span>');
-      var sigRow = sigBits.length ? '<p class="attend-signals">' + sigBits.join('') + '</p>' : '';
       var applyUrl = speakingRouteUrl(ev.speaking_route);
       var applyBtn = applyUrl
         ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
@@ -4087,7 +4123,7 @@ def build():
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<div class="ops-chips">' +
-            '<button class="saved-star' + (st.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (st.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (st.saved ? '★' : '☆') + '</button>' +
+            starButtonHtml(st.interested) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             '<button class="ops-chip' + (st.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (st.hidden ? '1' : '0') + '" type="button" title="Archive — set this event aside (it collapses into the Archived group)">Archive</button>' +
             decBadge + saBadge + contactBadge +
@@ -4101,8 +4137,7 @@ def build():
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(canonicalRegion(ev)) + ' · ' + escapeHtml(ev.location || '') + '</p>' +
-        renderOpsRoster(st) +
-        sigRow +
+        renderOpsRoster(st, sigBits.length ? sigBits.join('') : '') +
         deadlineLine(ev.deadline, ev) +
         applyBtn;
       // (metaLine intentionally unused now — "Last edit" detail lived inside the
@@ -4254,6 +4289,11 @@ def build():
       var who      = whoText;
 
       // Reuse the per-role roster by adapting the manual row into a state-like obj
+      // Buyer/seller read — folded into the same pill row as priority (below)
+      // so the labels sit side-by-side instead of stacking.
+      var audChip = (mev.audience_type && String(mev.audience_type).trim().toLowerCase() !== 'mixed')
+        ? '<span class="badge ' + audienceClass(mev.audience_type) + '">' + escapeHtml(mev.audience_type) + '</span>'
+        : '';
       var tagsHtml = renderOpsRoster({{
         status:      mev.status,
         status_tags: mev.status_tags,
@@ -4262,7 +4302,7 @@ def build():
         interested:  mev.interested,
         priority_override: mev.priority,
         track:    null
-      }});
+      }}, audChip);
 
       // Contact strip below the location line — only render if at least one field
       var pocBits = [];
@@ -4290,14 +4330,6 @@ def build():
             (mev.paid !== null && mev.paid !== undefined ? 'Paid: ' + (mev.paid ? 'yes' : 'no') : '') +
           '</p>'
         : '';
-      // Buyer/seller read + ticket price — ArcticBlue wants buyer-rich rooms.
-      var audChip = (mev.audience_type && String(mev.audience_type).trim().toLowerCase() !== 'mixed')
-        ? '<span class="badge ' + audienceClass(mev.audience_type) + '">' + escapeHtml(mev.audience_type) + '</span>'
-        : '';
-      var attendChip = '';  // "Worth attending" folded into the Interested list
-      // Audience signal lives in the same "labels" zone as the catalog cards
-      // (below the location, above the bottom Apply button) for a consistent layout.
-      var mSigRow = audChip ? '<p class="attend-signals">' + audChip + '</p>' : '';
       var priceLine = (mev.pricing && String(mev.pricing).trim())
         ? '<p class="ops-meta">Price to attend: ' + escapeHtml(mev.pricing) + '</p>'
         : '';
@@ -4311,7 +4343,7 @@ def build():
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<div class="ops-chips">' +
-            '<button class="saved-star' + (mev.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (mev.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (mev.saved ? '★' : '☆') + '</button>' +
+            starButtonHtml(mev.interested) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             '<button class="ops-chip' + (mev.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (mev.hidden ? '1' : '0') + '" type="button" title="Archive — set this event aside (it collapses into the Archived group)">Archive</button>' +
             mDecBadge + mSaBadge + mContactBadge + mRecentBadge +
@@ -4326,7 +4358,6 @@ def build():
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(canonicalRegion(mev)) + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
         tagsHtml +
-        mSigRow +
         deadlineLine(mev.deadline, mev) +
         pocLine +
         notesLine +
@@ -4347,7 +4378,13 @@ def build():
       if (mev.hidden) card.classList.add('is-hidden');
       if (mev.saved)  card.classList.add('is-saved');
       if (mev.urgent) card.classList.add('is-urgent');
-      // Boolean toggles (saved/urgent/hidden) — same UX as catalog cards, but
+      // Star = "I'm interested" (per-signed-in-person), not a shared bookmark.
+      var _manStar = card.querySelector('.saved-star');
+      if (_manStar) _manStar.addEventListener('click', function () {{
+        _manStar.setAttribute('aria-busy', 'true');
+        toggleMyInterest('manual', mev.id, mev.interested);
+      }});
+      // Boolean toggles (urgent/hidden) — same UX as catalog cards, but
       // written to manual_events. Needs the columns from
       // scripts/2026-06-18_manual_events_toggles.sql; until that runs,
       // sbWriteRetry strips the unknown column and we warn instead of pretending.
@@ -4528,7 +4565,13 @@ def build():
         }});
       }}
 
-      // Boolean toggles (saved-star + urgent + hidden chips)
+      // Star = "I'm interested" (per-signed-in-person), not a shared bookmark.
+      var _catStar = card.querySelector('.saved-star');
+      if (_catStar) _catStar.addEventListener('click', function () {{
+        _catStar.setAttribute('aria-busy', 'true');
+        toggleMyInterest('catalog', num, (card._modalRec && card._modalRec.interested) || []);
+      }});
+      // Boolean toggles (urgent + hidden chips)
       card.querySelectorAll('[data-field][data-on]').forEach(function (btn) {{
         btn.addEventListener('click', function () {{
           var field = btn.dataset.field;
@@ -4839,16 +4882,16 @@ def build():
       // Sync/export (Calendar sync + Spreadsheet) is Angela-only.
       var $sync = document.getElementById('ops-sync-group');
       if ($sync) $sync.style.display = show ? '' : 'none';
-      var $ft = document.getElementById('ops-filter-toggle');
-      if (!$ft) return;
-      var box = $ft.closest('.ops-filters');
-      $ft.style.display = show ? '' : 'none';
-      // For non-Angela, force the panel collapsed so its filters stay hidden
-      // even if a prior (Angela) session had expanded it in this tab.
-      if (!show && box) {{
-        box.classList.add('collapsed');
-        $ft.setAttribute('aria-expanded', 'false');
+      // The whole extra-filters box (Filters toggle + hidden dropdowns) is now
+      // Angela-only — the search moved up into the top row for everyone, so this
+      // box holds nothing but Angela's power filters. Hide it entirely for others.
+      var box = document.querySelector('.ops-filters');
+      if (box) {{
+        box.style.display = show ? '' : 'none';
+        if (!show) box.classList.add('collapsed');   // keep collapsed for when Angela returns
       }}
+      var $ft = document.getElementById('ops-filter-toggle');
+      if ($ft) {{ $ft.style.display = ''; if (!show) $ft.setAttribute('aria-expanded', 'false'); }}
       updateFilterToggle();
     }}
 
