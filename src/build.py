@@ -2814,7 +2814,7 @@ def build():
     var bAct = [];
     if (isCat) {{
       bAct.push('<button type="button" class="qa' + (rec.saved ? ' on' : '') + '" data-qa="saved">' + (rec.saved ? '★ Saved' : '☆ Save') + '</button>');
-      bAct.push('<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unhide' : 'Hide') + '</button>');
+      bAct.push('<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unarchive' : 'Archive') + '</button>');
     }}
     var bStage = [];
     bStage.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
@@ -4054,7 +4054,7 @@ def build():
           '<div class="ops-chips">' +
             '<button class="saved-star' + (st.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (st.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (st.saved ? '★' : '☆') + '</button>' +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            '<button class="ops-chip' + (st.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (st.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
+            '<button class="ops-chip' + (st.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (st.hidden ? '1' : '0') + '" type="button" title="Archive — set this event aside (it collapses into the Archived group)">Archive</button>' +
             decBadge + saBadge + contactBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(ev.date_str, ev.start_date)) + '</p>' +
@@ -4281,7 +4281,7 @@ def build():
           '<div class="ops-chips">' +
             '<button class="saved-star' + (mev.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (mev.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (mev.saved ? '★' : '☆') + '</button>' +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            '<button class="ops-chip' + (mev.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (mev.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
+            '<button class="ops-chip' + (mev.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (mev.hidden ? '1' : '0') + '" type="button" title="Archive — set this event aside (it collapses into the Archived group)">Archive</button>' +
             mDecBadge + mSaBadge + mContactBadge + mRecentBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(mev.date_str, mev.start_date)) + '</p>' +
@@ -5022,7 +5022,7 @@ def build():
       cards.forEach(function (card) {{
         var tier = opsCardTier(card);
         var key = tier === 1 ? 'hidden' : (tier === 2 ? 'archive' : (card.dataset.month || 'tbd'));
-        var label = tier === 1 ? 'Hidden' : (tier === 2 ? 'Archive · past events' : (card.dataset.monthLabel || 'Date TBD'));
+        var label = tier === 1 ? 'Archived' : (tier === 2 ? 'Past events' : (card.dataset.monthLabel || 'Date TBD'));
         if (key !== curKey) {{
           curKey = key;
           order.push({{ key: key, label: label }});
