@@ -1895,6 +1895,11 @@
       margin-left: auto;
     }
 
+    /* Date pickers (single day or range) in the Add-event form. */
+    .date-range-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .date-range-row .date-input { flex: 0 1 180px; min-width: 140px; }
+    .date-range-dash { color: var(--ab-fg-3); font-size: 0.85rem; }
+    .date-range-hint { flex-basis: 100%; margin: 2px 0 0; font-size: 0.72rem; font-style: italic; color: var(--ab-fg-3); }
     .add-event-card {
       /* When a panel scrolls into view, clear the sticky header + tab bar. */
       scroll-margin-top: 130px;
@@ -6214,6 +6219,23 @@
         'speaker', 'meeting_formats'];
       var filled = 0, skipped = 0;
       keys.forEach(function (k) {
+        // Date is now two <input type="date"> pickers — parse the scraped
+        // free-text date into ISO start/end and fill those instead.
+        if (k === 'date_str') {
+          if (!extracted.date_str) return;
+          var sEl = form.querySelector('[name="start_date"]');
+          var eEl = form.querySelector('[name="end_date"]');
+          if (!sEl) return;
+          if (sEl.value && !opts.overwrite) { skipped++; return; }
+          var parsed = {};
+          try { parsed = deriveDatesFromText(extracted.date_str) || {}; } catch (e) {}
+          if (parsed.start_date) {
+            sEl.value = parsed.start_date;
+            if (eEl && parsed.end_date && parsed.end_date !== parsed.start_date) eEl.value = parsed.end_date;
+            filled++;
+          }
+          return;
+        }
         var el = form.querySelector('[name="' + k + '"]');
         if (!el) return;
         if (!extracted[k]) return;
@@ -6254,7 +6276,12 @@
           '<input type="text" name="name" required placeholder="e.g. AI Summit San Francisco">' +
         '</label>' +
         '<label><span class="key">Date</span>' +
-          '<input type="text" name="date_str" placeholder="Optional · e.g. September 12, 2026 or September 10–12, 2026">' +
+          '<div class="date-range-row">' +
+            '<input type="date" name="start_date" class="date-input" aria-label="Start date">' +
+            '<span class="date-range-dash">to</span>' +
+            '<input type="date" name="end_date" class="date-input" aria-label="End date — leave blank for a single day">' +
+            '<span class="date-range-hint">Pick one day, or a start + end for a range (leave &ldquo;to&rdquo; blank for a single day).</span>' +
+          '</div>' +
         '</label>' +
         '<div class="row">' +
           '<label><span class="key">Location</span>' +
@@ -6532,15 +6559,31 @@
           created_by: email
         };
         if (!row.name) { alert('Name is required (it shows on the calendar)'); return; }
-        // Date is optional — fall back to "Date TBD" since the schema column
-        // is NOT NULL. start_date / end_date stay null and the iCal feed will
-        // skip the event until a real date is filled in.
-        if (!row.date_str) row.date_str = 'Date TBD';
-        // Derive start_date + end_date from date_str so the row is calendar-ready
-        // (used by both the in-app calendar view and the public iCal feed).
-        var derived = deriveDatesFromText(row.date_str);
-        if (derived.start_date) row.start_date = derived.start_date;
-        if (derived.end_date)   row.end_date   = derived.end_date;
+        // Date comes from the two calendar pickers (single day = start only;
+        // range = start + end). Build the display date_str from them, and set
+        // ISO start/end directly so the row is calendar-ready. Date is optional
+        // — fall back to "Date TBD" (the schema column is NOT NULL).
+        function _fmtRange(sIso, eIso) {
+          var MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+          function pp(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? { y: +m[1], mo: +m[2], d: +m[3] } : null; }
+          var s = pp(sIso); if (!s) return '';
+          var e = pp(eIso);
+          var sM = MON[s.mo - 1];
+          if (!e || (e.y === s.y && e.mo === s.mo && e.d === s.d)) return sM + ' ' + s.d + ', ' + s.y;
+          var eM = MON[e.mo - 1];
+          if (e.y === s.y && e.mo === s.mo) return sM + ' ' + s.d + '\u2013' + e.d + ', ' + s.y;
+          if (e.y === s.y) return sM + ' ' + s.d + ' \u2013 ' + eM + ' ' + e.d + ', ' + s.y;
+          return sM + ' ' + s.d + ', ' + s.y + ' \u2013 ' + eM + ' ' + e.d + ', ' + e.y;
+        }
+        var _sIso = (fd.get('start_date') || '').toString().trim();
+        var _eIso = (fd.get('end_date') || '').toString().trim();
+        if (_sIso) {
+          row.start_date = _sIso;
+          row.end_date   = (_eIso && _eIso >= _sIso) ? _eIso : _sIso;
+          row.date_str   = _fmtRange(_sIso, (_eIso && _eIso > _sIso) ? _eIso : null);
+        } else {
+          row.date_str = 'Date TBD';
+        }
         // The user typed a real date the parser couldn't read (e.g. "Q3 2026",
         // "next spring") → start_date stays null and the event silently never
         // shows on the calendar / iCal. Flag it so we can warn on save.
