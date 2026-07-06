@@ -994,6 +994,10 @@
     .ops-card.is-past:hover { opacity: 1; }
     .ops-card.is-urgent { border-color: var(--ab-red); }
     .ops-card.is-saved.is-urgent { border-color: var(--ab-red); box-shadow: inset 4px 0 0 var(--ab-blue); }
+    /* Urgent is Angela-only — for everyone else, hide its pill and drop the red cues. */
+    body.hide-urgent .ops-chip.urgent { display: none; }
+    body.hide-urgent .ops-card.is-urgent { border-color: var(--ab-rule); }
+    body.hide-urgent .ops-card.is-saved.is-urgent { border-color: var(--ab-rule); box-shadow: inset 4px 0 0 var(--ab-blue); }
 
     /* Inline edit disclosure */
     .ops-edit { margin-top: 12px; border-top: 1px solid var(--ab-rule); padding-top: 12px; }
@@ -1724,6 +1728,7 @@
     .cal-evt:focus-visible { outline: 2px solid var(--ab-blue); outline-offset: 1px; }
     .cal-evt.is-saved { background: rgba(39,115,194,0.12); border-left-color: var(--ab-blue); }
     .cal-evt.is-urgent { background: rgba(185,28,28,0.10); border-left-color: var(--ab-red); }
+    body.hide-urgent .cal-evt.is-urgent { background: transparent; border-left-color: var(--ab-rule); }
 
     /* Calendar legend — shows status-group color meanings under the grid */
     .cal-legend {
@@ -2648,7 +2653,7 @@
     if (rec.status && !(rec.stage_tags && rec.stage_tags.length) && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
     if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
     if (rec.audience_type && String(rec.audience_type).trim().toLowerCase() !== 'mixed') badges.push('<span class="badge ' + audienceClass(rec.audience_type) + '">' + esc(rec.audience_type) + '</span>');
-    if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
+    if (rec.urgent === true && (!window.isAngelaUser || window.isAngelaUser())) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
     $badges.innerHTML = badges.join('');
 
@@ -4285,14 +4290,19 @@
     // only show the toggle when the signed-in name is Angela. Everyone else
     // keeps the top-line dropdowns + search, but never sees the hidden filters.
     // Re-run on sign-in (route) and whenever the collaborator name changes.
-    function isAngelaUser() {
+    // Global (the detail modal lives in a separate closure and needs this too).
+    window.isAngelaUser = function () {
       return (getCollabName() || '').toLowerCase().indexOf('angela') !== -1;
-    }
+    };
+    function isAngelaUser() { return window.isAngelaUser(); }
     function applyFilterVisibility() {
+      var show = isAngelaUser();
+      // Urgent is Angela-only: the stat tile is gated in renderStats; the card
+      // pills / red border / calendar tint are gated by this body class.
+      if (document.body) document.body.classList.toggle('hide-urgent', !show);
       var $ft = document.getElementById('ops-filter-toggle');
       if (!$ft) return;
       var box = $ft.closest('.ops-filters');
-      var show = isAngelaUser();
       $ft.style.display = show ? '' : 'none';
       // For non-Angela, force the panel collapsed so its filters stay hidden
       // even if a prior (Angela) session had expanded it in this tab.
@@ -4887,7 +4897,7 @@
       $stats.innerHTML =
         tile('all', total, 'Upcoming', '') +
         tile('myinterested', myInterested, 'My Event Interests', 'saved') +
-        tile('urgent', urgent, 'Urgent', 'urgent') +
+        ((window.isAngelaUser && window.isAngelaUser()) ? tile('urgent', urgent, 'Urgent', 'urgent') : '') +
         tile('pipeline', inPipeline, 'In pipeline', '') +
         tile('booked', booked, 'Booked', '') +
         tile('interested', interestedCount, 'Interested', '');
@@ -8324,9 +8334,17 @@
     }
     function setCollabName(n) {
       n = (n || '').trim();
+      var prev = getCollabName();
       try { localStorage.setItem('ab.collab.name', n); } catch (e) {}
       if ($opsEmail) $opsEmail.textContent = n || 'Team';
-      applyFilterVisibility();   // Angela-only "Filters" panel follows the name
+      applyFilterVisibility();   // Angela-only "Filters" panel + urgent follow the name
+      // The signed-in name drives identity-specific views: the "My Event
+      // Interests" stat, the myinterested filter, and interested highlighting.
+      // Changing the name mid-session must recompute them (this was why
+      // "My Event Interests" read 0 right after switching to Jerome).
+      if (n.toLowerCase() !== (prev || '').toLowerCase() && $opsGrid && $opsGrid.querySelector('.ops-card')) {
+        renderOps(n || 'Team');
+      }
     }
     function ensureCollabName() {
       var n = getCollabName();
