@@ -2299,7 +2299,11 @@
     // who want Angela to apply for them. This feeds Angela's Queue.
     var me = (window.opsCurrentUser ? window.opsCurrentUser() : '') || '';
     var iAmIn = !!(me && (rec.interested || []).some(function (n) { return String(n).toLowerCase() === me.toLowerCase(); }));
-    var summary = formatInterested(window.visibleInterested(rec.interested, rec.speaker, rec.attendees));
+    // Show the ACTUAL flagged list here (raw), matching the toggle button — using
+    // the booked/attending-filtered visibleInterested() made the summary read
+    // "No one flagged yet" right after someone (e.g. the speaker) clicked
+    // Interested. The dedup still applies to the Planner/Queue + card-face label.
+    var summary = formatInterested(rec.interested);
     var intRow =
       '<span class="qa-row-label">Interested:</span>' +
       '<button type="button" class="qa' + (iAmIn ? ' on' : '') + '" data-qa="interested">' + (iAmIn ? '✓ Interested' : "+ I'm interested") + '</button>' +
