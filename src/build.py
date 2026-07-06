@@ -5414,7 +5414,6 @@ def build():
         tile('urgent', urgent, 'Urgent', 'urgent') +
         tile('pipeline', inPipeline, 'In pipeline', '') +
         tile('booked', booked, 'Booked', '') +
-        tile('buyer', buyerRich, 'Buyer-rich', '') +
         tile('interested', interestedCount, 'Interested', '');
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {{
