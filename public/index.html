@@ -951,6 +951,13 @@
       font-family: var(--ab-mono); font-size: 0.6rem; color: var(--ab-fg-3);
       border: 1px solid var(--ab-rule); border-radius: 8px; padding: 2px 6px;
     }
+    .contact-badge {
+      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;
+      padding: 3px 8px; border-radius: 10px; background: #065f46; color: #fff;
+    }
+    /* Region row sits tight under the pipeline row. */
+    #region-filters { margin-top: -4px; }
     .ops-chip {
       font: inherit; cursor: pointer;
       font-family: var(--ab-mono); font-size: 0.66rem;
@@ -1971,19 +1978,13 @@
           <span class="label">Pipeline:</span>
           <!-- 5 stage chips injected by buildStageFilters() -->
         </div>
+        <div class="stage-filters region-filters" id="region-filters">
+          <span class="label">Region:</span>
+          <!-- region chips injected by buildRegionFilters() -->
+        </div>
         <div class="ops-filters collapsed">
           <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
           <button type="button" class="ops-filter-toggle" id="ops-filter-toggle" aria-expanded="false" aria-label="Show or hide filters">Filters <span class="ft-caret" aria-hidden="true">▾</span></button>
-          <select id="ops-region" aria-label="Filter region">
-            <option value="">All regions</option>
-            <option value="US &amp; Canada">US &amp; Canada</option>
-            <option value="Latin America">Latin America</option>
-            <option value="Europe">Europe</option>
-            <option value="Africa">Africa</option>
-            <option value="MENA">MENA</option>
-            <option value="Asia-Pacific">Asia-Pacific</option>
-            <option value="Global">Global</option>
-          </select>
           <select id="ops-price" aria-label="Filter by ticket price" title="Ticket price as a buyer signal: a pricier pass usually means real buyers in the room, not a hall of vendors">
             <option value="">Any ticket price</option>
             <option value="free">Free</option>
@@ -2016,6 +2017,7 @@
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
           <label class="ops-filter-chip" title="Events a teammate hand-flagged as Should Attend (not the AI auto-picks)"><input type="checkbox" id="ops-f-worth">Should attend</label>
           <label class="ops-filter-chip" title="Events the AI recommend pass suggested — review + promote the good ones to Should Attend"><input type="checkbox" id="ops-f-aipicks">AI picks</label>
+          <label class="ops-filter-chip" title="Events where an email contact (organizer POC) was found"><input type="checkbox" id="ops-f-contact">Contact found</label>
           <div class="ops-months">
             <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
               Months <span class="mb-caret" aria-hidden="true">&#9660;</span>
@@ -3444,6 +3446,18 @@
       return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
     }
 
+    // "Contact found" = we have a real email to reach this event's organizer,
+    // in the structured poc_email or embedded in the free-text contact_info.
+    var _EMAIL_RE = /[^\s@]+@[^\s@]+\.[^\s@]{2,}/;
+    function hasEmailContact() {
+      for (var i = 0; i < arguments.length; i++) {
+        var o = arguments[i]; if (!o) continue;
+        if (_EMAIL_RE.test(String(o.poc_email || ''))) return true;
+        if (_EMAIL_RE.test(String(o.contact_info || ''))) return true;
+      }
+      return false;
+    }
+
     function buildOpsCard(ev, st, email) {
       var card = document.createElement('article');
       card.className = 'ops-card';
@@ -3494,6 +3508,8 @@
       // 239 AI auto-picks stay off the face (findable via the "AI picks" filter)
       // so they don't clutter/mute the manual ones Angela scans for.
       var saBadge = shouldAttendKind(st.attend_verdict) === 'human' ? '<span class="sa-badge">★ Should Attend</span>' : '';
+      card.dataset.contactFound = hasEmailContact(st, ev) ? '1' : '';
+      var contactBadge = card.dataset.contactFound === '1' ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       // A link added/edited in event_state (override) wins over the catalog URL,
       // so adding a link to a link-less catalog event lights up the card ↗.
       var _cardUrl = (st.url && String(st.url).trim()) ? String(st.url).trim() : (ev.url || '');
@@ -3518,7 +3534,7 @@
             '<button class="saved-star' + (st.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (st.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (st.saved ? '★' : '☆') + '</button>' +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             '<button class="ops-chip' + (st.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (st.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
-            decBadge + saBadge +
+            decBadge + saBadge + contactBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(ev.date_str, ev.start_date)) + '</p>' +
         '</div>' +
@@ -3666,6 +3682,8 @@
       card.dataset.decision = (mev.decision || '');
       var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>' : '';
       var mSaBadge = shouldAttendKind(mev.attend_verdict) === 'human' ? '<span class="sa-badge">★ Should Attend</span>' : '';
+      card.dataset.contactFound = (hasEmailContact(mev) || _EMAIL_RE.test(String(mev.poc_email || ''))) ? '1' : '';
+      var mContactBadge = card.dataset.contactFound === '1' ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       var mRecent = isRecentlyAdded(mev.created_at);
       card.dataset.recent = mRecent ? '1' : '';
       var mRecentBadge = mRecent
@@ -3743,7 +3761,7 @@
             '<button class="saved-star' + (mev.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (mev.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (mev.saved ? '★' : '☆') + '</button>' +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             '<button class="ops-chip' + (mev.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (mev.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
-            mDecBadge + mSaBadge + mRecentBadge +
+            mDecBadge + mSaBadge + mContactBadge + mRecentBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(mev.date_str, mev.start_date)) + '</p>' +
         '</div>' +
@@ -4178,8 +4196,8 @@
     // "Filters · N active" — otherwise an active filter would be invisible).
     function countActiveOpsFilters() {
       var n = 0;
-      ['ops-region', 'ops-price', 'ops-fits'].forEach(function (id) { var e = document.getElementById(id); if (e && e.value) n++; });
-      ['ops-f-submitted', 'ops-f-recent', 'ops-f-worth', 'ops-f-aipicks'].forEach(function (id) { var e = document.getElementById(id); if (e && e.checked) n++; });
+      ['ops-price', 'ops-fits'].forEach(function (id) { var e = document.getElementById(id); if (e && e.value) n++; });
+      ['ops-f-submitted', 'ops-f-recent', 'ops-f-worth', 'ops-f-aipicks', 'ops-f-contact'].forEach(function (id) { var e = document.getElementById(id); if (e && e.checked) n++; });
       ['filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {
         var box = document.getElementById(id);
         if (box && box.querySelector('.filter-dd-btn.has-active')) n++;
@@ -4311,6 +4329,46 @@
       clearBtn.textContent = 'Clear';
       clearBtn.addEventListener('click', function () {
         host.querySelectorAll('.stage-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
+        applyFilters();
+      });
+      frag.appendChild(clearBtn);
+      host.appendChild(frag);
+      host.dataset.built = '1';
+    }
+
+    // Region filter row — same colored-chip UI as the pipeline (Angela's ask:
+    // "put the region filter right below the pipeline, shown like pipeline").
+    // Single-select: click a region to show only it; re-click to clear.
+    function buildRegionFilters() {
+      var host = document.getElementById('region-filters');
+      if (!host || host.dataset.built === '1') return;
+      var frag = document.createDocumentFragment();
+      Object.keys(REGION_COLORS).forEach(function (r) {
+        var col = REGION_COLORS[r];
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'stage-chip region-chip';
+        btn.dataset.region = r;
+        btn.setAttribute('aria-pressed', 'false');
+        btn.style.background = hexToRgba(col, 0.14);
+        btn.style.color = col;
+        btn.style.borderColor = hexToRgba(col, 0.3);
+        btn.textContent = r;
+        btn.title = 'Show only ' + r + ' events';
+        btn.addEventListener('click', function () {
+          var wasOn = btn.classList.contains('is-on');
+          host.querySelectorAll('.region-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
+          if (!wasOn) btn.classList.add('is-on');
+          applyFilters();
+        });
+        frag.appendChild(btn);
+      });
+      var clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.className = 'clear-btn';
+      clearBtn.textContent = 'Clear';
+      clearBtn.addEventListener('click', function () {
+        host.querySelectorAll('.region-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
         applyFilters();
       });
       frag.appendChild(clearBtn);
@@ -4503,26 +4561,29 @@
 
     function applyFilters() {
       var $search  = document.getElementById('ops-search');
-      var $region  = document.getElementById('ops-region');
       var $saved   = document.getElementById('ops-f-saved');
       var $urgent  = document.getElementById('ops-f-urgent');
       var $submitted = document.getElementById('ops-f-submitted');
       var $meet    = document.getElementById('ops-f-meetings');
       var $worth   = document.getElementById('ops-f-worth');
       var $aipicks = document.getElementById('ops-f-aipicks');
+      var $contact = document.getElementById('ops-f-contact');
       var $price   = document.getElementById('ops-price');
       var $past    = document.getElementById('ops-f-past');
       var $hidden  = document.getElementById('ops-f-hidden');
       var $recent  = document.getElementById('ops-f-recent');
       if (!$search || !$opsGrid) return;
       var q = ($search.value || '').toLowerCase().trim();
-      var rg = $region ? ($region.value || '') : '';
+      // Region now comes from the pipeline-style chip row (single-select).
+      var _rgChip = document.querySelector('#region-filters .region-chip.is-on');
+      var rg = _rgChip ? (_rgChip.dataset.region || '') : '';
       var fSaved   = !!($saved && $saved.checked);
       var fUrgent  = !!($urgent && $urgent.checked);
       var fSubmitted = !!($submitted && $submitted.checked);
       var fMeet    = !!($meet && $meet.checked);
       var fWorth   = !!($worth && $worth.checked);
       var fAiPicks = !!($aipicks && $aipicks.checked);
+      var fContact = !!($contact && $contact.checked);
       var fPrice   = $price ? ($price.value || '') : '';
       var $fits    = document.getElementById('ops-fits');
       var fitsProfile = ($fits && $fits.value) ? AB_PROFILE_BY_KEY[$fits.value] : null;
@@ -4530,7 +4591,7 @@
       var showHidden = !!($hidden && $hidden.checked);
       var fRecent    = !!($recent && $recent.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-submitted',$submitted],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-aipicks',$aipicks],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-submitted',$submitted],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-aipicks',$aipicks],['ops-f-contact',$contact],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
@@ -4588,6 +4649,7 @@
         // which get their own "AI picks" filter) — so the manual list isn't muted.
         if (fWorth && shouldAttendKind(card.dataset.attend) !== 'human') on = false;
         if (fAiPicks && shouldAttendKind(card.dataset.attend) !== 'ai') on = false;
+        if (fContact && card.dataset.contactFound !== '1') on = false;
         if (fPrice) {
           var pn = card.dataset.price === '' || card.dataset.price == null ? null : parseFloat(card.dataset.price);
           if (fPrice === 'known'        && pn == null)               on = false;
@@ -4718,7 +4780,7 @@
       // Debounce only the free-text search (fires on every keystroke); selects
       // and checkboxes change discretely, so apply those immediately.
       var debouncedApply = debounce(applyFilters, 130);
-      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
+      ['ops-search','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-contact','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -4730,14 +4792,14 @@
     function clearOpsFilters() {
       // Reset every ops filter to its default, then re-run. Safe because
       // applyFilters reads all state fresh from these controls each call.
-      ['ops-search','ops-region','ops-price','ops-fits'].forEach(function (id) {
+      ['ops-search','ops-price','ops-fits'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.value = '';
       });
-      ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
+      ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-past','ops-f-hidden','ops-f-recent','ops-f-contact'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.checked = false;
       });
       Array.prototype.forEach.call(
-        document.querySelectorAll('#stage-filters .stage-chip.is-on, .status-filters .status-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
+        document.querySelectorAll('#stage-filters .stage-chip.is-on, #region-filters .region-chip.is-on, .status-filters .status-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
         function (c) { c.classList.remove('is-on'); }
       );
       opsStatFilter = '';
@@ -8305,6 +8367,7 @@
       wireViewToggle();
       wireFilters();
       buildStageFilters();
+      buildRegionFilters();
       buildStatusFilters();
       buildExtraFilters();
       wireFilterDropdowns();
