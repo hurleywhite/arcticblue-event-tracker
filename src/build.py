@@ -1376,7 +1376,21 @@ def build():
     .saved-star[aria-busy="true"] {{ opacity: 0.4; cursor: wait; }}
 
     /* Chip toggles on the ops card head (urgent, hidden) */
-    .ops-chips {{ display: flex; gap: 6px; align-items: center; }}
+    .ops-chips {{ display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }}
+    /* Human should-attend = prominent; AI auto-pick = faint (so 256 don't drown the hand-picked few). */
+    .sa-badge {{
+      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;
+      padding: 3px 8px; border-radius: 10px; background: #1d4ed8; color: #fff;
+    }}
+    .sa-badge--ai {{
+      background: transparent; color: var(--ab-fg-3);
+      border: 1px solid var(--ab-rule-strong); font-weight: 600;
+    }}
+    .dup-merged {{
+      font-family: var(--ab-mono); font-size: 0.6rem; color: var(--ab-fg-3);
+      border: 1px solid var(--ab-rule); border-radius: 8px; padding: 2px 6px;
+    }}
     .ops-chip {{
       font: inherit; cursor: pointer;
       font-family: var(--ab-mono); font-size: 0.66rem;
@@ -2529,7 +2543,8 @@ def build():
           </div>
           <label class="ops-filter-chip" title="Show only events at the Submitted stage — a speaker application is in"><input type="checkbox" id="ops-f-submitted">Submitted</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
-          <label class="ops-filter-chip" title="Events flagged Should Attend — by a teammate or the AI recommend pass"><input type="checkbox" id="ops-f-worth">Should attend</label>
+          <label class="ops-filter-chip" title="Events a teammate hand-flagged as Should Attend (not the AI auto-picks)"><input type="checkbox" id="ops-f-worth">Should attend</label>
+          <label class="ops-filter-chip" title="Events the AI recommend pass suggested — review + promote the good ones to Should Attend"><input type="checkbox" id="ops-f-aipicks">AI picks</label>
           <div class="ops-months">
             <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
               Months <span class="mb-caret" aria-hidden="true">&#9660;</span>
@@ -2775,6 +2790,20 @@ def build():
   }}
 
   // ── Editable modal: one-tap quick actions ──────────────────────────
+  // Should-Attend has TWO sources that must NOT blur together (Angela: the 256
+  // AI auto-tags were muting the handful Thor/Verma/Jerome flag by hand):
+  //   human  -> attend_verdict = 'Worth attending'          (a teammate flagged it)
+  //   ai     -> attend_verdict = 'Worth attending (AI)'     (the recommend pass)
+  // Returns 'human' | 'ai' | null.
+  // Global — shared between this modal scope and the separate ops closure
+  // (buildOpsCard / applyFilters), which can't see a plain local declaration here.
+  window.shouldAttendKind = function (v) {{
+    var s = String(v == null ? '' : v).toLowerCase();
+    if (s.indexOf('worth') !== 0 && s.indexOf('yes') !== 0) return null;
+    return s.indexOf('(ai)') !== -1 ? 'ai' : 'human';
+  }};
+  function shouldAttendKind(v) {{ return window.shouldAttendKind(v); }}
+
   // Renders only when the modal was opened from an editable ops/manual card
   // (rec._table + rec._key present). Each button writes a single field via
   // window.opsWrite (bridged from the ops closure). Save/Hide are catalog-
@@ -2784,9 +2813,7 @@ def build():
     var stages = rec.stage_tags || [];
     function has(s) {{ return stages.indexOf(s) !== -1; }}
     var isCat = rec._table === 'event_state';
-    // "Should Attend" reuses the attend_verdict field — a leading "worth" is the
-    // canonical yes (drives the blue attend-yes badge + the "Worth attending" filter).
-    var worthAttend = String(rec.attend_verdict || '').toLowerCase().indexOf('worth') === 0;
+    var _saKind = shouldAttendKind(rec.attend_verdict);   // 'human' | 'ai' | null
     // Card actions (Save / Hide) sit on their own row; the pipeline + verdict
     // toggles are grouped under a "Status:" label so the modal reads as labeled
     // groups, not a wall of buttons (Thor's feedback).
@@ -2800,7 +2827,9 @@ def build():
     bStage.push('<button type="button" class="qa' + (has('Followed up') ? ' on' : '') + '" data-qa="followed-up">' + (has('Followed up') ? '✓ Followed up' : 'Followed up') + '</button>');
     bStage.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
     bStage.push('<button type="button" class="qa' + (has('Attending') ? ' on' : '') + '" data-qa="attending">' + (has('Attending') ? '✓ Attending' : 'Attending') + '</button>');
-    bStage.push('<button type="button" class="qa' + (worthAttend ? ' on' : '') + '" data-qa="should-attend">' + (worthAttend ? '✓ Should Attend' : 'Should Attend') + '</button>');
+    bStage.push('<button type="button" class="qa' + (_saKind === 'human' ? ' on' : '') + '" data-qa="should-attend" title="' +
+      (_saKind === 'ai' ? 'AI-suggested — click to confirm as a team Should-Attend' : 'Flag Should Attend — tentative but high on the radar') + '">' +
+      (_saKind === 'human' ? '✓ Should Attend' : (_saKind === 'ai' ? 'Should Attend ✦AI' : 'Should Attend')) + '</button>');
     // "Interested" — the current teammate adds themselves to the list of people
     // who want Angela to apply for them. This feeds Angela's Queue.
     var me = (window.opsCurrentUser ? window.opsCurrentUser() : '') || '';
@@ -2865,8 +2894,10 @@ def build():
         patch.status_tags = tags;
       }}
       else if (qa === 'should-attend') {{
-        var wa = String(rec.attend_verdict || '').toLowerCase().indexOf('worth') === 0;
-        rec.attend_verdict = wa ? '' : 'Worth attending';  // tap active -> clear
+        // human -> clear; AI-suggested OR none -> set a CONFIRMED human
+        // Should-Attend (this is how Angela promotes an AI pick to the real list).
+        var _k = shouldAttendKind(rec.attend_verdict);
+        rec.attend_verdict = (_k === 'human') ? '' : 'Worth attending';
         patch.attend_verdict = rec.attend_verdict || null;
       }}
       else if (qa === 'go') {{
@@ -3985,6 +4016,13 @@ def build():
       if (st.urgent || (isDeadlineUrgent(ev.deadline) && !_opsPast)) card.classList.add('is-urgent');
       card.dataset.decision = (st.decision || '');
       var decBadge = st.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>' : '';
+      // Card-face Should-Attend badge (Angela: needs to spot them while scanning).
+      // HUMAN flags get a prominent star badge; the 256 AI auto-picks get only a
+      // faint tag so they don't drown the ones the team hand-picked.
+      // Only the team's HAND-PICKED should-attends get a card-face badge — the
+      // 239 AI auto-picks stay off the face (findable via the "AI picks" filter)
+      // so they don't clutter/mute the manual ones Angela scans for.
+      var saBadge = shouldAttendKind(st.attend_verdict) === 'human' ? '<span class="sa-badge">★ Should Attend</span>' : '';
       // A link added/edited in event_state (override) wins over the catalog URL,
       // so adding a link to a link-less catalog event lights up the card ↗.
       var _cardUrl = (st.url && String(st.url).trim()) ? String(st.url).trim() : (ev.url || '');
@@ -4009,7 +4047,7 @@ def build():
             '<button class="saved-star' + (st.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (st.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (st.saved ? '★' : '☆') + '</button>' +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             '<button class="ops-chip' + (st.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (st.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
-            decBadge +
+            decBadge + saBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(ev.date_str, ev.start_date)) + '</p>' +
         '</div>' +
@@ -4156,6 +4194,7 @@ def build():
       if (isDeadlineUrgent(mev.deadline) && !_manPast) card.classList.add('is-urgent');
       card.dataset.decision = (mev.decision || '');
       var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>' : '';
+      var mSaBadge = shouldAttendKind(mev.attend_verdict) === 'human' ? '<span class="sa-badge">★ Should Attend</span>' : '';
       var mRecent = isRecentlyAdded(mev.created_at);
       card.dataset.recent = mRecent ? '1' : '';
       var mRecentBadge = mRecent
@@ -4233,7 +4272,7 @@ def build():
             '<button class="saved-star' + (mev.saved ? ' is-on' : '') + '" data-field="saved" data-on="' + (mev.saved ? '1' : '0') + '" aria-label="Toggle saved" type="button">' + (mev.saved ? '★' : '☆') + '</button>' +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             '<button class="ops-chip' + (mev.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (mev.hidden ? '1' : '0') + '" type="button">Hidden</button>' +
-            mDecBadge + mRecentBadge +
+            mDecBadge + mSaBadge + mRecentBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(mev.date_str, mev.start_date)) + '</p>' +
         '</div>' +
@@ -4669,7 +4708,7 @@ def build():
     function countActiveOpsFilters() {{
       var n = 0;
       ['ops-region', 'ops-price', 'ops-fits'].forEach(function (id) {{ var e = document.getElementById(id); if (e && e.value) n++; }});
-      ['ops-f-submitted', 'ops-f-recent'].forEach(function (id) {{ var e = document.getElementById(id); if (e && e.checked) n++; }});
+      ['ops-f-submitted', 'ops-f-recent', 'ops-f-worth', 'ops-f-aipicks'].forEach(function (id) {{ var e = document.getElementById(id); if (e && e.checked) n++; }});
       ['filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {{
         var box = document.getElementById(id);
         if (box && box.querySelector('.filter-dd-btn.has-active')) n++;
@@ -4999,6 +5038,7 @@ def build():
       var $submitted = document.getElementById('ops-f-submitted');
       var $meet    = document.getElementById('ops-f-meetings');
       var $worth   = document.getElementById('ops-f-worth');
+      var $aipicks = document.getElementById('ops-f-aipicks');
       var $price   = document.getElementById('ops-price');
       var $past    = document.getElementById('ops-f-past');
       var $hidden  = document.getElementById('ops-f-hidden');
@@ -5011,6 +5051,7 @@ def build():
       var fSubmitted = !!($submitted && $submitted.checked);
       var fMeet    = !!($meet && $meet.checked);
       var fWorth   = !!($worth && $worth.checked);
+      var fAiPicks = !!($aipicks && $aipicks.checked);
       var fPrice   = $price ? ($price.value || '') : '';
       var $fits    = document.getElementById('ops-fits');
       var fitsProfile = ($fits && $fits.value) ? AB_PROFILE_BY_KEY[$fits.value] : null;
@@ -5018,7 +5059,7 @@ def build():
       var showHidden = !!($hidden && $hidden.checked);
       var fRecent    = !!($recent && $recent.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-submitted',$submitted],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {{
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-submitted',$submitted],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-aipicks',$aipicks],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {{
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
@@ -5047,12 +5088,14 @@ def build():
         function (b) {{ return (b.dataset.value || '').toLowerCase(); }}
       );
 
-      var shown = 0;
+      var shown = 0, dupSkipped = 0;
       var monthMatched = {{}};
       // Query the card set once per pass (it's also the count denominator) —
       // re-querying inside + again for the count walked the DOM twice/keystroke.
       var opsCards = $opsGrid.querySelectorAll('.ops-card');
       opsCards.forEach(function (card) {{
+        // Hidden duplicate of an already-shown event — never render or count it.
+        if (card.dataset.dupHidden === '1') {{ card.style.display = 'none'; dupSkipped++; return; }}
         var on = true;
         if (q) {{
           // Cache the lowercased search text on the node. textContent serializes
@@ -5070,7 +5113,10 @@ def build():
         if (fSubmitted && (card.dataset.statusTags || '').split('|').indexOf('Submitted') === -1) on = false;
         if (fMeet && card.dataset.meetings !== '1') on = false;
         if (fRecent && card.dataset.recent !== '1') on = false;
-        if (fWorth && (card.dataset.attend || '').toLowerCase().indexOf('worth attending') !== 0) on = false;
+        // "Should attend" = the team's HAND-PICKED ones only (never the AI auto-tags,
+        // which get their own "AI picks" filter) — so the manual list isn't muted.
+        if (fWorth && shouldAttendKind(card.dataset.attend) !== 'human') on = false;
+        if (fAiPicks && shouldAttendKind(card.dataset.attend) !== 'ai') on = false;
         if (fPrice) {{
           var pn = card.dataset.price === '' || card.dataset.price == null ? null : parseFloat(card.dataset.price);
           if (fPrice === 'known'        && pn == null)               on = false;
@@ -5145,7 +5191,7 @@ def build():
         sp.textContent = (monthMatched[sp.getAttribute('data-mc-count')] || 0);
       }});
       var $shown = document.getElementById('ops-shown');
-      if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + opsCards.length;
+      if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + (opsCards.length - dupSkipped);
       // Filtered-to-zero guard: an all-filtered grid LOOKS like "no events
       // loaded" (that was Thor's read of it). Say so explicitly + one-tap reset.
       var _emptyNote = document.getElementById('ops-empty-note');
@@ -5201,7 +5247,7 @@ def build():
       // Debounce only the free-text search (fires on every keystroke); selects
       // and checkboxes change discretely, so apply those immediately.
       var debouncedApply = debounce(applyFilters, 130);
-      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
+      ['ops-search','ops-region','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -5216,7 +5262,7 @@ def build():
       ['ops-search','ops-region','ops-price','ops-fits'].forEach(function (id) {{
         var el = document.getElementById(id); if (el) el.value = '';
       }});
-      ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
+      ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
         var el = document.getElementById(id); if (el) el.checked = false;
       }});
       Array.prototype.forEach.call(
@@ -6147,6 +6193,53 @@ def build():
       }}
     }});
 
+    // Tracking-richness score — when two cards are the same event, keep the one
+    // carrying the most pipeline/attendee data (so a bare scraped dupe loses to
+    // the tracked record). Catalog wins ties (it's the curated source).
+    function _trackScore(c) {{
+      var r = c._modalRec || {{}};
+      var s = (r.stage_tags || []).length * 3;
+      if (r.speaker) s += 2;
+      if (r.attendees && r.attendees.length) s += 2;
+      if (r.interested && r.interested.length) s += 2;
+      if (r.attend_verdict) s += 1;
+      if (r.saved) s += 2;
+      if (r.decision) s += 2;
+      if (r.notes) s += 1;
+      if (c.dataset.eventNum) s += 0.5;   // prefer catalog on a tie
+      return s;
+    }}
+    // De-duplicate the grid: the scraper sometimes lands a 2nd card for an event
+    // already tracked (Angela keeps finding "doubles"). Group by the fuzzy
+    // name+city+year key, keep the richest card, mark the rest dupHidden so they
+    // drop out of the grid, count, calendar-view + filters. Non-destructive
+    // (nothing deleted; a re-render re-evaluates from fresh data).
+    function dedupeOpsCards() {{
+      if (!$opsGrid) return 0;
+      var groups = {{}};
+      Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {{
+        c.dataset.dupHidden = '';
+        var k = dupKeyOf(c._modalRec || {{}});
+        if (k) (groups[k] = groups[k] || []).push(c);
+      }});
+      var hidden = 0;
+      Object.keys(groups).forEach(function (k) {{
+        var g = groups[k];
+        if (g.length < 2) return;
+        g.sort(function (a, b) {{ return _trackScore(b) - _trackScore(a); }});
+        for (var i = 1; i < g.length; i++) {{ g[i].dataset.dupHidden = '1'; g[i].style.display = 'none'; hidden++; }}
+        var chips = g[0].querySelector('.ops-chips');
+        if (chips) {{
+          var m = document.createElement('span');
+          m.className = 'dup-merged';
+          m.textContent = '\\u29C9 ' + (g.length - 1);
+          m.title = (g.length - 1) + ' duplicate card(s) of this event were hidden';
+          chips.appendChild(m);
+        }}
+      }});
+      return hidden;
+    }}
+
     function renderOps(email) {{
       // Keep the reader's place across a re-render. A manual save AND the
       // realtime postgres_changes echo both call renderOps(); without this the
@@ -6220,6 +6313,7 @@ def build():
         updateOpsCount();
         renderStats(evs, stateRows, manualRows);
         rebuildSpeakerFilter(stateRows, manualRows);
+        dedupeOpsCards();   // collapse scraped duplicate cards before layout
         regroupOpsByMonth();
         wireMonthsMenu();
         applyFilters();
@@ -7396,6 +7490,15 @@ def build():
         }});
       }});
 
+      // Drop duplicate events the grid collapsed, so the calendar (and its
+      // export) never double-books an event.
+      var _dupSet = {{}};
+      Array.prototype.forEach.call($opsGrid ? $opsGrid.querySelectorAll('.ops-card') : [], function (c) {{
+        if (c.dataset.dupHidden === '1') {{
+          _dupSet[String(c.dataset.manualId ? ('m' + c.dataset.manualId) : c.dataset.eventNum)] = 1;
+        }}
+      }});
+      combined = combined.filter(function (ev) {{ return !_dupSet[String(ev.num)]; }});
       // Honor the active grid filters (stage chips, search, price, region, …):
       // when something is filtered, drop calendar events whose card didn't pass.
       var _pf = opsCalPassed();

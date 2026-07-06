@@ -26,6 +26,46 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-360@arcticblue-event-tracker
+DTSTAMP:20260706T000000Z
+DTSTART;VALUE=DATE:20260922
+DTEND;VALUE=DATE:20260924
+SUMMARY:CDAO Defense & Security 2026
+LOCATION:Le Méridien Washington\, D.C.\, USA
+DESCRIPTION:Corinium's premier defense/intelligence data-and-AI gathering co-locates with CDAO Government — strong public-sector AI governance audience relevant to ArcticBlue's responsible AI and operating model messaging.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://cdao-def.coriniumintelligence.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-359@arcticblue-event-tracker
+DTSTAMP:20260706T000000Z
+DTSTART;VALUE=DATE:20260801
+DTEND;VALUE=DATE:20260803
+SUMMARY:Agentic AI Summit 2026 – Berkeley
+LOCATION:UC Berkeley Campus\, Berkeley\, CA\, USA
+DESCRIPTION:Berkeley RDI's flagship agentic AI event draws 5\,000+ in-person attendees including top researchers\, enterprise AI builders from AWS\, Google DeepMind\, OpenAI\, Databricks — strong halo signal for ArcticBlue's agentic AI positioning.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://rdi.berkeley.edu/events/agentic-ai-summit
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-358@arcticblue-event-tracker
+DTSTAMP:20260706T000000Z
+DTSTART;VALUE=DATE:20261126
+DTEND;VALUE=DATE:20261128
+SUMMARY:2nd World AI Governance & Regulation Summit
+LOCATION:Berlin\, Germany
+DESCRIPTION:Luxatia International's cross-industry AI governance summit (Hotel Riu Plaza Berlin)\; speakers from Mastercard\, SAP\, IBM\, Ericsson\; covers EU AI Act enforcement\, generative AI governance\, high-risk AI\, and responsible AI — directly addresses board-level AI oversight and compliance agenda Verma champions.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.luxatiainternational.com/product/2nd-world-ai-governance-regulation-summit
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-357@arcticblue-event-tracker
+DTSTAMP:20260706T000000Z
+DTSTART;VALUE=DATE:20260908
+DTEND;VALUE=DATE:20260910
+SUMMARY:8th Annual Artificial Intelligence in Financial Services Conference
+LOCATION:London\, UK
+DESCRIPTION:Premier European financial services AI conference (Arena International)\; 500+ senior executives\, 60% Director+ from Deutsche Bank\, Goldman Sachs\, Citi\, BNY\, Commerzbank\, Mosaic Insurance\; direct match to Verma's regulated-industry AI adoption and de-risking themes.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://aiinfinancesummit.com/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-356@arcticblue-event-tracker
 DTSTAMP:20260706T000000Z
 DTSTART;VALUE=DATE:20261006
