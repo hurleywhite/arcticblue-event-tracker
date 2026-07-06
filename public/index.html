@@ -1276,15 +1276,17 @@
       gap: 8px; margin: 0 0 14px;
     }
     .ops-topfilters .filter-dd-btn { width: auto; }
-    /* Shortened search, inline to the right of the Should-attend dropdown. */
+    /* Search fills the rest of the top row, from the Should-attend dropdown
+       out to the right edge. */
     .ops-topfilters #ops-search {
-      flex: 0 1 260px; min-width: 150px; margin-left: auto;
+      flex: 1 1 240px; min-width: 150px;
       font-family: "Nunito Sans", var(--ab-sans); font-size: 0.9rem; font-weight: 600;
       padding: 9px 13px; border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; background: var(--ab-bg); color: var(--ab-fg); outline: none;
     }
+    .ops-topfilters #ops-search::placeholder { color: var(--ab-fg-3); font-style: italic; font-weight: 500; }
     .ops-topfilters #ops-search:focus { border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.12); }
-    @media (max-width: 640px) { .ops-topfilters #ops-search { flex-basis: 100%; margin-left: 0; } }
+    @media (max-width: 640px) { .ops-topfilters #ops-search { flex-basis: 100%; } }
     .ops-filters {
       display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 10px; align-items: stretch;
@@ -2031,7 +2033,7 @@
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Should attend</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- Team pick / AI pick chips injected by buildExtraFilters() --></div>
           </div>
-          <input type="search" id="ops-search" placeholder="Search…" aria-label="Search events">
+          <input type="search" id="ops-search" placeholder="event title, location, or key words" aria-label="Search events">
         </div>
         <div class="ops-filters collapsed">
           <button type="button" class="ops-filter-toggle" id="ops-filter-toggle" aria-expanded="false" aria-label="Show or hide filters">Filters <span class="ft-caret" aria-hidden="true">▾</span></button>
@@ -4355,6 +4357,12 @@
       // Sync/export (Calendar sync + Spreadsheet) is Angela-only.
       var $sync = document.getElementById('ops-sync-group');
       if ($sync) $sync.style.display = show ? '' : 'none';
+      // Planner view is Angela-only — hide its tab (setView also blocks it).
+      var $plannerTab = document.querySelector('.view-toggle [data-view="planner"]');
+      if ($plannerTab) $plannerTab.style.display = show ? '' : 'none';
+      if (!show && typeof currentView !== 'undefined' && currentView === 'planner') {
+        setView(getCollabName() ? 'myevents' : 'grid');
+      }
       // The whole extra-filters box (Filters toggle + hidden dropdowns) is now
       // Angela-only — the search moved up into the top row for everyone, so this
       // box holds nothing but Angela's power filters. Hide it entirely for others.
@@ -6680,6 +6688,8 @@
     var VIEW_NAMES = ['myevents', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
     function setView(name) {
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
+      // Planner is Angela-only — redirect anyone else who lands on it.
+      if (name === 'planner' && window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
       currentView = name;
       document.querySelectorAll('.view-toggle button[data-view]').forEach(function (b) {
         var on = b.dataset.view === name;
@@ -7899,9 +7909,6 @@
           '</label>' +
         '</div>' +
         '<div class="extra-filters" style="margin-bottom:10px;">' +
-          '<div class="extra-filter-group" id="search-types">' +
-            '<span class="extra-filter-label">Types</span>' +
-          '</div>' +
           '<div class="extra-filter-group" id="search-quarters">' +
             '<span class="extra-filter-label">Quarters</span>' +
           '</div>' +
@@ -7918,7 +7925,6 @@
 
       $opsGrid.insertBefore(panel, $opsGrid.firstChild);
 
-      var getTypes    = _multichip(panel.querySelector('#search-types'),    SEARCH_TYPE_OPTIONS,   ['Enterprise', 'Halo']);
       var getQuarters = _multichip(panel.querySelector('#search-quarters'), qOpts,                  qDefaults);
       var getRegions  = _multichip(panel.querySelector('#search-regions'),  SEARCH_REGION_OPTIONS,  []);
 
@@ -7928,7 +7934,10 @@
         var count = parseInt(panel.querySelector('#search-count').value, 10);
         if (!Number.isFinite(count) || count < 1) count = 10;
         if (count > 25) count = 25;
-        var criteria = { count: count, types: getTypes(), quarters: getQuarters(), regions: getRegions() };
+        // Types are no longer a manual pick — send the full vocabulary the
+        // prompt already knows about (Enterprise, Halo, Research, …) so the AI
+        // finds the whole range automatically.
+        var criteria = { count: count, types: SEARCH_TYPE_OPTIONS.slice(), quarters: getQuarters(), regions: getRegions() };
         var runBtn = panel.querySelector('#search-run-btn');
         var meta   = panel.querySelector('#search-meta');
         runBtn.disabled = true; runBtn.textContent = 'Searching\u2026';
