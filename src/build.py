@@ -4806,6 +4806,29 @@ def build():
       updateFilterToggle();
     }}
 
+    // The extra "Filters" panel (ticket price / priority / track / speaking +
+    // Submitted / Recently added / Contact found) is Angela's power-user set —
+    // only show the toggle when the signed-in name is Angela. Everyone else
+    // keeps the top-line dropdowns + search, but never sees the hidden filters.
+    // Re-run on sign-in (route) and whenever the collaborator name changes.
+    function isAngelaUser() {{
+      return (getCollabName() || '').toLowerCase().indexOf('angela') !== -1;
+    }}
+    function applyFilterVisibility() {{
+      var $ft = document.getElementById('ops-filter-toggle');
+      if (!$ft) return;
+      var box = $ft.closest('.ops-filters');
+      var show = isAngelaUser();
+      $ft.style.display = show ? '' : 'none';
+      // For non-Angela, force the panel collapsed so its filters stay hidden
+      // even if a prior (Angela) session had expanded it in this tab.
+      if (!show && box) {{
+        box.classList.add('collapsed');
+        $ft.setAttribute('aria-expanded', 'false');
+      }}
+      updateFilterToggle();
+    }}
+
     // Rebuild the Speakers row from the current data set. Called from
     // renderOps() so the chip list reflects who's actually assigned right
     // now (including changes that just synced in via realtime).
@@ -8829,6 +8852,7 @@ def build():
       n = (n || '').trim();
       try {{ localStorage.setItem('ab.collab.name', n); }} catch (e) {{}}
       if ($opsEmail) $opsEmail.textContent = n || 'Team';
+      applyFilterVisibility();   // Angela-only "Filters" panel follows the name
     }}
     function ensureCollabName() {{
       var n = getCollabName();
@@ -8913,6 +8937,7 @@ def build():
       buildExtraFilters();
       wireFilterDropdowns();
       wireFilterToggle();
+      applyFilterVisibility();   // hide the "Filters" panel unless Angela is signed in
       renderOps(who);
       wireAddEvent(who);
       setupRealtime(who);
