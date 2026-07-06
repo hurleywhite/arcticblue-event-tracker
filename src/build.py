@@ -1494,7 +1494,7 @@ def build():
     /* Stats summary bar */
     .ops-stats {{
       display: grid; gap: 1px;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       background: var(--ab-rule);
       border: 1px solid var(--ab-rule);
       border-radius: 10px;
@@ -2973,7 +2973,7 @@ def build():
       return '<textarea class="me-input" data-edit="' + f + '" rows="' + (rows || 3) + '">' + esc(val || '') + '</textarea>';
     }}
     var stages = rec.stage_tags || [];
-    var order = window.opsStageOrder || ['Identified', 'Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
+    var order = window.opsStageOrder || ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
     var chips = order.map(function (s) {{
       return '<button type="button" class="me-stage' + (stages.indexOf(s) !== -1 ? ' on' : '') + '" data-stage="' + esc(s) + '">' + esc(s) + '</button>';
     }}).join('');
@@ -3577,7 +3577,6 @@ def build():
     // Order here IS the canonical pipeline order (Identified → … → Booked),
     // with Attending as the alternate positive outcome.
     var STAGE_TAGS = [
-      {{ key: 'Identified',   dot: '#737373', bg: '#e5e7eb', fg: '#374151' }},
       {{ key: 'Submitted',    dot: '#0ea5e9', bg: '#bae6fd', fg: '#075985' }},
       {{ key: 'Followed up',  dot: '#d97706', bg: '#fde68a', fg: '#92400e' }},
       {{ key: 'Meeting held', dot: '#8b5cf6', bg: '#ddd6fe', fg: '#5b21b6' }},
@@ -5300,6 +5299,7 @@ def build():
           if (opsStatFilter === 'urgent'  && !card.classList.contains('is-urgent')) on = false;
           if (opsStatFilter === 'pipeline'&& !tagsS) on = false;
           if (opsStatFilter === 'booked'  && tagsS.split('|').indexOf('Booked') === -1) on = false;
+          if (opsStatFilter === 'attending' && tagsS.split('|').indexOf('Attending') === -1) on = false;
           if (opsStatFilter === 'buyer'   && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
           if (opsStatFilter === 'interested' && card.dataset.interested !== '1') on = false;
         }}
@@ -5440,7 +5440,7 @@ def build():
                   (manualRows || []).filter(function (m) {{ return !isPastEvent(m); }}).length;
       var stByNum = {{}};
       (stateRows || []).forEach(function (r) {{ stByNum[r.event_num] = r; }});
-      var saved = 0, urgent = 0, inPipeline = 0, booked = 0;
+      var saved = 0, urgent = 0, inPipeline = 0, booked = 0, attending = 0;
       var buyerRich = 0, interestedCount = 0, myInterested = 0;
       var me = (getCollabName() || 'Team').toLowerCase();
       function _isMine(list) {{ return (list || []).some(function (n) {{ return String(n).toLowerCase() === me; }}); }}
@@ -5449,6 +5449,7 @@ def build():
         var stages = stageTagsOf(r);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
+        if (stages.indexOf('Attending') !== -1) attending++;
         if (r.interested && r.interested.length) interestedCount++;
         if (_isMine(r.interested)) myInterested++;
       }});
@@ -5464,6 +5465,7 @@ def build():
         var stages = stageTagsOf(m);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
+        if (stages.indexOf('Attending') !== -1) attending++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if (m.interested && m.interested.length) interestedCount++;
         if (_isMine(m.interested)) myInterested++;
@@ -5478,10 +5480,11 @@ def build():
       }}
       $stats.innerHTML =
         tile('all', total, 'Upcoming', '') +
-        tile('myinterested', myInterested, 'My Event Interests', 'saved') +
+        tile('myinterested', myInterested, 'My Interests', 'saved') +
         tile('pipeline', inPipeline, 'In pipeline', '') +
         tile('booked', booked, 'Booked', '') +
-        tile('interested', interestedCount, 'Interested', '');
+        tile('interested', interestedCount, 'Team Interests', '') +
+        tile('attending', attending, 'Attending', '');
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {{
         t.addEventListener('click', function () {{
@@ -5923,7 +5926,7 @@ def build():
     function renderQueue() {{
       var host = document.getElementById('ops-queue');
       if (!host) return;
-      var order = window.opsStageOrder || ['Identified', 'Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
+      var order = window.opsStageOrder || ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
       // Queue = events still needing an application. Count only interested
       // people NOT already booked/attending (window.visibleInterested).
       var items = opsAllItems().filter(function (it) {{ return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past; }});
@@ -6047,7 +6050,7 @@ def build():
       if (!host) return;
       var b = myEventsBuckets();
       if (!b.named) {{
-        host.innerHTML = '<p class="queue-intro"><strong>My events.</strong> Set your name (hit &ldquo;change&rdquo; up top) to see the events you&#39;re attending and the applications in progress for you.</p>';
+        host.innerHTML = '<p class="queue-intro"><strong>My events.</strong> Set your name (hit &ldquo;change&rdquo; up top) to see the events you&#39;re booked to speak at or attending.</p>';
         return;
       }}
       function rowHtml(it) {{
@@ -6067,13 +6070,11 @@ def build():
         return '<div class="queue-section">' + head + body + '</div>';
       }}
       var intro = b.support
-        ? '<p class="queue-intro"><strong>Team events.</strong> Everything the team is confirmed to attend, and every application still in progress &mdash; grouped so you can see at a glance what&#39;s booked and what&#39;s pending.</p>'
-        : '<p class="queue-intro"><strong>' + escapeHtml(b.me) + '&#39;s events.</strong> The upcoming events you&#39;re attending, and the speaker applications in progress for you.</p>';
-      var attTitle = b.support ? 'Attending &amp; speaking' : 'You&#39;re attending';
-      var subTitle = b.support ? 'Submissions in progress' : 'Your submissions';
+        ? '<p class="queue-intro"><strong>Team events.</strong> Everything the team is confirmed to attend or speak at (Booked + Attending), upcoming and in date order.</p>'
+        : '<p class="queue-intro"><strong>' + escapeHtml(b.me) + '&#39;s events.</strong> The upcoming events you&#39;re booked to speak at or attending, in date order.</p>';
+      var attTitle = b.support ? 'Attending &amp; booked' : 'You&#39;re attending';
       host.innerHTML = intro +
-        section(attTitle, b.attending, b.support ? 'Nothing booked or attending yet.' : 'You&#39;re not booked or attending anything upcoming yet.') +
-        section(subTitle, b.submissions, b.support ? 'No applications in progress.' : 'No applications in progress for you right now.');
+        section(attTitle, b.attending, b.support ? 'Nothing booked or attending yet.' : 'You&#39;re not booked or attending anything upcoming yet.');
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
       }});
@@ -6350,7 +6351,7 @@ def build():
       var mc = document.getElementById('vt-myevents-count');
       if (mc) {{
         var mb = myEventsBuckets();
-        var mn = mb.attending.length + mb.submissions.length;
+        var mn = mb.attending.length;
         if (mb.named && mn) {{ mc.textContent = mn; mc.removeAttribute('hidden'); }} else {{ mc.setAttribute('hidden', ''); }}
       }}
       var qc = document.getElementById('vt-queue-count');
@@ -9030,7 +9031,7 @@ def build():
     // The modal's quick-action buttons + "Edit Event" call these. opsWrite
     // routes a patch to the right table; opsOpenEditor expands the source
     // card's full edit form.
-    var _STAGE_ORDER = ['Identified', 'Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
+    var _STAGE_ORDER = ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
     window.opsStageOrder = _STAGE_ORDER;
     window.opsWrite = function (table, key, patch) {{
       var who = getCollabName() || 'Team';
