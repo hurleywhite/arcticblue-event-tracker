@@ -2514,22 +2514,14 @@ def build():
         <div class="ops-filters collapsed">
           <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
           <button type="button" class="ops-filter-toggle" id="ops-filter-toggle" aria-expanded="false" aria-label="Show or hide filters">Filters <span class="ft-caret" aria-hidden="true">▾</span></button>
-          <select id="ops-price" aria-label="Filter by ticket price" title="Ticket price as a buyer signal: a pricier pass usually means real buyers in the room, not a hall of vendors">
-            <option value="">Any ticket price</option>
-            <option value="free">Free</option>
-            <option value="lt1000">Under $1,000</option>
-            <option value="1000-2500">$1,000 – $2,500</option>
-            <option value="gte2500">$2,500+ (buyer-rich room)</option>
-            <option value="known">Price known</option>
-          </select>
-          <select id="ops-fits" aria-label="Show events that fit a teammate" title="Show only events matching one teammate's target profile (geography, audience, industry, themes)">
-            <option value="">Fits: anyone</option>
-            <option value="Jerome">Fits: Jerome</option>
-            <option value="Joe">Fits: Joe</option>
-            <option value="Thor">Fits: Thor</option>
-            <option value="Verma">Fits: Verma</option>
-            <option value="Carlos">Fits: Carlos</option>
-          </select>
+          <div class="filter-dd" id="filter-price" title="Ticket price as a buyer signal: a pricier pass usually means real buyers, not a hall of vendors">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Ticket price</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><!-- chips injected by buildExtraFilters() --></div>
+          </div>
+          <div class="filter-dd" id="filter-fits" title="Show events matching a teammate's target profile (geography, audience, industry, themes)">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Fits</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"></div>
+          </div>
           <div class="filter-dd" id="filter-priority">
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Priority</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- chips injected by buildExtraFilters() --></div>
@@ -4679,6 +4671,37 @@ def build():
         trk.appendChild(clrT);
         trk.dataset.built = '1';
       }}
+      // Ticket price (multi-select bubbles — pick any bands)
+      var prc = document.querySelector('#filter-price .filter-dd-menu');
+      if (prc && prc.dataset.built !== '1') {{
+        [['free', 'Free'], ['lt1000', 'Under $1,000'], ['1000-2500', '$1,000 – $2,500'],
+         ['gte2500', '$2,500+ (buyer-rich)'], ['known', 'Price known']].forEach(function (p) {{
+          prc.appendChild(_makeExtraChip(p[0], p[1], 'price-chip'));
+        }});
+        var clrP = document.createElement('button');
+        clrP.type = 'button'; clrP.className = 'extra-clear'; clrP.textContent = 'Clear';
+        clrP.addEventListener('click', function () {{
+          prc.querySelectorAll('.extra-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
+          applyFilters();
+        }});
+        prc.appendChild(clrP);
+        prc.dataset.built = '1';
+      }}
+      // Fits: teammate ICP profiles (multi-select bubbles)
+      var fit = document.querySelector('#filter-fits .filter-dd-menu');
+      if (fit && fit.dataset.built !== '1') {{
+        ['Jerome', 'Joe', 'Thor', 'Verma', 'Carlos'].forEach(function (n) {{
+          fit.appendChild(_makeExtraChip(n, n, 'fits-chip'));
+        }});
+        var clrF = document.createElement('button');
+        clrF.type = 'button'; clrF.className = 'extra-clear'; clrF.textContent = 'Clear';
+        clrF.addEventListener('click', function () {{
+          fit.querySelectorAll('.extra-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
+          applyFilters();
+        }});
+        fit.appendChild(clrF);
+        fit.dataset.built = '1';
+      }}
     }}
 
     // Priority / Track / Speaking / Attending are dropdowns (button + popup of
@@ -4725,9 +4748,8 @@ def build():
     // "Filters · N active" — otherwise an active filter would be invisible).
     function countActiveOpsFilters() {{
       var n = 0;
-      ['ops-price', 'ops-fits'].forEach(function (id) {{ var e = document.getElementById(id); if (e && e.value) n++; }});
       ['ops-f-submitted', 'ops-f-recent', 'ops-f-worth', 'ops-f-aipicks', 'ops-f-contact'].forEach(function (id) {{ var e = document.getElementById(id); if (e && e.checked) n++; }});
-      ['filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {{
+      ['filter-price', 'filter-fits', 'filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {{
         var box = document.getElementById(id);
         if (box && box.querySelector('.filter-dd-btn.has-active')) n++;
       }});
@@ -4883,11 +4905,9 @@ def build():
         btn.style.color = col;
         btn.style.borderColor = hexToRgba(col, 0.3);
         btn.textContent = r;
-        btn.title = 'Show only ' + r + ' events';
+        btn.title = 'Filter by ' + r + ' (click several to combine)';
         btn.addEventListener('click', function () {{
-          var wasOn = btn.classList.contains('is-on');
-          host.querySelectorAll('.region-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
-          if (!wasOn) btn.classList.add('is-on');
+          btn.classList.toggle('is-on');   // multi-select: combine regions
           applyFilters();
         }});
         frag.appendChild(btn);
@@ -5097,15 +5117,14 @@ def build():
       var $worth   = document.getElementById('ops-f-worth');
       var $aipicks = document.getElementById('ops-f-aipicks');
       var $contact = document.getElementById('ops-f-contact');
-      var $price   = document.getElementById('ops-price');
       var $past    = document.getElementById('ops-f-past');
       var $hidden  = document.getElementById('ops-f-hidden');
       var $recent  = document.getElementById('ops-f-recent');
       if (!$search || !$opsGrid) return;
       var q = ($search.value || '').toLowerCase().trim();
       // Region now comes from the pipeline-style chip row (single-select).
-      var _rgChip = document.querySelector('#region-filters .region-chip.is-on');
-      var rg = _rgChip ? (_rgChip.dataset.region || '') : '';
+      // Region is now MULTI-select (Angela: click several regions) — OR them.
+      var activeRegions = Array.prototype.map.call(document.querySelectorAll('#region-filters .region-chip.is-on'), function (b) {{ return b.dataset.region; }});
       var fSaved   = !!($saved && $saved.checked);
       var fUrgent  = !!($urgent && $urgent.checked);
       var fSubmitted = !!($submitted && $submitted.checked);
@@ -5113,9 +5132,9 @@ def build():
       var fWorth   = !!($worth && $worth.checked);
       var fAiPicks = !!($aipicks && $aipicks.checked);
       var fContact = !!($contact && $contact.checked);
-      var fPrice   = $price ? ($price.value || '') : '';
-      var $fits    = document.getElementById('ops-fits');
-      var fitsProfile = ($fits && $fits.value) ? AB_PROFILE_BY_KEY[$fits.value] : null;
+      // Ticket price + Fits are now MULTI-select bubble dropdowns — OR the chips.
+      var activePrices = Array.prototype.map.call(document.querySelectorAll('#filter-price .extra-chip.is-on'), function (b) {{ return b.dataset.value; }});
+      var activeFits   = Array.prototype.map.call(document.querySelectorAll('#filter-fits .extra-chip.is-on'), function (b) {{ return b.dataset.value; }});
       var showPast   = !!($past && $past.checked);
       var showHidden = !!($hidden && $hidden.checked);
       var fRecent    = !!($recent && $recent.checked);
@@ -5167,8 +5186,11 @@ def build():
           if (_blob == null) _blob = card._searchBlob = (card.textContent || '').toLowerCase();
           if (_blob.indexOf(q) === -1) on = false;
         }}
-        if (rg && card.dataset.region !== rg) on = false;
-        if (fitsProfile && !profileFits(fitsProfile, card.dataset.fitText, card.dataset.region)) on = false;
+        if (activeRegions.length && activeRegions.indexOf(card.dataset.region) === -1) on = false;
+        if (activeFits.length) {{
+          var _fitHit = activeFits.some(function (k) {{ var pf = AB_PROFILE_BY_KEY[k]; return pf && profileFits(pf, card.dataset.fitText, card.dataset.region); }});
+          if (!_fitHit) on = false;
+        }}
         if (fSaved && !card.classList.contains('is-saved'))  on = false;
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
         if (fSubmitted && (card.dataset.statusTags || '').split('|').indexOf('Submitted') === -1) on = false;
@@ -5179,13 +5201,17 @@ def build():
         if (fWorth && shouldAttendKind(card.dataset.attend) !== 'human') on = false;
         if (fAiPicks && shouldAttendKind(card.dataset.attend) !== 'ai') on = false;
         if (fContact && card.dataset.contactFound !== '1') on = false;
-        if (fPrice) {{
+        if (activePrices.length) {{
           var pn = card.dataset.price === '' || card.dataset.price == null ? null : parseFloat(card.dataset.price);
-          if (fPrice === 'known'        && pn == null)               on = false;
-          if (fPrice === 'free'         && pn !== 0)                 on = false;
-          if (fPrice === 'lt1000'       && !(pn != null && pn > 0 && pn < 1000)) on = false;
-          if (fPrice === '1000-2500'    && !(pn != null && pn >= 1000 && pn < 2500)) on = false;
-          if (fPrice === 'gte2500'      && !(pn != null && pn >= 2500)) on = false;
+          var _priceHit = activePrices.some(function (band) {{
+            if (band === 'known')     return pn != null;
+            if (band === 'free')      return pn === 0;
+            if (band === 'lt1000')    return pn != null && pn > 0 && pn < 1000;
+            if (band === '1000-2500') return pn != null && pn >= 1000 && pn < 2500;
+            if (band === 'gte2500')   return pn != null && pn >= 2500;
+            return false;
+          }});
+          if (!_priceHit) on = false;
         }}
         // Past events are no longer force-hidden — they collect in the
         // collapsible "Archive · past events" group at the bottom (opsCardTier).
@@ -5309,7 +5335,7 @@ def build():
       // Debounce only the free-text search (fires on every keystroke); selects
       // and checkboxes change discretely, so apply those immediately.
       var debouncedApply = debounce(applyFilters, 130);
-      ['ops-search','ops-price','ops-fits','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-contact','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
+      ['ops-search','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-contact','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {{
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -5321,14 +5347,14 @@ def build():
     function clearOpsFilters() {{
       // Reset every ops filter to its default, then re-run. Safe because
       // applyFilters reads all state fresh from these controls each call.
-      ['ops-search','ops-price','ops-fits'].forEach(function (id) {{
+      ['ops-search'].forEach(function (id) {{
         var el = document.getElementById(id); if (el) el.value = '';
       }});
       ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-past','ops-f-hidden','ops-f-recent','ops-f-contact'].forEach(function (id) {{
         var el = document.getElementById(id); if (el) el.checked = false;
       }});
       Array.prototype.forEach.call(
-        document.querySelectorAll('#stage-filters .stage-chip.is-on, #region-filters .region-chip.is-on, .status-filters .status-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
+        document.querySelectorAll('#stage-filters .stage-chip.is-on, #region-filters .region-chip.is-on, .status-filters .status-chip.is-on, #filter-price .extra-chip.is-on, #filter-fits .extra-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
         function (c) {{ c.classList.remove('is-on'); }}
       );
       opsStatFilter = '';
@@ -6036,10 +6062,18 @@ def build():
       }}
       return rows;
     }}
+    // The connections table needs a one-time migration. PostgREST reports a
+    // missing table several ways ("does not exist", "schema cache", PGRST205),
+    // so match them all and show ONE clear setup message instead of a raw error.
+    var _CONN_SETUP_MSG = 'Warm intros need a one-time setup — run scripts/2026-06-21_connections.sql in the Supabase SQL editor, then re-upload.';
+    function _isMissingTable(err) {{
+      var m = ((err && (err.message || '')) + ' ' + (err && (err.code || ''))).toLowerCase();
+      return /does not exist|relation|schema cache|find the table|pgrst205/.test(m);
+    }}
     function refreshConnCounts() {{
       var el = document.getElementById('conn-counts'); if (!el) return;
       sb.from('connections').select('owner').then(function (r) {{
-        if (r.error) {{ el.textContent = (/(does not exist|relation)/i.test(r.error.message || '')) ? 'Run scripts/2026-06-21_connections.sql in Supabase to enable this.' : ''; return; }}
+        if (r.error) {{ el.textContent = _isMissingTable(r.error) ? _CONN_SETUP_MSG : ''; return; }}
         var counts = {{}}; (r.data || []).forEach(function (x) {{ counts[x.owner] = (counts[x.owner] || 0) + 1; }});
         var parts = Object.keys(counts).sort().map(function (o) {{ return o + ': ' + counts[o]; }});
         el.textContent = parts.length ? ('Stored — ' + parts.join(' · ')) : 'No connections uploaded yet.';
@@ -6062,12 +6096,12 @@ def build():
           status.textContent = 'Uploading ' + rows.length + '…';
           // Replace this teammate's set, then insert in chunks.
           sb.from('connections').delete().eq('owner', owner).then(function (d) {{
-            if (d.error && /(does not exist|relation)/i.test(d.error.message || '')) {{ status.textContent = 'Run scripts/2026-06-21_connections.sql in Supabase first.'; return; }}
+            if (d.error && _isMissingTable(d.error)) {{ status.textContent = _CONN_SETUP_MSG; return; }}
             var CHUNK = 500, idx = 0;
             (function next() {{
               if (idx >= rows.length) {{ status.textContent = 'Saved ' + rows.length + ' connections for ' + owner + '.'; refreshConnCounts(); return; }}
               sb.from('connections').insert(rows.slice(idx, idx + CHUNK)).then(function (r) {{
-                if (r.error) {{ status.textContent = 'Error: ' + r.error.message; return; }}
+                if (r.error) {{ status.textContent = _isMissingTable(r.error) ? _CONN_SETUP_MSG : ('Error: ' + r.error.message); return; }}
                 idx += CHUNK; next();
               }});
             }})();
