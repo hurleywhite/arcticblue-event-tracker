@@ -529,6 +529,18 @@ def build():
       color: var(--ab-fg-3); letter-spacing: 0.06em;
       text-transform: uppercase; justify-self: end; text-align: right;
     }}
+    /* "Editing as <name> change" now lives in the nav next to the date. */
+    .nav-meta .who {{
+      text-transform: none; letter-spacing: normal;
+      font-weight: 700; color: var(--ab-fg-2); white-space: nowrap;
+    }}
+    .nav-meta .who strong {{ color: var(--ab-fg); font-weight: 800; }}
+    .nav-meta .who button.inline {{
+      border: 0; background: none; padding: 0 0 0 6px; cursor: pointer;
+      font-family: var(--ab-mono); font-size: inherit; font-weight: 700;
+      text-transform: none; letter-spacing: normal;
+      color: var(--ab-blue, #1d4ed8); text-decoration: underline;
+    }}
     /* App title — centered in the nav bar, same line as the logo + last-updated. */
     .app-title {{
       font-family: "Nunito Sans", var(--ab-sans);
@@ -2356,7 +2368,7 @@ def build():
         <span class="brand-text">ArcticBlue</span>
       </a>
       <h1 class="app-title">ArcticBlue's Event Tracker</h1>
-      <p class="nav-meta">Last updated · {last_updated.upper()}</p>
+      <div class="nav-meta">{last_updated.upper()} <span class="who">· Editing as <strong id="ops-email">Team</strong> <button type="button" id="change-name" class="inline">change</button></span></div>
     </div>
   </nav>
 
@@ -2495,9 +2507,6 @@ def build():
 
       <!-- The collaborative tracker — open to everyone, no login. -->
       <div id="angela-ops" hidden>
-        <div class="angela-header">
-          <span class="who">Editing as <strong id="ops-email">Team</strong> <button type="button" id="change-name" class="inline">change</button></span>
-        </div>
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-stats" id="ops-stats" hidden></div>
         <div class="stage-filters" id="stage-filters">
@@ -6107,7 +6116,7 @@ def build():
       var host = document.getElementById('ops-planner');
       if (!host) return;
       var items = opsAllItems();
-      var html = '<p class="planner-intro"><strong>Planner.</strong> Two checks the calendar can&#39;t do on its own: scheduling conflicts (one speaker double-booked) and coverage gaps (events in a territory with nobody assigned yet).</p>';
+      var html = '<p class="planner-intro"><strong>Planner:</strong> Checks the calendar: scheduling conflicts (one speaker double-booked)</p>';
 
       var conflicts = findConflicts();
       html += '<div class="planner-section"><div class="planner-sec-head"><span class="planner-sec-title">&#9888; Scheduling conflicts</span><span class="planner-sec-sub">' + conflicts.length + ' found</span></div>';
