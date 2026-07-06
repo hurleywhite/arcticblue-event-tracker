@@ -306,7 +306,7 @@ def render_event_card(ev, archived=False):
     # the catalog actually knows them.
     aud = str(ev.get('audience_type') or '').strip()
     sig = []
-    if aud:
+    if aud and aud.lower() != 'mixed':
         low = aud.lower()
         aud_cls = ('aud-buyer' if 'buyer' in low
                    else 'aud-vendor' if ('vendor' in low or 'seller' in low)
@@ -3151,7 +3151,7 @@ def build():
     }}
     if (rec.status && !(rec.stage_tags && rec.stage_tags.length) && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
     if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
-    if (rec.audience_type) badges.push('<span class="badge ' + audienceClass(rec.audience_type) + '">' + esc(rec.audience_type) + '</span>');
+    if (rec.audience_type && String(rec.audience_type).trim().toLowerCase() !== 'mixed') badges.push('<span class="badge ' + audienceClass(rec.audience_type) + '">' + esc(rec.audience_type) + '</span>');
     if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
     $badges.innerHTML = badges.join('');
@@ -4037,7 +4037,7 @@ def build():
 
       // Attending-signal strip + one-click apply (the booking shortcut).
       var sigBits = [];
-      if (_aud) sigBits.push('<span class="badge ' + audienceClass(_aud) + '">' + escapeHtml(_aud) + '</span>');
+      if (_aud && String(_aud).trim().toLowerCase() !== 'mixed') sigBits.push('<span class="badge ' + audienceClass(_aud) + '">' + escapeHtml(_aud) + '</span>');
       var sigRow = sigBits.length ? '<p class="attend-signals">' + sigBits.join('') + '</p>' : '';
       var applyUrl = speakingRouteUrl(ev.speaking_route);
       var applyBtn = applyUrl
@@ -4251,7 +4251,7 @@ def build():
           '</p>'
         : '';
       // Buyer/seller read + ticket price — ArcticBlue wants buyer-rich rooms.
-      var audChip = mev.audience_type
+      var audChip = (mev.audience_type && String(mev.audience_type).trim().toLowerCase() !== 'mixed')
         ? '<span class="badge ' + audienceClass(mev.audience_type) + '">' + escapeHtml(mev.audience_type) + '</span>'
         : '';
       var attendChip = '';  // "Worth attending" folded into the Interested list
