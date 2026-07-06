@@ -2649,11 +2649,6 @@ def build():
       </div>
 
     </div><!-- /panel-angela -->
-
-    <footer class="foot">
-      <p class="foot-text">ArcticBlue · Event Tracker · Auto-archives events from their event day onward.</p>
-      <p class="foot-mono">v1.2 · {today_iso}</p>
-    </footer>
   </main>
 
   <!-- ── Expanded pop-up (modal) for a single event ─────────────────── -->
@@ -4930,10 +4925,15 @@ def build():
       // Sync/export (Calendar sync + Spreadsheet) is Angela-only.
       var $sync = document.getElementById('ops-sync-group');
       if ($sync) $sync.style.display = show ? '' : 'none';
-      // Planner view is Angela-only — hide its tab (setView also blocks it).
+      // Planner + Queue views are Angela-only — hide their tabs (setView blocks
+      // them too). The top-line "Should attend" dropdown is Angela-only as well.
       var $plannerTab = document.querySelector('.view-toggle [data-view="planner"]');
       if ($plannerTab) $plannerTab.style.display = show ? '' : 'none';
-      if (!show && typeof currentView !== 'undefined' && currentView === 'planner') {{
+      var $queueTab = document.querySelector('.view-toggle [data-view="queue"]');
+      if ($queueTab) $queueTab.style.display = show ? '' : 'none';
+      var $should = document.getElementById('filter-should');
+      if ($should) $should.style.display = show ? '' : 'none';
+      if (!show && typeof currentView !== 'undefined' && (currentView === 'planner' || currentView === 'queue')) {{
         setView(getCollabName() ? 'myevents' : 'grid');
       }}
       // The whole extra-filters box (Filters toggle + hidden dropdowns) is now
@@ -5534,7 +5534,7 @@ def build():
           '</span><span class="lbl">' + label + '</span></button>';
       }}
       $stats.innerHTML =
-        tile('all', total, 'Upcoming', '') +
+        tile('all', total, 'Upcoming events', '') +
         tile('myinterested', myInterested, 'My Interests', 'saved') +
         tile('pipeline', inPipeline, 'In pipeline', '') +
         tile('booked', booked, 'Booked', '') +
@@ -5545,6 +5545,10 @@ def build():
         t.addEventListener('click', function () {{
           var k = t.dataset.stat;
           opsStatFilter = (k === 'all' || opsStatFilter === k) ? '' : k;
+          // Jump to the Grid so the filtered events are actually visible — unless
+          // the reader is on the Calendar or Map, which mirror the same filters
+          // in place (no need to yank them to the grid).
+          if (currentView !== 'calendar' && currentView !== 'map' && currentView !== 'grid') setView('grid');
           applyFilters();
           // Reflect the active tile without a full re-render.
           Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (x) {{
@@ -5747,7 +5751,6 @@ def build():
             '<button type="button" class="bf-btn bf-targets" title="Find senior, budget-owning people to reach out to before this event (deeper research pass)">&#127919; Targets</button>' +
             '<button type="button" class="bf-btn bf-regen" title="Force a fresh research pass">&#8635; Regenerate</button>' +
             '<button type="button" class="bf-btn bf-copy">Copy</button>' +
-            '<button type="button" class="bf-btn bf-print">Print</button>' +
             '<button type="button" class="bf-btn bf-close" aria-label="Close">&times;</button>' +
           '</div></div><div class="briefing-body" id="briefing-body"></div></div>';
         document.body.appendChild(ov);
@@ -5768,7 +5771,6 @@ def build():
       ov.querySelector('.bf-targets').onclick = function () {{ loadTargets(it, false); }};
       ov.querySelector('.bf-regen').onclick = function () {{ loadBrief(it, true); }};
       ov.querySelector('.bf-copy').onclick = function () {{ copyBrief(it); }};
-      ov.querySelector('.bf-print').onclick = function () {{ window.print(); }};
       ov.classList.add('show');
       document.body.style.overflow = 'hidden';  // lock the page behind the drawer
       ov.querySelector('.bf-close').focus();     // move focus into the drawer
@@ -7261,8 +7263,8 @@ def build():
     var VIEW_NAMES = ['myevents', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
     function setView(name) {{
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
-      // Planner is Angela-only — redirect anyone else who lands on it.
-      if (name === 'planner' && window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
+      // Planner + Queue are Angela-only — redirect anyone else who lands on them.
+      if ((name === 'planner' || name === 'queue') && window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
       currentView = name;
       document.querySelectorAll('.view-toggle button[data-view]').forEach(function (b) {{
         var on = b.dataset.view === name;
