@@ -2377,7 +2377,7 @@ def build():
     }}
   </style>
 </head>
-<body>
+<body class="hide-urgent">
 
   <nav class="nav">
     <div class="nav-inner">
@@ -2597,7 +2597,7 @@ def build():
               Find events (AI)
             </button>
           </div>
-          <div class="ops-toolbar-group" role="group" aria-label="Sync and export">
+          <div class="ops-toolbar-group" role="group" aria-label="Sync and export" id="ops-sync-group">
             <span class="ops-toolbar-label">Sync</span>
             <button class="ab-btn ab-btn--ghost ab-btn--rose" id="ical-subscribe-btn" title="One auto-updating feed for Google Calendar, Apple Calendar or Outlook — plus a one-time .ics download">
               <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
@@ -3166,7 +3166,7 @@ def build():
   function openEventModal(rec) {{
     if (!rec) return;
     var badges = [];
-    if (rec.priority) badges.push('<span class="badge ' + priClass(rec.priority) + '">' + esc(rec.priority) + '</span>');
+    if (rec.priority && (!window.isAngelaUser || window.isAngelaUser())) badges.push('<span class="badge ' + priClass(rec.priority) + '">' + esc(rec.priority) + '</span>');
     // "Halo" is an internal event-type flag, not something to surface as a label.
     if (rec.type && rec.type.toLowerCase() !== 'halo') badges.push('<span class="badge p-medium">' + esc(rec.type) + '</span>');
     // Pipeline stages (primary). Fall back to the legacy single status badge
@@ -3179,7 +3179,6 @@ def build():
     if (rec.status && !(rec.stage_tags && rec.stage_tags.length) && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
     if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
     if (rec.audience_type && String(rec.audience_type).trim().toLowerCase() !== 'mixed') badges.push('<span class="badge ' + audienceClass(rec.audience_type) + '">' + esc(rec.audience_type) + '</span>');
-    if (rec.urgent === true && (!window.isAngelaUser || window.isAngelaUser())) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
     $badges.innerHTML = badges.join('');
 
@@ -3982,10 +3981,22 @@ def build():
       if (!dt || isNaN(dt)) return false;  // unparseable -> don't assume past
       return ((dt - new Date()) / 86400000) < 0;  // strictly before today
     }}
-    function deadlineLine(d) {{
+    function deadlineLine(d, o) {{
       if (d == null || !String(d).trim()) return '';
       if (isDeadlinePast(d)) return '';  // don't show a deadline that's gone
       var txt = String(d).trim();
+      // A CFP deadline on or after the event itself is nonsensical — you can't
+      // submit a talk once the event has started. (Angela saw "CFP deadline:
+      // 1 September 2026" on an event running July 7-10.) Hide it rather than
+      // confuse. Parse the deadline the same resilient way isDeadlinePast does.
+      var evStart = eventStartIso(o);
+      if (evStart) {{
+        var dl = null;
+        try {{ var diso = deriveDatesFromText(txt).start_date; if (diso) dl = new Date(diso + 'T00:00:00'); }} catch (e) {{}}
+        if (!dl || isNaN(dl)) {{ var d2 = new Date(txt); if (!isNaN(d2)) dl = d2; }}
+        var evd = new Date(evStart + 'T00:00:00');
+        if (dl && !isNaN(dl) && !isNaN(evd) && dl >= evd) return '';
+      }}
       var cls = isDeadlineSoon(d) ? ' deadline-soon' : '';
       return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
     }}
@@ -4090,7 +4101,7 @@ def build():
         '<p class="event-loc">' + escapeHtml(canonicalRegion(ev)) + ' · ' + escapeHtml(ev.location || '') + '</p>' +
         renderOpsRoster(st) +
         sigRow +
-        deadlineLine(ev.deadline) +
+        deadlineLine(ev.deadline, ev) +
         applyBtn;
       // (metaLine intentionally unused now — "Last edit" detail lived inside the
       // old inline editor, which has moved to the Details pop-up.)
@@ -4314,7 +4325,7 @@ def build():
         '<p class="event-loc">' + escapeHtml(canonicalRegion(mev)) + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
         tagsHtml +
         mSigRow +
-        deadlineLine(mev.deadline) +
+        deadlineLine(mev.deadline, mev) +
         pocLine +
         notesLine +
         addtlLine +
@@ -4823,9 +4834,9 @@ def build():
     function isAngelaUser() {{ return window.isAngelaUser(); }}
     function applyFilterVisibility() {{
       var show = isAngelaUser();
-      // Urgent is Angela-only: the stat tile is gated in renderStats; the card
-      // pills / red border / calendar tint are gated by this body class.
-      if (document.body) document.body.classList.toggle('hide-urgent', !show);
+      // Sync/export (Calendar sync + Spreadsheet) is Angela-only.
+      var $sync = document.getElementById('ops-sync-group');
+      if ($sync) $sync.style.display = show ? '' : 'none';
       var $ft = document.getElementById('ops-filter-toggle');
       if (!$ft) return;
       var box = $ft.closest('.ops-filters');
@@ -5423,7 +5434,6 @@ def build():
       $stats.innerHTML =
         tile('all', total, 'Upcoming', '') +
         tile('myinterested', myInterested, 'My Event Interests', 'saved') +
-        ((window.isAngelaUser && window.isAngelaUser()) ? tile('urgent', urgent, 'Urgent', 'urgent') : '') +
         tile('pipeline', inPipeline, 'In pipeline', '') +
         tile('booked', booked, 'Booked', '') +
         tile('interested', interestedCount, 'Interested', '');
