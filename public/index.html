@@ -1380,8 +1380,8 @@
     }
 
     /* ── Queue view (Angela's application queue) ─────────────────── */
-    .ops-queue, .ops-planner, .ops-dayof { display: none; }
-    .ops-queue.show, .ops-planner.show, .ops-dayof.show { display: block; }
+    .ops-myevents, .ops-queue, .ops-planner, .ops-dayof { display: none; }
+    .ops-myevents.show, .ops-queue.show, .ops-planner.show, .ops-dayof.show { display: block; }
     /* ── Day-Of tab ─────────────────────────────────────────────── */
     .vt-count--dayof { background: #f59e0b; color: #fff; }
     .dayof-intro { font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 18px; line-height: 1.5; max-width: 760px; }
@@ -2048,7 +2048,8 @@
           <span class="ops-shown" id="ops-shown"></span>
         </div>
         <div class="view-toggle" role="tablist" aria-label="View">
-          <button type="button" role="tab" data-view="grid"     class="active" aria-selected="true">Grid</button>
+          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My events<span class="vt-count" id="vt-myevents-count" hidden></span></button>
+          <button type="button" role="tab" data-view="grid"     aria-selected="false">Grid</button>
           <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
           <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
@@ -2104,6 +2105,7 @@
             </aside>
           </div>
         </div>
+        <div class="ops-myevents" id="ops-myevents"></div>
         <div class="ops-queue" id="ops-queue"></div>
         <div class="ops-planner" id="ops-planner"></div>
         <div class="ops-dayof" id="ops-dayof"></div>
@@ -5436,6 +5438,79 @@
       updateViewBadges();
     }
 
+    // ════════════════════════════════════════════════════════════════
+    // My events — bespoke to the signed-in person. Two lists Thor + Angela
+    // asked for: "You're attending" (Booked/Attending, upcoming) and "Your
+    // submissions" (Submitted / Followed up / Meeting held). Support people
+    // (Angela/Hurley) coordinate for the whole team, so they see everyone's.
+    // ════════════════════════════════════════════════════════════════
+    function myEventsBuckets() {
+      var me = getCollabName() || '';
+      var meFold = abFold(me);
+      var support = !!me && isSupportPerson(me);
+      var named = !!meFold;
+      // Is the signed-in person the assigned speaker? (or an attendee, for the
+      // attending list.) Support people match everything.
+      function mySpeaker(it) { return support || speakerTokens(it.speaker).indexOf(meFold) !== -1; }
+      function myAttend(it) {
+        if (support) return true;
+        if (speakerTokens(it.speaker).indexOf(meFold) !== -1) return true;
+        return (it.attendees || []).map(function (a) { return abFold(a); }).indexOf(meFold) !== -1;
+      }
+      var attending = [], submissions = [];
+      if (named) {
+        opsAllItems().forEach(function (it) {
+          if (it.hidden || it.past) return;   // upcoming, live events only
+          var s = it.stages || [];
+          var confirmed = s.indexOf('Booked') !== -1 || s.indexOf('Attending') !== -1;
+          var inFlight  = s.indexOf('Submitted') !== -1 || s.indexOf('Followed up') !== -1 || s.indexOf('Meeting held') !== -1;
+          if (confirmed && myAttend(it)) attending.push(it);
+          else if (inFlight && mySpeaker(it)) submissions.push(it);   // booked wins over submitted
+        });
+        attending.sort(function (a, b) { return a.sort - b.sort; });    // date order
+        submissions.sort(function (a, b) { return a.sort - b.sort; });
+      }
+      return { me: me, support: support, named: named, attending: attending, submissions: submissions };
+    }
+
+    function renderMyEvents() {
+      var host = document.getElementById('ops-myevents');
+      if (!host) return;
+      var b = myEventsBuckets();
+      if (!b.named) {
+        host.innerHTML = '<p class="queue-intro"><strong>My events.</strong> Set your name (hit &ldquo;change&rdquo; up top) to see the events you&#39;re attending and the applications in progress for you.</p>';
+        return;
+      }
+      function rowHtml(it) {
+        var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
+        // For the team view (Angela/Hurley) show whose event it is.
+        var who = (b.support && it.speaker) ? '<span class="q-int-chip">' + escapeHtml(it.speaker) + '</span>' : '';
+        return '<div class="queue-row"><div class="queue-main">' +
+            '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+            '<button type="button" class="ops-details-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
+            '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
+            '<div class="queue-chips">' + who + qStagePills(it.stages) + '</div>' +
+          '</div></div>';
+      }
+      function section(title, list, emptyMsg) {
+        var head = '<div class="queue-sec-head"><span class="queue-sec-title">' + title + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
+        var body = list.length ? list.map(rowHtml).join('') : '<div class="queue-empty">' + emptyMsg + '</div>';
+        return '<div class="queue-section">' + head + body + '</div>';
+      }
+      var intro = b.support
+        ? '<p class="queue-intro"><strong>Team events.</strong> Everything the team is confirmed to attend, and every application still in progress &mdash; grouped so you can see at a glance what&#39;s booked and what&#39;s pending.</p>'
+        : '<p class="queue-intro"><strong>' + escapeHtml(b.me) + '&#39;s events.</strong> The upcoming events you&#39;re attending, and the speaker applications in progress for you.</p>';
+      var attTitle = b.support ? 'Attending &amp; speaking' : 'You&#39;re attending';
+      var subTitle = b.support ? 'Submissions in progress' : 'Your submissions';
+      host.innerHTML = intro +
+        section(attTitle, b.attending, b.support ? 'Nothing booked or attending yet.' : 'You&#39;re not booked or attending anything upcoming yet.') +
+        section(subTitle, b.submissions, b.support ? 'No applications in progress.' : 'No applications in progress for you right now.');
+      host.querySelectorAll('[data-ref-kind]').forEach(function (el) {
+        el.addEventListener('click', function () { opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); });
+      });
+      updateViewBadges();
+    }
+
     // ── Planner: scheduling conflicts + coverage gaps by territory ──
     // ── Per-teammate target profiles ────────────────────────────────
     // Single source of truth for "which events are for whom" — drives the
@@ -5703,6 +5778,12 @@
 
     // Count badges on the Queue / Planner tabs (open-to-apply count + conflicts).
     function updateViewBadges() {
+      var mc = document.getElementById('vt-myevents-count');
+      if (mc) {
+        var mb = myEventsBuckets();
+        var mn = mb.attending.length + mb.submissions.length;
+        if (mb.named && mn) { mc.textContent = mn; mc.removeAttribute('hidden'); } else { mc.setAttribute('hidden', ''); }
+      }
       var qc = document.getElementById('vt-queue-count');
       var pc = document.getElementById('vt-planner-count');
       if (qc) {
@@ -5920,7 +6001,8 @@
         // Cache for the Queue + Planner views; refresh whichever is active plus
         // the tab-count badges (so flagging / conflicts update live).
         _lastEvs = evs; _lastStateMap = stateMap; _lastStateRows = stateRows; _lastManual = manualRows;
-        if (currentView === 'queue') renderQueue();
+        if (currentView === 'myevents') renderMyEvents();
+        else if (currentView === 'queue') renderQueue();
         else if (currentView === 'planner') renderPlanner();
         updateViewBadges();
         // And the map, when it's the active view (realtime echo / saves).
@@ -6551,7 +6633,7 @@
     var VIEW_KEY = 'ab.angela.view';
     var currentView = 'grid';
 
-    var VIEW_NAMES = ['grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
+    var VIEW_NAMES = ['myevents', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
     function setView(name) {
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
       currentView = name;
@@ -6566,12 +6648,15 @@
       var q = document.getElementById('ops-queue');
       var p = document.getElementById('ops-planner');
       var d = document.getElementById('ops-dayof');
+      var me = document.getElementById('ops-myevents');
       if (g) g.style.display = (name === 'grid') ? '' : 'none';
+      if (me) me.classList.toggle('show', name === 'myevents');
       if (c) c.classList.toggle('show', name === 'calendar');
       if (m) m.classList.toggle('show', name === 'map');
       if (q) q.classList.toggle('show', name === 'queue');
       if (p) p.classList.toggle('show', name === 'planner');
       if (d) d.classList.toggle('show', name === 'dayof');
+      if (name === 'myevents') renderMyEvents();
       if (name === 'calendar') recalcCalendar();   // re-apply the live filters
       if (name === 'map') openOpsMap();
       if (name === 'queue') renderQueue();
@@ -6587,10 +6672,15 @@
         b.parentNode.replaceChild(fresh, b);
         fresh.addEventListener('click', function () { setView(fresh.dataset.view); });
       });
+      // Someone with a name set lands on "My events" (Thor's core ask: open
+      // straight to what you're attending / submitted for). Unnamed visitors
+      // fall back to their last view, or the grid.
       try {
         var saved = localStorage.getItem(VIEW_KEY);
-        if (VIEW_NAMES.indexOf(saved) !== -1) setView(saved);
-      } catch (e) {}
+        if (getCollabName()) setView('myevents');
+        else if (VIEW_NAMES.indexOf(saved) !== -1) setView(saved);
+        else setView('grid');
+      } catch (e) { setView(getCollabName() ? 'myevents' : 'grid'); }
     }
 
     // ── Map view ─────────────────────────────────────────────────────
@@ -8353,6 +8443,7 @@
       // Changing the name mid-session must recompute them (this was why
       // "My Event Interests" read 0 right after switching to Jerome).
       if (n.toLowerCase() !== (prev || '').toLowerCase() && $opsGrid && $opsGrid.querySelector('.ops-card')) {
+        if (n) setView('myevents');   // Thor's ask: setting your name opens My events
         renderOps(n || 'Team');
       }
     }
