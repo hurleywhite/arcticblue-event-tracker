@@ -250,6 +250,9 @@ def _gather_events(host):
                     # True only once a speaking application is actually IN.
                     # 'Identified' / no stage => submitted=False (a candidate).
                     'submitted': _is_submitted(stages),
+                    # booked = CONFIRMED to speak; submitted-but-not-booked is NOT booked.
+                    'booked': 'Booked' in stages,
+                    'attending': 'Attending' in stages,
                     'speaker': ops.get('speaker'),
                     'attend': ops.get('attend_verdict'),
                     'saved': bool(ops.get('saved')),
@@ -282,6 +285,8 @@ def _gather_events(host):
                 'deadline': m.get('deadline'),
                 'stage': ', '.join(stages) if stages else None,
                 'submitted': _is_submitted(stages),
+                'booked': 'Booked' in stages,
+                'attending': 'Attending' in stages,
                 'speaker': m.get('speaker'), 'attend': m.get('attend_verdict'),
                 'fits': _fits(blob, region),
                 'upcoming': (endish is None) or (endish >= today),
@@ -322,6 +327,14 @@ _SYSTEM = (
     "\"still open to apply\", or \"what should we apply to\", return events where "
     "submitted=false — and NEVER exclude 'Identified' events; they are exactly the "
     "not-yet-submitted candidates.\n"
+    "- BOOKED vs SUBMITTED — do not conflate them. 'booked'=true means CONFIRMED "
+    "to speak (the Booked stage). An event that is only Submitted / Followed up / "
+    "Meeting held has an application IN but is NOT booked (booked=false). For "
+    "\"what's booked\", \"confirmed\", \"where are we speaking\", or \"booked for "
+    "<person>\", return ONLY booked=true events — never a merely-submitted one, "
+    "even if that person is its speaker. 'attending'=true (the Attending stage) = "
+    "going without speaking; keep it separate from booked/speaking too. Match a "
+    "named person via the event's 'speaker' field.\n"
     "- Each event carries 'upcoming' (true/false), 'region' (canonical), and "
     "'fits' (the ArcticBlue people it suits). For 'upcoming' / 'next' / "
     "'this month' questions, return ONLY upcoming=true events, soonest first. "
