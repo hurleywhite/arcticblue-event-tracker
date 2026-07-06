@@ -297,14 +297,17 @@ def _gather_events(host):
     # then a recent slice of past events; cap total size.
     out = [e for e in out if (e.get('name') or '').strip()]
     upcoming = sorted([e for e in out if e['upcoming']], key=lambda e: e['_sort'])
-    # Past events: keep TRACKED ones (carry a pipeline stage — booked / attending /
-    # submitted) FIRST so "what's booked for <person>" can still surface a real past
-    # engagement, then fill with the most-recent untracked past events. (Stable
-    # sort: recency first, then tracked-first.)
     past = [e for e in out if not e['upcoming']]
-    past.sort(key=lambda e: e['_sort'], reverse=True)
-    past.sort(key=lambda e: 0 if e.get('stage') else 1)
-    merged = (upcoming + past[:PAST_EVENTS_CONTEXT])[:MAX_EVENTS_CONTEXT]
+    past.sort(key=lambda e: e['_sort'], reverse=True)   # most-recent past first
+    # A past event that carries a pipeline stage (booked / attending / submitted)
+    # is a REAL engagement worth recalling ("what's booked for <person>"). Reserve
+    # room for these so they survive the overall cap — otherwise, with hundreds of
+    # upcoming events, the [:MAX] slice fills entirely with upcoming and NO past
+    # event reaches the model (why "what's booked" returned "none").
+    past_tracked  = [e for e in past if e.get('stage')]
+    past_untracked = [e for e in past if not e.get('stage')][:PAST_EVENTS_CONTEXT]
+    room = max(0, MAX_EVENTS_CONTEXT - len(past_tracked))
+    merged = (upcoming[:room] + past_tracked + past_untracked)[:MAX_EVENTS_CONTEXT]
     for e in merged:
         e.pop('_sort', None)
     return merged
