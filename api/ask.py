@@ -297,7 +297,13 @@ def _gather_events(host):
     # then a recent slice of past events; cap total size.
     out = [e for e in out if (e.get('name') or '').strip()]
     upcoming = sorted([e for e in out if e['upcoming']], key=lambda e: e['_sort'])
-    past = sorted([e for e in out if not e['upcoming']], key=lambda e: e['_sort'], reverse=True)
+    # Past events: keep TRACKED ones (carry a pipeline stage — booked / attending /
+    # submitted) FIRST so "what's booked for <person>" can still surface a real past
+    # engagement, then fill with the most-recent untracked past events. (Stable
+    # sort: recency first, then tracked-first.)
+    past = [e for e in out if not e['upcoming']]
+    past.sort(key=lambda e: e['_sort'], reverse=True)
+    past.sort(key=lambda e: 0 if e.get('stage') else 1)
     merged = (upcoming + past[:PAST_EVENTS_CONTEXT])[:MAX_EVENTS_CONTEXT]
     for e in merged:
         e.pop('_sort', None)
@@ -334,7 +340,11 @@ _SYSTEM = (
     "<person>\", return ONLY booked=true events — never a merely-submitted one, "
     "even if that person is its speaker. 'attending'=true (the Attending stage) = "
     "going without speaking; keep it separate from booked/speaking too. Match a "
-    "named person via the event's 'speaker' field.\n"
+    "named person via the event's 'speaker' field. IMPORTANT: booked/attending are "
+    "real engagements regardless of date — for \"what's booked / where has <person> "
+    "spoken\", INCLUDE past booked events (upcoming=false) too and note which have "
+    "passed; do NOT answer \"none booked\" when booked=true events exist in the "
+    "data, even if all of them are in the past.\n"
     "- Each event carries 'upcoming' (true/false), 'region' (canonical), and "
     "'fits' (the ArcticBlue people it suits). For 'upcoming' / 'next' / "
     "'this month' questions, return ONLY upcoming=true events, soonest first. "
