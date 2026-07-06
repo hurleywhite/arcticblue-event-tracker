@@ -1249,6 +1249,11 @@
     .extra-chip.track-earned.is-on   { background: #fef3c7; color: #92400e; border-color: #92400e; box-shadow: 0 0 0 2px #92400e; }
     .extra-chip.track-both.is-on     { background: #e9d5ff; color: #6b21a8; border-color: #6b21a8; box-shadow: 0 0 0 2px #6b21a8; }
     .extra-chip.track-unknown.is-on  { background: var(--ab-bg-3); color: var(--ab-fg-3); border-color: var(--ab-fg-3); box-shadow: 0 0 0 2px var(--ab-fg-3); }
+    /* Pipeline / Region / Should-attend chips keep their palette when selected. */
+    .extra-chip.stage-chip-dd.is-on  { background: var(--sc-bg); color: var(--sc-fg); border-color: var(--sc-bg); box-shadow: 0 0 0 2px var(--sc-fg); }
+    .extra-chip.region-chip-dd.is-on { background: var(--rc-col); color: #fff; border-color: var(--rc-col); box-shadow: 0 0 0 2px var(--rc-col); }
+    .extra-chip.should-team.is-on    { background: #7c3aed; color: #fff; border-color: #7c3aed; box-shadow: 0 0 0 2px #7c3aed; }
+    .extra-chip.should-ai.is-on      { background: #64748b; color: #fff; border-color: #64748b; box-shadow: 0 0 0 2px #64748b; }
     .extra-clear {
       font-family: var(--ab-mono); font-size: 0.62rem;
       letter-spacing: 0.06em; padding: 4px 8px;
@@ -1259,6 +1264,14 @@
     .extra-clear:hover { color: var(--ab-fg); }
 
     /* Filter bar */
+    /* Always-visible top filter line: Pipeline · Region · Fits · Months ·
+       Should attend — compact multi-select dropdowns (replaced the tall
+       colored Pipeline/Region chip rows). */
+    .ops-topfilters {
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 8px; margin: 0 0 14px;
+    }
+    .ops-topfilters .filter-dd-btn { width: auto; }
     .ops-filters {
       display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 10px; align-items: stretch;
@@ -1983,13 +1996,27 @@
       <div id="angela-ops" hidden>
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-stats" id="ops-stats" hidden></div>
-        <div class="stage-filters" id="stage-filters">
-          <span class="label">Pipeline:</span>
-          <!-- 5 stage chips injected by buildStageFilters() -->
-        </div>
-        <div class="stage-filters region-filters" id="region-filters">
-          <span class="label">Region:</span>
-          <!-- region chips injected by buildRegionFilters() -->
+        <div class="ops-topfilters" id="ops-topfilters">
+          <div class="filter-dd" id="filter-pipeline" title="Pipeline stage — where each event stands (pick several to combine)">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Pipeline</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><!-- stage chips injected by buildStageFilters() --></div>
+          </div>
+          <div class="filter-dd" id="filter-region" title="Region (pick several to combine)">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Region</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><!-- region chips injected by buildRegionFilters() --></div>
+          </div>
+          <div class="filter-dd" id="filter-fits" title="Show events matching a teammate's target profile (geography, audience, industry, themes)">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Fits</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"></div>
+          </div>
+          <div class="filter-dd" id="filter-months" title="Show only events in the months you pick (pick several to combine)">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Months</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><!-- month chips injected by buildMonthsFilter() --></div>
+          </div>
+          <div class="filter-dd" id="filter-should" title="Should Attend — team hand-picks + AI recommendations">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Should attend</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+            <div class="filter-dd-menu"><!-- Team pick / AI pick chips injected by buildExtraFilters() --></div>
+          </div>
         </div>
         <div class="ops-filters collapsed">
           <input type="search" id="ops-search" placeholder="Search name / location / notes…" aria-label="Search ops">
@@ -1997,10 +2024,6 @@
           <div class="filter-dd" id="filter-price" title="Ticket price as a buyer signal: a pricier pass usually means real buyers, not a hall of vendors">
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Ticket price</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- chips injected by buildExtraFilters() --></div>
-          </div>
-          <div class="filter-dd" id="filter-fits" title="Show events matching a teammate's target profile (geography, audience, industry, themes)">
-            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Fits</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
-            <div class="filter-dd-menu"></div>
           </div>
           <div class="filter-dd" id="filter-priority">
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Priority</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
@@ -2016,21 +2039,7 @@
           </div>
           <label class="ops-filter-chip" title="Show only events at the Submitted stage — a speaker application is in"><input type="checkbox" id="ops-f-submitted">Submitted</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
-          <label class="ops-filter-chip" title="Events a teammate hand-flagged as Should Attend (not the AI auto-picks)"><input type="checkbox" id="ops-f-worth">Should attend</label>
-          <label class="ops-filter-chip" title="Events the AI recommend pass suggested — review + promote the good ones to Should Attend"><input type="checkbox" id="ops-f-aipicks">AI picks</label>
           <label class="ops-filter-chip" title="Events where an email contact (organizer POC) was found"><input type="checkbox" id="ops-f-contact">Contact found</label>
-          <div class="ops-months">
-            <button type="button" class="ops-months-btn" id="ops-months-btn" aria-haspopup="true" aria-expanded="false">
-              Months <span class="mb-caret" aria-hidden="true">&#9660;</span>
-            </button>
-            <div class="ops-months-menu" id="ops-months-menu" role="menu" aria-label="Show or hide months">
-              <div class="ops-months-actions">
-                <button type="button" id="ops-months-all">Show all</button>
-                <button type="button" id="ops-months-none">Hide all</button>
-              </div>
-              <div class="ops-months-list" id="ops-months-list"></div>
-            </div>
-          </div>
           <span class="ops-shown" id="ops-shown"></span>
         </div>
         <div class="view-toggle" role="tablist" aria-label="View">
@@ -4181,6 +4190,20 @@
         fit.appendChild(clrF);
         fit.dataset.built = '1';
       }
+      // Should attend: team hand-picks + AI recommendations (multi-select bubbles)
+      var sha = document.querySelector('#filter-should .filter-dd-menu');
+      if (sha && sha.dataset.built !== '1') {
+        sha.appendChild(_makeExtraChip('human', 'Team pick', 'should-team'));
+        sha.appendChild(_makeExtraChip('ai', 'AI pick', 'should-ai'));
+        var clrS = document.createElement('button');
+        clrS.type = 'button'; clrS.className = 'extra-clear'; clrS.textContent = 'Clear';
+        clrS.addEventListener('click', function () {
+          sha.querySelectorAll('.extra-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
+          applyFilters();
+        });
+        sha.appendChild(clrS);
+        sha.dataset.built = '1';
+      }
     }
 
     // Priority / Track / Speaking / Attending are dropdowns (button + popup of
@@ -4227,8 +4250,8 @@
     // "Filters · N active" — otherwise an active filter would be invisible).
     function countActiveOpsFilters() {
       var n = 0;
-      ['ops-f-submitted', 'ops-f-recent', 'ops-f-worth', 'ops-f-aipicks', 'ops-f-contact'].forEach(function (id) { var e = document.getElementById(id); if (e && e.checked) n++; });
-      ['filter-price', 'filter-fits', 'filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {
+      ['ops-f-submitted', 'ops-f-recent', 'ops-f-contact'].forEach(function (id) { var e = document.getElementById(id); if (e && e.checked) n++; });
+      ['filter-price', 'filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {
         var box = document.getElementById(id);
         if (box && box.querySelector('.filter-dd-btn.has-active')) n++;
       });
@@ -4326,78 +4349,51 @@
       'Booked':       'Confirmed to speak.',
       'Attending':    'Going to the event (not speaking).'
     };
+    // Pipeline is now a multi-select .filter-dd (top line), same bubble UI as
+    // Fits/Price. applyFilters ORs every selected stage chip. Each chip keeps
+    // its stage palette via --sc-bg/--sc-fg (see .stage-chip-dd.is-on CSS).
     function buildStageFilters() {
-      var host = document.getElementById('stage-filters');
-      if (!host || host.dataset.built === '1') return;
-      var frag = document.createDocumentFragment();
+      var menu = document.querySelector('#filter-pipeline .filter-dd-menu');
+      if (!menu || menu.dataset.built === '1') return;
       STAGE_TAGS.forEach(function (s) {
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'stage-chip';
-        btn.dataset.stage = s.key;
-        btn.setAttribute('aria-pressed', 'false');
-        btn.style.background = s.bg;
-        btn.style.color = s.fg;
-        btn.style.borderColor = s.bg;
-        btn.textContent = s.key;
-        btn.title = (STAGE_HELP[s.key] ? s.key + ' — ' + STAGE_HELP[s.key] : 'Filter by ' + s.key);
-        btn.addEventListener('click', function () {
-          // Multi-select: combine stages (e.g. Submitted + Booked). applyFilters
-          // already ORs every active stage chip. Re-click to drop one.
-          btn.classList.toggle('is-on');
-          applyFilters();
-        });
-        frag.appendChild(btn);
+        var chip = _makeExtraChip(s.key, s.key, 'stage-chip-dd');
+        chip.title = (typeof STAGE_HELP !== 'undefined' && STAGE_HELP[s.key]) ? (s.key + ' — ' + STAGE_HELP[s.key]) : ('Filter by ' + s.key);
+        chip.style.setProperty('--sc-bg', s.bg);
+        chip.style.setProperty('--sc-fg', s.fg);
+        menu.appendChild(chip);
       });
-      var clearBtn = document.createElement('button');
-      clearBtn.type = 'button';
-      clearBtn.className = 'clear-btn';
-      clearBtn.textContent = 'Clear';
-      clearBtn.addEventListener('click', function () {
-        host.querySelectorAll('.stage-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
+      var clr = document.createElement('button');
+      clr.type = 'button'; clr.className = 'extra-clear'; clr.textContent = 'Clear';
+      clr.addEventListener('click', function () {
+        menu.querySelectorAll('.extra-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
         applyFilters();
       });
-      frag.appendChild(clearBtn);
-      host.appendChild(frag);
-      host.dataset.built = '1';
+      menu.appendChild(clr);
+      menu.dataset.built = '1';
     }
 
     // Region filter row — same colored-chip UI as the pipeline (Angela's ask:
     // "put the region filter right below the pipeline, shown like pipeline").
     // Single-select: click a region to show only it; re-click to clear.
+    // Region is now a multi-select .filter-dd (top line). Each chip carries its
+    // region colour via --rc-col (see .region-chip-dd.is-on CSS).
     function buildRegionFilters() {
-      var host = document.getElementById('region-filters');
-      if (!host || host.dataset.built === '1') return;
-      var frag = document.createDocumentFragment();
+      var menu = document.querySelector('#filter-region .filter-dd-menu');
+      if (!menu || menu.dataset.built === '1') return;
       Object.keys(REGION_COLORS).forEach(function (r) {
-        var col = REGION_COLORS[r];
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'stage-chip region-chip';
-        btn.dataset.region = r;
-        btn.setAttribute('aria-pressed', 'false');
-        btn.style.background = hexToRgba(col, 0.14);
-        btn.style.color = col;
-        btn.style.borderColor = hexToRgba(col, 0.3);
-        btn.textContent = r;
-        btn.title = 'Filter by ' + r + ' (click several to combine)';
-        btn.addEventListener('click', function () {
-          btn.classList.toggle('is-on');   // multi-select: combine regions
-          applyFilters();
-        });
-        frag.appendChild(btn);
+        var chip = _makeExtraChip(r, r, 'region-chip-dd');
+        chip.title = 'Filter by ' + r + ' (pick several to combine)';
+        chip.style.setProperty('--rc-col', REGION_COLORS[r]);
+        menu.appendChild(chip);
       });
-      var clearBtn = document.createElement('button');
-      clearBtn.type = 'button';
-      clearBtn.className = 'clear-btn';
-      clearBtn.textContent = 'Clear';
-      clearBtn.addEventListener('click', function () {
-        host.querySelectorAll('.region-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
+      var clr = document.createElement('button');
+      clr.type = 'button'; clr.className = 'extra-clear'; clr.textContent = 'Clear';
+      clr.addEventListener('click', function () {
+        menu.querySelectorAll('.extra-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
         applyFilters();
       });
-      frag.appendChild(clearBtn);
-      host.appendChild(frag);
-      host.dataset.built = '1';
+      menu.appendChild(clr);
+      menu.dataset.built = '1';
     }
 
     function buildStatusFilters() {
@@ -4483,7 +4479,7 @@
       Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-month-header'))
         .forEach(function (h) { if (h.parentNode) h.parentNode.removeChild(h); });
       var cards = Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card'));
-      if (!cards.length) { buildMonthsMenu([]); return; }
+      if (!cards.length) { buildMonthsFilter(); return; }
       // Hidden events sink to their own group after everything (incl. Date TBD);
       // within each group, chronological by event date.
       cards.sort(function (a, b) {
@@ -4510,7 +4506,7 @@
         frag.appendChild(card);
       });
       $opsGrid.appendChild(frag);
-      buildMonthsMenu(order);
+      buildMonthsFilter();
     }
 
     function toggleOpsMonth(key) {
@@ -4526,49 +4522,38 @@
       applyFilters();
     }
 
-    // (Re)render the per-month checkbox list inside the Months dropdown.
-    // A CHECKED box means the month is SHOWN; unchecked means collapsed.
-    function buildMonthsMenu(order) {
-      var list = document.getElementById('ops-months-list');
-      if (!list) return;
-      if (!order || !order.length) {
-        list.innerHTML = '<p style="font-size:0.78rem;color:var(--ab-fg-3);padding:6px;margin:0;">No months yet</p>';
-        return;
-      }
-      list.innerHTML = order.map(function (m) {
-        var checked = opsCollapsedMonths[m.key] ? '' : ' checked';
-        return '<label><input type="checkbox" data-month-toggle="' + escapeHtml(m.key) + '"' + checked + '>' +
-               '<span>' + escapeHtml(m.label) + '</span>' +
-               '<span class="mc-count" data-mc-count="' + escapeHtml(m.key) + '"></span></label>';
-      }).join('');
-      Array.prototype.slice.call(list.querySelectorAll('input[data-month-toggle]')).forEach(function (cb) {
-        cb.addEventListener('change', function () {
-          opsCollapsedMonths[cb.getAttribute('data-month-toggle')] = !cb.checked;
-          applyFilters();
-        });
+    // (Re)build the Months filter as a multi-select .filter-dd (top line) — one
+    // bubble per distinct month present in the grid, chronological. No chips
+    // selected = all months; select some = show only those. Prior selection is
+    // preserved across re-renders. (Month-section collapse via header click is a
+    // separate concern, still handled by opsCollapsedMonths / toggleOpsMonth.)
+    function buildMonthsFilter() {
+      var menu = document.querySelector('#filter-months .filter-dd-menu');
+      if (!menu || !$opsGrid) return;
+      var prev = {};
+      Array.prototype.forEach.call(menu.querySelectorAll('.extra-chip.is-on'), function (b) { prev[b.dataset.value] = 1; });
+      var seen = {}, months = [];
+      Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (card) {
+        var k = card.dataset.month;
+        if (!k || k === 'tbd' || seen[k]) return;
+        seen[k] = 1;
+        months.push({ key: k, label: card.dataset.monthLabel || k, sort: parseInt(card.dataset.sort || '99999999', 10) });
       });
-    }
-
-    // Wire the Months dropdown button + Show all / Hide all (once).
-    function wireMonthsMenu() {
-      var btn = document.getElementById('ops-months-btn');
-      var menu = document.getElementById('ops-months-menu');
-      if (!btn || !menu || btn.dataset.wired) return;
-      btn.dataset.wired = '1';
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var open = menu.classList.toggle('open');
-        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      months.sort(function (a, b) { return a.sort - b.sort; });
+      menu.innerHTML = '';
+      if (!months.length) { menu.innerHTML = '<span class="extra-empty">No dated events yet</span>'; return; }
+      months.forEach(function (m) {
+        var chip = _makeExtraChip(m.key, m.label, 'month-chip');
+        if (prev[m.key]) chip.classList.add('is-on');
+        menu.appendChild(chip);
       });
-      menu.addEventListener('click', function (e) { e.stopPropagation(); });
-      document.addEventListener('click', function () {
-        menu.classList.remove('open');
-        btn.setAttribute('aria-expanded', 'false');
+      var clr = document.createElement('button');
+      clr.type = 'button'; clr.className = 'extra-clear'; clr.textContent = 'Clear';
+      clr.addEventListener('click', function () {
+        menu.querySelectorAll('.extra-chip.is-on').forEach(function (b) { b.classList.remove('is-on'); });
+        applyFilters();
       });
-      var allBtn  = document.getElementById('ops-months-all');
-      var noneBtn = document.getElementById('ops-months-none');
-      if (allBtn)  allBtn.addEventListener('click', function () { setAllMonths(false); });
-      if (noneBtn) noneBtn.addEventListener('click', function () { setAllMonths(true); });
+      menu.appendChild(clr);
     }
 
     // Keep aria-pressed in lock-step with the visual is-on/is-activestat state,
@@ -4589,23 +4574,21 @@
       var $urgent  = document.getElementById('ops-f-urgent');
       var $submitted = document.getElementById('ops-f-submitted');
       var $meet    = document.getElementById('ops-f-meetings');
-      var $worth   = document.getElementById('ops-f-worth');
-      var $aipicks = document.getElementById('ops-f-aipicks');
       var $contact = document.getElementById('ops-f-contact');
       var $past    = document.getElementById('ops-f-past');
       var $hidden  = document.getElementById('ops-f-hidden');
       var $recent  = document.getElementById('ops-f-recent');
       if (!$search || !$opsGrid) return;
       var q = ($search.value || '').toLowerCase().trim();
-      // Region now comes from the pipeline-style chip row (single-select).
-      // Region is now MULTI-select (Angela: click several regions) — OR them.
-      var activeRegions = Array.prototype.map.call(document.querySelectorAll('#region-filters .region-chip.is-on'), function (b) { return b.dataset.region; });
+      // Region / Months / Should-attend are multi-select .filter-dd bubbles in
+      // the top line — OR the chips within each dimension, AND across dimensions.
+      var activeRegions = Array.prototype.map.call(document.querySelectorAll('#filter-region .extra-chip.is-on'), function (b) { return b.dataset.value; });
+      var activeMonths  = Array.prototype.map.call(document.querySelectorAll('#filter-months .extra-chip.is-on'), function (b) { return b.dataset.value; });
+      var activeShould  = Array.prototype.map.call(document.querySelectorAll('#filter-should .extra-chip.is-on'), function (b) { return b.dataset.value; });
       var fSaved   = !!($saved && $saved.checked);
       var fUrgent  = !!($urgent && $urgent.checked);
       var fSubmitted = !!($submitted && $submitted.checked);
       var fMeet    = !!($meet && $meet.checked);
-      var fWorth   = !!($worth && $worth.checked);
-      var fAiPicks = !!($aipicks && $aipicks.checked);
       var fContact = !!($contact && $contact.checked);
       // Ticket price + Fits are now MULTI-select bubble dropdowns — OR the chips.
       var activePrices = Array.prototype.map.call(document.querySelectorAll('#filter-price .extra-chip.is-on'), function (b) { return b.dataset.value; });
@@ -4614,15 +4597,15 @@
       var showHidden = !!($hidden && $hidden.checked);
       var fRecent    = !!($recent && $recent.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-submitted',$submitted],['ops-f-meetings',$meet],['ops-f-worth',$worth],['ops-f-aipicks',$aipicks],['ops-f-contact',$contact],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-submitted',$submitted],['ops-f-meetings',$meet],['ops-f-contact',$contact],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
       });
       // Pipeline-stage filter — keep a card if it carries ANY selected stage.
       var activeStages = Array.prototype.map.call(
-        document.querySelectorAll('#stage-filters .stage-chip.is-on'),
-        function (b) { return b.dataset.stage; }
+        document.querySelectorAll('#filter-pipeline .extra-chip.is-on'),
+        function (b) { return b.dataset.value; }
       );
       // Legacy status chip filter — OR across selected statuses (multi-select)
       var activeStatuses = Array.prototype.map.call(
@@ -4662,6 +4645,7 @@
           if (_blob.indexOf(q) === -1) on = false;
         }
         if (activeRegions.length && activeRegions.indexOf(card.dataset.region) === -1) on = false;
+        if (activeMonths.length && activeMonths.indexOf(card.dataset.month) === -1) on = false;
         if (activeFits.length) {
           var _fitHit = activeFits.some(function (k) { var pf = AB_PROFILE_BY_KEY[k]; return pf && profileFits(pf, card.dataset.fitText, card.dataset.region); });
           if (!_fitHit) on = false;
@@ -4671,10 +4655,12 @@
         if (fSubmitted && (card.dataset.statusTags || '').split('|').indexOf('Submitted') === -1) on = false;
         if (fMeet && card.dataset.meetings !== '1') on = false;
         if (fRecent && card.dataset.recent !== '1') on = false;
-        // "Should attend" = the team's HAND-PICKED ones only (never the AI auto-tags,
-        // which get their own "AI picks" filter) — so the manual list isn't muted.
-        if (fWorth && shouldAttendKind(card.dataset.attend) !== 'human') on = false;
-        if (fAiPicks && shouldAttendKind(card.dataset.attend) !== 'ai') on = false;
+        // Should attend — OR the selected kinds: Team pick = hand-flagged (human),
+        // AI pick = the AI recommend pass. No chips selected = don't filter.
+        if (activeShould.length) {
+          var _sak = shouldAttendKind(card.dataset.attend);
+          if (activeShould.indexOf(_sak) === -1) on = false;
+        }
         if (fContact && card.dataset.contactFound !== '1') on = false;
         if (activePrices.length) {
           var pn = card.dataset.price === '' || card.dataset.price == null ? null : parseFloat(card.dataset.price);
@@ -4746,13 +4732,6 @@
         var cnt = h.querySelector('[data-mh-count]');
         if (cnt) cnt.textContent = n + (n === 1 ? ' event' : ' events') + (collapsed ? ' · hidden' : '');
       });
-      // Keep the Months dropdown in sync: checkbox checked = month shown.
-      Array.prototype.slice.call(document.querySelectorAll('#ops-months-list input[data-month-toggle]')).forEach(function (cb) {
-        cb.checked = !opsCollapsedMonths[cb.getAttribute('data-month-toggle')];
-      });
-      Array.prototype.slice.call(document.querySelectorAll('#ops-months-list [data-mc-count]')).forEach(function (sp) {
-        sp.textContent = (monthMatched[sp.getAttribute('data-mc-count')] || 0);
-      });
       var $shown = document.getElementById('ops-shown');
       if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + (opsCards.length - dupSkipped);
       // Filtered-to-zero guard: an all-filtered grid LOOKS like "no events
@@ -4810,7 +4789,7 @@
       // Debounce only the free-text search (fires on every keystroke); selects
       // and checkboxes change discretely, so apply those immediately.
       var debouncedApply = debounce(applyFilters, 130);
-      ['ops-search','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-contact','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
+      ['ops-search','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-contact','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -4825,11 +4804,11 @@
       ['ops-search'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.value = '';
       });
-      ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-worth','ops-f-aipicks','ops-f-past','ops-f-hidden','ops-f-recent','ops-f-contact'].forEach(function (id) {
+      ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-past','ops-f-hidden','ops-f-recent','ops-f-contact'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.checked = false;
       });
       Array.prototype.forEach.call(
-        document.querySelectorAll('#stage-filters .stage-chip.is-on, #region-filters .region-chip.is-on, .status-filters .status-chip.is-on, #filter-price .extra-chip.is-on, #filter-fits .extra-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
+        document.querySelectorAll('#filter-pipeline .extra-chip.is-on, #filter-region .extra-chip.is-on, #filter-months .extra-chip.is-on, #filter-should .extra-chip.is-on, .status-filters .status-chip.is-on, #filter-price .extra-chip.is-on, #filter-fits .extra-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
         function (c) { c.classList.remove('is-on'); }
       );
       opsStatFilter = '';
@@ -5885,7 +5864,6 @@
         rebuildSpeakerFilter(stateRows, manualRows);
         dedupeOpsCards();   // collapse scraped duplicate cards before layout
         regroupOpsByMonth();
-        wireMonthsMenu();
         applyFilters();
         // Rebuild the dedup index from this fresh fetch — realtime
         // events from other tabs / sessions land here, so we want every
