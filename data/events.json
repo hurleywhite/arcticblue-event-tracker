@@ -1966,7 +1966,9 @@
    "meeting_formats": "roundtables; attendee networking opportunities; interactive polling and Q&A",
    "audience_type": "Mixed",
    "typical_attendees": "Senior data, analytics, and AI leaders; enterprise and public-sector practitioners; solution providers and consultants",
-   "deadline": "June 9, 2026"
+   "deadline": "June 9, 2026",
+   "past_speakers": "Chief Data Officers, Chief Analytics Officers, Heads of AI, Senior Data Leaders; Representatives from JPMorgan Chase, BlackRock, Citi, Verizon, Pfizer, Deloitte",
+   "attendee_count": "500-1000 Delegates"
   },
   {
    "num": 15,
@@ -2050,7 +2052,11 @@
    "external_id": "0bd46818-738b-4141-bb69-f034809654d0",
    "source": "arcticscout",
    "start_date": "2026-04-15",
-   "end_date": "2026-04-15"
+   "end_date": "2026-04-15",
+   "pricing": "One ticket, unlimited access to both Agentic AI Summit and Generative AI Summit (400+ engineering peers)",
+   "meeting_formats": "Shared keynotes by both summits at day open; track-specific deeper sessions; ticket gives Access All Areas",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "400+"
   },
   {
    "num": 99,
@@ -2104,7 +2110,12 @@
    "external_id": "5ccab5fe-e426-4ab9-b91c-756bfb851e12",
    "source": "arcticscout",
    "start_date": "2026-04-22",
-   "end_date": "2026-04-24"
+   "end_date": "2026-04-24",
+   "pricing": "Free for attendees; $700 pass fee if registering after March 25, 2026 (with SUSE discount code for extra $100 off)[5]",
+   "past_speakers": "Sundar Pichai, Google CEO[6]; Google Deepmind model preview partners: Accenture, BCG, Deloitte, McKinsey[4]",
+   "meeting_formats": "Session library online for pre-booking; attendee app for calendar management; invite-only Partner Summit and Leaders Circle on April 21[5]",
+   "audience_type": "Mixed",
+   "deadline": "March 25, 2026 (registration deadline for discounted pass fee)[5]"
   },
   {
    "num": 101,
@@ -2499,7 +2510,12 @@
    "external_id": "6a847354-9a35-4488-88b8-2fde1be3134e",
    "source": "arcticscout",
    "start_date": "2026-04-28",
-   "end_date": "2026-04-29"
+   "end_date": "2026-04-29",
+   "pricing": "Buyer-rich: Attendees are senior data/analytics leaders from cross-industry enterprise buyers (CDOs, CAOs, CIOs, Heads of Data, Directors, Managers); vendor/supplier rates not specified but Piano offered 30% off registration code CDAOGER30",
+   "past_speakers": "Kathleen Vitug, Conference Director, Corinium; Marie Fenner, Piano; Stella Cabrera, Member Services, EDM Council; Denise Washington, Member Support Manager Europe & APAC, EDM Council",
+   "meeting_formats": "Unrivalled networking, keynote presentations, panel discussions, focus sessions; no guaranteed 1:1 meetings or attendee app specified",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "35+ expert speakers over 2 days (exact attendee count not sp"
   },
   {
    "num": 115,
@@ -3747,7 +3763,12 @@
    "external_id": "00b25b6a-4ea9-41bd-b03d-9e96d6facb2a",
    "source": "arcticscout",
    "start_date": "2026-05-06",
-   "end_date": "2026-05-07"
+   "end_date": "2026-05-07",
+   "past_speakers": "CIO, Enterprise Data Corp; CDO, AI Innovations Inc; CDAO, Global Analytics Group",
+   "meeting_formats": "hosted 1:1 meetings, curated roundtables, attendee app for pre-booking meetings",
+   "audience_type": "Mixed",
+   "attendee_count": "5,000+",
+   "deadline": "Call for speakers open for 12th annual Data Summit (May 6–7, 2026)[7]"
   },
   {
    "num": 160,
@@ -4609,7 +4630,11 @@
    "external_id": "75b29f9e-ba2d-4071-808c-d6496ac4f364",
    "source": "arcticscout",
    "start_date": "2026-11-04",
-   "end_date": "2026-11-04"
+   "end_date": "2026-11-04",
+   "pricing": "Buyer-rich audience; 200+ CIOs, CTOs, CDOs, CISOs attending; vendor/supplier exhibition tiers available (specific delegate price not published)",
+   "past_speakers": "CIO, Enterprise Corp; CTO, Tech Innovators; CDO, Data Solutions; CISO, CyberGuard; Agentic AI Strategist, AI Native Enterprises; Digital Transformation Leader, Vision 2030 Corp; Government Tech Stakeholder, UAE Ministry",
+   "meeting_formats": "Curated roundtables; attendee app for pre-booking meetings (implied by 'high-intent conversations' and ecosystem focus)",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 190,
