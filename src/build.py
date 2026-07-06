@@ -2755,7 +2755,7 @@ def build():
   var $actions = document.getElementById('modal-actions');
   var lastFocus = null;
   // The ArcticBlue speaker roster — drives the "Interested" picker.
-  var AB_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
+  var AB_ROSTER = ['Thor', 'Verma', 'Jerome', 'Joe', 'Scott', 'Carlos', 'Jim'];
   // Persona single-source-of-truth (config/personas.json), baked in. Global so
   // both the modal (attendees picker) and the ops views (Day-Of) read it.
   window.AB_PERSONAS = {PERSONAS_JS}.personas;
@@ -2853,7 +2853,12 @@ def build():
     bStage.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
     bStage.push('<button type="button" class="qa' + (has('Followed up') ? ' on' : '') + '" data-qa="followed-up">' + (has('Followed up') ? '✓ Followed up' : 'Followed up') + '</button>');
     bStage.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
-    bStage.push('<button type="button" class="qa' + (has('Attending') ? ' on' : '') + '" data-qa="attending">' + (has('Attending') ? '✓ Attending' : 'Attending') + '</button>');
+    // "Attending" is PER-PERSON: it reflects whether the signed-in person is in
+    // the attendees list (Thor sees it off when only Jerome attends). Clicking it
+    // adds/removes YOU. Angela assigns anyone via the edit-form Attending bubbles.
+    var _meKey = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '').trim().split(/\\s+/)[0].toLowerCase();
+    var _iAmAttending = !!(_meKey && (rec.attendees || []).some(function (a) {{ return String(a).toLowerCase() === _meKey; }}));
+    bStage.push('<button type="button" class="qa' + (_iAmAttending ? ' on' : '') + '" data-qa="attending" title="Attending is per-person — this marks whether YOU are going">' + (_iAmAttending ? '✓ Attending' : "+ I'm attending") + '</button>');
     bStage.push('<button type="button" class="qa' + (_saKind === 'human' ? ' on' : '') + '" data-qa="should-attend" title="' +
       (_saKind === 'ai' ? 'AI-suggested — click to confirm as a team Should-Attend' : 'Flag Should Attend — tentative but high on the radar') + '">' +
       (_saKind === 'human' ? '✓ Should Attend' : (_saKind === 'ai' ? 'Should Attend ✦AI' : 'Should Attend')) + '</button>');
@@ -2914,8 +2919,29 @@ def build():
         rec.interested = ilist;
         patch.interested = ilist;
       }}
-      else if (qa === 'submitted' || qa === 'followed-up' || qa === 'booked' || qa === 'attending') {{
-        var stage = qa === 'submitted' ? 'Submitted' : (qa === 'followed-up' ? 'Followed up' : (qa === 'booked' ? 'Booked' : 'Attending'));
+      else if (qa === 'attending') {{
+        // Per-person: toggle the signed-in person in the attendees list, then
+        // keep the event-level Attending stage in sync (on iff anyone attends).
+        var meA = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || '';
+        if (!meA) return;
+        var meAk = meA.trim().split(/\\s+/)[0].toLowerCase();
+        var att = (rec.attendees || []).slice();
+        var aHit = -1;
+        for (var w = 0; w < att.length; w++) {{ if (String(att[w]).toLowerCase() === meAk) {{ aHit = w; break; }} }}
+        if (aHit === -1) att.push(meAk); else att.splice(aHit, 1);
+        rec.attendees = att;
+        patch.attendees = att;
+        var atags = (rec.stage_tags || []).slice();
+        var hadAtt = atags.indexOf('Attending') !== -1;
+        if (att.length && !hadAtt) atags.push('Attending');
+        else if (!att.length && hadAtt) atags.splice(atags.indexOf('Attending'), 1);
+        var aOrder = window.opsStageOrder || [];
+        if (aOrder.length) atags = aOrder.filter(function (s) {{ return atags.indexOf(s) !== -1; }});
+        rec.stage_tags = atags;
+        patch.status_tags = atags;
+      }}
+      else if (qa === 'submitted' || qa === 'followed-up' || qa === 'booked') {{
+        var stage = qa === 'submitted' ? 'Submitted' : (qa === 'followed-up' ? 'Followed up' : 'Booked');
         var tags = (rec.stage_tags || []).slice();
         var idx = tags.indexOf(stage);
         if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
@@ -2976,12 +3002,28 @@ def build():
     }}
     var stages = rec.stage_tags || [];
     var order = window.opsStageOrder || ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
-    var chips = order.map(function (s) {{
+    // Pipeline chips = the SPEAKING track only. "Attending" is managed per-person
+    // via the Attending bubbles below (which sync the Attending stage), not as a
+    // manual pipeline toggle.
+    var chips = order.filter(function (s) {{ return s !== 'Attending'; }}).map(function (s) {{
       return '<button type="button" class="me-stage' + (stages.indexOf(s) !== -1 ? ' on' : '') + '" data-stage="' + esc(s) + '">' + esc(s) + '</button>';
     }}).join('');
     var interested = rec.interested || [];
     var intChips = AB_ROSTER.map(function (n) {{
       return '<label class="me-int' + (interested.indexOf(n) !== -1 ? ' on' : '') + '"><input type="checkbox" data-interested="' + esc(n) + '"' + (interested.indexOf(n) !== -1 ? ' checked' : '') + '>' + esc(n) + '</label>';
+    }}).join('');
+    // ArcticBlue speaker — bubbles (multi-select) from the roster, like Attending.
+    var _spTok = String(rec.speaker || '').toLowerCase().split(/[,;/&]| and | plus /).map(function (s) {{ return s.trim(); }}).filter(Boolean);
+    var spChips = AB_ROSTER.map(function (n) {{
+      var on = _spTok.indexOf(n.toLowerCase()) !== -1;
+      return '<label class="me-int' + (on ? ' on' : '') + '"><input type="checkbox" data-speaker="' + esc(n) + '"' + (on ? ' checked' : '') + '>' + esc(n) + '</label>';
+    }}).join('');
+    // Attending — bubbles from the roster (first names, no last names). The stored
+    // key is the lowercased first name (= persona key for the Day-Of brief).
+    var attendees = rec.attendees || [];
+    var attChips = AB_ROSTER.map(function (n) {{
+      var on = attendees.indexOf(n.toLowerCase()) !== -1;
+      return '<label class="me-int' + (on ? ' on' : '') + '"><input type="checkbox" data-attending="' + esc(n.toLowerCase()) + '"' + (on ? ' checked' : '') + '>' + esc(n) + '</label>';
     }}).join('');
     var pris = ['', 'High', 'Medium', 'Low'];
     var p2p = ['', 'Yes', 'No', 'Both'];
@@ -2991,25 +3033,16 @@ def build():
       h += ef('Event name', inp('name', rec.name));
       h += ef('Date', inp('date_str', rec.date_str, 'e.g. Sept 14–16, 2026'));
       h += ef('Location', inp('location', rec.location));
-      h += ef('Website', inp('url', rec.url, 'https://'));
-    }} else {{
-      // Catalog events have no editable name field, so put the link first —
-      // right under the event title at the top of the Edit form.
-      h += ef('Website / link', inp('url', rec.url, 'https://'));
     }}
+    // Field order (Thor's ask): pipeline stage, notes, ArcticBlue speaker
+    // (bubbles), speaker topic, attending, then website link.
     h += ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
-    h += ef('ArcticBlue speaker', '<input class="me-input" type="text" data-edit="speaker" list="ab-speakers" value="' + esc(rec.speaker || '') + '" placeholder="Unassigned">');
-    h += ef('Interested (joins Angela\\'s apply queue)', '<div class="me-ints">' + intChips + '</div>');
-    // Notes lives here — the first free-text field, directly below Interested.
     h += ef('Notes', ta('notes', rec.notes, 3));
-    var attendees = rec.attendees || [];
-    var attChips = Object.keys(window.AB_PERSONAS || {{}}).map(function (k) {{
-      var nm = (window.AB_PERSONAS[k] || {{}}).name || k;
-      var on = attendees.indexOf(k) !== -1;
-      return '<label class="me-int' + (on ? ' on' : '') + '"><input type="checkbox" data-attending="' + esc(k) + '"' + (on ? ' checked' : '') + '>' + esc(nm) + '</label>';
-    }}).join('');
-    h += ef('Attending — surfaces a Day-Of brief', '<div class="me-ints">' + attChips + '</div>');
+    h += ef('ArcticBlue speaker', '<div class="me-ints">' + spChips + '</div>');
     h += ef('Speaker topic — drives the day-of news pull', inp('speaker_topic', rec.speaker_topic, 'e.g. AI workforce enablement'));
+    h += ef('Attending — surfaces a Day-Of brief', '<div class="me-ints">' + attChips + '</div>');
+    h += ef((isCat ? 'Website / link' : 'Website'), inp('url', rec.url, 'https://'));
+    h += ef('Interested (joins Angela\\'s apply queue)', '<div class="me-ints">' + intChips + '</div>');
     h += ef('Priority', '<select class="me-input" data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) {{ return opt(v, curPri); }}).join('') + '</select>');
     h += ef('Why it fits ArcticBlue', ta('why', rec.why));
     h += ef('About', ta('about', rec.about));
@@ -3088,6 +3121,18 @@ def build():
         window.opsWrite(rec._table, rec._key, {{ interested: list }});
       }});
     }});
+    // ArcticBlue speaker — multi-select bubbles. Collect the checked names (in
+    // roster/DOM order) into the comma-joined speaker string.
+    box.querySelectorAll('[data-speaker]').forEach(function (cb) {{
+      cb.addEventListener('change', function () {{
+        var names = [];
+        box.querySelectorAll('[data-speaker]').forEach(function (b) {{ if (b.checked) names.push(b.dataset.speaker); }});
+        var val = names.join(', ');
+        rec.speaker = val;
+        var lbl = cb.closest('.me-int'); if (lbl) lbl.classList.toggle('on', cb.checked);
+        window.opsWrite(rec._table, rec._key, {{ speaker: val || null }});
+      }});
+    }});
     box.querySelectorAll('[data-attending]').forEach(function (cb) {{
       cb.addEventListener('change', function () {{
         var list = (rec.attendees || []).slice();
@@ -3095,8 +3140,10 @@ def build():
         var i = list.indexOf(k);
         if (cb.checked && i === -1) list.push(k);
         else if (!cb.checked && i !== -1) list.splice(i, 1);
-        var order = Object.keys(window.AB_PERSONAS || {{}});
-        list = order.filter(function (x) {{ return list.indexOf(x) !== -1; }});
+        var order = AB_ROSTER.map(function (n) {{ return n.toLowerCase(); }});
+        // Keep roster order, then any non-roster keys already present.
+        list = order.filter(function (x) {{ return list.indexOf(x) !== -1; }})
+                    .concat(list.filter(function (x) {{ return order.indexOf(x) === -1; }}));
         rec.attendees = list;
         var lbl = cb.closest('.me-int'); if (lbl) lbl.classList.toggle('on', cb.checked);
         // Keep the Attending pipeline stage in sync with the attendees roster, so
