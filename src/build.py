@@ -315,9 +315,6 @@ def render_event_card(ev, archived=False):
     if ev.get('pricing'):
         sig.append(f'<span class="attend-sig" title="Price to attend">'
                    f'{e(str(ev["pricing"]))}</span>')
-    if ev.get('meeting_formats'):
-        sig.append(f'<span class="attend-sig" title="{e(str(ev["meeting_formats"]))}">'
-                   f'1:1 meetings</span>')
     signals_html = (f'<p class="attend-signals">{"".join(sig)}</p>' if sig else '')
     return f'''
     <article class="event is-clickable{extra_class}"
@@ -3155,7 +3152,6 @@ def build():
     if (rec.status && !(rec.stage_tags && rec.stage_tags.length) && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
     if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
     if (rec.audience_type) badges.push('<span class="badge ' + audienceClass(rec.audience_type) + '">' + esc(rec.audience_type) + '</span>');
-    if (rec.meeting_formats) badges.push('<span class="badge p-medium" title="' + esc(rec.meeting_formats) + '">1:1 meetings</span>');
     if (rec.urgent === true) badges.push('<span class="badge p-high">Urgent</span>');
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
     $badges.innerHTML = badges.join('');
@@ -4042,7 +4038,6 @@ def build():
       // Attending-signal strip + one-click apply (the booking shortcut).
       var sigBits = [];
       if (_aud) sigBits.push('<span class="badge ' + audienceClass(_aud) + '">' + escapeHtml(_aud) + '</span>');
-      if (_meet) sigBits.push('<span class="attend-sig" title="' + escapeHtml(_meet) + '">1:1 meetings</span>');
       var sigRow = sigBits.length ? '<p class="attend-signals">' + sigBits.join('') + '</p>' : '';
       var applyUrl = speakingRouteUrl(ev.speaking_route);
       var applyBtn = applyUrl
@@ -4260,12 +4255,9 @@ def build():
         ? '<span class="badge ' + audienceClass(mev.audience_type) + '">' + escapeHtml(mev.audience_type) + '</span>'
         : '';
       var attendChip = '';  // "Worth attending" folded into the Interested list
-      var meetChip = mev.meeting_formats
-        ? '<span class="attend-sig" title="' + escapeHtml(mev.meeting_formats) + '">1:1 meetings</span>'
-        : '';
-      // Audience + 1:1 signals live in the same "labels" zone as the catalog cards
+      // Audience signal lives in the same "labels" zone as the catalog cards
       // (below the location, above the bottom Apply button) for a consistent layout.
-      var mSigRow = (audChip || meetChip) ? '<p class="attend-signals">' + audChip + meetChip + '</p>' : '';
+      var mSigRow = audChip ? '<p class="attend-signals">' + audChip + '</p>' : '';
       var priceLine = (mev.pricing && String(mev.pricing).trim())
         ? '<p class="ops-meta">Price to attend: ' + escapeHtml(mev.pricing) + '</p>'
         : '';
