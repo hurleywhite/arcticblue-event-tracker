@@ -227,7 +227,7 @@ TASTE PROFILE: suggest events of similar caliber and audience that are
 missing from it:
 {tracked_str}
 
-Criteria
+{recurring_block}Criteria
 - Quarters to include:  {quarters_str}
 - Event types to include: {types_str}
 - Regions to include:   {regions_str}
@@ -254,17 +254,32 @@ CRITICAL: do not invent URLs. If you don't have a verified URL for an event, set
 """
 
 
-def _build_prompt(count, types, quarters, regions, tracked):
+def _build_prompt(count, types, quarters, regions, tracked, recurring=None):
     def fmt(arr):
         if not arr: return 'no preference'
         return ', '.join(arr)
     tracked_str = '; '.join(tracked) if tracked else '(list unavailable)'
+    recurring = [str(x).strip() for x in (recurring or []) if str(x).strip()]
+    if recurring:
+        recurring_block = (
+            "PRIORITY — RETURNING EVENTS: ArcticBlue attended or spoke at these "
+            "events in a past year, and they typically recur annually. FIRST, find "
+            "the NEXT upcoming edition (a future-dated, later-year edition of the "
+            "SAME series) of each one and put those at the TOP of the results. If an "
+            "event has no findable future edition, skip it and fill the remaining "
+            "slots from the Criteria below. Never return a past edition itself; these "
+            "count toward the total:\n"
+            + '; '.join(recurring[:30]) + "\n\n"
+        )
+    else:
+        recurring_block = ''
     return SEARCH_PROMPT.format(
-        count        = max(1, min(int(count or 10), 25)),
-        types_str    = fmt(types),
-        quarters_str = fmt(quarters),
-        regions_str  = fmt(regions),
-        tracked_str  = tracked_str,
+        count           = max(1, min(int(count or 10), 25)),
+        types_str       = fmt(types),
+        quarters_str    = fmt(quarters),
+        regions_str     = fmt(regions),
+        tracked_str     = tracked_str,
+        recurring_block = recurring_block,
     )
 
 
@@ -385,6 +400,9 @@ class handler(BaseHTTPRequestHandler):
         types    = _list(body.get('types'))
         quarters = _list(body.get('quarters'))
         regions  = _list(body.get('regions'))
+        # Events ArcticBlue attended/spoke at in the past — find their next-year
+        # editions first, then fall back to the criteria above.
+        recurring = _list(body.get('recurring'))
 
         # Auth. The tracker is now open (no login), so a Supabase editor token
         # is OPTIONAL — if present we record who, otherwise we allow the call
@@ -407,7 +425,7 @@ class handler(BaseHTTPRequestHandler):
         # exclusion list and the hard filter then thins results. Asking for
         # double (same single API call) keeps the NEW-event yield near count.
         ask = min(count * 2, 25)
-        prompt = _build_prompt(ask, types, quarters, regions, tracked)
+        prompt = _build_prompt(ask, types, quarters, regions, tracked, recurring)
         engine = 'perplexity' if PPLX_API_KEY else 'dust'
         if engine == 'perplexity':
             try:

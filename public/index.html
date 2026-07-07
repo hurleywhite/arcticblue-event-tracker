@@ -8316,7 +8316,7 @@
       panel.innerHTML =
         '<h3>Find events (AI search)</h3>' +
         '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
-          'AI web search finds upcoming in-person events matching your criteria — buyer-rich audiences preferred. Added events are vetted and auto-enriched.' +
+          'AI web search finds upcoming in-person events matching your criteria — buyer-rich audiences preferred. It first looks for next-year editions of events the team has attended, then fills in with your criteria. Added events are vetted and auto-enriched.' +
         '</p>' +
         '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">' +
           '<label style="display:inline-flex;align-items:center;gap:8px;font-family:var(--ab-mono);font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--ab-fg-3);">' +
@@ -8353,7 +8353,20 @@
         // Types are no longer a manual pick — send the full vocabulary the
         // prompt already knows about (Enterprise, Halo, Research, …) so the AI
         // finds the whole range automatically.
-        var criteria = { count: count, types: SEARCH_TYPE_OPTIONS.slice(), quarters: getQuarters(), regions: getRegions() };
+        // Bake in "return next year": collect the events the team ATTENDED or
+        // SPOKE at in the past, so the agent hunts for their next-year editions
+        // first and only then falls back to the criteria below.
+        var _recurring = [];
+        try {
+          Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card[data-past="1"]'), function (c) {
+            var atts = (c.dataset.attendeeNames || '').split('|').filter(Boolean);
+            var stg  = (c.dataset.statusTags || '').split('|');
+            var bookedSpk = stg.indexOf('Booked') !== -1 && (c.dataset.speaker || '');
+            var nm = c._modalRec && c._modalRec.name;
+            if (nm && (atts.length || bookedSpk) && _recurring.indexOf(nm) === -1) _recurring.push(nm);
+          });
+        } catch (e) {}
+        var criteria = { count: count, types: SEARCH_TYPE_OPTIONS.slice(), quarters: getQuarters(), regions: getRegions(), recurring: _recurring.slice(0, 30) };
         var runBtn = panel.querySelector('#search-run-btn');
         var meta   = panel.querySelector('#search-meta');
         runBtn.disabled = true; runBtn.textContent = 'Searching\u2026';
