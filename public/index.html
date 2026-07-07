@@ -1276,10 +1276,10 @@
       gap: 8px; margin: 0 0 14px;
     }
     .ops-topfilters .filter-dd-btn { width: auto; }
-    /* Search fills the rest of the top row, from the Should-attend dropdown
-       out to the right edge. */
+    /* Search sits inline with the filters — a moderate, fixed-ish width so it
+       doesn't stretch across the whole row. */
     .ops-topfilters #ops-search {
-      flex: 1 1 240px; min-width: 150px;
+      flex: 0 1 360px; min-width: 200px;
       font-family: "Nunito Sans", var(--ab-sans); font-size: 0.9rem; font-weight: 600;
       padding: 9px 13px; border: 1px solid var(--ab-rule-strong);
       border-radius: 6px; background: var(--ab-bg); color: var(--ab-fg); outline: none;
@@ -1287,8 +1287,8 @@
     .ops-topfilters #ops-search::placeholder { color: var(--ab-fg-3); font-style: italic; font-weight: 500; }
     .ops-topfilters #ops-search:focus { border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.12); }
     @media (max-width: 640px) { .ops-topfilters #ops-search { flex-basis: 100%; } }
-    /* Ask AI sits at the right end of the filter line, next to search. */
-    .ops-topfilters .ab-btn--ask { flex: 0 0 auto; padding: 9px 15px; }
+    /* Ask Anything sits next to search — matched to the filter/search height. */
+    .ops-topfilters .ab-btn--ask { flex: 0 0 auto; padding: 11px 16px; font-size: 0.86rem; font-weight: 700; }
     .ops-filters {
       display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 10px; align-items: stretch;
@@ -1354,13 +1354,13 @@
 
     /* View toggle (Grid / Calendar) */
     .view-toggle {
-      display: inline-flex; flex-wrap: wrap; gap: 2px;
-      max-width: 100%; padding: 3px; background: var(--ab-bg-3);
-      border-radius: 8px; margin-bottom: 16px;
+      display: inline-flex; flex-wrap: wrap; gap: 4px;
+      max-width: 100%; padding: 4px; background: var(--ab-bg-3);
+      border-radius: 10px; margin-bottom: 16px;
     }
     .view-toggle button {
-      font-family: var(--ab-sans); font-weight: 600; font-size: 1.02rem;
-      letter-spacing: -0.01em; padding: 8px 17px; border-radius: 6px; border: 0;
+      font-family: var(--ab-sans); font-weight: 700; font-size: 1.35rem;
+      letter-spacing: -0.01em; padding: 9px 20px; border-radius: 7px; border: 0;
       background: transparent; color: var(--ab-fg-2);
       cursor: pointer; transition: background 120ms ease, color 120ms ease;
     }
@@ -1904,10 +1904,11 @@
       color: var(--ab-fg-3); margin-right: 2px; user-select: none;
     }
 
-    /* Row 2: view tabs on the left, add-event actions pushed to the right. */
+    /* Row 2: view tabs, then the add-event actions grouped right beside them
+       (left-aligned — no awkward gap stretched across the row). */
     .ops-controls-row {
       display: flex; flex-wrap: wrap; align-items: center;
-      justify-content: space-between; gap: 12px; margin-bottom: 16px;
+      justify-content: flex-start; gap: 16px; margin-bottom: 16px;
     }
     .ops-controls-row .view-toggle,
     .ops-controls-row .ops-toolbar { margin-bottom: 0; }
@@ -2086,10 +2087,10 @@
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Should attend</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- Team pick / AI pick chips injected by buildExtraFilters() --></div>
           </div>
-          <input type="search" id="ops-search" placeholder="Search events…" aria-label="Search events">
+          <input type="search" id="ops-search" placeholder="event name, location, or key words" aria-label="Search events">
           <button class="ab-btn ab-btn--ask" id="ask-ai-btn" title="Ask the AI to analyse and rank the events currently in view — e.g. 'which of these should I attend in September?'">
             <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/><path d="m5.6 5.6 1.5 1.5"/><path d="m16.9 16.9 1.5 1.5"/><path d="m5.6 18.4 1.5-1.5"/><path d="m16.9 7.1 1.5-1.5"/><circle cx="12" cy="12" r="4"/></svg>
-            Ask AI
+            Ask Anything
           </button>
         </div>
         <div class="ops-filters collapsed">
