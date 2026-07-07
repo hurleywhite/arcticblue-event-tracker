@@ -1357,6 +1357,8 @@ def build():
       letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 8px;
       border-radius: 10px; white-space: nowrap; flex-shrink: 0;
       min-width: 82px; text-align: center; box-sizing: border-box;
+      /* One uniform pill for every roster label (stage, Speaker, Interested). */
+      background: var(--ab-bg-3); color: var(--ab-fg-2);
     }}
     .ops-roster-who {{ color: var(--ab-fg); font-weight: 650; }}
     .ops-roster-who.muted {{ color: var(--ab-fg-3); font-weight: 400; font-style: italic; }}
@@ -4037,8 +4039,12 @@ def build():
       return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
     }}
     function _rosterRow(label, who, style, muted) {{
+      // All roster labels share ONE uniform pill style (.ops-roster-tag) — the
+      // per-stage colour is intentionally ignored so "Speaker"/"Interested"
+      // don't look different from "Submitted"/"Booked"/etc.
+      void style;
       return '<div class="ops-roster-row">' +
-        '<span class="ops-roster-tag" style="' + (style || '') + '">' + escapeHtml(label) + '</span>' +
+        '<span class="ops-roster-tag">' + escapeHtml(label) + '</span>' +
         '<span class="ops-roster-who' + (muted ? ' muted' : '') + '">' + who + '</span>' +
       '</div>';
     }}
