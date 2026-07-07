@@ -6828,7 +6828,9 @@ def build():
       // AI in Finance Summit Chicago", or a "Gartner …"/"IDC …" organiser
       // prefix). Guarded so genuinely different same-day/city events
       // (CDO vs CAIO Summit) stay separate: needs a shared, specific topic.
-      var DUP_GENERIC = {{ summit:1, conference:1, conf:1, forum:1, expo:1, congress:1, symposium:1, festival:1, event:1, meeting:1, week:1, day:1, days:1, the:1, an:1, of:1, for:1, to:1, and:1, in:1, on:1, at:1, by:1, with:1, annual:1, edition:1, series:1, international:1, global:1, world:1, national:1 }};
+      var DUP_GENERIC = {{ summit:1, conference:1, conf:1, forum:1, expo:1, exposition:1, congress:1, symposium:1, festival:1, event:1, meeting:1, week:1, day:1, days:1, the:1, an:1, of:1, for:1, to:1, and:1, in:1, on:1, at:1, by:1, with:1, annual:1, edition:1, series:1, national:1,
+        // region words — so "… UK" / "… Europe" / "… EMEA" reduce to the same core.
+        uk:1, europe:1, european:1, emea:1, emeia:1, apac:1, americas:1, america:1, mena:1, latam:1, international:1, global:1, worldwide:1 }};
       function _topicSig(o) {{
         var cityToks = {{}}; dupCityOf(o).split(' ').forEach(function (t) {{ if (t) cityToks[t] = 1; }});
         var set = {{}}, n = 0;
@@ -7279,6 +7281,11 @@ def build():
     // (IPT Edition)" collapse to the SAME key and are caught as one event.
     function dupNameCore(name) {{
       return abFold(name)
+        // Common abbreviations, so "HR Tech" == "HR Technology" and
+        // "AI …" == "Artificial Intelligence …".
+        .replace(/\\bartificial intelligence\\b/g, 'ai')
+        .replace(/\\btechnology\\b/g, 'tech')
+        .replace(/\\bhuman resources\\b/g, 'hr')
         .replace(/\\(.*?\\)/g, ' ')                         // parentheticals
         .replace(/\\b20\\d\\d\\b/g, ' ')                     // years (city+year keyed separately)
         .replace(/(\\d)([a-z])/g, '$1 $2').replace(/([a-z])(\\d)/g, '$1 $2')  // money20 -> money 20
@@ -7288,7 +7295,22 @@ def build():
         .replace(/\\b(usa|us|u s a|united states|na|north america|emea|apac|edition|series)\\b/g, ' ')
         .replace(/\\s+/g, ' ').trim();
     }}
-    function dupCityOf(o) {{ return abFold(o.city || ((o.location || '').split(',')[0]) || ''); }}
+    function dupCityOf(o) {{
+      o = o || {{}};
+      var c = String(o.city || '').trim();
+      if (!c) {{
+        var parts = String(o.location || '').split(',').map(function (s) {{ return s.trim(); }}).filter(Boolean);
+        // Drop a leading venue or street address ("583 Park Avenue, New York…",
+        // "Hilton London Syon Park, London…") so we read the CITY, not the building.
+        if (parts.length >= 2 && (/^\\d/.test(parts[0]) ||
+            /\\b(cent(er|re)|hotel|arena|convention|exhibition|expo|hall|conference|resort|casino|stadium|university|college|institute|messe|palexpo|sands|pavilion|forum|plaza|complex|palace|marina|garden|tower|club|pier|westin|marriott|hilton|hyatt|sheraton|ritz|fairmont|intercontinental|radisson|sofitel|wynn|venetian|mandalay|caesars|bellagio|renaissance|waldorf|peninsula|shangri|kempinski|four seasons)\\b/i.test(parts[0]))) {{
+          parts = parts.slice(1);
+        }}
+        c = parts[0] || '';
+      }}
+      // Normalise "New York City" -> "new york", "Greater London" -> "london".
+      return abFold(c).replace(/\\b(city|greater)\\b/g, '').replace(/\\s+/g, ' ').trim();
+    }}
     function dupYearOf(o) {{ var m = ((o.start_date || '') + ' ' + (o.date_str || '')).match(/20\\d\\d/); return m ? m[0] : ''; }}
     function dupKeyOf(o) {{ var core = dupNameCore(o.name || ''); return core ? (core + '|' + dupCityOf(o) + '|' + dupYearOf(o)) : ''; }}
     // ── Strip-and-retry around not-yet-migrated columns ────────────────
