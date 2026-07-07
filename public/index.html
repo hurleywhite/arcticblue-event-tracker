@@ -2405,7 +2405,7 @@
     bStage.push('<button type="button" class="qa' + (_iAmAttending ? ' on' : '') + '" data-qa="attending" title="Attending is per-person — this marks whether YOU are going">' + (_iAmAttending ? '✓ Attending' : "+ I'm attending") + '</button>');
     bStage.push('<button type="button" class="qa' + (_saKind === 'human' ? ' on' : '') + '" data-qa="should-attend" title="' +
       (_saKind === 'ai' ? 'AI-suggested — click to confirm as a team Should-Attend' : 'Flag Should Attend — tentative but high on the radar') + '">' +
-      (_saKind === 'human' ? '✓ Should Attend' : (_saKind === 'ai' ? 'Should Attend ✦AI' : 'Should Attend')) + '</button>');
+      (_saKind === 'human' ? '✓ Should Attend' : 'Should Attend') + '</button>');
     // "Interested" — the current teammate adds themselves to the list of people
     // who want Angela to apply for them. This feeds Angela's Queue.
     var me = (window.opsCurrentUser ? window.opsCurrentUser() : '') || '';
@@ -3897,7 +3897,9 @@
       var mContactBadge = card.dataset.contactFound === '1' ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       var mRecent = isRecentlyAdded(mev.created_at);
       card.dataset.recent = mRecent ? '1' : '';
-      var mRecentBadge = mRecent
+      // The "Recently Added" triage badge is a support-team cue (Angela/Hurley);
+      // dataset.recent still set so the Angela-only "Recently added" filter works.
+      var mRecentBadge = (mRecent && isSupportPerson(getCollabName() || ''))
         ? '<span class="recent-badge" title="Added ' + escapeHtml(formatStamp(mev.created_at)) + '">Recently Added</span>'
         : '';
       var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
