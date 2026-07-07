@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-06T00:00:00Z",
-  "build_date": "2026-07-06",
+  "generated_at": "2026-07-07T00:00:00Z",
+  "build_date": "2026-07-07",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
-    "today": 0,
-    "upcoming": 150,
+    "today": 1,
+    "upcoming": 149,
     "archived": 125,
     "total": 275
   },
@@ -25,7 +25,7 @@
       "priority_full": "Low (Halo; UN/policy primary audience; strong international prestige; valuable for global AI governance brand positioning)",
       "why": "ITU's flagship global AI summit drawing 5,000+ senior policymakers and enterprise AI leaders across 4 days in Geneva; AI governance thought leadership and international prestige positioning alongside world governments and Fortune 500 AI executives.",
       "url": null,
-      "status": "upcoming",
+      "status": "today",
       "typical_attendees": "Government officials, industry leaders, academics, civil society, technical community, policymakers, UN agencies, and researchers",
       "deadline": "1 September 2026",
       "attendee_count": "1,000+ speakers; 200+ exhibitors",
