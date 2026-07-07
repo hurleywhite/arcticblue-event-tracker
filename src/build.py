@@ -7788,13 +7788,13 @@ def build():
         b.parentNode.replaceChild(fresh, b);
         fresh.addEventListener('click', function () {{ setView(fresh.dataset.view); }});
       }});
-      // Someone with a name set lands on "My events" (Thor's core ask: open
-      // straight to what you're attending / submitted for). Unnamed visitors
-      // fall back to their last view, or the grid.
+      // A refresh keeps you on the view you were last on (Calendar / All Events
+      // / Map / My Events). Only a FIRST-time visitor with no saved view lands
+      // on My Events (if named) or the grid (if not).
       try {{
         var saved = localStorage.getItem(VIEW_KEY);
-        if (getCollabName()) setView('myevents');
-        else if (VIEW_NAMES.indexOf(saved) !== -1) setView(saved);
+        if (VIEW_NAMES.indexOf(saved) !== -1) setView(saved);
+        else if (getCollabName()) setView('myevents');
         else setView('grid');
       }} catch (e) {{ setView(getCollabName() ? 'myevents' : 'grid'); }}
     }}
