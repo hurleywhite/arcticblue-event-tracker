@@ -1707,11 +1707,32 @@
       box-shadow: 0 0 0 4px rgba(156, 163, 175, 0.22), 0 2px 6px rgba(0,0,0,0.25);
     }
     .calendar-month { margin-bottom: 32px; }
-    .calendar-month-head {
-      font-family: var(--ab-sans); font-weight: 700;
-      font-size: 1.1rem; letter-spacing: -0.01em;
-      margin: 0 0 12px; color: var(--ab-fg);
+    /* Calendar month nav: ‹ prev on the left, month/year dropdown centered,
+       next › on the right. The grid columns keep the dropdown truly centered. */
+    .cal-nav {
+      display: grid; grid-template-columns: 40px 1fr 40px;
+      align-items: center; gap: 12px; margin-bottom: 18px;
     }
+    .cal-navbtn {
+      width: 40px; height: 40px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--ab-rule-strong); border-radius: 10px;
+      background: var(--ab-bg); color: var(--ab-fg-2);
+      font-size: 1.4rem; line-height: 1; cursor: pointer;
+      transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+    }
+    .cal-navbtn:hover { background: var(--ab-bg-3); color: var(--ab-fg); border-color: var(--ab-fg-3); }
+    #cal-next.cal-navbtn { justify-self: end; }
+    .cal-month-select {
+      justify-self: center; text-align: center; text-align-last: center;
+      font-family: "Nunito Sans", var(--ab-sans); font-weight: 800; font-size: 1.15rem;
+      color: var(--ab-fg); background: var(--ab-bg);
+      border: 1px solid var(--ab-rule); border-radius: 10px;
+      padding: 9px 18px; cursor: pointer;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+    .cal-month-select:hover { border-color: var(--ab-fg-3); }
+    .cal-month-select:focus { outline: none; border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.12); }
     /* `minmax(0, 1fr)` is the standard fix to keep grid cells from
        overflowing their tracks when chip text would otherwise force a
        column wider than 1fr. Pair with `min-width: 0; overflow: hidden`
@@ -7400,11 +7421,8 @@
       var monthDiv = document.createElement('div');
       monthDiv.className = 'calendar-month';
 
-      var head = document.createElement('h3');
-      head.className = 'calendar-month-head';
-      head.textContent = new Date(year, month, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-      monthDiv.appendChild(head);
-
+      // The month/year now lives in the centered nav dropdown above the grid,
+      // so no static title here.
       var grid = document.createElement('div');
       grid.className = 'calendar-grid';
 
@@ -7690,31 +7708,19 @@
         ? savedKey
         : (months.some(function (x) { return x.key === todayKey; }) ? todayKey : months[0].key);
 
-      // Count events per month for the dropdown label
-      var byMonth = {};
-      combined.forEach(function (ev) {
-        var sd = ev.start_date; if (!sd) return;
-        var k = sd.slice(0, 7);
-        byMonth[k] = (byMonth[k] || 0) + 1;
-      });
-
-      // Build dropdown
+      // Clean month nav: ‹ prev on the far left, the month/year dropdown
+      // centered, next › on the far right (no event count).
       var headerWrap = document.createElement('div');
-      headerWrap.style.cssText = 'display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;';
+      headerWrap.className = 'cal-nav';
       headerWrap.innerHTML =
-        '<label style="display:flex;align-items:center;gap:8px;font-family:var(--ab-mono);font-size:0.74rem;color:var(--ab-fg-3);letter-spacing:0.06em;text-transform:uppercase;">' +
-          'Month' +
-          '<select id="cal-month-select" style="font-family:var(--ab-sans);font-size:0.95rem;padding:8px 12px;border:1px solid var(--ab-rule-strong);border-radius:6px;background:var(--ab-bg);color:var(--ab-fg);">' +
-            months.map(function (m) {
-              var label = new Date(m.y, m.m, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-              var n = byMonth[m.key] || 0;
-              var suffix = n ? '  (' + n + ' event' + (n === 1 ? '' : 's') + ')' : '  (0)';
-              return '<option value="' + m.key + '"' + (m.key === defaultKey ? ' selected' : '') + '>' + escapeHtml(label) + escapeHtml(suffix) + '</option>';
-            }).join('') +
-          '</select>' +
-        '</label>' +
-        '<button type="button" id="cal-prev" class="add-btn">‹ Prev</button>' +
-        '<button type="button" id="cal-next" class="add-btn">Next ›</button>';
+        '<button type="button" id="cal-prev" class="cal-navbtn" aria-label="Previous month">\u2039</button>' +
+        '<select id="cal-month-select" class="cal-month-select" aria-label="Jump to month">' +
+          months.map(function (m) {
+            var label = new Date(m.y, m.m, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            return '<option value="' + m.key + '"' + (m.key === defaultKey ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+          }).join('') +
+        '</select>' +
+        '<button type="button" id="cal-next" class="cal-navbtn" aria-label="Next month">\u203a</button>';
       cal.appendChild(headerWrap);
 
       var monthHost = document.createElement('div');
