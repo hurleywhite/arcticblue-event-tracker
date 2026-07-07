@@ -6769,18 +6769,24 @@
         .replace(/\b(usa|us|u s a|united states|na|north america|emea|apac|edition|series)\b/g, ' ')
         .replace(/\s+/g, ' ').trim();
     }
+    var _DUP_COUNTRIES = { usa:1, us:1, 'u s a':1, 'united states':1, america:1, uk:1, 'u k':1, 'united kingdom':1, england:1, scotland:1, wales:1, canada:1, germany:1, france:1, spain:1, italy:1, netherlands:1, holland:1, belgium:1, switzerland:1, austria:1, sweden:1, denmark:1, norway:1, finland:1, ireland:1, portugal:1, poland:1, czechia:1, hungary:1, romania:1, greece:1, australia:1, 'new zealand':1, japan:1, china:1, india:1, korea:1, 'south korea':1, thailand:1, malaysia:1, indonesia:1, vietnam:1, philippines:1, taiwan:1, brazil:1, mexico:1, argentina:1, chile:1, colombia:1, peru:1, turkey:1, turkiye:1, israel:1, egypt:1, morocco:1, nigeria:1, kenya:1, uae:1, 'united arab emirates':1, 'saudi arabia':1, qatar:1, bahrain:1, kuwait:1, oman:1 };
     function dupCityOf(o) {
       o = o || {};
       var c = String(o.city || '').trim();
       if (!c) {
         var parts = String(o.location || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
-        // Drop a leading venue or street address ("583 Park Avenue, New York…",
-        // "Hilton London Syon Park, London…") so we read the CITY, not the building.
-        if (parts.length >= 2 && (/^\d/.test(parts[0]) ||
-            /\b(cent(er|re)|hotel|arena|convention|exhibition|expo|hall|conference|resort|casino|stadium|university|college|institute|messe|palexpo|sands|pavilion|forum|plaza|complex|palace|marina|garden|tower|club|pier|westin|marriott|hilton|hyatt|sheraton|ritz|fairmont|intercontinental|radisson|sofitel|wynn|venetian|mandalay|caesars|bellagio|renaissance|waldorf|peninsula|shangri|kempinski|four seasons)\b/i.test(parts[0]))) {
-          parts = parts.slice(1);
+        // Read the CITY by walking from the END of the location, skipping the
+        // country and any state/province code — so "Convene, 155 Bishopsgate,
+        // London, UK" and "583 Park Avenue, New York, NY, USA" both resolve to
+        // the real city (London / New York), whatever the venue is called.
+        for (var i = parts.length - 1; i >= 0; i--) {
+          var p = parts[i];
+          if (_DUP_COUNTRIES[abFold(p)]) continue;   // country
+          if (/^[a-z]{2}$/i.test(p)) continue;      // state / province code (NY, CA, ON)
+          if (/^\d/.test(p)) continue;               // street number
+          c = p; break;
         }
-        c = parts[0] || '';
+        if (!c && parts.length) c = parts[0];
       }
       // Normalise "New York City" -> "new york", "Greater London" -> "london".
       return abFold(c).replace(/\b(city|greater)\b/g, '').replace(/\s+/g, ' ').trim();
