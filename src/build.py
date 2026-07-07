@@ -1936,6 +1936,8 @@ def build():
     .queue-intro, .planner-intro {{
       font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 18px; max-width: 70ch; line-height: 1.5;
     }}
+    /* My Events intro stays on one line (no 70ch cap) at desktop widths. */
+    .myev-intro {{ max-width: none; }}
     .queue-section {{ margin: 0 0 26px; }}
     .queue-sec-head {{
       display: flex; align-items: baseline; gap: 10px; margin: 0 0 10px;
@@ -6218,7 +6220,7 @@ def build():
       if (!host) return;
       var b = myEventsBuckets();
       if (!b.named) {{
-        host.innerHTML = '<p class="queue-intro"><strong>My Events.</strong> Set your name (hit &ldquo;change&rdquo; up top) to see the events you&#39;re booked to speak at or attending.</p>';
+        host.innerHTML = '<p class="queue-intro myev-intro"><strong>My Events.</strong> Set your name (hit &ldquo;change&rdquo; up top) to see the events you&#39;re booked to speak at or attending.</p>';
         return;
       }}
       function rowHtml(it) {{
@@ -6240,8 +6242,8 @@ def build():
         return '<div class="queue-section' + (collapsible ? ' collapsible' : '') + (collapsed ? ' collapsed' : '') + '">' + head + body + '</div>';
       }}
       var intro = b.support
-        ? '<p class="queue-intro"><strong>Team events.</strong> Everyone the team is booked to speak at or attending &mdash; upcoming first, past below.</p>'
-        : '<p class="queue-intro"><strong>' + escapeHtml(b.me) + '&#39;s events.</strong> Events you&#39;re booked to speak at or attending &mdash; upcoming first, past below.</p>';
+        ? '<p class="queue-intro myev-intro"><strong>Team events.</strong> Everyone the team is booked to speak at or attending &mdash; upcoming first, past below.</p>'
+        : '<p class="queue-intro myev-intro"><strong>' + escapeHtml(b.me) + '&#39;s events.</strong> Events you&#39;re booked to speak at or attending &mdash; upcoming first, past below.</p>';
       var upTitle = b.support ? 'Attending &amp; speaking' : 'You&#39;re attending';
       // Past events collapse into a dropdown, hidden by default (like the grid's
       // month groups). _myEventsPastOpen remembers if the reader expanded them.
