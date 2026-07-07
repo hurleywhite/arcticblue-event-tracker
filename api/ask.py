@@ -559,6 +559,13 @@ def _ask_openai(question, history, events, user=''):
         return content, [], '', served
 
 
+_PRIORITY_RANK = {'high': 3, 'medium': 2, 'low': 1}
+
+
+def _priority_rank(card):
+    return _PRIORITY_RANK.get((card.get('priority') or '').strip().lower(), 0)
+
+
 def _match_cards(names, events):
     """Map model-recommended names to real event objects, preserving order."""
     by_lower = {}
@@ -631,6 +638,10 @@ class handler(BaseHTTPRequestHandler):
         except Exception as e:  # noqa: BLE001
             return _send(self, 502, {'error': 'assistant failed: %s' % str(e)[:300]})
         cards = _match_cards(names, events)
+        # Guarantee highest-priority-first (High > Medium > Low > none) no matter
+        # how the model ordered them. Python's sort is stable, so the model's
+        # relevance order is preserved WITHIN each priority tier.
+        cards.sort(key=_priority_rank, reverse=True)
         # How-to answers are about the tool, not any event — never attach cards
         # even if the model slipped an event name into 'recommended'.
         if mode == 'app':
