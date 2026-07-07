@@ -4152,6 +4152,8 @@ def build():
       card.dataset.attend   = (st.attend_verdict || '');
       card.dataset.interested = (st.interested && st.interested.length) ? '1' : '';
       card.dataset.interestedNames = (st.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
+      // Who's ATTENDING (the source of truth) — per-account, incl. past + future.
+      card.dataset.attendeeNames = ((st.attendees || ev.attendees) || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       card.dataset.fitText = abFold([ev.name, ev.about, ev.focus_areas, ev.typical_attendees, ev.location, ev.city, ev.country, ev.type, ev.past_speakers, _aud].join(' '));
       var _opsPast = isPastEvent(ev);
       card.dataset.past = _opsPast ? '1' : '';
@@ -4332,6 +4334,7 @@ def build():
       card.dataset.attend   = (mev.attend_verdict || '');
       card.dataset.interested = (mev.interested && mev.interested.length) ? '1' : '';
       card.dataset.interestedNames = (mev.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
+      card.dataset.attendeeNames = (mev.attendees || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       card.dataset.fitText = abFold([mev.name, mev.about, mev.focus_areas, mev.typical_attendees, mev.location, mev.city, mev.country, mev.type, mev.past_speakers, mev.audience_type].join(' '));
       var _manPast = isPastEvent(mev);
       card.dataset.past = _manPast ? '1' : '';
@@ -5281,6 +5284,9 @@ def build():
       var activeRegions = Array.prototype.map.call(document.querySelectorAll('#filter-region .extra-chip.is-on'), function (b) {{ return b.dataset.value; }});
       var activeMonths  = Array.prototype.map.call(document.querySelectorAll('#filter-months .extra-chip.is-on'), function (b) {{ return b.dataset.value; }});
       var activeShould  = Array.prototype.map.call(document.querySelectorAll('#filter-should .extra-chip.is-on'), function (b) {{ return b.dataset.value; }});
+      // Per-account "Attending" filter (support = team-wide). Precomputed once.
+      var _attMe = (getCollabName() || 'Team').toLowerCase().split(/\\s+/)[0];
+      var _attSupport = isSupportPerson(getCollabName() || '');
       var fSaved   = !!($saved && $saved.checked);
       var fUrgent  = !!($urgent && $urgent.checked);
       var fSubmitted = !!($submitted && $submitted.checked);
@@ -5381,7 +5387,11 @@ def build():
           if (opsStatFilter === 'urgent'  && !card.classList.contains('is-urgent')) on = false;
           if (opsStatFilter === 'pipeline'&& !tagsS) on = false;
           if (opsStatFilter === 'booked'  && tagsS.split('|').indexOf('Booked') === -1) on = false;
-          if (opsStatFilter === 'attending' && tagsS.split('|').indexOf('Attending') === -1) on = false;
+          if (opsStatFilter === 'attending') {{
+            var _anF = (card.dataset.attendeeNames || '');
+            var _attHit = _attSupport ? (_anF.length > 0) : (_anF.split('|').indexOf(_attMe) !== -1);
+            if (!_attHit) on = false;
+          }}
           if (opsStatFilter === 'buyer'   && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
           if (opsStatFilter === 'interested' && card.dataset.interested !== '1') on = false;
         }}
@@ -5525,13 +5535,21 @@ def build():
       var saved = 0, urgent = 0, inPipeline = 0, booked = 0, attending = 0;
       var buyerRich = 0, interestedCount = 0, myInterested = 0;
       var me = (getCollabName() || 'Team').toLowerCase();
+      var meFirst = me.split(/\\s+/)[0];   // attendees are stored as lowercase first names
+      var _support = isSupportPerson(getCollabName() || '');   // Angela/Hurley -> team-wide
       function _isMine(list) {{ return (list || []).some(function (n) {{ return String(n).toLowerCase() === me; }}); }}
+      // "Attending" is PER-ACCOUNT: events where the signed-in person is an
+      // assigned attendee — the attendee list is the source of truth (not the
+      // Attending stage), so it stays accurate even if the stage wasn't synced,
+      // and it counts BOTH past and future events they're attending. Support
+      // people (Angela/Hurley) coordinate for everyone, so they see team-wide.
+      function _iAttend(list) {{ return _support ? (list || []).length > 0 : (list || []).some(function (n) {{ return String(n).toLowerCase() === meFirst; }}); }}
       (stateRows || []).forEach(function (r) {{
         if (r.saved)  saved++;
         var stages = stageTagsOf(r);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
-        if (stages.indexOf('Attending') !== -1) attending++;
+        if (_iAttend(r.attendees)) attending++;
         if (r.interested && r.interested.length) interestedCount++;
         if (_isMine(r.interested)) myInterested++;
       }});
@@ -5547,7 +5565,7 @@ def build():
         var stages = stageTagsOf(m);
         if (stages.length) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
-        if (stages.indexOf('Attending') !== -1) attending++;
+        if (_iAttend(m.attendees)) attending++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if (m.interested && m.interested.length) interestedCount++;
         if (_isMine(m.interested)) myInterested++;
@@ -5582,12 +5600,19 @@ def build():
           // already past, jump to the Grid and open the Past-events group so they
           // show; if any are upcoming, stay on the calendar filtered to those.
           if (currentView === 'calendar' && opsStatFilter === k && (k === 'booked' || k === 'attending')) {{
-            var _stage = (k === 'booked') ? 'Booked' : 'Attending';
+            var _meFirst = (getCollabName() || 'Team').toLowerCase().split(/\\s+/)[0];
+            var _sup = isSupportPerson(getCollabName() || '');
             var _cards = $opsGrid.querySelectorAll('.ops-card'), _hasUpcoming = false;
             for (var _i = 0; _i < _cards.length; _i++) {{
               var _c = _cards[_i];
               if (_c.dataset.dupHidden === '1' || _c.dataset.past === '1') continue;
-              if ((_c.dataset.statusTags || '').split('|').indexOf(_stage) !== -1) {{ _hasUpcoming = true; break; }}
+              // Booked = the event's Booked stage; Attending = per-account attendee
+              // (team-wide for support).
+              var _an = (_c.dataset.attendeeNames || '');
+              var _hit = (k === 'booked')
+                ? (_c.dataset.statusTags || '').split('|').indexOf('Booked') !== -1
+                : (_sup ? _an.length > 0 : _an.split('|').indexOf(_meFirst) !== -1);
+              if (_hit) {{ _hasUpcoming = true; break; }}
             }}
             if (!_hasUpcoming) {{ goGrid = true; opsCollapsedMonths.archive = false; }}
           }}
@@ -6121,28 +6146,37 @@ def build():
       var meFold = abFold(me);
       var support = !!me && isSupportPerson(me);
       var named = !!meFold;
-      // Is the signed-in person the assigned speaker? (or an attendee, for the
-      // attending list.) Support people match everything.
-      function mySpeaker(it) {{ return support || speakerTokens(it.speaker).indexOf(meFold) !== -1; }}
-      function myAttend(it) {{
-        if (support) return true;
-        if (speakerTokens(it.speaker).indexOf(meFold) !== -1) return true;
-        return (it.attendees || []).map(function (a) {{ return abFold(a); }}).indexOf(meFold) !== -1;
-      }}
-      var attending = [], submissions = [];
-      if (named) {{
-        opsAllItems().forEach(function (it) {{
-          if (it.hidden || it.past) return;   // upcoming, live events only
-          var s = it.stages || [];
-          var confirmed = s.indexOf('Booked') !== -1 || s.indexOf('Attending') !== -1;
-          var inFlight  = s.indexOf('Submitted') !== -1 || s.indexOf('Followed up') !== -1 || s.indexOf('Meeting held') !== -1;
-          if (confirmed && myAttend(it)) attending.push(it);
-          else if (inFlight && mySpeaker(it)) submissions.push(it);   // booked wins over submitted
+      // You're "attending" an event if you're a booked speaker there OR a listed
+      // attendee. The attendee list is the source of truth (per-account), so this
+      // stays accurate even when the event's Attending stage wasn't synced — and
+      // it covers BOTH past and upcoming events. Support (Angela/Hurley) see the
+      // whole team's.
+      var upcoming = [], past = [];
+      // Derive from the rendered CARDS (the same merged source as the stat +
+      // filter), so My events, the Attending tile, and the grid always agree —
+      // opsItem() read attendees inconsistently for some past catalog events.
+      if (named && $opsGrid) {{
+        Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {{
+          if (c.dataset.dupHidden === '1' || c.classList.contains('is-hidden')) return;
+          var r = c._modalRec; if (!r) return;
+          var atts = (c.dataset.attendeeNames || '').split('|').filter(Boolean);
+          var isAtt = support ? (atts.length > 0) : (atts.indexOf(meFold) !== -1);
+          var stages = (c.dataset.statusTags || '').split('|');
+          var isSpk = stages.indexOf('Booked') !== -1 && (support || speakerTokens(c.dataset.speaker || r.speaker || '').indexOf(meFold) !== -1);
+          if (!isAtt && !isSpk) return;
+          var item = {{
+            kind: (r._table === 'manual_events') ? 'manual' : 'catalog',
+            key: r._key, name: r.name || 'Event', date_str: r.date_str || '',
+            region: r.region || '', location: r.location || '', speaker: r.speaker || '',
+            sort: parseInt(c.dataset.sort || '99999999', 10),
+            _myRole: isSpk ? 'Speaking' : 'Attending'
+          }};
+          (c.dataset.past === '1' ? past : upcoming).push(item);
         }});
-        attending.sort(function (a, b) {{ return a.sort - b.sort; }});    // date order
-        submissions.sort(function (a, b) {{ return a.sort - b.sort; }});
+        upcoming.sort(function (a, b) {{ return a.sort - b.sort; }});   // soonest first
+        past.sort(function (a, b) {{ return b.sort - a.sort; }});       // most recent first
       }}
-      return {{ me: me, support: support, named: named, attending: attending, submissions: submissions }};
+      return {{ me: me, support: support, named: named, upcoming: upcoming, past: past }};
     }}
 
     function renderMyEvents() {{
@@ -6155,13 +6189,13 @@ def build():
       }}
       function rowHtml(it) {{
         var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
-        // For the team view (Angela/Hurley) show whose event it is.
         var who = (b.support && it.speaker) ? '<span class="q-int-chip">' + escapeHtml(it.speaker) + '</span>' : '';
+        var role = it._myRole ? '<span class="q-stage-pill" style="' + stageStyle(it._myRole === 'Speaking' ? 'Booked' : 'Attending') + '">' + it._myRole + '</span>' : '';
         return '<div class="queue-row"><div class="queue-main">' +
             '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
             '<button type="button" class="ops-details-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
             '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
-            '<div class="queue-chips">' + who + qStagePills(it.stages) + '</div>' +
+            '<div class="queue-chips">' + who + role + '</div>' +
           '</div></div>';
       }}
       function section(title, list, emptyMsg) {{
@@ -6170,11 +6204,12 @@ def build():
         return '<div class="queue-section">' + head + body + '</div>';
       }}
       var intro = b.support
-        ? '<p class="queue-intro"><strong>Team events.</strong> Everything the team is confirmed to attend or speak at (Booked + Attending), upcoming and in date order.</p>'
-        : '<p class="queue-intro"><strong>' + escapeHtml(b.me) + '&#39;s events.</strong> The upcoming events you&#39;re booked to speak at or attending, in date order.</p>';
-      var attTitle = b.support ? 'Attending &amp; booked' : 'You&#39;re attending';
+        ? '<p class="queue-intro"><strong>Team events.</strong> Everyone the team is booked to speak at or attending &mdash; upcoming first, past below.</p>'
+        : '<p class="queue-intro"><strong>' + escapeHtml(b.me) + '&#39;s events.</strong> Events you&#39;re booked to speak at or attending &mdash; upcoming first, past below.</p>';
+      var upTitle = b.support ? 'Attending &amp; speaking' : 'You&#39;re attending';
       host.innerHTML = intro +
-        section(attTitle, b.attending, b.support ? 'Nothing booked or attending yet.' : 'You&#39;re not booked or attending anything upcoming yet.');
+        section(upTitle, b.upcoming, 'Nothing upcoming yet.') +
+        (b.past.length ? section('Past events', b.past, '') : '');
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
       }});
@@ -6451,7 +6486,7 @@ def build():
       var mc = document.getElementById('vt-myevents-count');
       if (mc) {{
         var mb = myEventsBuckets();
-        var mn = mb.attending.length;
+        var mn = mb.upcoming.length;   // badge = upcoming count (the actionable one)
         if (mb.named && mn) {{ mc.textContent = mn; mc.removeAttribute('hidden'); }} else {{ mc.setAttribute('hidden', ''); }}
       }}
       var qc = document.getElementById('vt-queue-count');
