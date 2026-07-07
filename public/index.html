@@ -2568,6 +2568,7 @@
     h += ef('Speaker topic — drives the day-of news pull', inp('speaker_topic', rec.speaker_topic, 'e.g. AI workforce enablement'));
     h += ef('Attending — surfaces a Day-Of brief', '<div class="me-ints">' + attChips + '</div>');
     h += ef((isCat ? 'Website / link' : 'Website'), inp('url', rec.url, 'https://'));
+    h += ef('Apply to speak link — powers the card button', inp('apply_url', rec.apply_url, 'https:// CFP or application page'));
     h += ef('Interested (joins Angela\'s apply queue)', '<div class="me-ints">' + intChips + '</div>');
     h += ef('Priority', '<select class="me-input" data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) { return opt(v, curPri); }).join('') + '</select>');
     h += ef('Why it fits ArcticBlue', ta('why', rec.why));
@@ -2691,7 +2692,7 @@
         var val = (el.value == null ? '' : String(el.value)).trim();
         if (field === 'name' && !val) { el.value = rec.name || ''; return; }
         var out = val === '' ? null : val;
-        if (field === 'url' && out && !/^https?:\/\//i.test(out)) out = 'https://' + out;
+        if ((field === 'url' || field === 'apply_url') && out && !/^https?:\/\//i.test(out)) out = 'https://' + out;
         // "Paid" is a boolean column on manual_events — coerce the select value.
         if (field === 'paid') out = (val === 'true') ? true : (val === 'false' ? false : null);
         var patch = {}; patch[field] = out;
@@ -2861,6 +2862,10 @@
       actHtml += '<a class="modal-visit" href="' + esc(rec.url) + '" target="_blank" rel="noopener">Visit event website ↗</a>';
     } else {
       actHtml += '<span class="modal-nolink">No verified website URL on file.</span>';
+    }
+    var _applyUrl = rec.apply_url || speakingRouteUrl(rec.speaking_route);
+    if (_applyUrl) {
+      actHtml += '<a class="modal-visit modal-apply" href="' + esc(_applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>';
     }
     $actions.innerHTML = actHtml;
 
@@ -3692,7 +3697,7 @@
       // Attending-signal strip + one-click apply (the booking shortcut).
       var sigBits = [];
       if (_aud && String(_aud).trim().toLowerCase() !== 'mixed') sigBits.push('<span class="badge ' + audienceClass(_aud) + '">' + escapeHtml(_aud) + '</span>');
-      var applyUrl = speakingRouteUrl(ev.speaking_route);
+      var applyUrl = (st && st.apply_url) || speakingRouteUrl(ev.speaking_route);
       var applyBtn = applyUrl
         ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
@@ -3734,7 +3739,7 @@
         // event_state and win over the read-only catalog value when set.
         ['why', 'about', 'focus_areas', 'typical_attendees', 'speaking_route',
          'pay_to_play', 'venue', 'contact_info', 'deadline', 'type',
-         'url', 'pricing', 'audience_type', 'past_speakers',
+         'url', 'apply_url', 'pricing', 'audience_type', 'past_speakers',
          'meeting_formats', 'attendee_count'].forEach(function (f) {
           if (st[f] != null && String(st[f]).trim() !== '') rec[f] = st[f];
         });
@@ -3915,7 +3920,7 @@
       var speakersLine = (mev.past_speakers && String(mev.past_speakers).trim())
         ? '<p class="ops-meta" title="Past / announced speakers">Speakers: ' + escapeHtml(mev.past_speakers) + '</p>'
         : '';
-      var mApplyUrl = speakingRouteUrl(mev.speaking_route);
+      var mApplyUrl = mev.apply_url || speakingRouteUrl(mev.speaking_route);
       var mApplyBtn = mApplyUrl
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
