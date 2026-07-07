@@ -262,14 +262,13 @@ def _build_prompt(count, types, quarters, regions, tracked, recurring=None):
     recurring = [str(x).strip() for x in (recurring or []) if str(x).strip()]
     if recurring:
         recurring_block = (
-            "PRIORITY — RETURNING EVENTS: ArcticBlue attended or spoke at these "
-            "events in a past year, and they typically recur annually. FIRST, find "
-            "the NEXT upcoming edition (a future-dated, later-year edition of the "
-            "SAME series) of each one and put those at the TOP of the results. If an "
-            "event has no findable future edition, skip it and fill the remaining "
-            "slots from the Criteria below. Never return a past edition itself; these "
-            "count toward the total:\n"
-            + '; '.join(recurring[:30]) + "\n\n"
+            "RETURNING EVENTS (secondary, optional): ArcticBlue attended these in a "
+            "past year and they may recur. IF a later edition falls WITHIN the "
+            "quarters/regions below AND is NOT already in the ALREADY TRACKED list, "
+            "you may include it. But this is a bonus — your PRIMARY job is to fill "
+            "the results with NEW events matching the Criteria that are not already "
+            "tracked. Do NOT spend result slots on already-tracked or past editions:\n"
+            + '; '.join(recurring[:20]) + "\n\n"
         )
     else:
         recurring_block = ''
@@ -421,10 +420,11 @@ class handler(BaseHTTPRequestHandler):
         tracked = _tracked_names(self.headers.get('Host', ''))
         tracked_fps = {fp for fp in (_fingerprint(n) for n in tracked) if fp}
         tracked_lows = {n.lower() for n in tracked}
-        # Over-ask: the model often returns tracked events despite the
-        # exclusion list and the hard filter then thins results. Asking for
-        # double (same single API call) keeps the NEW-event yield near count.
-        ask = min(count * 2, 25)
+        # Over-ask: the model often returns tracked events despite the exclusion
+        # list, and the hard filter then thins results. With a very complete
+        # tracker most candidates are dupes, so over-ask generously (single API
+        # call) to keep the NEW-event yield near count.
+        ask = min(max(count * 4, 15), 25)
         prompt = _build_prompt(ask, types, quarters, regions, tracked, recurring)
         engine = 'perplexity' if PPLX_API_KEY else 'dust'
         if engine == 'perplexity':
