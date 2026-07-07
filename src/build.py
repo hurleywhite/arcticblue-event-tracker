@@ -4960,6 +4960,15 @@ def build():
     function isAngelaUser() {{ return window.isAngelaUser(); }}
     function applyFilterVisibility() {{
       var show = isAngelaUser();
+      // The "My Events" tab reads "Their Events" for support (Angela/Hurley),
+      // since their view is the whole team's, not their own.
+      var $myTab = document.querySelector('.view-toggle [data-view="myevents"]');
+      if ($myTab) {{
+        var _teamView = isSupportPerson(getCollabName() || '');
+        var _badge = $myTab.querySelector('.vt-count');
+        $myTab.textContent = _teamView ? 'Their Events' : 'My Events';
+        if (_badge) $myTab.appendChild(_badge);   // re-attach the count badge
+      }}
       // Sync/export (Calendar sync + Spreadsheet) is Angela-only.
       var $sync = document.getElementById('ops-sync-group');
       if ($sync) $sync.style.display = show ? '' : 'none';
