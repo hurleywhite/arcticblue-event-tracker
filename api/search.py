@@ -335,7 +335,7 @@ def _perplexity_search(prompt):
                    'You research business conferences using web search. '
                    'Follow the output format instructions exactly.'},
                   {'role': 'user', 'content': prompt}],
-              'temperature': 0.2, 'max_tokens': 2400},
+              'temperature': 0.2, 'max_tokens': 4500},
         timeout=70)
     if status != 200 or not isinstance(data, dict):
         raise RuntimeError(f'perplexity returned {status}: {str(data)[:300]}')
@@ -422,9 +422,10 @@ class handler(BaseHTTPRequestHandler):
         tracked_lows = {n.lower() for n in tracked}
         # Over-ask: the model often returns tracked events despite the exclusion
         # list, and the hard filter then thins results. With a very complete
-        # tracker most candidates are dupes, so over-ask generously (single API
-        # call) to keep the NEW-event yield near count.
-        ask = min(max(count * 4, 15), 25)
+        # tracker most candidates are dupes, so over-ask to keep the NEW-event
+        # yield near count — but cap it so the JSON reply stays within the token
+        # budget (too many events => truncated, unparseable array => 0 results).
+        ask = min(max(count * 3, 12), 18)
         prompt = _build_prompt(ask, types, quarters, regions, tracked, recurring)
         engine = 'perplexity' if PPLX_API_KEY else 'dust'
         if engine == 'perplexity':
