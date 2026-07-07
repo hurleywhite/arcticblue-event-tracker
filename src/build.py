@@ -5681,12 +5681,17 @@ def build():
         k = String(k || '').toLowerCase();
         if (k && P[k] && keys.indexOf(k) === -1) keys.push(k);
       }});
-      var sp = abFold(it.speaker || '');
-      Object.keys(P).forEach(function (k) {{
-        var first = abFold((P[k].name || '').split(' ')[0]);
-        var hit = new RegExp('\\\\b' + k + '\\\\b').test(sp) || (first && new RegExp('\\\\b' + first + '\\\\b').test(sp));
-        if (hit && keys.indexOf(k) === -1) keys.push(k);
-      }});
+      // Include the assigned speaker ONLY if they're BOOKED (confirmed to speak).
+      // A submitted-but-not-booked speaker has only APPLIED to speak — they are
+      // NOT attending yet, so they must not show in the Day-Of "who's there" list.
+      if ((it.stages || []).indexOf('Booked') !== -1) {{
+        var sp = abFold(it.speaker || '');
+        Object.keys(P).forEach(function (k) {{
+          var first = abFold((P[k].name || '').split(' ')[0]);
+          var hit = new RegExp('\\\\b' + k + '\\\\b').test(sp) || (first && new RegExp('\\\\b' + first + '\\\\b').test(sp));
+          if (hit && keys.indexOf(k) === -1) keys.push(k);
+        }});
+      }}
       return keys;
     }}
 
@@ -5762,8 +5767,10 @@ def build():
     function dayofCard(it, isToday) {{
       var P = window.AB_PERSONAS;
       var act = dayofActivity(it);
-      var actClass = act === 'Speaking' ? 'mode-stage' : 'mode-room';
-      var who = '<span class="mode-badge ' + actClass + '">' + escapeHtml(act) + '</span> ' +
+      // Same rounded, stage-coloured pill used across the app (Attending = teal,
+      // Speaking = the Booked green) instead of the old square blue badge.
+      var _actStage = act === 'Speaking' ? 'Booked' : (act === 'Attending' ? 'Attending' : null);
+      var who = '<span class="q-stage-pill"' + (_actStage ? ' style="' + stageStyle(_actStage) + '"' : '') + '>' + escapeHtml(act) + '</span> ' +
         it._keys.map(function (k) {{ return '<span class="dayof-who">' + escapeHtml((P[k] || {{}}).name || k) + '</span>'; }}).join(', ');
       var loc = [it.region, it.location].filter(Boolean).join(' · ');
       var ready = it.briefing_json ? '<span class="dayof-ready">&#10003; brief ready</span>' : '';
@@ -5783,7 +5790,7 @@ def build():
       var host = document.getElementById('ops-dayof');
       if (!host) return;
       var d = dayofItems();
-      var html = '<p class="dayof-intro"><strong>Day-Of briefings.</strong> When a teammate is attending an event today, a persona-tailored brief is waiting here &mdash; who is in the room, the targets, speaker news, and the angles to use. Set who is going via an event&#39;s <em>Details &rarr; Edit &rarr; Attending</em>.</p>';
+      var html = '<p class="dayof-intro"><strong>Day-Of briefings:</strong> When a teammate is attending an event, a tailored brief is generated here, which dives into who is in the room, the targets, speaker news, and the angles to use.</p>';
       if (!d.today.length && !d.soon.length) {{
         html += '<div class="dayof-empty">Nobody is marked as attending an event right now.<br>Open an event &rarr; <strong>Edit</strong> &rarr; tick a name under <strong>Attending (day-of)</strong>, and it surfaces here on the day &mdash; pre-generated overnight.</div>';
       }} else {{
