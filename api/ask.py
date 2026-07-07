@@ -243,7 +243,10 @@ def _gather_events(host):
                     'num': e.get('num'),
                     'name': e.get('name'), 'date': e.get('date_str'),
                     'location': e.get('location'), 'region': region,
-                    'type': e.get('type'), 'priority': e.get('priority'),
+                    'type': e.get('type'),
+                    # A per-event priority override (set in the Details editor)
+                    # wins over the catalog's base priority — same as the cards.
+                    'priority': ops.get('priority_override') or e.get('priority'),
                     'audience': e.get('audience_type'), 'price': e.get('pricing'),
                     'deadline': e.get('deadline'),
                     'stage': ', '.join(stages) if stages else None,
@@ -325,8 +328,9 @@ _SYSTEM = (
     "- \"events\" — they want a LIST or RANKING of events (find / what should I "
     "attend / which events / recommend / what haven't we applied to / what's "
     "booked / best buyer-rich, and the like). Put the matching events in "
-    "'recommended', MOST RELEVANT FIRST (max 8), EXACT names from the data, empty "
-    "if none fit. Keep 'answer' to 1-2 sentences of reasoning — the events render "
+    "'recommended', HIGHEST-PRIORITY + MOST RELEVANT FIRST (see RANKING below; "
+    "max 8), EXACT names from the data, empty if none fit. Keep 'answer' to 1-2 "
+    "sentences of reasoning — the events render "
     "as cards, so don't repeat their dates/locations.\n"
     "- \"event\" — they ask ABOUT ONE specific event (tell me about X / is X worth "
     "it / who's speaking at X / when's the CFP for X). Reply conversationally in "
@@ -372,9 +376,14 @@ _SYSTEM = (
     "'this month' questions, return ONLY upcoming=true events, soonest first. "
     "Treat 'fits' as the authority on who an event is for — never recommend an "
     "event for a person unless their name appears in that event's 'fits'.\n"
-    "- When ranking what to attend/skip, weigh: buyer-rich audience, who's "
-    "flagged Interested, pipeline stage, priority, fit (why), and upcoming date "
-    "(ignore past events unless asked). Never invent events not in the data.\n"
+    "- RANKING (applies to every 'recommended' list): each event carries a "
+    "'priority' (High / Medium / Low; missing or blank = lowest). ALWAYS order the "
+    "results by PRIORITY FIRST — High before Medium before Low before none — and, "
+    "within the same priority, by fit to the question, then buyer-rich audience, "
+    "who's flagged Interested, pipeline stage, and soonest upcoming date. The most "
+    "relevant, highest-priority event MUST come first, and reflect that order in "
+    "'answer'. Ignore past events unless asked. Never invent events not in the "
+    "data.\n"
     "- If the question names a teammate or asks who should go, use the TEAM "
     "COVERAGE notes to match the right person to each event by region/theme, "
     "and prefer events that fit that person's coverage."
@@ -503,8 +512,9 @@ def _ask_openai(question, history, events, user=''):
                 '%s. When they say "me", "I", "my", "us", "should I", or ask which '
                 'events fit them or where they should go, recommend ONLY upcoming '
                 'events whose "fits" list includes "%s" (their coverage). Rank those '
+                'HIGHEST-PRIORITY FIRST (priority High > Medium > Low > none), then '
                 'by buyer-rich audience, anyone flagged Interested, pipeline stage, '
-                'priority, and soonest date. If none fit, say so plainly rather than '
+                'and soonest date. If none fit, say so plainly rather than '
                 'offering events outside their coverage. When they ask generally (not '
                 'about themselves), answer neutrally over all events.'
                 % (prof['key'], prof['label'], prof['key']))})
