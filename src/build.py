@@ -529,7 +529,7 @@ def build():
       color: var(--ab-fg-3); letter-spacing: 0.06em;
       text-transform: uppercase; justify-self: end; text-align: right;
     }}
-    /* "Editing as <name> change" now lives in the nav next to the date. */
+    /* "Viewing as <name> change" now lives in the nav next to the date. */
     .nav-meta .who {{
       text-transform: none; letter-spacing: normal;
       font-weight: 700; color: var(--ab-fg-2); white-space: nowrap;
@@ -1499,7 +1499,9 @@ def build():
       border: 1px solid var(--ab-rule);
       border-radius: 10px;
       overflow: hidden;
-      /* Slightly larger gap below the stat bar than between the rows below it. */
+      /* More breathing room under the title bar; slightly larger gap below the
+         stat bar than between the rows below it. */
+      margin-top: 22px;
       margin-bottom: 24px;
     }}
     .ops-stat {{
@@ -2454,10 +2456,9 @@ def build():
     <div class="nav-inner">
       <a class="brand" href="https://arcticblue.ai/" aria-label="ArcticBlue home">
         <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
-        <span class="brand-text">ArcticBlue</span>
       </a>
       <h1 class="app-title">ArcticBlue's Event Tracker</h1>
-      <div class="nav-meta">{last_updated.upper()} <span class="who">· Editing as <strong id="ops-email">Team</strong> <button type="button" id="change-name" class="inline">change</button></span></div>
+      <div class="nav-meta">{last_updated.upper()} <span class="who">· Viewing as <strong id="ops-email">Team</strong> <button type="button" id="change-name" class="inline">change</button></span></div>
     </div>
   </nav>
 
@@ -2598,6 +2599,41 @@ def build():
       <div id="angela-ops" hidden>
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-stats" id="ops-stats" hidden></div>
+        <div class="ops-controls-row">
+        <div class="view-toggle" role="tablist" aria-label="View">
+          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Events<span class="vt-count" id="vt-myevents-count" hidden></span></button>
+          <button type="button" role="tab" data-view="grid"     aria-selected="false">All Events</button>
+          <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
+          <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
+          <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
+          <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
+        </div>
+        <div class="ops-toolbar" role="group" aria-label="Add events">
+            <button class="ab-btn ab-btn--primary" id="add-event-btn">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              Add event
+            </button>
+            <button class="ab-btn ab-btn--ghost ab-btn--blue" id="paste-email-btn" title="Paste an event email — name, dates and contacts are pre-filled for you">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+              Paste email
+            </button>
+            <button class="ab-btn ab-btn--ask" id="search-dust-btn" title="Ask the AI to find new speaking events matching your criteria">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+              Find new events
+            </button>
+          <div class="ops-toolbar-group" role="group" aria-label="Sync and export" id="ops-sync-group">
+            <span class="ops-toolbar-label">Sync</span>
+            <button class="ab-btn ab-btn--ghost ab-btn--rose" id="ical-subscribe-btn" title="One auto-updating feed for Google Calendar, Apple Calendar or Outlook — plus a one-time .ics download">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
+              Calendar sync
+            </button>
+            <button class="ab-btn ab-btn--ghost ab-btn--amber" id="csv-btn" title="Download the tracker as a spreadsheet, or upload an edited one">
+              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"/><path d="M3 10h18"/><path d="M10 6v12"/></svg>
+              Spreadsheet
+            </button>
+          </div>
+        </div>
+        </div>
         <div class="ops-topfilters" id="ops-topfilters">
           <div class="filter-dd" id="filter-pipeline" title="Pipeline stage — where each event stands (pick several to combine)">
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Pipeline</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
@@ -2647,41 +2683,6 @@ def build():
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
           <label class="ops-filter-chip" title="Events where an email contact (organizer POC) was found"><input type="checkbox" id="ops-f-contact">Contact found</label>
           <span class="ops-shown" id="ops-shown"></span>
-        </div>
-        <div class="ops-controls-row">
-        <div class="view-toggle" role="tablist" aria-label="View">
-          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Events<span class="vt-count" id="vt-myevents-count" hidden></span></button>
-          <button type="button" role="tab" data-view="grid"     aria-selected="false">All Events</button>
-          <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
-          <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
-          <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
-          <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
-        </div>
-        <div class="ops-toolbar" role="group" aria-label="Add events">
-            <button class="ab-btn ab-btn--primary" id="add-event-btn">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              Add event
-            </button>
-            <button class="ab-btn ab-btn--ghost ab-btn--blue" id="paste-email-btn" title="Paste an event email — name, dates and contacts are pre-filled for you">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
-              Paste email
-            </button>
-            <button class="ab-btn ab-btn--ask" id="search-dust-btn" title="Ask the AI to find new speaking events matching your criteria">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
-              Find new events
-            </button>
-          <div class="ops-toolbar-group" role="group" aria-label="Sync and export" id="ops-sync-group">
-            <span class="ops-toolbar-label">Sync</span>
-            <button class="ab-btn ab-btn--ghost ab-btn--rose" id="ical-subscribe-btn" title="One auto-updating feed for Google Calendar, Apple Calendar or Outlook — plus a one-time .ics download">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
-              Calendar sync
-            </button>
-            <button class="ab-btn ab-btn--ghost ab-btn--amber" id="csv-btn" title="Download the tracker as a spreadsheet, or upload an edited one">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"/><path d="M3 10h18"/><path d="M10 6v12"/></svg>
-              Spreadsheet
-            </button>
-          </div>
-        </div>
         </div>
         <div class="ops-results-header" id="ops-results-header">
           <span class="ops-count" id="ops-count"></span>
