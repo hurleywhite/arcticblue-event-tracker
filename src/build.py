@@ -5385,7 +5385,20 @@ def build():
           var tagsS = (card.dataset.statusTags || '');
           if (opsStatFilter === 'myinterested' && (card.dataset.interestedNames || '').split('|').indexOf((getCollabName() || 'Team').toLowerCase()) === -1) on = false;
           if (opsStatFilter === 'urgent'  && !card.classList.contains('is-urgent')) on = false;
-          if (opsStatFilter === 'pipeline'&& !tagsS) on = false;
+          if (opsStatFilter === 'pipeline') {{
+            // "Pending" = my in-flight speaking application (Submitted / Followed
+            // up / Meeting held, not yet Booked). Per-account (I'm the speaker);
+            // team-wide for Angela/Hurley.
+            var _ps = tagsS.split('|');
+            var _isPend = (_ps.indexOf('Submitted') !== -1 || _ps.indexOf('Followed up') !== -1 || _ps.indexOf('Meeting held') !== -1) && _ps.indexOf('Booked') === -1;
+            var _mine = _attSupport;
+            if (_isPend && !_mine) {{
+              var _sp = (card.dataset.speaker || '').toLowerCase();
+              var _tok = _sp ? _sp.split(/[,;/&]| and |\\bplus\\b/i).map(function (s) {{ return s.trim(); }}) : [];
+              _mine = _tok.indexOf(_attMe) !== -1;
+            }}
+            if (!(_isPend && _mine)) on = false;
+          }}
           if (opsStatFilter === 'booked'  && tagsS.split('|').indexOf('Booked') === -1) on = false;
           if (opsStatFilter === 'attending') {{
             var _anF = (card.dataset.attendeeNames || '');
@@ -5544,10 +5557,18 @@ def build():
       // and it counts BOTH past and future events they're attending. Support
       // people (Angela/Hurley) coordinate for everyone, so they see team-wide.
       function _iAttend(list) {{ return _support ? (list || []).length > 0 : (list || []).some(function (n) {{ return String(n).toLowerCase() === meFirst; }}); }}
+      // "Pending" = a speaking application still in flight for the signed-in
+      // person: Submitted / Followed up / Meeting held but NOT yet Booked (the
+      // goal). Tied to them as the assigned speaker; support = team-wide.
+      function _iPending(stages, speaker) {{
+        var pend = (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) && stages.indexOf('Booked') === -1;
+        if (!pend) return false;
+        return _support || speakerTokens(speaker || '').indexOf(meFirst) !== -1;
+      }}
       (stateRows || []).forEach(function (r) {{
         if (r.saved)  saved++;
         var stages = stageTagsOf(r);
-        if (stages.length) inPipeline++;
+        if (_iPending(stages, r.speaker)) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
         if (_iAttend(r.attendees)) attending++;
         if (r.interested && r.interested.length) interestedCount++;
@@ -5563,7 +5584,7 @@ def build():
       // Manual events carry their own stage tags + deadlines — fold them in.
       (manualRows || []).forEach(function (m) {{
         var stages = stageTagsOf(m);
-        if (stages.length) inPipeline++;
+        if (_iPending(stages, m.speaker)) inPipeline++;
         if (stages.indexOf('Booked') !== -1) booked++;
         if (_iAttend(m.attendees)) attending++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
@@ -5581,7 +5602,7 @@ def build():
       $stats.innerHTML =
         tile('all', total, 'Upcoming events', '') +
         tile('myinterested', myInterested, 'My Interests', 'saved') +
-        tile('pipeline', inPipeline, 'In pipeline', '') +
+        tile('pipeline', inPipeline, 'Pending', '') +
         tile('booked', booked, 'Booked', '') +
         tile('interested', interestedCount, 'Team Interests', '') +
         tile('attending', attending, 'Attending', '');
