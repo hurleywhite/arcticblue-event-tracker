@@ -1232,6 +1232,20 @@
     }
     .filter-dd-menu.open { display: flex; }
     .filter-dd-menu .extra-clear { flex-basis: 100%; margin-top: 2px; }
+    /* Months filter: one month per line, past months collapsed at the bottom. */
+    #filter-months .month-chip { flex-basis: 100%; text-align: left; }
+    #filter-months .filter-dd-menu .is-pastmonth { display: none; }
+    #filter-months .filter-dd-menu.show-past .is-pastmonth { display: block; }
+    .month-past-toggle {
+      flex-basis: 100%; margin-top: 4px; display: flex; align-items: center;
+      justify-content: space-between; gap: 8px; background: none; cursor: pointer;
+      border: 0; border-top: 1px solid var(--ab-rule); padding: 8px 2px 2px;
+      font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ab-fg-3);
+    }
+    .month-past-toggle:hover { color: var(--ab-fg); }
+    .month-past-toggle .mpt-caret { transition: transform 120ms ease; }
+    #filter-months .filter-dd-menu.show-past .month-past-toggle .mpt-caret { transform: rotate(180deg); }
     /* Speaking (blue) vs Attending (green) active chips keep the two distinct. */
     .extra-chip.speak-chip.is-on { background: #1271a8; color: #fff; border-color: #1271a8; box-shadow: 0 0 0 2px #1271a8; }
     .extra-chip.att-chip.is-on   { background: #047857; color: #fff; border-color: #047857; box-shadow: 0 0 0 2px #047857; }
@@ -4781,13 +4795,38 @@
         months.push({ key: k, label: card.dataset.monthLabel || k, sort: parseInt(card.dataset.sort || '99999999', 10) });
       });
       months.sort(function (a, b) { return a.sort - b.sort; });
+      menu.classList.remove('show-past');
       menu.innerHTML = '';
       if (!months.length) { menu.innerHTML = '<span class="extra-empty">No dated events yet</span>'; return; }
-      months.forEach(function (m) {
-        var chip = _makeExtraChip(m.key, m.label, 'month-chip');
+      // Upcoming months lead (one per line); months before this calendar month
+      // collapse into a "past months" list hidden at the bottom.
+      var _now = new Date();
+      var curKey = _now.getFullYear() + '-' + String(_now.getMonth() + 1).padStart(2, '0');
+      var upcoming = months.filter(function (m) { return m.key >= curKey; });
+      var past = months.filter(function (m) { return m.key < curKey; });
+      function addChip(m, extraCls) {
+        var chip = _makeExtraChip(m.key, m.label, 'month-chip' + (extraCls ? ' ' + extraCls : ''));
         if (prev[m.key]) chip.classList.add('is-on');
         menu.appendChild(chip);
-      });
+        return chip;
+      }
+      upcoming.forEach(function (m) { addChip(m); });
+      if (past.length) {
+        var tog = document.createElement('button');
+        tog.type = 'button'; tog.className = 'month-past-toggle';
+        function togLabel() { return (menu.classList.contains('show-past') ? 'Hide' : 'Show') + ' ' + past.length + ' past month' + (past.length === 1 ? '' : 's'); }
+        tog.innerHTML = '<span class="mpt-label"></span><span class="mpt-caret" aria-hidden="true">\u25be</span>';
+        tog.querySelector('.mpt-label').textContent = togLabel();
+        tog.addEventListener('click', function (e) {
+          e.stopPropagation();
+          menu.classList.toggle('show-past');
+          tog.querySelector('.mpt-label').textContent = togLabel();
+        });
+        menu.appendChild(tog);
+        var anyPastOn = false;
+        past.forEach(function (m) { addChip(m, 'is-pastmonth'); if (prev[m.key]) anyPastOn = true; });
+        if (anyPastOn) { menu.classList.add('show-past'); tog.querySelector('.mpt-label').textContent = togLabel(); }
+      }
       var clr = document.createElement('button');
       clr.type = 'button'; clr.className = 'extra-clear'; clr.textContent = 'Clear';
       clr.addEventListener('click', function () {
@@ -5147,7 +5186,7 @@
         tile('pipeline', inPipeline, 'Pending', '') +
         tile('booked', booked, 'Booked', '') +
         tile('interested', interestedCount, 'Team Interests', '') +
-        tile('attending', attending, 'Attending', '');
+        tile('attending', attending, _support ? 'Team Attending' : 'Attending', '');
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {
         t.addEventListener('click', function () {
