@@ -1499,7 +1499,8 @@ def build():
       border: 1px solid var(--ab-rule);
       border-radius: 10px;
       overflow: hidden;
-      margin-bottom: 18px;
+      /* Slightly larger gap below the stat bar than between the rows below it. */
+      margin-bottom: 24px;
     }}
     .ops-stat {{
       background: var(--ab-bg); padding: 14px 16px;
@@ -1710,7 +1711,7 @@ def build():
        colored Pipeline/Region chip rows). */
     .ops-topfilters {{
       display: flex; flex-wrap: wrap; align-items: center;
-      gap: 8px; margin: 0 0 14px;
+      gap: 8px; margin: 0 0 16px;
     }}
     .ops-topfilters .filter-dd-btn {{ width: auto; }}
     /* Search fills the space between the last filter and Ask Anything, so the
@@ -2357,7 +2358,7 @@ def build():
     /* Results header — the tracked/manual count sits above the grid. */
     .ops-results-header {{
       display: flex; align-items: center; justify-content: flex-end;
-      gap: 10px; margin: 0 0 12px;
+      gap: 10px; margin: 0 0 16px;
     }}
     .ops-results-header .ops-count {{
       font-family: var(--ab-mono); font-size: 0.74rem;
@@ -2618,7 +2619,7 @@ def build():
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Should attend</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- Team pick / AI pick chips injected by buildExtraFilters() --></div>
           </div>
-          <input type="search" id="ops-search" placeholder="event name, location, or key words" aria-label="Search events">
+          <input type="search" id="ops-search" placeholder="Search: event name, location, key words, etc" aria-label="Search events">
           <button class="ab-btn ab-btn--ask" id="ask-ai-btn" title="Ask the AI to analyse and rank the events currently in view — e.g. 'which of these should I attend in September?'">
             <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
             Ask Anything
