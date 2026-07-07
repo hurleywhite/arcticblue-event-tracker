@@ -6281,6 +6281,64 @@
           chips.appendChild(m);
         }
       });
+      // ── Pass 2 — title VARIATIONS the exact key misses ────────────────
+      // Same start DATE + same CITY, where one event's distinctive words are a
+      // subset of the other's (e.g. "AI in Finance Summit Chicago" vs "RE·WORK
+      // AI in Finance Summit Chicago", or a "Gartner …"/"IDC …" organiser
+      // prefix). Guarded so genuinely different same-day/city events
+      // (CDO vs CAIO Summit) stay separate: needs a shared, specific topic.
+      var DUP_GENERIC = { summit:1, conference:1, conf:1, forum:1, expo:1, congress:1, symposium:1, festival:1, event:1, meeting:1, week:1, day:1, days:1, the:1, an:1, of:1, for:1, to:1, and:1, in:1, on:1, at:1, by:1, with:1, annual:1, edition:1, series:1, international:1, global:1, world:1, national:1 };
+      function _topicSig(o) {
+        var cityToks = {}; dupCityOf(o).split(' ').forEach(function (t) { if (t) cityToks[t] = 1; });
+        var set = {}, n = 0;
+        dupNameCore(o.name || '').split(' ').forEach(function (t) {
+          if (t && !DUP_GENERIC[t] && !cityToks[t] && !set[t]) { set[t] = 1; n++; }
+        });
+        return { set: set, size: n };
+      }
+      function _topicRelated(a, b) {
+        if (a.size < 2 || b.size < 2) return false;   // need a specific shared topic
+        var sm = a.size <= b.size ? a : b, lg = a.size <= b.size ? b : a;
+        for (var t in sm.set) { if (!lg.set[t]) return false; }
+        return true;                                  // smaller topic fully inside larger
+      }
+      var dcGroups = {};
+      Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {
+        if (c.dataset.dupHidden === '1') return;      // already hidden by pass 1
+        var sortk = c.dataset.sort || '';
+        if (!sortk || sortk === '99999999') return;   // undated -> can't date-match
+        var city = dupCityOf(c._modalRec || {});
+        if (!city) return;
+        var key = sortk + '|' + city;
+        (dcGroups[key] = dcGroups[key] || []).push(c);
+      });
+      Object.keys(dcGroups).forEach(function (key) {
+        var g = dcGroups[key];
+        if (g.length < 2) return;
+        g.sort(function (a, b) { return _trackScore(b) - _trackScore(a); });
+        var keeper = g[0], sigK = _topicSig(keeper._modalRec || {}), merged = 0;
+        for (var i = 1; i < g.length; i++) {
+          if (g[i].dataset.dupHidden === '1') continue;
+          if (_topicRelated(sigK, _topicSig(g[i]._modalRec || {}))) {
+            g[i].dataset.dupHidden = '1'; g[i].style.display = 'none'; hidden++; merged++;
+          }
+        }
+        if (merged) {
+          var chips = keeper.querySelector('.ops-chips');
+          if (chips) {
+            var existing = chips.querySelector('.dup-merged');
+            if (existing) {
+              existing.textContent = '\u29C9 ' + ((parseInt((existing.textContent.match(/\d+/) || ['0'])[0], 10) || 0) + merged);
+            } else {
+              var m2 = document.createElement('span');
+              m2.className = 'dup-merged';
+              m2.textContent = '\u29C9 ' + merged;
+              m2.title = merged + ' duplicate card(s) of this event were hidden';
+              chips.appendChild(m2);
+            }
+          }
+        }
+      });
       return hidden;
     }
 
