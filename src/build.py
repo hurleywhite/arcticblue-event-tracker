@@ -5575,7 +5575,23 @@ def build():
           // Jump to the Grid so the filtered events are actually visible — unless
           // the reader is on the Calendar or Map, which mirror the same filters
           // in place (no need to yank them to the grid).
-          if (currentView !== 'calendar' && currentView !== 'map' && currentView !== 'grid') setView('grid');
+          var goGrid = (currentView !== 'calendar' && currentView !== 'map' && currentView !== 'grid');
+          // Niche exception: on the Calendar, clicking Booked/Attending only
+          // makes sense in place if some of those events are still UPCOMING (the
+          // calendar can't show past ones). If every booked/attending event is
+          // already past, jump to the Grid and open the Past-events group so they
+          // show; if any are upcoming, stay on the calendar filtered to those.
+          if (currentView === 'calendar' && opsStatFilter === k && (k === 'booked' || k === 'attending')) {{
+            var _stage = (k === 'booked') ? 'Booked' : 'Attending';
+            var _cards = $opsGrid.querySelectorAll('.ops-card'), _hasUpcoming = false;
+            for (var _i = 0; _i < _cards.length; _i++) {{
+              var _c = _cards[_i];
+              if (_c.dataset.dupHidden === '1' || _c.dataset.past === '1') continue;
+              if ((_c.dataset.statusTags || '').split('|').indexOf(_stage) !== -1) {{ _hasUpcoming = true; break; }}
+            }}
+            if (!_hasUpcoming) {{ goGrid = true; opsCollapsedMonths.archive = false; }}
+          }}
+          if (goGrid) setView('grid');
           applyFilters();
           // Reflect the active tile without a full re-render.
           Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (x) {{
