@@ -317,14 +317,33 @@ _SYSTEM = (
     "You are the ArcticBlue Event Tracker assistant. ArcticBlue is an applied-AI "
     "company that wants speaking slots and attendance at events full of BUYERS "
     "(in-house enterprise decision-makers), not vendor-to-vendor sales expos.\n"
-    "Answer the user's question using ONLY the EVENTS data provided in the next "
-    "message. Today's date is {today}.\n"
-    "Return ONLY a JSON object: {{\"answer\": \"<1-3 sentence markdown summary>\", "
-    "\"recommended\": [\"<exact event name>\", ...]}}.\n"
-    "- 'recommended' is the events that answer the question, MOST RELEVANT FIRST "
-    "(max 8). Use each event's EXACT name from the data. Empty list if none fit.\n"
-    "- Keep 'answer' short — the events render as cards below it, so don't repeat "
-    "their dates/locations; just give the gist or the reasoning.\n"
+    "Today's date is {today}.\n"
+    "FIRST decide what the user actually wants, then answer in that MODE. Return "
+    "ONLY a JSON object: {{\"mode\": \"events|event|app|chat\", \"answer\": "
+    "\"<markdown>\", \"recommended\": [\"<exact event name>\", ...]}}.\n"
+    "MODES:\n"
+    "- \"events\" — they want a LIST or RANKING of events (find / what should I "
+    "attend / which events / recommend / what haven't we applied to / what's "
+    "booked / best buyer-rich, and the like). Put the matching events in "
+    "'recommended', MOST RELEVANT FIRST (max 8), EXACT names from the data, empty "
+    "if none fit. Keep 'answer' to 1-2 sentences of reasoning — the events render "
+    "as cards, so don't repeat their dates/locations.\n"
+    "- \"event\" — they ask ABOUT ONE specific event (tell me about X / is X worth "
+    "it / who's speaking at X / when's the CFP for X). Reply conversationally in "
+    "2-5 sentences from that event's data (dates, location, audience, fit, stage, "
+    "who's interested, price, deadline) plus what you reliably know about it; be "
+    "honest when a detail isn't on file. Put just that one event in 'recommended' "
+    "so its card shows. If it isn't in the data, say so — never invent it.\n"
+    "- \"app\" — they ask HOW TO USE the tracker or what a label/feature means (how "
+    "do I add an event / what does Pending mean / how do I mark attending / where's "
+    "the apply link / how does this work). Answer briefly and warmly (2-4 "
+    "sentences, like a helpful colleague, never a robotic manual) using the APP "
+    "GUIDE. Leave 'recommended' EMPTY — no cards.\n"
+    "- \"chat\" — anything else: answer helpfully and briefly; 'recommended' empty "
+    "unless a specific event is genuinely relevant.\n"
+    "Never invent events or facts. If torn between 'events' and 'app', pick "
+    "'events' when they want to SEE events and 'app' when they want to know HOW. "
+    "The data rules below apply in 'events' and 'event' modes.\n"
     "- PIPELINE STAGES: each event has 'stage' (its pipeline tags) and 'submitted' "
     "(true/false). 'submitted' is the ONLY thing that says whether a speaking "
     "application has been sent. Stage meanings: 'Identified' = we have merely "
@@ -422,6 +441,39 @@ _COMPANY_CONTEXT = (os.environ.get('ARCTICBLUE_CONTEXT') or (
 )).strip()
 
 
+# How the tracker itself works — so the assistant can answer "how do I…" and
+# "what does … mean" questions accurately and in plain language. Keep it short;
+# it's sent on every call.
+_APP_GUIDE = (
+    "APP GUIDE — how the ArcticBlue Event Tracker works (use for 'how do I…' and "
+    "'what does … mean' questions):\n"
+    "- It's a shared tracker of real-world AI/enterprise events ArcticBlue could "
+    "speak at or attend. No login — you set your name via 'change' at the top so "
+    "your edits and personal lists are attributed to you.\n"
+    "- VIEWS (tabs): 'My Events' = the events you're booked to speak at or "
+    "attending (plus a day-of brief); 'All Events' = the full catalog; 'Calendar' "
+    "and 'Map' show the same events by date and by place.\n"
+    "- TOP FILTERS: Pipeline (stage), Region, Fits (which teammate an event "
+    "suits), Months, plus a keyword Search. 'Ask Anything' (this box) answers "
+    "questions and ranks events.\n"
+    "- ADD BUTTONS: '+ Add event' logs one by hand; 'Paste email' fills an event "
+    "from a pasted invite; 'Find new events' asks the AI to discover new speaking "
+    "events.\n"
+    "- ON EACH EVENT CARD: the star = 'I'm interested' (personal, tied to your "
+    "name); 'Apply to speak' opens that event's application/CFP link; 'Details' "
+    "opens the full record, where 'Edit' lets you change the stage, ArcticBlue "
+    "speaker, notes, links, and the 'Apply to speak link'.\n"
+    "- STAT TILES across the top (click one to filter the list): Upcoming events, "
+    "My Interests, Pending, Booked, Team Interests, Attending.\n"
+    "- WHAT THE LABELS MEAN: Pending = a speaking application is in but not yet "
+    "confirmed (Submitted / Followed up / Meeting held); Booked = confirmed to "
+    "speak; Attending = going without speaking; Buyer-rich = the audience is full "
+    "of in-house enterprise buyers (the events we want).\n"
+    "Keep how-to answers short and friendly, and point people to the button or "
+    "tab by name."
+)
+
+
 def _ask_openai(question, history, events, user=''):
     messages = [{'role': 'system',
                  'content': _SYSTEM.format(today=date.today().isoformat())}]
@@ -464,6 +516,7 @@ def _ask_openai(question, history, events, user=''):
     if _COMPANY_CONTEXT:
         messages.append({'role': 'system',
                          'content': 'ARCTICBLUE CONTEXT:\n' + _COMPANY_CONTEXT})
+    messages.append({'role': 'system', 'content': _APP_GUIDE})
     messages.append({'role': 'system',
                      'content': 'EVENTS (JSON):\n' + json.dumps(events, ensure_ascii=False)})
     for h in (history or [])[-6:]:
@@ -490,9 +543,10 @@ def _ask_openai(question, history, events, user=''):
     try:
         parsed = json.loads(content)
         return (str(parsed.get('answer', '') or ''),
-                [str(n) for n in (parsed.get('recommended') or []) if n], served)
+                [str(n) for n in (parsed.get('recommended') or []) if n],
+                str(parsed.get('mode', '') or '').strip().lower(), served)
     except (json.JSONDecodeError, TypeError):
-        return content, [], served
+        return content, [], '', served
 
 
 def _match_cards(names, events):
@@ -563,10 +617,14 @@ class handler(BaseHTTPRequestHandler):
             return _send(self, 400, {'error': 'no question'})
         events = _gather_events(self.headers.get('Host', ''))
         try:
-            answer, names, served = _ask_openai(question, body.get('history'), events, body.get('user'))
+            answer, names, mode, served = _ask_openai(question, body.get('history'), events, body.get('user'))
         except Exception as e:  # noqa: BLE001
             return _send(self, 502, {'error': 'assistant failed: %s' % str(e)[:300]})
         cards = _match_cards(names, events)
-        return _send(self, 200, {'answer': answer, 'cards': cards,
+        # How-to answers are about the tool, not any event — never attach cards
+        # even if the model slipped an event name into 'recommended'.
+        if mode == 'app':
+            cards = []
+        return _send(self, 200, {'answer': answer, 'cards': cards, 'mode': mode,
                                  'model': served or OPENAI_MODEL,
                                  'events_considered': len(events)})

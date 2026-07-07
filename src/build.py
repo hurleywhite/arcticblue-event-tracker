@@ -2320,6 +2320,11 @@ def build():
       font-size: 0.82rem; line-height: 1.5; color: var(--ab-fg-2);
     }}
     .ask-note a {{ color: var(--ab-blue, #1d4ed8); }}
+    /* A conversational reply (specific event / how-to / chat) — the prose is the
+       headline; any single event card sits below it. */
+    .ask-prose {{ font-size: 0.92rem; line-height: 1.55; color: var(--ab-fg); }}
+    .ask-prose a {{ color: var(--ab-blue, #1d4ed8); }}
+    .ask-prose + .ask-cards {{ margin-top: 10px; }}
     .ask-examples {{ display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }}
     .ask-chip {{ font-size: 0.8rem; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
     .ask-chip:hover {{ background: var(--ab-bg-3); color: var(--ab-fg); }}
@@ -9018,13 +9023,21 @@ def build():
     // Render an AI reply: lead with the ranked event cards, then a short,
     // de-emphasised note for the reasoning (no big markdown blocks). When there
     // are no matching events (a factual question), fall back to the text.
-    function _askAnswerHtml(answer, cards) {{
+    function _askAnswerHtml(answer, cards, mode) {{
       var txt = (answer || '').trim();
-      if (cards && cards.length) {{
+      var hasCards = cards && cards.length;
+      // A LIST / ranking ("events" mode, or legacy replies with no mode) leads
+      // with the ranked cards and demotes the prose to a small note. A
+      // CONVERSATIONAL reply (a specific event, a how-to, or general chat) leads
+      // with the prose like a normal chatbot, and any single event card sits
+      // below it as a reference.
+      if ((mode === 'events' || !mode) && hasCards) {{
         return _askCardsHtml(cards) +
           (txt ? '<div class="ask-note">' + _mdToHtml(txt) + '</div>' : '');
       }}
-      return _mdToHtml(txt);
+      var out = txt ? '<div class="ask-prose">' + _mdToHtml(txt) + '</div>' : '';
+      if (hasCards) out += _askCardsHtml(cards);
+      return out || _mdToHtml(txt);
     }}
     // Click a recommended card \\u2192 open that event\\u2019s detail modal.
     function _wireAskCards(container) {{
@@ -9083,7 +9096,7 @@ def build():
       // Replay prior history when re-opening (including recommended cards).
       _askHistory.forEach(function (h) {{
         if (h.role === 'assistant') {{
-          var m = addMsg('ai', _askAnswerHtml(h.content, h.cards), true);
+          var m = addMsg('ai', _askAnswerHtml(h.content, h.cards, h.mode), true);
           _wireAskCards(m);
         }} else {{
           addMsg(h.role, h.content);
@@ -9110,10 +9123,10 @@ def build():
               thinking.textContent = 'Sorry \\u2014 ' + ((data && data.error) || 'the assistant is unavailable right now.');
               return;
             }}
-            thinking.innerHTML = _askAnswerHtml(data.answer, data.cards);
+            thinking.innerHTML = _askAnswerHtml(data.answer, data.cards, data.mode);
             _wireAskCards(thinking);
             log.scrollTop = log.scrollHeight;
-            _askHistory.push({{ role: 'assistant', content: data.answer, cards: data.cards || [] }});
+            _askHistory.push({{ role: 'assistant', content: data.answer, cards: data.cards || [], mode: data.mode }});
           }}).catch(function () {{
             sendBtn.disabled = false; sendBtn.textContent = 'Ask';
             thinking.textContent = 'Network error \\u2014 please try again.';
