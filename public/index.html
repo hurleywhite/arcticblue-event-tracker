@@ -5758,8 +5758,8 @@
         return '<div class="queue-section' + (collapsible ? ' collapsible' : '') + (collapsed ? ' collapsed' : '') + '">' + head + body + '</div>';
       }
       var intro = b.support
-        ? '<p class="queue-intro myev-intro"><strong>Team events.</strong> Everyone the team is booked to speak at or attending &mdash; upcoming first, past below.</p>'
-        : '<p class="queue-intro myev-intro"><strong>' + escapeHtml(b.me) + '&#39;s events.</strong> Events you&#39;re booked to speak at or attending &mdash; upcoming first, past below.</p>';
+        ? '<p class="queue-intro myev-intro"><strong>Team events:</strong> Everyone the team is booked to speak at or attending &mdash; upcoming first, past below.</p>'
+        : '<p class="queue-intro myev-intro"><strong>' + escapeHtml(b.me) + '&#39;s events:</strong> Events you&#39;re booked to speak at or attending &mdash; upcoming first, past below.</p>';
       var upTitle = b.support ? 'Attending &amp; speaking' : 'You&#39;re attending';
       // Past events collapse into a dropdown, hidden by default (like the grid's
       // month groups). _myEventsPastOpen remembers if the reader expanded them.
