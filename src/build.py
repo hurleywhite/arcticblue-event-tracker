@@ -1943,6 +1943,11 @@ def build():
     }}
     .queue-sec-title {{ font-family: var(--ab-sans); font-weight: 700; font-size: 1.02rem; color: var(--ab-fg); }}
     .queue-sec-count {{ font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); }}
+    /* Collapsible section (My Events "Past events" dropdown) — starts collapsed. */
+    .queue-section.collapsible .queue-sec-head {{ cursor: pointer; user-select: none; }}
+    .qsec-caret {{ font-size: 0.7rem; color: var(--ab-fg-3); transition: transform 0.15s; }}
+    .queue-section.collapsible.collapsed .qsec-caret {{ transform: rotate(-90deg); display: inline-block; }}
+    .queue-section.collapsible.collapsed .queue-row {{ display: none; }}
     .queue-row {{
       display: grid; grid-template-columns: 1fr auto; gap: 6px 14px;
       align-items: start; padding: 12px 14px; margin: 0 0 8px;
@@ -2612,8 +2617,8 @@ def build():
           <span class="ops-shown" id="ops-shown"></span>
         </div>
         <div class="view-toggle" role="tablist" aria-label="View">
-          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My events<span class="vt-count" id="vt-myevents-count" hidden></span></button>
-          <button type="button" role="tab" data-view="grid"     aria-selected="false">Grid</button>
+          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Events<span class="vt-count" id="vt-myevents-count" hidden></span></button>
+          <button type="button" role="tab" data-view="grid"     aria-selected="false">All Events</button>
           <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
           <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
@@ -6169,6 +6174,7 @@ def build():
     // submissions" (Submitted / Followed up / Meeting held). Support people
     // (Angela/Hurley) coordinate for the whole team, so they see everyone's.
     // ════════════════════════════════════════════════════════════════
+    var _myEventsPastOpen = false;   // My Events "Past events" dropdown starts collapsed
     function myEventsBuckets() {{
       var me = getCollabName() || '';
       var meFold = abFold(me);
@@ -6212,7 +6218,7 @@ def build():
       if (!host) return;
       var b = myEventsBuckets();
       if (!b.named) {{
-        host.innerHTML = '<p class="queue-intro"><strong>My events.</strong> Set your name (hit &ldquo;change&rdquo; up top) to see the events you&#39;re booked to speak at or attending.</p>';
+        host.innerHTML = '<p class="queue-intro"><strong>My Events.</strong> Set your name (hit &ldquo;change&rdquo; up top) to see the events you&#39;re booked to speak at or attending.</p>';
         return;
       }}
       function rowHtml(it) {{
@@ -6226,21 +6232,34 @@ def build():
             '<div class="queue-chips">' + who + role + '</div>' +
           '</div></div>';
       }}
-      function section(title, list, emptyMsg) {{
-        var head = '<div class="queue-sec-head"><span class="queue-sec-title">' + title + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
+      function section(title, list, emptyMsg, collapsible, collapsed) {{
+        var caret = collapsible ? '<span class="qsec-caret" aria-hidden="true">&#9662;</span>' : '';
+        var head = '<div class="queue-sec-head"' + (collapsible ? ' role="button" tabindex="0"' : '') + '>' + caret +
+          '<span class="queue-sec-title">' + title + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
         var body = list.length ? list.map(rowHtml).join('') : '<div class="queue-empty">' + emptyMsg + '</div>';
-        return '<div class="queue-section">' + head + body + '</div>';
+        return '<div class="queue-section' + (collapsible ? ' collapsible' : '') + (collapsed ? ' collapsed' : '') + '">' + head + body + '</div>';
       }}
       var intro = b.support
         ? '<p class="queue-intro"><strong>Team events.</strong> Everyone the team is booked to speak at or attending &mdash; upcoming first, past below.</p>'
         : '<p class="queue-intro"><strong>' + escapeHtml(b.me) + '&#39;s events.</strong> Events you&#39;re booked to speak at or attending &mdash; upcoming first, past below.</p>';
       var upTitle = b.support ? 'Attending &amp; speaking' : 'You&#39;re attending';
+      // Past events collapse into a dropdown, hidden by default (like the grid's
+      // month groups). _myEventsPastOpen remembers if the reader expanded them.
       host.innerHTML = intro +
         section(upTitle, b.upcoming, 'Nothing upcoming yet.') +
-        (b.past.length ? section('Past events', b.past, '') : '');
+        (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen) : '');
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
       }});
+      var _pastHead = host.querySelector('.queue-section.collapsible .queue-sec-head');
+      if (_pastHead) {{
+        var _togglePast = function () {{
+          var sec = _pastHead.closest('.queue-section');
+          _myEventsPastOpen = !sec.classList.toggle('collapsed');
+        }};
+        _pastHead.addEventListener('click', _togglePast);
+        _pastHead.addEventListener('keydown', function (e) {{ if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); _togglePast(); }} }});
+      }}
       updateViewBadges();
     }}
 
