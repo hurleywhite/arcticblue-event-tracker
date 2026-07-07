@@ -2332,11 +2332,33 @@ def build():
       margin-left: auto;
     }}
 
-    /* Date pickers (single day or range) in the Add-event form. */
-    .date-range-row {{ display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }}
-    .date-range-row .date-input {{ flex: 0 1 180px; min-width: 140px; }}
-    .date-range-dash {{ color: var(--ab-fg-3); font-size: 0.85rem; }}
-    .date-range-hint {{ flex-basis: 100%; margin: 2px 0 0; font-size: 0.72rem; font-style: italic; color: var(--ab-fg-3); }}
+    /* Flexible date text field + click-to-open calendar popup (single or range). */
+    .date-pick {{ position: relative; }}
+    .date-pick .date-flex-input {{ width: 100%; }}
+    .date-cal {{
+      position: absolute; z-index: 60; top: calc(100% + 4px); left: 0;
+      width: 268px; padding: 10px; background: var(--ab-bg);
+      border: 1px solid var(--ab-rule); border-radius: 10px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.14);
+    }}
+    .dc-head {{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }}
+    .dc-title {{ font-family: "Nunito Sans", var(--ab-sans); font-weight: 800; font-size: 0.9rem; color: var(--ab-fg); }}
+    .dc-nav {{ width: 28px; height: 28px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); border-radius: 6px; cursor: pointer; font-size: 1.05rem; line-height: 1; color: var(--ab-fg-2); }}
+    .dc-nav:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
+    .dc-grid {{ display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }}
+    .dc-dow {{ text-align: center; font-family: var(--ab-mono); font-size: 0.58rem; color: var(--ab-fg-3); padding: 2px 0; }}
+    .dc-day {{ border: 0; background: none; cursor: pointer; padding: 6px 0; border-radius: 6px; font-size: 0.8rem; color: var(--ab-fg); }}
+    .dc-day:hover {{ background: var(--ab-bg-3); }}
+    .dc-empty {{ visibility: hidden; }}
+    .dc-inrange {{ background: rgba(39,115,194,0.14); border-radius: 0; }}
+    .dc-start, .dc-end, .dc-single {{ background: var(--ab-blue); color: #fff; }}
+    .dc-start {{ border-radius: 6px 0 0 6px; }}
+    .dc-end {{ border-radius: 0 6px 6px 0; }}
+    .dc-single {{ border-radius: 6px; }}
+    .dc-foot {{ display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }}
+    .dc-hint {{ font-size: 0.6rem; font-style: italic; color: var(--ab-fg-3); }}
+    .dc-clear, .dc-done {{ border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); border-radius: 6px; padding: 4px 10px; font-size: 0.7rem; cursor: pointer; color: var(--ab-fg-2); }}
+    .dc-done {{ background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }}
     .add-event-card {{
       /* When a panel scrolls into view, clear the sticky header + tab bar. */
       scroll-margin-top: 130px;
@@ -6732,6 +6754,102 @@ def build():
     }}
 
     // Apply extracted fields to the form (only fills empty inputs by default)
+    // Click-to-open calendar popup for the Add-event date field. Supports a
+    // single day OR a range: click one day (single), click a second later day
+    // (range); a third click starts over. Writes the formatted date into the
+    // text input AND stashes exact ISO start/end on its dataset (the submit
+    // handler trusts those). The field is still free-text + flexibly parsed.
+    function wireDatePicker(wrap) {{
+      if (!wrap || wrap.dataset.wired) return;
+      wrap.dataset.wired = '1';
+      var input = wrap.querySelector('.date-flex-input');
+      var pop = wrap.querySelector('.date-cal');
+      if (!input || !pop) return;
+      var MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      var DOW = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+      var sel = {{ start: null, end: null }};
+      var viewY, viewM;
+      function pad(n) {{ return String(n).padStart(2, '0'); }}
+      function isoOf(y, m0, d) {{ return y + '-' + pad(m0 + 1) + '-' + pad(d); }}
+      function partsOf(iso) {{ var m = /^(\\d{{4}})-(\\d{{2}})-(\\d{{2}})/.exec(iso || ''); return m ? {{ y: +m[1], mo: +m[2] - 1, d: +m[3] }} : null; }}
+      function fmt(sIso, eIso) {{
+        var s = partsOf(sIso); if (!s) return '';
+        var e = partsOf(eIso), sM = MON[s.mo];
+        if (!e || (e.y === s.y && e.mo === s.mo && e.d === s.d)) return sM + ' ' + s.d + ', ' + s.y;
+        var eM = MON[e.mo];
+        if (e.y === s.y && e.mo === s.mo) return sM + ' ' + s.d + '\\u2013' + e.d + ', ' + s.y;
+        if (e.y === s.y) return sM + ' ' + s.d + ' \\u2013 ' + eM + ' ' + e.d + ', ' + s.y;
+        return sM + ' ' + s.d + ', ' + s.y + ' \\u2013 ' + eM + ' ' + e.d + ', ' + e.y;
+      }}
+      function writeInput() {{
+        if (!sel.start) return;
+        var isRange = sel.end && sel.end !== sel.start;
+        input.value = fmt(sel.start, isRange ? sel.end : null);
+        input.setAttribute('data-start-iso', sel.start);
+        input.setAttribute('data-end-iso', isRange ? sel.end : sel.start);
+      }}
+      function render() {{
+        var startDow = new Date(viewY, viewM, 1).getDay();
+        var daysIn = new Date(viewY, viewM + 1, 0).getDate();
+        var html = '<div class="dc-head">' +
+          '<button type="button" class="dc-nav" data-nav="-1" aria-label="Previous month">\\u2039</button>' +
+          '<span class="dc-title">' + MON[viewM] + ' ' + viewY + '</span>' +
+          '<button type="button" class="dc-nav" data-nav="1" aria-label="Next month">\\u203a</button>' +
+          '</div><div class="dc-grid">';
+        DOW.forEach(function (d) {{ html += '<span class="dc-dow">' + d + '</span>'; }});
+        var i;
+        for (i = 0; i < startDow; i++) html += '<span class="dc-day dc-empty"></span>';
+        var isR = sel.start && sel.end && sel.start !== sel.end;
+        for (var day = 1; day <= daysIn; day++) {{
+          var iso = isoOf(viewY, viewM, day), cls = 'dc-day';
+          if (isR) {{
+            if (iso === sel.start) cls += ' dc-start';
+            else if (iso === sel.end) cls += ' dc-end';
+            else if (iso > sel.start && iso < sel.end) cls += ' dc-inrange';
+          }} else if (sel.start && iso === sel.start) cls += ' dc-single';
+          html += '<button type="button" class="' + cls + '" data-iso="' + iso + '">' + day + '</button>';
+        }}
+        html += '</div><div class="dc-foot"><button type="button" class="dc-clear">Clear</button>' +
+          '<span class="dc-hint">One day, or click a 2nd for a range</span>' +
+          '<button type="button" class="dc-done">Done</button></div>';
+        pop.innerHTML = html;
+      }}
+      function openCal() {{
+        sel = {{ start: null, end: null }};
+        var ds = input.getAttribute('data-start-iso'), de = input.getAttribute('data-end-iso');
+        if (ds) {{ sel.start = ds; sel.end = de || ds; }}
+        else {{
+          var t = (input.value || '').trim();
+          if (t) {{ try {{ var d = deriveDatesFromText(t); if (d && d.start_date) {{ sel.start = d.start_date; sel.end = d.end_date || d.start_date; }} }} catch (e) {{}} }}
+        }}
+        var base = sel.start ? partsOf(sel.start) : null, now = new Date();
+        viewY = base ? base.y : now.getFullYear();
+        viewM = base ? base.mo : now.getMonth();
+        render();
+        pop.hidden = false;
+      }}
+      function closeCal() {{ pop.hidden = true; }}
+      input.addEventListener('focus', openCal);
+      input.addEventListener('click', openCal);
+      input.addEventListener('input', function () {{ input.removeAttribute('data-start-iso'); input.removeAttribute('data-end-iso'); }});
+      pop.addEventListener('mousedown', function (e) {{ e.preventDefault(); }});  // don't steal focus / blur-close the field
+      pop.addEventListener('click', function (e) {{
+        var nav = e.target.closest('[data-nav]');
+        if (nav) {{ viewM += parseInt(nav.getAttribute('data-nav'), 10); if (viewM < 0) {{ viewM = 11; viewY--; }} else if (viewM > 11) {{ viewM = 0; viewY++; }} render(); return; }}
+        if (e.target.closest('.dc-clear')) {{ sel = {{ start: null, end: null }}; input.value = ''; input.removeAttribute('data-start-iso'); input.removeAttribute('data-end-iso'); render(); return; }}
+        if (e.target.closest('.dc-done')) {{ closeCal(); return; }}
+        var cell = e.target.closest('[data-iso]');
+        if (cell) {{
+          var iso = cell.getAttribute('data-iso');
+          if (!sel.start || (sel.end && sel.start !== sel.end) || iso < sel.start) sel = {{ start: iso, end: iso }};
+          else sel.end = iso;
+          writeInput();
+          render();
+        }}
+      }});
+      document.addEventListener('click', function (e) {{ if (!wrap.contains(e.target)) closeCal(); }});
+    }}
+
     function applyExtractToForm(form, extracted, opts) {{
       opts = opts || {{}};
       // Map every field the scraper can return — not just the basic 5. Selects
@@ -6745,29 +6863,15 @@ def build():
         'speaker', 'meeting_formats'];
       var filled = 0, skipped = 0;
       keys.forEach(function (k) {{
-        // Date is now two <input type="date"> pickers — parse the scraped
-        // free-text date into ISO start/end and fill those instead.
-        if (k === 'date_str') {{
-          if (!extracted.date_str) return;
-          var sEl = form.querySelector('[name="start_date"]');
-          var eEl = form.querySelector('[name="end_date"]');
-          if (!sEl) return;
-          if (sEl.value && !opts.overwrite) {{ skipped++; return; }}
-          var parsed = {{}};
-          try {{ parsed = deriveDatesFromText(extracted.date_str) || {{}}; }} catch (e) {{}}
-          if (parsed.start_date) {{
-            sEl.value = parsed.start_date;
-            if (eEl && parsed.end_date && parsed.end_date !== parsed.start_date) eEl.value = parsed.end_date;
-            filled++;
-          }}
-          return;
-        }}
         var el = form.querySelector('[name="' + k + '"]');
         if (!el) return;
         if (!extracted[k]) return;
         if (el.value && !opts.overwrite) {{ skipped++; return; }}
         el.value = extracted[k];
         filled++;
+        // The date field's calendar popup reads the input's ISO stash; a scraped
+        // free-text date should fall back to flexible parsing, so clear the stash.
+        if (k === 'date_str') {{ el.removeAttribute('data-start-iso'); el.removeAttribute('data-end-iso'); }}
       }});
       return {{ filled: filled, skipped: skipped, total: keys.filter(function (k) {{ return extracted[k]; }}).length }};
     }}
@@ -6802,11 +6906,9 @@ def build():
           '<input type="text" name="name" required placeholder="e.g. AI Summit San Francisco">' +
         '</label>' +
         '<label><span class="key">Date</span>' +
-          '<div class="date-range-row">' +
-            '<input type="date" name="start_date" class="date-input" aria-label="Start date">' +
-            '<span class="date-range-dash">to</span>' +
-            '<input type="date" name="end_date" class="date-input" aria-label="End date — leave blank for a single day">' +
-            '<span class="date-range-hint">Pick one day, or a start + end for a range (leave &ldquo;to&rdquo; blank for a single day).</span>' +
+          '<div class="date-pick">' +
+            '<input type="text" name="date_str" class="date-flex-input" autocomplete="off" placeholder="Type any date (e.g. Sept 12–14, 2026 · 9/12 · next single day), or click to pick">' +
+            '<div class="date-cal" hidden></div>' +
           '</div>' +
         '</label>' +
         '<div class="row">' +
@@ -7048,6 +7150,9 @@ def build():
       // Cancel
       form.querySelector('[data-cancel]').addEventListener('click', function () {{ form.remove(); }});
 
+      // Date field: flexible text + click-to-open calendar (single day or range).
+      wireDatePicker(form.querySelector('.date-pick'));
+
       // Submit → manual_events insert
       form.addEventListener('submit', function (ev) {{
         ev.preventDefault();
@@ -7085,30 +7190,21 @@ def build():
           created_by: email
         }};
         if (!row.name) {{ alert('Name is required (it shows on the calendar)'); return; }}
-        // Date comes from the two calendar pickers (single day = start only;
-        // range = start + end). Build the display date_str from them, and set
-        // ISO start/end directly so the row is calendar-ready. Date is optional
-        // — fall back to "Date TBD" (the schema column is NOT NULL).
-        function _fmtRange(sIso, eIso) {{
-          var MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-          function pp(iso) {{ var m = /^(\\d{{4}})-(\\d{{2}})-(\\d{{2}})/.exec(iso || ''); return m ? {{ y: +m[1], mo: +m[2], d: +m[3] }} : null; }}
-          var s = pp(sIso); if (!s) return '';
-          var e = pp(eIso);
-          var sM = MON[s.mo - 1];
-          if (!e || (e.y === s.y && e.mo === s.mo && e.d === s.d)) return sM + ' ' + s.d + ', ' + s.y;
-          var eM = MON[e.mo - 1];
-          if (e.y === s.y && e.mo === s.mo) return sM + ' ' + s.d + '\\u2013' + e.d + ', ' + s.y;
-          if (e.y === s.y) return sM + ' ' + s.d + ' \\u2013 ' + eM + ' ' + e.d + ', ' + s.y;
-          return sM + ' ' + s.d + ', ' + s.y + ' \\u2013 ' + eM + ' ' + e.d + ', ' + e.y;
-        }}
-        var _sIso = (fd.get('start_date') || '').toString().trim();
-        var _eIso = (fd.get('end_date') || '').toString().trim();
-        if (_sIso) {{
-          row.start_date = _sIso;
-          row.end_date   = (_eIso && _eIso >= _sIso) ? _eIso : _sIso;
-          row.date_str   = _fmtRange(_sIso, (_eIso && _eIso > _sIso) ? _eIso : null);
+        // Date is a flexible free-text field (parsed super-loosely by
+        // deriveDatesFromText) that the calendar popup can also fill. When the
+        // calendar is used it stashes exact ISO start/end on the input's
+        // dataset — trust those; otherwise parse whatever was typed.
+        var _dsEl = form.querySelector('[name="date_str"]');
+        var _calS = _dsEl && _dsEl.getAttribute('data-start-iso');
+        var _calE = _dsEl && _dsEl.getAttribute('data-end-iso');
+        if (!row.date_str) row.date_str = 'Date TBD';
+        if (_calS) {{
+          row.start_date = _calS;
+          row.end_date   = _calE || _calS;
         }} else {{
-          row.date_str = 'Date TBD';
+          var derived = deriveDatesFromText(row.date_str);
+          if (derived.start_date) row.start_date = derived.start_date;
+          if (derived.end_date)   row.end_date   = derived.end_date;
         }}
         // The user typed a real date the parser couldn't read (e.g. "Q3 2026",
         // "next spring") → start_date stays null and the event silently never
