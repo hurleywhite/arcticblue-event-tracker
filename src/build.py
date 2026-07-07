@@ -1661,7 +1661,9 @@ def build():
     .filter-dd-btn.has-active {{ background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }}
     .filter-dd-btn .dd-caret {{ font-size: 0.55rem; color: var(--ab-fg-3); }}
     .filter-dd-menu {{
-      position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+      /* Above Leaflet's map panes/controls (z-index up to ~1000) so the filter
+         menus aren't cut off over the Map view; still below modals (1200+). */
+      position: absolute; top: calc(100% + 6px); left: 0; z-index: 1100;
       min-width: 200px; max-width: 330px; max-height: 360px; overflow-y: auto;
       background: var(--ab-bg); border: 1px solid var(--ab-rule);
       border-radius: 8px; padding: 10px; gap: 6px; flex-wrap: wrap;
@@ -3336,7 +3338,7 @@ def build():
 
     $date.textContent  = rec.date_str || '';
     if (rec.url) {{
-      $title.innerHTML = '<a class="modal-title-link" href="' + esc(rec.url) + '" target="_blank" rel="noopener">' + esc(rec.name || 'Event') + ' <span class="event-link-arrow" aria-hidden="true">↗</span></a>';
+      $title.innerHTML = '<a class="modal-title-link" href="' + esc(rec.url) + '" target="_blank" rel="noopener">' + esc(rec.name || 'Event') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>';
     }} else {{
       $title.textContent = rec.name || 'Event';
     }}
@@ -4297,7 +4299,7 @@ def build():
         '</div>' +
         '<h3 class="event-name">' +
           (_cardUrl
-            ? '<a class="event-name-link" href="' + escapeHtml(_cardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + ' <span class="event-link-arrow" aria-hidden="true">↗</span></a>'
+            ? '<a class="event-name-link" href="' + escapeHtml(_cardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
             : escapeHtml(ev.name)) +
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
@@ -4521,7 +4523,7 @@ def build():
         '</div>' +
         '<h3 class="event-name">' +
           (mev.url
-            ? '<a class="event-name-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + ' <span class="event-link-arrow" aria-hidden="true">↗</span></a>'
+            ? '<a class="event-name-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
             : escapeHtml(mev.name || '')) +
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
