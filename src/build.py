@@ -1724,6 +1724,8 @@ def build():
     .ops-topfilters #ops-search::placeholder {{ color: var(--ab-fg-3); font-style: italic; font-weight: 500; }}
     .ops-topfilters #ops-search:focus {{ border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.12); }}
     @media (max-width: 640px) {{ .ops-topfilters #ops-search {{ flex-basis: 100%; }} }}
+    /* Ask AI sits at the right end of the filter line, next to search. */
+    .ops-topfilters .ab-btn--ask {{ flex: 0 0 auto; padding: 9px 15px; }}
     .ops-filters {{
       display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 10px; align-items: stretch;
@@ -2312,6 +2314,12 @@ def build():
     }}
     .ask-card .ac-tag.buyer {{ background: #ecfdf5; color: #047857; border-color: #a7f3d0; }}
     .ask-card .ac-tag.worth {{ background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }}
+    /* Reasoning under the ranked cards — small + muted so cards stay the headline. */
+    .ask-note {{
+      margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--ab-rule);
+      font-size: 0.82rem; line-height: 1.5; color: var(--ab-fg-2);
+    }}
+    .ask-note a {{ color: var(--ab-blue, #1d4ed8); }}
     .ask-examples {{ display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }}
     .ask-chip {{ font-size: 0.8rem; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
     .ask-chip:hover {{ background: var(--ab-bg-3); color: var(--ab-fg); }}
@@ -2333,10 +2341,21 @@ def build():
       color: var(--ab-fg-3); margin-right: 2px; user-select: none;
     }}
 
-    .ops-toolbar .ops-count {{
+    /* Row 2: view tabs on the left, add-event actions pushed to the right. */
+    .ops-controls-row {{
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: space-between; gap: 12px; margin-bottom: 16px;
+    }}
+    .ops-controls-row .view-toggle,
+    .ops-controls-row .ops-toolbar {{ margin-bottom: 0; }}
+    /* Results header — the tracked/manual count sits above the grid. */
+    .ops-results-header {{
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 10px; margin: 0 0 12px;
+    }}
+    .ops-results-header .ops-count {{
       font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
-      margin-left: auto;
     }}
 
     /* Flexible date text field + click-to-open calendar popup (single or range). */
@@ -2593,7 +2612,11 @@ def build():
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Should attend</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- Team pick / AI pick chips injected by buildExtraFilters() --></div>
           </div>
-          <input type="search" id="ops-search" placeholder="event title, location, or key words" aria-label="Search events">
+          <input type="search" id="ops-search" placeholder="Search events…" aria-label="Search events">
+          <button class="ab-btn ab-btn--ask" id="ask-ai-btn" title="Ask the AI to analyse and rank the events currently in view — e.g. 'which of these should I attend in September?'">
+            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/><path d="m5.6 5.6 1.5 1.5"/><path d="m16.9 16.9 1.5 1.5"/><path d="m5.6 18.4 1.5-1.5"/><path d="m16.9 7.1 1.5-1.5"/><circle cx="12" cy="12" r="4"/></svg>
+            Ask AI
+          </button>
         </div>
         <div class="ops-filters collapsed">
           <button type="button" class="ops-filter-toggle" id="ops-filter-toggle" aria-expanded="false" aria-label="Show or hide filters">Filters <span class="ft-caret" aria-hidden="true">▾</span></button>
@@ -2618,6 +2641,7 @@ def build():
           <label class="ops-filter-chip" title="Events where an email contact (organizer POC) was found"><input type="checkbox" id="ops-f-contact">Contact found</label>
           <span class="ops-shown" id="ops-shown"></span>
         </div>
+        <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Events<span class="vt-count" id="vt-myevents-count" hidden></span></button>
           <button type="button" role="tab" data-view="grid"     aria-selected="false">All Events</button>
@@ -2639,7 +2663,7 @@ def build():
             </button>
             <button class="ab-btn ab-btn--ghost ab-btn--purple" id="search-dust-btn" title="Ask the AI to find new speaking events matching your criteria">
               <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/><path d="m5.6 5.6 1.5 1.5"/><path d="m16.9 16.9 1.5 1.5"/><path d="m5.6 18.4 1.5-1.5"/><path d="m16.9 7.1 1.5-1.5"/><circle cx="12" cy="12" r="4"/></svg>
-              Find events (AI)
+              Find new events
             </button>
           </div>
           <div class="ops-toolbar-group" role="group" aria-label="Sync and export" id="ops-sync-group">
@@ -2653,10 +2677,9 @@ def build():
               Spreadsheet
             </button>
           </div>
-          <button class="ab-btn ab-btn--ask" id="ask-ai-btn" title="Ask anything about these events — e.g. 'which events should I attend in September?'">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/><path d="m5.6 5.6 1.5 1.5"/><path d="m16.9 16.9 1.5 1.5"/><path d="m5.6 18.4 1.5-1.5"/><path d="m16.9 7.1 1.5-1.5"/><circle cx="12" cy="12" r="4"/></svg>
-            Ask AI
-          </button>
+        </div>
+        </div>
+        <div class="ops-results-header" id="ops-results-header">
           <span class="ops-count" id="ops-count"></span>
         </div>
         <div class="ops-grid" id="ops-grid"></div>
@@ -7541,6 +7564,8 @@ def build():
       var d = document.getElementById('ops-dayof');
       var me = document.getElementById('ops-myevents');
       if (g) g.style.display = (name === 'grid') ? '' : 'none';
+      var rh = document.getElementById('ops-results-header');
+      if (rh) rh.style.display = (name === 'grid') ? '' : 'none';
       if (me) me.classList.toggle('show', name === 'myevents');
       if (c) c.classList.toggle('show', name === 'calendar');
       if (m) m.classList.toggle('show', name === 'map');
@@ -8987,6 +9012,17 @@ def build():
         '</button>';
       }}).join('') + '</div>';
     }}
+    // Render an AI reply: lead with the ranked event cards, then a short,
+    // de-emphasised note for the reasoning (no big markdown blocks). When there
+    // are no matching events (a factual question), fall back to the text.
+    function _askAnswerHtml(answer, cards) {{
+      var txt = (answer || '').trim();
+      if (cards && cards.length) {{
+        return _askCardsHtml(cards) +
+          (txt ? '<div class="ask-note">' + _mdToHtml(txt) + '</div>' : '');
+      }}
+      return _mdToHtml(txt);
+    }}
     // Click a recommended card \\u2192 open that event\\u2019s detail modal.
     function _wireAskCards(container) {{
       container.querySelectorAll('.ask-card').forEach(function (btn) {{
@@ -9008,14 +9044,14 @@ def build():
       panel.id = 'ask-panel';
       panel.className = 'add-event-card';
       panel.innerHTML =
-        '<h3>Ask AI about your events</h3>' +
+        '<h3>Ask AI about current results</h3>' +
         '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
-          'Answers come from this tracker\\u2019s own data \\u2014 statuses, dates, audience, verdicts and all.</p>' +
+          'Ranks your tracked events by how well they fit and answers from their own data \\u2014 statuses, dates, region and verdicts. Tap a card to open it.</p>' +
         '<div class="ask-log" id="ask-log"></div>' +
         '<div class="ask-examples" id="ask-examples">' +
           ['Which events should I attend in September?',
            'What\\u2019s booked for Thor?',
-           'Best buyer-rich events in Q4?',
+           'Which enterprise events fit us in Q4?',
            'Which CFP deadlines are closing soon?'].map(function (q) {{
             return '<button type="button" class="ask-chip">' + escapeHtml(q) + '</button>';
           }}).join('') +
@@ -9044,7 +9080,7 @@ def build():
       // Replay prior history when re-opening (including recommended cards).
       _askHistory.forEach(function (h) {{
         if (h.role === 'assistant') {{
-          var m = addMsg('ai', _mdToHtml(h.content) + _askCardsHtml(h.cards), true);
+          var m = addMsg('ai', _askAnswerHtml(h.content, h.cards), true);
           _wireAskCards(m);
         }} else {{
           addMsg(h.role, h.content);
@@ -9071,7 +9107,7 @@ def build():
               thinking.textContent = 'Sorry \\u2014 ' + ((data && data.error) || 'the assistant is unavailable right now.');
               return;
             }}
-            thinking.innerHTML = _mdToHtml(data.answer) + _askCardsHtml(data.cards);
+            thinking.innerHTML = _askAnswerHtml(data.answer, data.cards);
             _wireAskCards(thinking);
             log.scrollTop = log.scrollHeight;
             _askHistory.push({{ role: 'assistant', content: data.answer, cards: data.cards || [] }});
