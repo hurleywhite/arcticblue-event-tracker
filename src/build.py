@@ -3881,6 +3881,24 @@ def build():
       return 'Global';
     }}
 
+    // City + country for the CARD FACE — the venue / full address stays in the
+    // Details pop-up. Prefer the explicit city/country fields; when they're
+    // missing, strip a leading venue or street address from the location string
+    // (e.g. "Hong Kong Convention and Exhibition Centre, Hong Kong, China" ->
+    // "Hong Kong, China") while leaving plain "City, State, Country" untouched.
+    function shortLocation(o) {{
+      o = o || {{}};
+      var city = String(o.city || '').trim();
+      var country = String(o.country || '').trim();
+      if (city && country) return city + ', ' + country;
+      var parts = String(o.location || '').split(',').map(function (s) {{ return s.trim(); }}).filter(Boolean);
+      if (parts.length >= 3 && (/^\\d/.test(parts[0]) ||
+          /\\b(cent(er|re)|hotel|arena|convention|exhibition|expo|hall|conference|resort|casino|stadium|university|college|institute|messe|palexpo|sands|pavilion|forum|plaza|complex|palace|marina|garden|tower|club|pier|westin|marriott|hilton|hyatt|sheraton|ritz|fairmont|intercontinental|radisson|sofitel|wynn|venetian|mandalay|caesars|bellagio|renaissance|waldorf|peninsula|shangri|kempinski|four seasons)\\b/i.test(parts[0]))) {{
+        parts = parts.slice(1);
+      }}
+      return parts.join(', ') || city || country || '';
+    }}
+
     function formatStamp(iso) {{
       if (!iso) return '';
       var d = new Date(iso);
@@ -4247,7 +4265,7 @@ def build():
             : escapeHtml(ev.name)) +
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
-        '<p class="event-loc">' + escapeHtml(canonicalRegion(ev)) + ' · ' + escapeHtml(ev.location || '') + '</p>' +
+        '<p class="event-loc">' + escapeHtml(shortLocation(ev)) + '</p>' +
         renderOpsRoster(st, (sigBits.join('') + contactBadge)) +
         deadlineLine(ev.deadline, ev) +
         applyBtn;
@@ -4469,7 +4487,7 @@ def build():
             : escapeHtml(mev.name || '')) +
           ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
-        '<p class="event-loc">' + escapeHtml(canonicalRegion(mev)) + (mev.location ? ' · ' + escapeHtml(mev.location) : '') + '</p>' +
+        '<p class="event-loc">' + escapeHtml(shortLocation(mev)) + '</p>' +
         tagsHtml +
         deadlineLine(mev.deadline, mev) +
         pocLine +
