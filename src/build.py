@@ -8228,13 +8228,10 @@ def build():
         return;
       }}
 
-      // Default: current month if it's in range, else first month with events
+      // Always open on the CURRENT month (if it has events), else the first
+      // month with events — don't reopen wherever you last browsed to.
       var todayKey = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
-      var savedKey = null;
-      try {{ savedKey = localStorage.getItem('ab.calendar.month'); }} catch (e) {{}}
-      var defaultKey = savedKey && months.some(function (x) {{ return x.key === savedKey; }})
-        ? savedKey
-        : (months.some(function (x) {{ return x.key === todayKey; }}) ? todayKey : months[0].key);
+      var defaultKey = months.some(function (x) {{ return x.key === todayKey; }}) ? todayKey : months[0].key;
 
       // Clean month nav: ‹ prev on the far left, the month/year dropdown
       // centered, next › on the far right (no event count).
@@ -8294,7 +8291,6 @@ def build():
         if (!match) match = months[0];
         monthHost.innerHTML = '';
         monthHost.appendChild(buildCalendarMonth(match.y, match.m, combined, stateMap, onChipClick));
-        try {{ localStorage.setItem('ab.calendar.month', match.key); }} catch (e) {{}}
         var sel = document.getElementById('cal-month-select');
         if (sel) sel.value = match.key;
       }}
