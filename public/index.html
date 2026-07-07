@@ -2411,11 +2411,6 @@
     // Card actions (Save / Hide) sit on their own row; the pipeline + verdict
     // toggles are grouped under a "Status:" label so the modal reads as labeled
     // groups, not a wall of buttons (Thor's feedback).
-    var bAct = [];
-    if (isCat) {
-      bAct.push('<button type="button" class="qa' + (rec.saved ? ' on' : '') + '" data-qa="saved">' + (rec.saved ? '★ Saved' : '☆ Save') + '</button>');
-      bAct.push('<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unarchive' : 'Archive') + '</button>');
-    }
     var bStage = [];
     bStage.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
     bStage.push('<button type="button" class="qa' + (has('Followed up') ? ' on' : '') + '" data-qa="followed-up">' + (has('Followed up') ? '✓ Followed up' : 'Followed up') + '</button>');
@@ -2426,9 +2421,13 @@
     var _meKey = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '').trim().split(/\s+/)[0].toLowerCase();
     var _iAmAttending = !!(_meKey && (rec.attendees || []).some(function (a) { return String(a).toLowerCase() === _meKey; }));
     bStage.push('<button type="button" class="qa' + (_iAmAttending ? ' on' : '') + '" data-qa="attending" title="Attending is per-person — this marks whether YOU are going">' + (_iAmAttending ? '✓ Attending' : "+ I'm attending") + '</button>');
-    bStage.push('<button type="button" class="qa' + (_saKind === 'human' ? ' on' : '') + '" data-qa="should-attend" title="' +
-      (_saKind === 'ai' ? 'AI-suggested — click to confirm as a team Should-Attend' : 'Flag Should Attend — tentative but high on the radar') + '">' +
-      (_saKind === 'human' ? '✓ Should Attend' : 'Should Attend') + '</button>');
+    // Should Attend is Angela's triage tool — only she sees/sets it here. For
+    // everyone else, marking Interested funnels into her Should-Attend list.
+    if (window.isAngelaUser && window.isAngelaUser()) {
+      bStage.push('<button type="button" class="qa' + (_saKind === 'human' ? ' on' : '') + '" data-qa="should-attend" title="' +
+        (_saKind === 'ai' ? 'AI-suggested — click to confirm as a team Should-Attend' : 'Flag Should Attend — tentative but high on the radar') + '">' +
+        (_saKind === 'human' ? '✓ Should Attend' : 'Should Attend') + '</button>');
+    }
     // "Interested" — the current teammate adds themselves to the list of people
     // who want Angela to apply for them. This feeds Angela's Queue.
     var me = (window.opsCurrentUser ? window.opsCurrentUser() : '') || '';
@@ -2444,17 +2443,17 @@
       (summary
         ? '<span class="qa-int-summary">' + summary + '</span>'
         : '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>');
-    // "Go" decision — a single optional flag. Tapping the active Go clears it.
-    var dec = rec.decision || '';
-    var decRow =
-      '<span class="qa-row-label">Decision:</span>' +
-      '<button type="button" class="qa' + (dec === 'go' ? ' on' : '') + '" data-qa="go">' + (dec === 'go' ? '✓ Go' : 'Go') + '</button>' +
-      (dec === 'go' ? '<span class="qa-int-summary">tap to clear</span>' : '');
-    var actRow = bAct.length ? '<div class="qa-row">' + bAct.join('') + '</div>' : '';
-    return '<div class="modal-quickbar">' + actRow +
+    // Archive moves to the bottom under a "Hide:" label (catalog only — manual
+    // events are removed from the edit form, not archived here).
+    var hideRow = isCat
+      ? '<span class="qa-row-label">Hide:</span>' +
+        '<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unarchive' : 'Archive') + '</button>'
+      : '';
+    return '<div class="modal-quickbar">' +
            '<div class="qa-row" style="align-items:center;"><span class="qa-row-label">Status:</span>' + bStage.join('') + '</div>' +
-           '<div class="qa-row" style="margin-top:6px;align-items:center;">' + decRow + '</div>' +
-           '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div></div>';
+           '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div>' +
+           (hideRow ? '<div class="qa-row" style="margin-top:6px;align-items:center;">' + hideRow + '</div>' : '') +
+           '</div>';
   }
   // Natural-language list of who's interested: "Joe is interested" /
   // "Verma & Joe are interested" / "Verma, Joe & Thor are interested".
@@ -2482,7 +2481,15 @@
         var ilist = (rec.interested || []).slice();
         var hit = -1;
         for (var z = 0; z < ilist.length; z++) { if (String(ilist[z]).toLowerCase() === me.toLowerCase()) { hit = z; break; } }
-        if (hit === -1) ilist.push(me); else ilist.splice(hit, 1);
+        if (hit === -1) {
+          ilist.push(me);
+          // Interest funnels into Angela's Should-Attend list (a confirmed,
+          // human Worth-attending) so flagged events surface in her filter.
+          if (shouldAttendKind(rec.attend_verdict) !== 'human') {
+            rec.attend_verdict = 'Worth attending';
+            patch.attend_verdict = 'Worth attending';
+          }
+        } else { ilist.splice(hit, 1); }
         rec.interested = ilist;
         patch.interested = ilist;
       }
@@ -2524,10 +2531,7 @@
         rec.attend_verdict = (_k === 'human') ? '' : 'Worth attending';
         patch.attend_verdict = rec.attend_verdict || null;
       }
-      else if (qa === 'go') {
-        rec.decision = (rec.decision === 'go') ? '' : 'go';  // tap active -> clear
-        patch.decision = rec.decision || null;
-      } else { return; }
+      else { return; }
       // Optimistic: re-render the modal with the updated rec, preserving the
       // scroll position so quick edits don't jump the reader.
       var scEl = overlay.querySelector('.modal-scroll');
@@ -3520,8 +3524,11 @@
       var cur = (list || []).slice();
       var lc = me.toLowerCase(), hit = -1;
       for (var z = 0; z < cur.length; z++) { if (String(cur[z]).toLowerCase() === lc) { hit = z; break; } }
-      if (hit === -1) cur.push(me); else cur.splice(hit, 1);
-      if (window.opsWrite) window.opsWrite(kind === 'manual' ? 'manual_events' : 'event_state', key, { interested: cur });
+      var patch = {};
+      if (hit === -1) { cur.push(me); patch.attend_verdict = 'Worth attending'; }  // interest funnels into Angela's Should-Attend
+      else { cur.splice(hit, 1); }
+      patch.interested = cur;
+      if (window.opsWrite) window.opsWrite(kind === 'manual' ? 'manual_events' : 'event_state', key, patch);
     }
     function starButtonHtml(list) {
       var on = meInInterested(list);
@@ -3742,7 +3749,7 @@
       // Only the team's HAND-PICKED should-attends get a card-face badge — the
       // 239 AI auto-picks stay off the face (findable via the "AI picks" filter)
       // so they don't clutter/mute the manual ones Angela scans for.
-      var saBadge = shouldAttendKind(st.attend_verdict) === 'human' ? '<span class="sa-badge">★ Should Attend</span>' : '';
+      var saBadge = (shouldAttendKind(st.attend_verdict) === 'human' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="sa-badge">★ Should Attend</span>' : '';
       card.dataset.contactFound = hasEmailContact(st, ev) ? '1' : '';
       var contactBadge = card.dataset.contactFound === '1' ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       // A link added/edited in event_state (override) wins over the catalog URL,
@@ -3915,7 +3922,7 @@
       if (isDeadlineUrgent(mev.deadline) && !_manPast) card.classList.add('is-urgent');
       card.dataset.decision = (mev.decision || '');
       var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>' : '';
-      var mSaBadge = shouldAttendKind(mev.attend_verdict) === 'human' ? '<span class="sa-badge">★ Should Attend</span>' : '';
+      var mSaBadge = (shouldAttendKind(mev.attend_verdict) === 'human' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="sa-badge">★ Should Attend</span>' : '';
       card.dataset.contactFound = (hasEmailContact(mev) || _EMAIL_RE.test(String(mev.poc_email || ''))) ? '1' : '';
       var mContactBadge = card.dataset.contactFound === '1' ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       var mRecent = isRecentlyAdded(mev.created_at);
