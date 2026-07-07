@@ -599,6 +599,76 @@ def _priority_rank(card):
     return _PRIORITY_RANK.get((card.get('priority') or '').strip().lower(), 0)
 
 
+# Deterministic dedupe of the returned cards (mirrors the grid deduper) so two
+# title-variations of the same event never both surface, even if the model lists
+# both. Keeps the earlier (higher-ranked) card.
+_ASK_DUP_STOP = {
+    'summit', 'conference', 'conf', 'forum', 'expo', 'exposition', 'congress',
+    'symposium', 'festival', 'event', 'meeting', 'week', 'day', 'days', 'the',
+    'a', 'an', 'of', 'for', 'to', 'and', 'in', 'on', 'at', 'by', 'with', 'annual',
+    'edition', 'series', 'national', 'uk', 'europe', 'european', 'emea', 'emeia',
+    'apac', 'americas', 'america', 'mena', 'latam', 'international', 'global',
+    'worldwide', 'us', 'usa', 'na',
+}
+_ASK_COUNTRIES = {
+    'usa', 'us', 'united states', 'america', 'uk', 'united kingdom', 'england',
+    'scotland', 'wales', 'canada', 'germany', 'france', 'spain', 'italy',
+    'netherlands', 'holland', 'belgium', 'switzerland', 'austria', 'sweden',
+    'denmark', 'norway', 'finland', 'ireland', 'portugal', 'poland', 'czechia',
+    'hungary', 'romania', 'greece', 'australia', 'new zealand', 'japan', 'china',
+    'india', 'korea', 'south korea', 'thailand', 'malaysia', 'indonesia',
+    'vietnam', 'philippines', 'taiwan', 'brazil', 'mexico', 'argentina', 'chile',
+    'colombia', 'peru', 'turkey', 'turkiye', 'israel', 'egypt', 'morocco',
+    'nigeria', 'kenya', 'uae', 'united arab emirates', 'saudi arabia', 'qatar',
+    'bahrain', 'kuwait', 'oman',
+}
+
+
+def _card_city(card):
+    parts = [p.strip() for p in str(card.get('location') or '').split(',') if p.strip()]
+    for p in reversed(parts):
+        pl = p.lower()
+        if pl in _ASK_COUNTRIES or re.fullmatch(r'[a-z]{2}', pl) or re.match(r'^\d', p):
+            continue
+        return re.sub(r'\b(city|greater)\b', '', pl).replace('  ', ' ').strip()
+    return parts[0].lower() if parts else ''
+
+
+def _card_topic(card):
+    n = (card.get('name') or '').lower()
+    n = re.sub(r'\bartificial intelligence\b', 'ai', n)
+    n = re.sub(r'\btechnology\b', 'tech', n)
+    n = re.sub(r'\bhuman resources\b', 'hr', n)
+    n = re.sub(r'\(.*?\)', ' ', n)
+    n = re.sub(r'\b(19|20)\d\d\b', ' ', n)
+    n = re.sub(r'[^a-z0-9 ]', ' ', n)
+    citytoks = set(_card_city(card).split())
+    return {t for t in n.split() if t not in _ASK_DUP_STOP and t not in citytoks}
+
+
+def _dedupe_cards(cards):
+    kept = []
+    for c in cards:
+        tc, cc = _card_topic(c), _card_city(c)
+        dup = False
+        for k in kept:
+            if k['_city'] != cc:
+                continue
+            tk = k['_topic']
+            small, large = (tc, tk) if len(tc) <= len(tk) else (tk, tc)
+            if len(small) >= 2 and small.issubset(large):
+                dup = True
+                break
+        if not dup:
+            c2 = dict(c)
+            c2['_topic'], c2['_city'] = tc, cc
+            kept.append(c2)
+    for k in kept:
+        k.pop('_topic', None)
+        k.pop('_city', None)
+    return kept
+
+
 def _match_cards(names, events):
     """Map model-recommended names to real event objects, preserving order."""
     by_lower = {}
@@ -670,7 +740,7 @@ class handler(BaseHTTPRequestHandler):
             answer, names, mode, served = _ask_openai(question, body.get('history'), events, body.get('user'), body.get('for_people'))
         except Exception as e:  # noqa: BLE001
             return _send(self, 502, {'error': 'assistant failed: %s' % str(e)[:300]})
-        cards = _match_cards(names, events)
+        cards = _dedupe_cards(_match_cards(names, events))
         # Guarantee highest-priority-first (High > Medium > Low > none) no matter
         # how the model ordered them. Python's sort is stable, so the model's
         # relevance order is preserved WITHIN each priority tier.
