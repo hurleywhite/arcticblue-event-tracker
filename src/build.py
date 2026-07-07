@@ -2625,7 +2625,6 @@ def build():
           <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
-          <button type="button" role="tab" data-view="dayof"    aria-selected="false">Day-Of<span class="vt-count vt-count--dayof" id="vt-dayof-count" hidden></span></button>
         </div>
         <div class="ops-toolbar">
           <div class="ops-toolbar-group" role="group" aria-label="Add events">
@@ -4161,6 +4160,7 @@ def build():
       card.dataset.interestedNames = (st.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       // Who's ATTENDING (the source of truth) — per-account, incl. past + future.
       card.dataset.attendeeNames = ((st.attendees || ev.attendees) || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
+      card.dataset.briefReady = (st.briefing_json ? '1' : '');   // Day-Of brief pre-generated?
       card.dataset.fitText = abFold([ev.name, ev.about, ev.focus_areas, ev.typical_attendees, ev.location, ev.city, ev.country, ev.type, ev.past_speakers, _aud].join(' '));
       var _opsPast = isPastEvent(ev);
       card.dataset.past = _opsPast ? '1' : '';
@@ -4342,6 +4342,7 @@ def build():
       card.dataset.interested = (mev.interested && mev.interested.length) ? '1' : '';
       card.dataset.interestedNames = (mev.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       card.dataset.attendeeNames = (mev.attendees || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
+      card.dataset.briefReady = (mev.briefing_json ? '1' : '');   // Day-Of brief pre-generated?
       card.dataset.fitText = abFold([mev.name, mev.about, mev.focus_areas, mev.typical_attendees, mev.location, mev.city, mev.country, mev.type, mev.past_speakers, mev.audience_type].join(' '));
       var _manPast = isPastEvent(mev);
       card.dataset.past = _manPast ? '1' : '';
@@ -6200,14 +6201,16 @@ def build():
           var stages = (c.dataset.statusTags || '').split('|');
           var isSpk = stages.indexOf('Booked') !== -1 && (support || speakerTokens(c.dataset.speaker || r.speaker || '').indexOf(meFold) !== -1);
           if (!isAtt && !isSpk) return;
+          var _pastFlag = c.dataset.past === '1';
           var item = {{
             kind: (r._table === 'manual_events') ? 'manual' : 'catalog',
             key: r._key, name: r.name || 'Event', date_str: r.date_str || '',
             region: r.region || '', location: r.location || '', speaker: r.speaker || '',
             sort: parseInt(c.dataset.sort || '99999999', 10),
-            _myRole: isSpk ? 'Speaking' : 'Attending'
+            _myRole: isSpk ? 'Speaking' : 'Attending',
+            _past: _pastFlag, briefReady: c.dataset.briefReady === '1'
           }};
-          (c.dataset.past === '1' ? past : upcoming).push(item);
+          (_pastFlag ? past : upcoming).push(item);
         }});
         upcoming.sort(function (a, b) {{ return a.sort - b.sort; }});   // soonest first
         past.sort(function (a, b) {{ return b.sort - a.sort; }});       // most recent first
@@ -6227,12 +6230,18 @@ def build():
         var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
         var who = (b.support && it.speaker) ? '<span class="q-int-chip">' + escapeHtml(it.speaker) + '</span>' : '';
         var role = it._myRole ? '<span class="q-stage-pill" style="' + stageStyle(it._myRole === 'Speaking' ? 'Booked' : 'Attending') + '">' + it._myRole + '</span>' : '';
+        // The Day-Of brief now lives here (no separate tab) — on upcoming rows.
+        var brief = it._past ? '' :
+          (it.briefReady ? '<span class="dayof-ready">&#10003; brief ready</span>' : '') +
+          '<button type="button" class="q-btn primary" data-brief-kind="' + it.kind + '" data-brief-key="' + escapeHtml(String(it.key)) + '">Open brief &rarr;</button>';
         return '<div class="queue-row"><div class="queue-main">' +
             '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
             '<button type="button" class="ops-details-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
             '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
             '<div class="queue-chips">' + who + role + '</div>' +
-          '</div></div>';
+          '</div>' +
+          (brief ? '<div class="queue-actions">' + brief + '</div>' : '') +
+          '</div>';
       }}
       function section(title, list, emptyMsg, collapsible, collapsed) {{
         var caret = collapsible ? '<span class="qsec-caret" aria-hidden="true">&#9662;</span>' : '';
@@ -6252,6 +6261,9 @@ def build():
         (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen) : '');
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
+      }});
+      host.querySelectorAll('[data-brief-kind]').forEach(function (el) {{
+        el.addEventListener('click', function () {{ openBriefDrawer(el.getAttribute('data-brief-kind'), el.getAttribute('data-brief-key')); }});
       }});
       var _pastHead = host.querySelector('.queue-section.collapsible .queue-sec-head');
       if (_pastHead) {{
@@ -7502,6 +7514,8 @@ def build():
     var VIEW_NAMES = ['myevents', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
     function setView(name) {{
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
+      // The Day-Of brief now lives inside My Events — no standalone tab.
+      if (name === 'dayof') name = 'myevents';
       // Planner + Queue are Angela-only — redirect anyone else who lands on them.
       if ((name === 'planner' || name === 'queue') && window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
       currentView = name;
