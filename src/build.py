@@ -2373,6 +2373,11 @@ def build():
     .ask-prose {{ font-size: 0.92rem; line-height: 1.55; color: var(--ab-fg); }}
     .ask-prose a {{ color: var(--ab-blue, #1d4ed8); }}
     .ask-prose + .ask-cards {{ margin-top: 10px; }}
+    .ask-forrow {{ display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }}
+    .ask-for-label {{ font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3); margin-right: 2px; }}
+    .ask-for-chip {{ font-size: 0.78rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
+    .ask-for-chip:hover {{ color: var(--ab-fg); border-color: var(--ab-fg-3); }}
+    .ask-for-chip.is-on {{ background: #7c3aed; color: #fff; border-color: #7c3aed; }}
     .ask-examples {{ display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }}
     .ask-chip {{ font-size: 0.8rem; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
     .ask-chip:hover {{ background: var(--ab-bg-3); color: var(--ab-fg); }}
@@ -9245,11 +9250,20 @@ def build():
       var panel = document.createElement('div');
       panel.id = 'ask-panel';
       panel.className = 'add-event-card';
+      // Support (Angela/Hurley) can aim the results at the whole team or specific
+      // teammates; everyone else just gets their own, tailored to them.
+      var _askSupport = isSupportPerson(getCollabName() || '');
       panel.innerHTML =
         '<h3>Ask AI about current results</h3>' +
         '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
           'Ranks your tracked events by how well they fit and answers from their own data \\u2014 statuses, dates, region and verdicts. Tap a card to open it.</p>' +
         '<div class="ask-log" id="ask-log"></div>' +
+        (_askSupport
+          ? '<div class="ask-forrow" id="ask-forrow"><span class="ask-for-label">Find for</span>' +
+              '<button type="button" class="ask-for-chip is-on" data-for="all">Everyone</button>' +
+              ['Thor', 'Verma', 'Jerome', 'Joe', 'Scott', 'Carlos', 'Jim'].map(function (n) {{ return '<button type="button" class="ask-for-chip" data-for="' + escapeHtml(n) + '">' + escapeHtml(n) + '</button>'; }}).join('') +
+            '</div>'
+          : '') +
         '<div class="ask-examples" id="ask-examples">' +
           ['Which events should I attend in September?',
            'What\\u2019s booked for Thor?',
@@ -9270,6 +9284,30 @@ def build():
       var log = panel.querySelector('#ask-log');
       var input = panel.querySelector('#ask-input');
       var sendBtn = panel.querySelector('#ask-send');
+
+      // "Find for" chips (support only): Everyone is exclusive; picking a name
+      // clears Everyone; clearing all reverts to Everyone.
+      var forRow = panel.querySelector('#ask-forrow');
+      if (forRow) {{
+        forRow.addEventListener('click', function (e) {{
+          var c = e.target.closest ? e.target.closest('.ask-for-chip') : null;
+          if (!c) return;
+          var allChip = forRow.querySelector('.ask-for-chip[data-for="all"]');
+          if (c.dataset.for === 'all') {{
+            Array.prototype.forEach.call(forRow.querySelectorAll('.ask-for-chip'), function (x) {{ x.classList.toggle('is-on', x === c); }});
+          }} else {{
+            if (allChip) allChip.classList.remove('is-on');
+            c.classList.toggle('is-on');
+            if (!forRow.querySelector('.ask-for-chip.is-on') && allChip) allChip.classList.add('is-on');
+          }}
+        }});
+      }}
+      function getForPeople() {{
+        if (!forRow) return [];
+        var out = [];
+        Array.prototype.forEach.call(forRow.querySelectorAll('.ask-for-chip.is-on'), function (c) {{ if (c.dataset.for !== 'all') out.push(c.dataset.for); }});
+        return out;   // empty = Everyone / whole team
+      }}
 
       function addMsg(role, text, isHtml) {{
         var m = document.createElement('div');
@@ -9300,7 +9338,7 @@ def build():
         fetch('/api/ask', {{
           method: 'POST',
           headers: {{ 'Content-Type': 'application/json' }},
-          body: JSON.stringify({{ question: q, history: _askHistory.slice(0, -1), user: (typeof getCollabName === 'function' ? (getCollabName() || '') : '') }})
+          body: JSON.stringify({{ question: q, history: _askHistory.slice(0, -1), user: (typeof getCollabName === 'function' ? (getCollabName() || '') : ''), for_people: getForPeople() }})
         }}).then(function (r) {{ return r.json().then(function (j) {{ return [r.status, j]; }}); }})
           .then(function (pair) {{
             sendBtn.disabled = false; sendBtn.textContent = 'Ask';

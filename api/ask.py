@@ -388,6 +388,11 @@ _SYSTEM = (
     "relevant, highest-priority event MUST come first, and reflect that order in "
     "'answer'. Ignore past events unless asked. Never invent events not in the "
     "data.\n"
+    "- DUPLICATES: the data sometimes holds the SAME event more than once with a "
+    "slightly different title (an organiser prefix like 'Reuters …'/'Gartner …', a "
+    "region vs city like 'Europe' vs 'Berlin', 'Conference' vs 'Summit', or 'AI' vs "
+    "'Artificial Intelligence'). Treat those as ONE event and recommend it only "
+    "ONCE — never list two variants of the same event.\n"
     "- If the question names a teammate or asks who should go, use the TEAM "
     "COVERAGE notes to match the right person to each event by region/theme, "
     "and prefer events that fit that person's coverage."
@@ -498,15 +503,26 @@ _APP_GUIDE = (
 )
 
 
-def _ask_openai(question, history, events, user=''):
+def _ask_openai(question, history, events, user='', for_people=None):
     messages = [{'role': 'system',
                  'content': _SYSTEM.format(today=date.today().isoformat())}]
     messages.append({'role': 'system', 'content': _TEAM_CONTEXT})
     user = (user or '').strip()
     _first = user.split()[0].lower() if user.split() else ''
-    if _first in ('angela', 'hurley'):
-        # Sales-support: they run the tracker and Angela submits applications on
-        # behalf of the WHOLE team, so never scope answers to one person's ICP.
+    _forp = [str(x).strip() for x in (for_people or []) if str(x).strip()]
+    if _first in ('angela', 'hurley') and _forp:
+        # Sales-support picked specific teammate(s) to find events FOR.
+        messages.append({'role': 'system', 'content': (
+            'The person asking is "%s" — ArcticBlue SALES SUPPORT — and is finding '
+            'events FOR these teammates: %s. Recommend ONLY events whose "fits" list '
+            'includes AT LEAST ONE of them, and note which teammate each event fits. '
+            'Rank HIGHEST-PRIORITY FIRST (High > Medium > Low > none), then buyer-rich '
+            'audience, who is flagged Interested, pipeline stage, and soonest date. '
+            'Angela and Hurley do not attend events themselves.'
+            % (user, ', '.join(_forp)))})
+    elif _first in ('angela', 'hurley'):
+        # Sales-support with no pick: they run the tracker and Angela submits
+        # applications on behalf of the WHOLE team, so don't scope to one ICP.
         messages.append({'role': 'system', 'content': (
             'The person asking is "%s" — ArcticBlue SALES SUPPORT. Angela submits '
             'the speaking applications on behalf of the ENTIRE team, so "we", "us", '
@@ -530,8 +546,10 @@ def _ask_openai(question, history, events, user=''):
                 'HIGHEST-PRIORITY FIRST (priority High > Medium > Low > none), then '
                 'by buyer-rich audience, anyone flagged Interested, pipeline stage, '
                 'and soonest date. If none fit, say so plainly rather than '
-                'offering events outside their coverage. When they ask generally (not '
-                'about themselves), answer neutrally over all events.'
+                'offering events outside their coverage. They are browsing for '
+                'THEMSELVES, so even a general "find / which events" request DEFAULTS '
+                'to events that fit their coverage; only widen beyond it if they '
+                'explicitly name another teammate or ask about the whole team.'
                 % (prof['key'], prof['label'], prof['key']))})
         else:
             messages.append({'role': 'system', 'content': (
@@ -649,7 +667,7 @@ class handler(BaseHTTPRequestHandler):
             return _send(self, 400, {'error': 'no question'})
         events = _gather_events(self.headers.get('Host', ''))
         try:
-            answer, names, mode, served = _ask_openai(question, body.get('history'), events, body.get('user'))
+            answer, names, mode, served = _ask_openai(question, body.get('history'), events, body.get('user'), body.get('for_people'))
         except Exception as e:  # noqa: BLE001
             return _send(self, 502, {'error': 'assistant failed: %s' % str(e)[:300]})
         cards = _match_cards(names, events)
