@@ -1405,10 +1405,6 @@ def build():
       background: transparent; color: var(--ab-fg-3);
       border: 1px solid var(--ab-rule-strong); font-weight: 600;
     }}
-    .dup-merged {{
-      font-family: var(--ab-mono); font-size: 0.6rem; color: var(--ab-fg-3);
-      border: 1px solid var(--ab-rule); border-radius: 3px; padding: 2px 6px;
-    }}
     .contact-badge {{
       font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
       letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;
@@ -6857,15 +6853,9 @@ def build():
         var g = groups[k];
         if (g.length < 2) return;
         g.sort(function (a, b) {{ return _trackScore(b) - _trackScore(a); }});
+        // Hide the duplicate cards (keep the richest). No visible "merged" badge —
+        // the count icon read as clutter, so dedup now happens silently.
         for (var i = 1; i < g.length; i++) {{ g[i].dataset.dupHidden = '1'; g[i].style.display = 'none'; hidden++; }}
-        var chips = g[0].querySelector('.ops-chips');
-        if (chips) {{
-          var m = document.createElement('span');
-          m.className = 'dup-merged';
-          m.textContent = '\\u29C9 ' + (g.length - 1);
-          m.title = (g.length - 1) + ' duplicate card(s) of this event were hidden';
-          chips.appendChild(m);
-        }}
       }});
       // ── Pass 2 — title VARIATIONS the exact key misses ────────────────
       // Same start DATE + same CITY, where one event's distinctive words are a
@@ -6911,21 +6901,7 @@ def build():
             g[i].dataset.dupHidden = '1'; g[i].style.display = 'none'; hidden++; merged++;
           }}
         }}
-        if (merged) {{
-          var chips = keeper.querySelector('.ops-chips');
-          if (chips) {{
-            var existing = chips.querySelector('.dup-merged');
-            if (existing) {{
-              existing.textContent = '\\u29C9 ' + ((parseInt((existing.textContent.match(/\\d+/) || ['0'])[0], 10) || 0) + merged);
-            }} else {{
-              var m2 = document.createElement('span');
-              m2.className = 'dup-merged';
-              m2.textContent = '\\u29C9 ' + merged;
-              m2.title = merged + ' duplicate card(s) of this event were hidden';
-              chips.appendChild(m2);
-            }}
-          }}
-        }}
+        // (Duplicates hidden silently above — no visible "merged" count badge.)
       }});
       return hidden;
     }}
