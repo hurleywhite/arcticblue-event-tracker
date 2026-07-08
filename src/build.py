@@ -2427,6 +2427,25 @@ def build():
       font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
     }}
+    /* "Review duplicates" toggle — clickable, so it follows the underlined-pill
+       convention. Sits at the left of the results header (count stays right). */
+    .ops-dupe-review {{
+      margin-right: auto; cursor: pointer;
+      font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.05em;
+      text-transform: uppercase; padding: 4px 13px; border-radius: 999px;
+      text-decoration: underline; text-underline-offset: 2px;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2);
+      transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+    }}
+    .ops-dupe-review:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
+    body.review-dupes .ops-dupe-review {{ background: var(--ab-red); color: #fff; border-color: var(--ab-red); }}
+    /* Revealed duplicate cards get a clear (rectangular) DUPLICATE tag + dashed ring. */
+    body.review-dupes .ops-card.is-dupe {{ outline: 2px dashed var(--ab-red); outline-offset: -2px; }}
+    body.review-dupes .ops-card.is-dupe::before {{
+      content: 'DUPLICATE'; position: absolute; top: 0; right: 0; z-index: 3;
+      font-family: var(--ab-mono); font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em;
+      padding: 3px 8px; border-radius: 0 9px 0 6px; background: var(--ab-red); color: #fff;
+    }}
 
     /* Flexible date text field + click-to-open calendar popup (single or range). */
     .date-pick {{ position: relative; }}
@@ -2747,6 +2766,7 @@ def build():
         </div>
         <p class="ab-legend" aria-label="Key: squared tags are labels, underlined pills are clickable"><span class="ops-tag">Aa</span> squared = a label &nbsp;·&nbsp; <span class="ops-chip">Aa</span> underlined pill = clickable</p>
         <div class="ops-results-header" id="ops-results-header">
+          <button type="button" class="ops-dupe-review" id="ops-dupe-review" title="Show the auto-detected duplicate events so you can delete them (open one, then Details → Edit → Delete this event)" hidden></button>
           <span class="ops-count" id="ops-count"></span>
         </div>
         <div class="ops-grid" id="ops-grid"></div>
@@ -3634,6 +3654,9 @@ def build():
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
     // | 'buyer' | 'interested') — click a top stat to show only those events.
     var opsStatFilter = '';
+    // When true, the auto-detected duplicate cards are REVEALED (marked
+    // "DUPLICATE") instead of hidden, so they can be opened + deleted in-app.
+    var _reviewDupes = false;
 
     // Last-fetched data, cached by renderOps() so the Queue + Planner views can
     // render from the SAME set the grid just built (no extra fetch).
@@ -5530,7 +5553,7 @@ def build():
       var opsCards = $opsGrid.querySelectorAll('.ops-card');
       opsCards.forEach(function (card) {{
         // Hidden duplicate of an already-shown event — never render or count it.
-        if (card.dataset.dupHidden === '1') {{ card.style.display = 'none'; dupSkipped++; return; }}
+        if (card.dataset.dupHidden === '1' && !_reviewDupes) {{ card.style.display = 'none'; dupSkipped++; return; }}
         var on = true;
         if (q) {{
           // Cache the lowercased search text on the node. textContent serializes
@@ -6845,6 +6868,7 @@ def build():
       var groups = {{}};
       Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {{
         c.dataset.dupHidden = '';
+        c.classList.remove('is-dupe');
         var k = dupKeyOf(c._modalRec || {{}});
         if (k) (groups[k] = groups[k] || []).push(c);
       }});
@@ -6853,9 +6877,9 @@ def build():
         var g = groups[k];
         if (g.length < 2) return;
         g.sort(function (a, b) {{ return _trackScore(b) - _trackScore(a); }});
-        // Hide the duplicate cards (keep the richest). No visible "merged" badge —
-        // the count icon read as clutter, so dedup now happens silently.
-        for (var i = 1; i < g.length; i++) {{ g[i].dataset.dupHidden = '1'; g[i].style.display = 'none'; hidden++; }}
+        // Mark the duplicate cards (keep the richest). Hidden by default; the
+        // "Review duplicates" toggle reveals them (marked) so they can be deleted.
+        for (var i = 1; i < g.length; i++) {{ g[i].dataset.dupHidden = '1'; g[i].classList.add('is-dupe'); if (!_reviewDupes) g[i].style.display = 'none'; hidden++; }}
       }});
       // ── Pass 2 — title VARIATIONS the exact key misses ────────────────
       // Same start DATE + same CITY, where one event's distinctive words are a
@@ -6898,11 +6922,28 @@ def build():
         for (var i = 1; i < g.length; i++) {{
           if (g[i].dataset.dupHidden === '1') continue;
           if (_topicRelated(sigK, _topicSig(g[i]._modalRec || {{}}))) {{
-            g[i].dataset.dupHidden = '1'; g[i].style.display = 'none'; hidden++; merged++;
+            g[i].dataset.dupHidden = '1'; g[i].classList.add('is-dupe'); if (!_reviewDupes) g[i].style.display = 'none'; hidden++; merged++;
           }}
         }}
-        // (Duplicates hidden silently above — no visible "merged" count badge.)
+        // (Duplicates marked above; hidden unless "Review duplicates" is on.)
       }});
+      // Drive the "Review duplicates" toggle in the results header.
+      var _revBtn = document.getElementById('ops-dupe-review');
+      if (_revBtn) {{
+        if (!_revBtn.dataset.wired) {{
+          _revBtn.dataset.wired = '1';
+          _revBtn.addEventListener('click', function () {{
+            _reviewDupes = !_reviewDupes;
+            document.body.classList.toggle('review-dupes', _reviewDupes);
+            dedupeOpsCards(); regroupOpsByMonth(); applyFilters();
+            if (_reviewDupes) window.scrollTo({{ top: 0, behavior: 'smooth' }});
+          }});
+        }}
+        _revBtn.hidden = hidden === 0;
+        _revBtn.textContent = _reviewDupes
+          ? '\\u2715 Done \\u00b7 hide duplicates again'
+          : ('Review ' + hidden + ' possible duplicate' + (hidden === 1 ? '' : 's'));
+      }}
       return hidden;
     }}
 

@@ -2386,16 +2386,6 @@ DESCRIPTION:Top UK healthcare AI conference focused on scaling AI in health syst
 URL:https://www.kingsfund.org.uk/events/digital-health-ai-conference-2026
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-148@arcticblue-event-tracker
-DTSTAMP:20260708T000000Z
-DTSTART;VALUE=DATE:20261001
-DTEND;VALUE=DATE:20261201
-SUMMARY:CDAO Fall 2026 (Corinium)
-LOCATION:USA
-DESCRIPTION:Corinium's flagship fall CDAO summit for top data\, analytics\, and AI leaders across the US\; AI strategy\, data governance\, and enterprise transformation tracks — premium ArcticBlue sponsorship and speaking opportunity.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://cdao-fall.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-147@arcticblue-event-tracker
 DTSTAMP:20260708T000000Z
 DTSTART;VALUE=DATE:20260923
@@ -3164,16 +3154,6 @@ SUMMARY:Generative AI Summit Toronto 2026
 LOCATION:Toronto\, ON\, Canada
 DESCRIPTION:AI Accelerator Institute's Toronto Generative AI Summit — co-located with Agentic AI Summit Toronto\; engineering and enterprise AI practitioner audience in Canada's largest tech market\; open speaker application.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://world.aiacceleratorinstitute.com/location/toronto
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-39@arcticblue-event-tracker
-DTSTAMP:20260708T000000Z
-DTSTART;VALUE=DATE:20261029
-DTEND;VALUE=DATE:20261030
-SUMMARY:Agentic AI Summit Boston 2026
-LOCATION:Boston\, MA\, USA
-DESCRIPTION:AI Accelerator Institute's dedicated Agentic AI Summit at The Westin Seaport — co-located with GenAI Summit Boston\; engineering and enterprise leader audience building agentic systems\, directly on-theme for ArcticBlue's positioning.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://world.aiacceleratorinstitute.com/location/agenticaiboston
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-36@arcticblue-event-tracker
