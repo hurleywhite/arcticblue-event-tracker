@@ -1827,7 +1827,10 @@
    "about": "Enterprise AI World 2026, co-located with KMWorld 2026 in Washington, DC (November 17–19). Organized by Information Today. Focuses on enterprise AI implementation, knowledge management AI, and AI-driven enterprise operations. Strong representation from government, consulting, and enterprise technology sectors.",
    "typical_attendees": "Enterprise AI managers, knowledge officers, information managers, IT leaders from government, consulting, and technology sectors; 500–1,000 practitioners",
    "contact_info": "enterpriseaiworld.com",
-   "focus_areas": "Enterprise AI implementation and production operations; Knowledge management with AI; AI-driven enterprise information strategy; AI governance and responsible enterprise deployment; Measurable AI ROI in government and regulated sectors"
+   "focus_areas": "Enterprise AI implementation and production operations; Knowledge management with AI; AI-driven enterprise information strategy; AI governance and responsible enterprise deployment; Measurable AI ROI in government and regulated sectors",
+   "venue": "JW Marriott • Washington, DC",
+   "meeting_formats": "3-day conference bringing together practitioners for workshops, keynotes, sessions, and panels",
+   "audience_type": "Mixed"
   },
   {
    "num": 81,
@@ -1850,7 +1853,12 @@
    "typical_attendees": "CIOs, CTOs, VP IT, enterprise technology leaders from Canadian Fortune 500 and large enterprises; ~100–300 senior CIO-level attendees",
    "speaking_route": "Contact: event.idc.com/event/cio-summit-awards-canada/. Sponsor inquiry: idc.com/events",
    "contact_info": "event.idc.com/event/cio-summit-awards-canada; idc.com/events",
-   "focus_areas": "Agentic AI strategy and deployment for Canadian enterprise CIOs; Scaling enterprise AI from pilot to production in regulated industries; AI-driven digital transformation in Canadian financial services, resources, and government; CIO operating model transformation with agentic AI; Enterprise AI governance and technology leadership strategy"
+   "focus_areas": "Agentic AI strategy and deployment for Canadian enterprise CIOs; Scaling enterprise AI from pilot to production in regulated industries; AI-driven digital transformation in Canadian financial services, resources, and government; CIO operating model transformation with agentic AI; Enterprise AI governance and technology leadership strategy",
+   "venue": "Delta Hotels Toronto",
+   "past_speakers": "Scaling AI for the Agentic Future: Closing the Enterprise Gaps, IDC Keynote",
+   "meeting_formats": "One-day summit with keynote presentations, panels, and peer-led discussions",
+   "audience_type": "Buyer-rich",
+   "deadline": "Nominations closed (May 29, 2026); Winners celebrated November 19, 2026"
   },
   {
    "num": 48,
@@ -2249,7 +2257,8 @@
    "end_date": "2026-05-07",
    "past_speakers": "Amit Zavery, ServiceNow; Bill McDermott, ServiceNow; Amy Lokey, ServiceNow; Eric McGrath, ServiceNow; Taimur Rashid, ServiceNow",
    "meeting_formats": "Attendee portal for pre-booked meetings; expo floor; hosted sponsor meeting spaces and executive receptions",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "deadline": "October 1, 2025 (Submission Portal Opens); Submission Deadline not specified in results"
   },
   {
    "num": 105,
@@ -3231,7 +3240,8 @@
    "past_speakers": "Enterprise AI Strategists; Product Leaders & Innovators; Business Operations; AI Transformation Leaders; Corporate Technologists; AI Systems Architect",
    "meeting_formats": "Strategic roundtables; curated leadership programming; executive-level sessions; networking with senior leaders",
    "audience_type": "Buyer-rich",
-   "attendee_count": "250 Exclusive Seats"
+   "attendee_count": "250 Exclusive Seats",
+   "pricing": "Buyer-rich: Summit passes for enterprise decision makers; sponsorship tiers for vendors (specific delegate/ticket price not published in source)"
   },
   {
    "num": 140,
@@ -4086,7 +4096,10 @@
    "external_id": "c2ca9fe3-d21c-4798-ac64-06e8b4d4cdef",
    "source": "arcticscout",
    "start_date": "2026-06-09",
-   "end_date": "2026-06-10"
+   "end_date": "2026-06-10",
+   "past_speakers": "CIO, Google; CTO, Microsoft; CISO, Mastercard; Chief Architect, Google; VP Data, Microsoft; IT Director, Mastercard; CISO, Finance Sector; CTO, Healthcare Sector",
+   "meeting_formats": "Curated networking sessions, peer-driven content, hands-on case studies, and exclusive access to decision-makers for candid peer exchange",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 171,
@@ -4327,7 +4340,8 @@
    "past_speakers": "320 expert speakers (2026 edition)",
    "audience_type": "Mixed",
    "pricing": "Check Official Website",
-   "meeting_formats": "Curated roundtables; high value connections fostered through awards programme"
+   "meeting_formats": "Curated roundtables; high value connections fostered through awards programme",
+   "deadline": "Check Official Website"
   },
   {
    "num": 179,
@@ -4355,7 +4369,13 @@
    "external_id": "81461952-5254-4591-9b51-0bbad22595aa",
    "source": "arcticscout",
    "start_date": "2026-03-01",
-   "end_date": "2026-03-01"
+   "end_date": "2026-03-01",
+   "pricing": "ON_Discourse members receive complimentary access; non-members can purchase tickets upon approval (pricing shared upon invite acceptance)",
+   "past_speakers": "CEO, Fortune 500 Company; CTO, Fast-Growing Startup; CFO, Global Enterprise",
+   "meeting_formats": "Curated high-value experience with closed-door event format",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "Invite-only curated gathering",
+   "deadline": "Invitations extended on a rolling basis"
   },
   {
    "num": 180,
