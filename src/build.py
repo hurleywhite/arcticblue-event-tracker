@@ -744,8 +744,8 @@ def build():
       margin-top: auto;  /* pin to the bottom of the flex-column card */
       font-family: var(--ab-mono); font-size: 0.7rem;
       letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
-      padding: 8px 11px; border-radius: 6px;
-      background: var(--ab-blue, #1d4ed8); color: #fff !important; text-decoration: none;
+      padding: 8px 11px; border-radius: 999px;
+      background: var(--ab-blue, #1d4ed8); color: #fff !important; text-decoration: underline; text-underline-offset: 2px;
     }}
     .ops-apply-btn:hover {{ opacity: 0.85; }}
     .event-name {{
@@ -909,7 +909,7 @@ def build():
       font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
       padding: 0 14px; border-radius: 999px; cursor: pointer; white-space: nowrap;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
-      color: var(--ab-fg-2); transition: all 0.12s;
+      color: var(--ab-fg-2); text-decoration: underline; text-underline-offset: 2px; transition: all 0.12s;
     }}
     .modal-quickbar .qa:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
     .modal-quickbar .qa.on {{
@@ -1345,7 +1345,8 @@ def build():
       font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.07em;
       text-transform: uppercase; color: var(--ab-fg-3);
       background: var(--ab-bg-3); border: 1px solid var(--ab-rule);
-      border-radius: 4px; padding: 2px 8px; margin-left: 6px; cursor: pointer;
+      border-radius: 999px; padding: 2px 10px; margin-left: 6px; cursor: pointer;
+      text-decoration: underline; text-underline-offset: 2px;
       vertical-align: 2px; transition: background 0.15s, color 0.15s, border-color 0.15s;
     }}
     .ops-details-btn:hover {{ background: var(--ab-blue); color: #fff; border-color: var(--ab-blue); }}
@@ -1355,7 +1356,7 @@ def build():
     .ops-roster-tag {{
       font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
       letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 8px;
-      border-radius: 10px; white-space: nowrap; flex-shrink: 0;
+      border-radius: 3px; white-space: nowrap; flex-shrink: 0;
       min-width: 82px; text-align: center; box-sizing: border-box;
       /* One uniform pill for every roster label (stage, Speaker, Interested). */
       background: var(--ab-bg-3); color: var(--ab-fg-2);
@@ -1367,7 +1368,7 @@ def build():
     .ops-tag {{
       font-family: var(--ab-mono); font-size: 0.66rem;
       letter-spacing: 0.06em; padding: 3px 8px;
-      border-radius: 999px; background: var(--ab-bg-3);
+      border-radius: 3px; background: var(--ab-bg-3);
       color: var(--ab-fg-2); line-height: 1.4;
       display: inline-flex; align-items: center; gap: 4px;
     }}
@@ -1398,7 +1399,7 @@ def build():
     .sa-badge {{
       font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
       letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;
-      padding: 3px 8px; border-radius: 10px; background: #1d4ed8; color: #fff;
+      padding: 3px 8px; border-radius: 3px; background: #1d4ed8; color: #fff;
     }}
     .sa-badge--ai {{
       background: transparent; color: var(--ab-fg-3);
@@ -1406,12 +1407,12 @@ def build():
     }}
     .dup-merged {{
       font-family: var(--ab-mono); font-size: 0.6rem; color: var(--ab-fg-3);
-      border: 1px solid var(--ab-rule); border-radius: 8px; padding: 2px 6px;
+      border: 1px solid var(--ab-rule); border-radius: 3px; padding: 2px 6px;
     }}
     .contact-badge {{
       font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
       letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;
-      padding: 3px 8px; border-radius: 10px; background: #065f46; color: #fff;
+      padding: 3px 8px; border-radius: 3px; background: #065f46; color: #fff;
     }}
     /* Region row sits tight under the pipeline row. */
     #region-filters {{ margin-top: -4px; }}
@@ -1422,6 +1423,7 @@ def build():
       padding: 3px 8px; border-radius: 999px;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
       color: var(--ab-fg-3); line-height: 1.4;
+      text-decoration: underline; text-underline-offset: 2px;
       transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
     }}
     .ops-chip:hover {{ color: var(--ab-fg); border-color: var(--ab-fg-3); }}
@@ -1429,9 +1431,19 @@ def build():
     .ops-chip.is-on.urgent {{ background: var(--ab-red); border-color: var(--ab-red); }}
     .ops-chip[aria-busy="true"] {{ opacity: 0.4; cursor: wait; }}
     .ops-chip.badge-manual {{
-      cursor: default; pointer-events: none;
+      cursor: default; pointer-events: none; text-decoration: none; border-radius: 3px;
       background: var(--ab-blue); color: var(--ab-bg); border-color: var(--ab-blue);
     }}
+    /* Tiny visual key at the top: squared = a label, underlined pill = clickable. */
+    .ab-legend {{
+      font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.03em;
+      color: var(--ab-fg-3); margin: 0 0 12px; line-height: 2;
+    }}
+    .ab-legend .ops-tag, .ab-legend .ops-chip {{
+      pointer-events: none; font-size: 0.56rem; padding: 2px 7px;
+      vertical-align: middle; margin: 0 2px;
+    }}
+    .ab-legend .ops-chip {{ color: var(--ab-fg-2); }}
 
     .ops-card.is-hidden {{ opacity: 0.55; background: var(--ab-bg-2); }}
     /* Past events: dimmed when revealed via "Show past" (default: filtered out). */
@@ -1845,14 +1857,14 @@ def build():
       display: inline-flex; align-items: center; gap: 3px;
       font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 600;
       letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+      padding: 2px 7px; border-radius: 3px; white-space: nowrap;
     }}
     .decision-badge.go    {{ background: rgba(31,160,90,0.14); color: #1a8c54; }}
     .recent-badge {{
       display: inline-flex; align-items: center;
       font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 600;
       letter-spacing: 0.05em; text-transform: uppercase;
-      padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+      padding: 2px 7px; border-radius: 3px; white-space: nowrap;
       background: #fef3c7; color: #92600a; border: 1px solid #fde68a;
     }}
 
@@ -2124,7 +2136,7 @@ def build():
     .map-sb-ev .dt {{ font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg-3); white-space: nowrap; }}
     .msb-badge {{
       font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
-      padding: 2px 7px; border-radius: 999px; white-space: nowrap; letter-spacing: 0.02em;
+      padding: 2px 7px; border-radius: 3px; white-space: nowrap; letter-spacing: 0.02em;
     }}
     .map-popup .map-ev {{ margin: 0 0 6px; font-size: 0.85rem; line-height: 1.35; }}
     .map-popup .map-ev a {{ color: var(--ab-blue, #1d4ed8); cursor: pointer; text-decoration: underline; }}
@@ -2357,7 +2369,7 @@ def build():
     .ask-card .ac-tags {{ display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }}
     .ask-card .ac-tag {{
       font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.04em;
-      padding: 2px 7px; border-radius: 999px; border: 1px solid var(--ab-rule);
+      padding: 2px 7px; border-radius: 3px; border: 1px solid var(--ab-rule);
       background: var(--ab-bg-2); color: var(--ab-fg-2);
     }}
     .ask-card .ac-tag.buyer {{ background: #ecfdf5; color: #047857; border-color: #a7f3d0; }}
@@ -2737,6 +2749,7 @@ def build():
           <label class="ops-filter-chip" title="Events where an email contact (organizer POC) was found"><input type="checkbox" id="ops-f-contact">Contact found</label>
           <span class="ops-shown" id="ops-shown"></span>
         </div>
+        <p class="ab-legend" aria-label="Key: squared tags are labels, underlined pills are clickable"><span class="ops-tag">Aa</span> squared = a label &nbsp;·&nbsp; <span class="ops-chip">Aa</span> underlined pill = clickable</p>
         <div class="ops-results-header" id="ops-results-header">
           <span class="ops-count" id="ops-count"></span>
         </div>
