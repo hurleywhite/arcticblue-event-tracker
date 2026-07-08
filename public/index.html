@@ -1925,6 +1925,9 @@
     }
     .ask-card .ac-tag.buyer { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
     .ask-card .ac-tag.worth { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .ask-card .ac-tag.pri-high   { background: #1f2937; color: #fff; border-color: #1f2937; }
+    .ask-card .ac-tag.pri-medium { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .ask-card .ac-tag.pri-low    { background: var(--ab-bg-3); color: var(--ab-fg-3); border-color: var(--ab-rule); }
     /* Reasoning under the ranked cards — small + muted so cards stay the headline. */
     .ask-note {
       margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--ab-rule);
@@ -2358,6 +2361,24 @@
     if (a.indexOf('buyer') !== -1) return 'aud-buyer';
     if (a.indexOf('vendor') !== -1 || a.indexOf('seller') !== -1) return 'aud-vendor';
     return 'aud-mixed';
+  }
+  // Effective card priority (High / Medium / Low). "Like the data before" — it
+  // starts from the stored priority (event_state override, else catalog/manual
+  // base) — then folds in two live signals so the badge reflects what we
+  // actually care about right now:
+  //   * anyone marked INTERESTED right now is, by definition, a priority -> High
+  //   * a BUYER-RICH audience (the room ArcticBlue most wants) lifts it one tier
+  // Returns '' when there's no priority signal at all (so the badge is hidden).
+  function cardPriority(o, st) {
+    o = o || {}; st = st || {};
+    var intr = (st.interested && st.interested.length) ? st.interested
+             : (o.interested && o.interested.length) ? o.interested : [];
+    if (intr.length) return 'High';
+    var base = String(st.priority_override || st.priority || o.priority_override || o.priority || '').trim().toLowerCase();
+    var rank = base.indexOf('high') === 0 ? 3 : base.indexOf('med') === 0 ? 2 : base.indexOf('low') === 0 ? 1 : 0;
+    var aud = String(st.audience_type || o.audience_type || '').toLowerCase();
+    if (aud.indexOf('buyer') !== -1) rank += 1;
+    return rank >= 3 ? 'High' : rank === 2 ? 'Medium' : rank >= 1 ? 'Low' : '';
   }
   // Numeric ticket price from a free-text pricing string ('$2,495 delegate
   // pass' -> 2495, 'Free' -> 0, unknown -> null). Used by the price filter;
@@ -2811,7 +2832,10 @@
   function openEventModal(rec) {
     if (!rec) return;
     var badges = [];
-    if (rec.priority && (!window.isAngelaUser || window.isAngelaUser())) badges.push('<span class="badge ' + priClass(rec.priority) + '">' + esc(rec.priority) + '</span>');
+    // Priority range (High / Medium / Low) — shown to everyone. Blends the
+    // stored priority with buyer-rich + who's interested (see cardPriority).
+    var _mdPri = cardPriority(rec);
+    if (_mdPri) badges.push('<span class="badge ' + priClass(_mdPri) + '">' + esc(_mdPri) + '</span>');
     // "Halo" is an internal event-type flag, not something to surface as a label.
     if (rec.type && rec.type.toLowerCase() !== 'halo') badges.push('<span class="badge p-medium">' + esc(rec.type) + '</span>');
     // Pipeline stages (primary). Fall back to the legacy single status badge
@@ -2823,7 +2847,8 @@
     }
     if (rec.status && !(rec.stage_tags && rec.stage_tags.length) && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
     if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
-    if (rec.audience_type && String(rec.audience_type).trim().toLowerCase() !== 'mixed') badges.push('<span class="badge ' + audienceClass(rec.audience_type) + '">' + esc(rec.audience_type) + '</span>');
+    // (Buyer-rich audience is no longer its own badge — it now feeds the
+    //  priority range above, so a buyer-rich room reads as higher priority.)
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
     $badges.innerHTML = badges.join('');
 
@@ -2954,6 +2979,7 @@
   // Shared helpers — the ops tab lives in a SEPARATE closure, so these must
   // ride on window or buildManualCard's calls throw ReferenceError.
   window.audienceClass = audienceClass;
+  window.cardPriority = cardPriority;
   window.priceNumOf = priceNumOf;
   window.speakingRouteUrl = speakingRouteUrl;
   window.attendClass = attendClass;
@@ -3572,9 +3598,10 @@
       // Interested — feeds Angela's apply queue.
       var intr = (st.interested || []).filter(Boolean);
       if (intr.length) rows.push(_rosterRow('Interested', '&#9733; ' + escapeHtml(intr.join(', ')), ''));
-      // Secondary: small priority + track pills (kept, but out of the roster).
+      // Secondary: small track pill (kept, out of the roster). The priority
+      // range now rides in via `extra` (the sigBits priority badge) so it shows
+      // for everyone — no separate Angela-only priority pill here anymore.
       var pills = [];
-      if (st.priority_override && (!window.isAngelaUser || window.isAngelaUser())) pills.push('<span class="ops-tag pri-' + String(st.priority_override).toLowerCase() + '">' + escapeHtml(st.priority_override) + '</span>');
       if (st.track) pills.push('<span class="ops-tag">' + escapeHtml(st.track) + '</span>');
       // Audience badge (Buyer-rich etc.) shares this SAME row so the labels sit
       // side-by-side instead of stacking (the card is a flex column, so two
@@ -3779,7 +3806,8 @@
 
       // Attending-signal strip + one-click apply (the booking shortcut).
       var sigBits = [];
-      if (_aud && String(_aud).trim().toLowerCase() !== 'mixed') sigBits.push('<span class="badge ' + audienceClass(_aud) + '">' + escapeHtml(_aud) + '</span>');
+      var _cardPri = cardPriority(ev, st);
+      if (_cardPri) sigBits.push('<span class="ops-tag pri-' + _cardPri.toLowerCase() + '">' + escapeHtml(_cardPri) + '</span>');
       var applyUrl = (st && st.apply_url) || speakingRouteUrl(ev.speaking_route);
       var applyBtn = applyUrl
         ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
@@ -3960,9 +3988,8 @@
       // Reuse the per-role roster by adapting the manual row into a state-like obj
       // Buyer/seller read — folded into the same pill row as priority (below)
       // so the labels sit side-by-side instead of stacking.
-      var audChip = (mev.audience_type && String(mev.audience_type).trim().toLowerCase() !== 'mixed')
-        ? '<span class="badge ' + audienceClass(mev.audience_type) + '">' + escapeHtml(mev.audience_type) + '</span>'
-        : '';
+      var _mPri = cardPriority(mev);
+      var audChip = _mPri ? '<span class="ops-tag pri-' + _mPri.toLowerCase() + '">' + escapeHtml(_mPri) + '</span>' : '';
       var tagsHtml = renderOpsRoster({
         status:      mev.status,
         status_tags: mev.status_tags,
@@ -8670,8 +8697,8 @@
       return '<div class="ask-cards">' + cards.map(function (c, i) {
         var meta = [c.date, c.location || c.region].filter(Boolean).map(escapeHtml).join(' \u00b7 ');
         var tags = [];
-        if (c.audience && /buyer/i.test(c.audience))
-          tags.push('<span class="ac-tag buyer">Buyer-rich</span>');
+        var _acPri = window.cardPriority ? window.cardPriority({ priority: c.priority, audience_type: c.audience }) : '';
+        if (_acPri) tags.push('<span class="ac-tag pri-' + _acPri.toLowerCase() + '">' + escapeHtml(_acPri) + '</span>');
         if (c.stage) tags.push('<span class="ac-tag">' + escapeHtml(String(c.stage).split(',')[0].trim()) + '</span>');
         if (c.price) tags.push('<span class="ac-tag">' + escapeHtml(c.price) + '</span>');
         var idAttr = (c.num !== null && c.num !== undefined)

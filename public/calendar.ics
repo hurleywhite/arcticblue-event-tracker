@@ -26,6 +26,66 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-399@arcticblue-event-tracker
+DTSTAMP:20260708T000000Z
+DTSTART;VALUE=DATE:20261117
+DTEND;VALUE=DATE:20261120
+SUMMARY:AI Finance Conference 2026 — World AI Expo Dubai
+LOCATION:Dubai\, UAE
+DESCRIPTION:The Middle East's dedicated AI in finance\, banking\, and insurance conference with open speaker application — MENA-focused enterprise audience and co-located investor summit provide unique access to Gulf financial institution leaders.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://worldaiexpo.io/ai-finance-conference/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-398@arcticblue-event-tracker
+DTSTAMP:20260708T000000Z
+DTSTART;VALUE=DATE:20261104
+DTEND;VALUE=DATE:20261105
+SUMMARY:From Day One Live: Los Angeles 2026
+LOCATION:Los Angeles\, CA
+DESCRIPTION:From Day One's LA edition gathers West Coast CHROs and CPOs from entertainment\, tech\, and healthcare\; Joe's AI enablement narrative strongly resonates with LA's innovation-driven enterprise HR community.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.fromdayone.com/conferences/2026/2026_p_la
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-397@arcticblue-event-tracker
+DTSTAMP:20260708T000000Z
+DTSTART;VALUE=DATE:20260929
+DTEND;VALUE=DATE:20260930
+SUMMARY:From Day One Live: Chicago 2026
+LOCATION:Chicago\, IL
+DESCRIPTION:Chicago edition of From Day One's 2026 national HR series\; confirmed speakers include CHRO ComEd\, CPO Nokia\, and Head of L&D GE Healthcare—senior enterprise buyers precisely in Joe's ICP for AI enablement and learning transformation.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.fromdayone.com/conferences/2026/2026_p_chicago
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-396@arcticblue-event-tracker
+DTSTAMP:20260708T000000Z
+DTSTART;VALUE=DATE:20260928
+DTEND;VALUE=DATE:20261001
+SUMMARY:NYS SHRM Annual Conference 2026
+LOCATION:Buffalo\, NY
+DESCRIPTION:New York State's largest SHRM-affiliated conference drawing HR professionals from across the state\; Joe's NYC-area base makes this highly accessible and an ideal earned speaking platform to build regional credibility with CHRO/VP HR audiences.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://affiliate.shrm.org/nys/en/events/2026/09-2026/2026-shrm-new-york-state-annual-conference
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-395@arcticblue-event-tracker
+DTSTAMP:20260708T000000Z
+DTSTART;VALUE=DATE:20260922
+DTEND;VALUE=DATE:20260923
+SUMMARY:From Day One Live: Philadelphia 2026
+LOCATION:Philadelphia\, PA
+DESCRIPTION:From Day One's Philadelphia edition gathers senior HR and people leaders for a focused day on AI transformation and workforce strategy\; confirmed CPO of TIAA and VP HR of Lincoln Financial match Joe's CHRO/CPO ICP\; geographically easy day trip from Joe's NYC base.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.fromdayone.com/conferences/2026/2026_p_philadelphia
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-394@arcticblue-event-tracker
+DTSTAMP:20260708T000000Z
+DTSTART;VALUE=DATE:20260830
+DTEND;VALUE=DATE:20260903
+SUMMARY:HR Florida 2026 (48th Annual SHRM Florida Conference)
+LOCATION:Kissimmee\, FL
+DESCRIPTION:The largest SHRM-affiliated state conference in the Southeast\, drawing 1\,000+ HR and people leaders from across Florida enterprises\; L&D\, AI in HR\, and workforce transformation are expected theme pillars—Joe's AI enablement message is well-matched.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://shrmflorida.org/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-393@arcticblue-event-tracker
 DTSTAMP:20260708T000000Z
 DTSTART;VALUE=DATE:20261207
@@ -856,16 +916,6 @@ DESCRIPTION:The convergence of AI governance\, data privacy\, regulatory enforce
 URL:https://iapp.org/conference/iapp-psr
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-305@arcticblue-event-tracker
-DTSTAMP:20260708T000000Z
-DTSTART;VALUE=DATE:20261101
-DTEND;VALUE=DATE:20261201
-SUMMARY:Millennium Alliance Enterprise AI Maturity & Transformation Assembly — November 2026
-LOCATION:TBD\, United States
-DESCRIPTION:Millennium Alliance's November edition of their Enterprise AI Maturity Assembly — same high-density Fortune 500 CIO/CAIO format as the Dallas August and September assemblies already in ArcticBlue's calendar.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-304@arcticblue-event-tracker
 DTSTAMP:20260708T000000Z
 DTSTART;VALUE=DATE:20260715
@@ -1546,16 +1596,6 @@ DESCRIPTION:The 24th annual MIT Sloan CFO Summit draws 400+ CFOs from Fortune 50
 URL:https://mitcfo.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-232@arcticblue-event-tracker
-DTSTAMP:20260708T000000Z
-DTSTART;VALUE=DATE:20261007
-DTEND;VALUE=DATE:20261009
-SUMMARY:Millennium Alliance Enterprise AI Security Transformation Assembly Oct 2026
-LOCATION:Atlanta\, GA
-DESCRIPTION:Exclusive C-level CISO assembly with speakers from MassMutual GCISO\, KBC Bank NY CISO\, and State of Oklahoma CISO — ideal for ArcticBlue's AI security governance narrative.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/enterprise-ai-security-transformation-assembly-october-2026/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-231@arcticblue-event-tracker
 DTSTAMP:20260708T000000Z
 DTSTART;VALUE=DATE:20261014
@@ -1564,16 +1604,6 @@ SUMMARY:IDC AI & Data Summit Vancouver 2026
 LOCATION:Vancouver\, Canada
 DESCRIPTION:IDC's premier Western Canadian enterprise AI event for CDOs and AI leaders focused on Canada's AI Act (AIDA)\, sovereign AI\, and scaling enterprise AI — ideal for ArcticBlue's Canada West expansion.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://event.idc.com/event/ai-data-summit-vancouver/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-230@arcticblue-event-tracker
-DTSTAMP:20260708T000000Z
-DTSTART;VALUE=DATE:20261007
-DTEND;VALUE=DATE:20261009
-SUMMARY:Millennium Alliance Enterprise AI Security Transformation Assembly — October 2026
-LOCATION:Atlanta\, GA
-DESCRIPTION:Exclusive C-level CISO/AI security assembly with speakers from MassMutual GCISO\, KBC Bank NY CISO\, and State of Oklahoma CISO — ideal for ArcticBlue's AI security governance narrative in the US enterprise market.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/enterprise-ai-security-transformation-assembly-october-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-229@arcticblue-event-tracker
@@ -2814,16 +2844,6 @@ SUMMARY:IDC FutureTech Summit London 2026
 LOCATION:County Hall\, London\, UK
 DESCRIPTION:IDC's premier European CTO/IT architecture event — 'Scaling AI Across Cloud and Enterprise Platforms' with EU AI Act governance and agentic AI adoption as core themes\; County Hall London venue\; ArcticBlue's enterprise AI architecture and responsible AI narrative fits the agenda well.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://event.idc.com/event/futuretech-summit-uk/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-95@arcticblue-event-tracker
-DTSTAMP:20260708T000000Z
-DTSTART;VALUE=DATE:20261001
-DTEND;VALUE=DATE:20261101
-SUMMARY:Millennium Alliance Enterprise AI Maturity & Transformation Assembly – October 2026
-LOCATION:USA
-DESCRIPTION:Millennium Alliance's Q4 Enterprise AI Assembly bringing together CIOs\, CAIOs\, and digital transformation leaders from Fortune 100/500 — sponsorship-driven speaking with direct buyer access.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/ai-conferences/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-94@arcticblue-event-tracker
