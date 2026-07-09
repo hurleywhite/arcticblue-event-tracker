@@ -895,8 +895,8 @@
     .ops-hover { opacity: 0; pointer-events: none; transition: opacity 120ms ease; }
     .ops-card:hover .ops-hover, .ops-card:focus-within .ops-hover { opacity: 1; pointer-events: auto; }
     .ops-archive-x {
-      font-family: var(--ab-sans); font-size: 1.05rem; line-height: 1; cursor: pointer;
-      background: transparent; border: 0; color: var(--ab-fg-3); padding: 0 5px; border-radius: 3px;
+      font-family: var(--ab-sans); font-size: 1.45rem; font-weight: 700; line-height: 1; cursor: pointer;
+      background: transparent; border: 0; color: var(--ab-red); padding: 0 4px; border-radius: 3px;
     }
     .ops-archive-x:hover { color: var(--ab-red); background: var(--ab-bg-3); }
     /* Tiny per-card chat indicator ("💬 N"), always visible when there are messages. */
@@ -916,9 +916,10 @@
     .chat-send { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ab-blue); background: var(--ab-blue); color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .chat-send:hover { opacity: 0.9; }
     .ops-card-head {
-      display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
-      margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+      margin-bottom: 4px;
     }
+    .ops-card-head .event-name { flex: 1; }   /* title fills the top; chips sit top-right */
     .ops-card .event-date {
       font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
@@ -927,7 +928,15 @@
     .ops-card .event-name {
       font-family: var(--ab-sans); font-weight: 700;
       font-size: 1.05rem; line-height: 1.3; letter-spacing: -0.01em;
-      margin: 0 0 4px; color: var(--ab-fg); overflow-wrap: anywhere;
+      margin: 0; color: var(--ab-fg); overflow-wrap: anywhere;
+    }
+    /* Date + place on ONE line under the title. */
+    .ops-card .event-meta {
+      font-size: 0.85rem; color: var(--ab-fg-2); margin: 0 0 12px; line-height: 1.4;
+    }
+    .ops-card .event-meta .em-date {
+      font-family: var(--ab-mono); font-size: 0.72rem; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--ab-fg-3);
     }
     .ops-card .event-loc {
       font-size: 0.85rem; color: var(--ab-fg-2); margin: 0 0 12px;
@@ -3896,8 +3905,15 @@
         ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
 
+      var _cdate = escapeHtml(cardDate(ev.date_str, ev.start_date));
+      var _cloc  = escapeHtml(shortLocation(ev));
       card.innerHTML =
         '<div class="ops-card-head">' +
+          '<h3 class="event-name">' +
+            (_cardUrl
+              ? '<a class="event-name-link" href="' + escapeHtml(_cardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
+              : escapeHtml(ev.name)) +
+          '</h3>' +
           '<div class="ops-chips">' +
             starButtonHtml(st.interested) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
@@ -3908,14 +3924,8 @@
             decBadge + saBadge +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
-          '<p class="event-date">' + escapeHtml(cardDate(ev.date_str, ev.start_date)) + '</p>' +
         '</div>' +
-        '<h3 class="event-name">' +
-          (_cardUrl
-            ? '<a class="event-name-link" href="' + escapeHtml(_cardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
-            : escapeHtml(ev.name)) +
-        '</h3>' +
-        '<p class="event-loc">' + escapeHtml(shortLocation(ev)) + '</p>' +
+        '<p class="event-meta">' + (_cdate ? '<span class="em-date">' + _cdate + '</span>' : '') + ((_cdate && _cloc) ? ' \u00b7 ' : '') + (_cloc || '') + '</p>' +
         renderOpsRoster(st, (sigBits.join('') + contactBadge)) +
         deadlineLine(ev.deadline, ev) +
         applyBtn;
@@ -4128,8 +4138,15 @@
       var mApplyBtn = (mApplyUrl && window.isAngelaUser && window.isAngelaUser())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
+      var _mdate = escapeHtml(cardDate(mev.date_str, mev.start_date));
+      var _mloc  = escapeHtml(shortLocation(mev));
       card.innerHTML =
         '<div class="ops-card-head">' +
+          '<h3 class="event-name">' +
+            (mev.url
+              ? '<a class="event-name-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
+              : escapeHtml(mev.name || '')) +
+          '</h3>' +
           '<div class="ops-chips">' +
             starButtonHtml(mev.interested) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
@@ -4140,14 +4157,8 @@
             mDecBadge + mSaBadge + mRecentBadge +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
-          '<p class="event-date">' + escapeHtml(cardDate(mev.date_str, mev.start_date)) + '</p>' +
         '</div>' +
-        '<h3 class="event-name">' +
-          (mev.url
-            ? '<a class="event-name-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
-            : escapeHtml(mev.name || '')) +
-        '</h3>' +
-        '<p class="event-loc">' + escapeHtml(shortLocation(mev)) + '</p>' +
+        '<p class="event-meta">' + (_mdate ? '<span class="em-date">' + _mdate + '</span>' : '') + ((_mdate && _mloc) ? ' \u00b7 ' : '') + (_mloc || '') + '</p>' +
         tagsHtml +
         deadlineLine(mev.deadline, mev) +
         pocLine +
