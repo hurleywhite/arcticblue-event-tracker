@@ -1381,11 +1381,17 @@ def build():
     .chat-input {{ flex: 1; padding: 9px 12px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font: inherit; font-size: 0.9rem; }}
     .chat-send {{ padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ab-blue); background: var(--ab-blue); color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }}
     .chat-send:hover {{ opacity: 0.9; }}
+    /* One row: title, then date · place right next to it, then any chips/
+       labels (star, urgent, archive, decision, chat count) pushed flush to
+       the empty space at the end — same row on every card, so everything
+       lands in the same spot instead of shifting card to card. */
     .ops-card-head {{
-      display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
-      margin-bottom: 4px;
+      display: flex; align-items: flex-start; flex-wrap: wrap;
+      column-gap: 14px; row-gap: 6px; margin-bottom: 10px;
     }}
-    .ops-card-head .event-name {{ flex: 1; }}   /* title fills the top; chips sit top-right */
+    .ops-card-head .event-name {{ flex: 1 1 auto; min-width: 160px; margin: 0; }}
+    .ops-card-head .event-meta {{ flex: 0 0 auto; margin: 0; white-space: nowrap; }}
+    .ops-card-head .ops-chips {{ flex: 0 0 auto; margin-left: auto; }}
     .ops-card .event-date {{
       font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
@@ -1395,11 +1401,10 @@ def build():
       font-family: var(--ab-sans); font-weight: 700;
       font-size: 1.05rem; line-height: 1.3; letter-spacing: -0.01em;
       margin: 0; color: var(--ab-fg); overflow-wrap: anywhere;
-      /* Reserve two lines for the title so a one-line name doesn't shove the
-         date/place + labels up — everything below lines up across cards. */
+      /* Reserve two lines for the title so a one-line name doesn't shove
+         everything below it up — it lines up across cards either way. */
       min-height: 2.6em;
     }}
-    /* Date + place on ONE line under the title. */
     .ops-card .event-meta {{
       font-size: 0.85rem; color: var(--ab-fg-2); margin: 0 0 12px; line-height: 1.4;
     }}
@@ -4397,6 +4402,9 @@ def build():
       return junkPhrase && !/\\d/.test(s) && !/rolling|ongoing|year.?round|continuous|\\bopen\\b/i.test(s);
     }}
     function deadlineLine(d, o) {{
+      // CFP/apply deadlines (incl. "Closed to speak") are Angela's business —
+      // nobody else needs to see them on the card face.
+      if (!(window.isAngelaUser && window.isAngelaUser())) return '';
       if (d == null || !String(d).trim()) return '';
       var txt = String(d).trim();
       if (_isJunkVal(txt)) return '';   // skip "not specified" / "TBD" / "N/A" clutter
@@ -4529,6 +4537,7 @@ def build():
               ? '<a class="event-name-link" href="' + escapeHtml(_cardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
               : escapeHtml(ev.name)) +
           '</h3>' +
+          '<p class="event-meta">' + (_cdate ? '<span class="em-date">' + _cdate + '</span>' : '') + ((_cdate && _cloc) ? ' \\u00b7 ' : '') + (_cloc || '') + '</p>' +
           '<div class="ops-chips">' +
             starButtonHtml(st.interested) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
@@ -4540,7 +4549,6 @@ def build():
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
         '</div>' +
-        '<p class="event-meta">' + (_cdate ? '<span class="em-date">' + _cdate + '</span>' : '') + ((_cdate && _cloc) ? ' \\u00b7 ' : '') + (_cloc || '') + '</p>' +
         renderOpsRoster(st, (sigBits.join('') + contactBadge)) +
         deadlineLine(ev.deadline, ev) +
         applyBtn;
@@ -4731,6 +4739,7 @@ def build():
               ? '<a class="event-name-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
               : escapeHtml(mev.name || '')) +
           '</h3>' +
+          '<p class="event-meta">' + (_mdate ? '<span class="em-date">' + _mdate + '</span>' : '') + ((_mdate && _mloc) ? ' \\u00b7 ' : '') + (_mloc || '') + '</p>' +
           '<div class="ops-chips">' +
             starButtonHtml(mev.interested) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
@@ -4742,7 +4751,6 @@ def build():
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
         '</div>' +
-        '<p class="event-meta">' + (_mdate ? '<span class="em-date">' + _mdate + '</span>' : '') + ((_mdate && _mloc) ? ' \\u00b7 ' : '') + (_mloc || '') + '</p>' +
         tagsHtml +
         deadlineLine(mev.deadline, mev) +
         mApplyBtn;
