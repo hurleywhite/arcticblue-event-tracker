@@ -875,11 +875,14 @@
       position: relative;
       padding: 22px;
       border: 1px solid var(--ab-rule); border-radius: 10px;
-      background: var(--ab-bg);
-      transition: border-color 120ms ease;
+      background: var(--ab-bg); cursor: pointer;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
       display: flex; flex-direction: column; height: 100%;
     }
-    .ops-card:hover { border-color: var(--ab-rule-strong); }
+    /* Whole card is clickable → opens the detail pop-up. Hover lift + focus ring
+       signal it; the star / chips / links inside keep their own actions. */
+    .ops-card:hover { border-color: var(--ab-rule-strong); box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+    .ops-card:focus-visible { outline: 2px solid var(--ab-blue); outline-offset: 2px; }
     .ops-card.is-saved { border-color: var(--ab-blue); }
     .ops-card-head {
       display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
@@ -3050,16 +3053,23 @@
   // For-Angela ops/manual cards: the "Details →" button carries a stashed
   // record (card._modalRec) so we can show the same rich pop-up.
   document.addEventListener('click', function (ev) {
-    var btn = ev.target.closest ? ev.target.closest('[data-detail]') : null;
-    if (!btn) return;
+    if (!ev.target.closest) return;
+    var card = ev.target.closest('.ops-card');
+    if (!card || !card._modalRec) return;
+    // The card's own controls keep their own click (star, Urgent/Archive, the
+    // name/website link, Apply-to-speak, expandable contacts). A click anywhere
+    // ELSE on the card opens the detail pop-up — the whole square is the button.
+    if (ev.target.closest('a, button, input, select, textarea, label, details, summary')) return;
     ev.preventDefault();
-    ev.stopPropagation();
-    var card = btn.closest('.ops-card');
-    if (card && card._modalRec) openEventModal(card._modalRec);
+    openEventModal(card._modalRec);
   });
   document.addEventListener('keydown', function (ev) {
     if (ev.key !== 'Enter' && ev.key !== ' ') return;
     var t = ev.target;
+    // Keyboard-open the pop-up when a whole card (role=button) is focused.
+    if (t && t.classList && t.classList.contains('ops-card') && t._modalRec) {
+      ev.preventDefault(); openEventModal(t._modalRec); return;
+    }
     if (!t || !t.classList || !t.classList.contains('is-clickable')) return;
     var rec = CATALOG[t.getAttribute('data-num')];
     if (rec) { ev.preventDefault(); openEventModal(rec); }
@@ -3776,6 +3786,8 @@
     function buildOpsCard(ev, st, email) {
       var card = document.createElement('article');
       card.className = 'ops-card';
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
       card.dataset.eventNum = ev.num;
       card.dataset.kind = 'regular';
       card.dataset.region = canonicalRegion(ev);
@@ -3859,7 +3871,6 @@
           (_cardUrl
             ? '<a class="event-name-link" href="' + escapeHtml(_cardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
             : escapeHtml(ev.name)) +
-          ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(shortLocation(ev)) + '</p>' +
         renderOpsRoster(st, (sigBits.join('') + contactBadge)) +
@@ -3970,6 +3981,8 @@
     function buildManualCard(mev, email) {
       var card = document.createElement('article');
       card.className = 'ops-card';
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
       card.dataset.manualId = mev.id;
       card.dataset.kind = 'manual';
       card.dataset.region = canonicalRegion(mev);
@@ -4085,7 +4098,6 @@
           (mev.url
             ? '<a class="event-name-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
             : escapeHtml(mev.name || '')) +
-          ' <button type="button" class="ops-details-btn" data-detail>Details →</button>' +
         '</h3>' +
         '<p class="event-loc">' + escapeHtml(shortLocation(mev)) + '</p>' +
         tagsHtml +

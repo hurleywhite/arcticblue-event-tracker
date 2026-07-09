@@ -716,16 +716,6 @@ DESCRIPTION:Richmond Events' intimate three-day CLO & Talent Management Forum ex
 URL:https://richmondevents.com/forums/details/clo26
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-340@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261201
-DTEND;VALUE=DATE:20261202
-SUMMARY:Reuters Momentum AI Frankfurt 2026
-LOCATION:Frankfurt\, Germany
-DESCRIPTION:Reuters' invite-only one-day enterprise AI forum in Frankfurt's financial hub targets European CIOs\, CTOs\, and AI decision-makers at major banks and insurers — strategic access to the German-speaking FSI market that complements ArcticBlue's UK/Zurich coverage in regulated industries.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.reutersevents.com/momentum
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-339@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261124
@@ -1306,16 +1296,6 @@ DESCRIPTION:World's #1 agentic AI conference in its 13th edition in Amsterdam\, 
 URL:https://www.chatbotsummit.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-271@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:Millennium Alliance Enterprise AI HR Transformation Assembly — Atlanta
-LOCATION:Atlanta\, USA
-DESCRIPTION:Millennium Alliance's intimate CHRO/Chief People Officer hosted-meeting assembly in Atlanta\; guaranteed 1:1 meetings format targeting HR tech buyers deploying AI workforce transformation tools — direct access to ArcticBlue's CHRO/CPO ICP in the Southeast market.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-270@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261117
@@ -1354,16 +1334,6 @@ SUMMARY:SHRM Linkage Leadership Institute 2026
 LOCATION:Nashville\, TN
 DESCRIPTION:SHRM's Linkage Leadership Institute brings together enterprise leaders and high-performers for immersive leadership development with direct application to AI-era leadership challenges — Joe's coaching and human enablement framework aligns with the faculty model.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://conference.shrm.org/linkage-institute
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-266@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261115
-DTEND;VALUE=DATE:20261119
-SUMMARY:SHRM All Things Work 2026
-LOCATION:Nashville\, TN
-DESCRIPTION:SHRM's unified workforce performance conference brings together HR professionals\, L&D leaders\, I&D specialists\, and high-performing executives — Joe's AI enablement and human learning content fits squarely across all three learning paths.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://conference.shrm.org/atw
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-265@arcticblue-event-tracker
@@ -1446,16 +1416,6 @@ DESCRIPTION:YPO network summit for top-tier entrepreneurial leaders — Thor has
 URL:https://ypo.org/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-256@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261116
-DTEND;VALUE=DATE:20261118
-SUMMARY:Momentum AI Finance 2026
-LOCATION:New York\, NY\, USA
-DESCRIPTION:Reuters Events' hand-picked\, 100%-senior-decision-maker financial services AI summit (300 guests\, 70% buy-side FS) is Carlos's highest-density access to CIO\, CTO\, and COO-level enterprise finance buyers — ArcticBlue's prime fintech and banking vertical.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://events.reutersevents.com/momentum/finance
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-255@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20260709
@@ -1464,16 +1424,6 @@ SUMMARY:eCommerce Day Perú 2026
 LOCATION:Lima\, Peru
 DESCRIPTION:17th edition of LatAm's leading digital commerce + AI summit puts Carlos in a room with Peru's top retail and enterprise executives actively adopting AI-driven commerce platforms — strong Tier 3 LatAm pipeline builder.\nPriority: Low\nAdded by: dust@arcticblue.ai
 URL:https://ecommerceday.pe/2026/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-254@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261103
-DTEND;VALUE=DATE:20261104
-SUMMARY:Evanta San Francisco CDAO Executive Summit 2026
-LOCATION:San Francisco\, CA
-DESCRIPTION:Gartner/Evanta's intimate C-level peer forum for CDAOs — closed-door format with trusted peer discussions\; ideal for ArcticBlue's senior enterprise data and AI leadership narrative.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.evanta.com/cdao/san-francisco/san-francisco-cdao-executive-summit-9344
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-252@arcticblue-event-tracker
@@ -1536,16 +1486,6 @@ DESCRIPTION:Gartner Evanta's DC-area CHRO Summit draws CHROs from federal\, heal
 URL:https://www.evanta.com/chro/washington-dc/washington-dc-chro-executive-summit-9388
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-246@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261026
-DTEND;VALUE=DATE:20261029
-SUMMARY:Gartner HR Symposium/Xpo™ Americas 2026
-LOCATION:Orlando\, FL
-DESCRIPTION:Gartner's flagship CHRO and HR executive gathering\; 'Powering Possibilities With AI' and workforce skills transformation are the 2026 centerpiece themes — Joe's exact ICP in one definitive room.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.gartner.com/en/conferences/na/hr-symposium-us
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-244@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261006
@@ -1594,16 +1534,6 @@ SUMMARY:Digital Transformation Conference London 2026
 LOCATION:London\, UK
 DESCRIPTION:Co-located with AI in Business Conference on Nov 19\; AstraZeneca\, HSBC\, NatWest\, BNP Paribas speaker alumni\; earned speaking route via direct email contact\; complementary to Jerome's FSI and healthcare relationships.\nPriority: Low\nAdded by: dust@arcticblue.ai
 URL:https://www.digitaltransformationconf.co.uk/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-238@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261109
-DTEND;VALUE=DATE:20261113
-SUMMARY:Gartner IT Symposium/Xpo™ EMEA 2026 — Barcelona
-LOCATION:Barcelona\, Spain
-DESCRIPTION:The world's most important CIO gathering — 6\,000+ European IT leaders\; Agentic AI is the headline 2026 topic alongside AI governance\; exhibitor/sponsor route provides access to Jerome's primary ICP buyer audience.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.gartner.com/en/conferences/emea/symposium-spain
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-237@arcticblue-event-tracker
@@ -1726,16 +1656,6 @@ DESCRIPTION:Evanta/Gartner exclusive CIO summit in the DC area — peer-driven p
 URL:https://www.evanta.com/cio/washington-dc/washington-dc-cio-executive-summit-8496
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-220@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261116
-DTEND;VALUE=DATE:20261117
-SUMMARY:Swiss AI Summit 2026
-LOCATION:Kunsthaus Zürich\, Zürich\, Switzerland
-DESCRIPTION:Europe's premier AI business platform in Zurich bringing together 500+ decision-makers across 14+ industries — ArcticBlue can position enterprise AI adoption and governance narratives to Swiss and broader European enterprise leaders\, banks\, and insurers at a prestigious cultural venue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.swissaisummit.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-219@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261117
@@ -1804,16 +1724,6 @@ SUMMARY:From Day One: NYC Midtown 2026
 LOCATION:New York\, NY
 DESCRIPTION:From Day One NYC Midtown closes the fall conference season with 200–300 senior HR leaders in Joe’s home market\; public speaker application available and zero logistics friction for ArcticMind.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.fromdayone.com/conferences/2026/2026_p_nyc_midtown
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-211@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261104
-DTEND;VALUE=DATE:20261105
-SUMMARY:From Day One: Los Angeles 2026
-LOCATION:Los Angeles\, CA
-DESCRIPTION:From Day One LA draws 200–300 senior HR and people leaders from West Coast enterprises\; public speaker application available and Joe’s AI + human enablement message is an editorial fit.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.fromdayone.com/conferences/2026/2026_p_la
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-210@arcticblue-event-tracker
@@ -1914,16 +1824,6 @@ SUMMARY:International Conference on AI in Healthcare (AIiH 2026)
 LOCATION:London\, UK
 DESCRIPTION:Enterprise and clinical AI adoption in healthcare at Imperial College London — reaches NHS\, pharma and health-system leaders who are a secondary ICP for ArcticBlue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://aiih.cc/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-194@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20260629
-DTEND;VALUE=DATE:20260701
-SUMMARY:Momentum AI London 2026
-LOCATION:London\, UK
-DESCRIPTION:300 vetted CIOs\, CDOs\, CTOs from enterprise companies\; agentic AI\, AI ROI and governance themes perfectly match ArcticBlue's proposition for regulated-industry buyers.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://events.reutersevents.com/momentum/london
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-193@arcticblue-event-tracker
@@ -2044,16 +1944,6 @@ SUMMARY:NAIC NIPR Insurance Summit 2026
 LOCATION:Kansas City\, MO\, USA
 DESCRIPTION:The National Association of Insurance Commissioners' annual flagship summit in Kansas City — state commissioners\, insurance C-suite\, and technology leaders connecting on AI governance\, regulatory compliance\, and digital transformation in insurance\; direct access to the people setting US insurance AI rules.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://content.naic.org/events/insurance-summit
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-180@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:NexGen Banking Summit USA 2026 (5th Edition)
-LOCATION:New York City\, NY\, USA
-DESCRIPTION:5th edition of the banking AI summit in NYC drawing VP+ executives from US banks and fintechs including U.S. Bank\; AI\, GenAI\, and digital banking transformation focus\; open speaker application via fill-out form\; strong NYC banking audience.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://nexgenbanking.com/USEdition/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-179@arcticblue-event-tracker
@@ -2194,16 +2084,6 @@ SUMMARY:IDC CIO Summit Spain 2026
 LOCATION:Madrid\, Spain
 DESCRIPTION:IDC's flagship Spanish CIO summit at Hotel Mandarin Oriental Ritz\, Madrid — themed 'The Rise of Agentic Systems'\; senior CIOs and CTOs of Spain's leading enterprises making 2027 AI investment decisions\; perfect Carlos entry point into Spanish enterprise market.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://event.idc.com/event/cio-summit-spain_en/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-161@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261126
-DTEND;VALUE=DATE:20261127
-SUMMARY:AI Innovation Asia 2026
-LOCATION:Singapore
-DESCRIPTION:The Economist's Asia-Pacific AI summit (500 executives\, 3rd annual) focused on real-world enterprise AI scaling — directly mirrors Verma's case-study-led\, evidence-based approach to AI in regulated and enterprise environments.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.economistenterprise.com/ai-innovation-asia/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-160@arcticblue-event-tracker
@@ -2406,16 +2286,6 @@ DESCRIPTION:Canada's largest annual big data and AI conference with tracks on da
 URL:https://bigdatasummitcanada.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-134@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261021
-DTEND;VALUE=DATE:20261023
-SUMMARY:RE•WORK AI in Finance Summit Fall 2026
-LOCATION:Hoboken\, NJ\, USA
-DESCRIPTION:RE•WORK's flagship fall AI-in-finance summit at W Hoboken (NY metro) with top ML and AI leaders from financial institutions\; agentic commerce and advanced ML tracks — premium access to ArcticBlue’s financial services ICP.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://ny-ai-finance.re-work.co/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-133@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261001
@@ -2434,16 +2304,6 @@ SUMMARY:Singapore FinTech Festival 2026
 LOCATION:Singapore
 DESCRIPTION:World's largest fintech gathering (policy\, finance\, and technology) at Singapore EXPO\; 940+ speakers\, 300+ sessions\; Apply to Speak publicly available\; covers AI governance\, digital assets\, and regulated-finance transformation — anchors ArcticBlue's APAC financial services presence with Southeast Asian regulated-banking audience.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.fintechfestival.sg/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-131@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:RE•WORK AI in Healthcare & Pharma Summit Boston 2026
-LOCATION:Boston\, MA\, USA
-DESCRIPTION:RE•WORK's dedicated healthcare AI summit at Hilton Boston Park Plaza — executive and clinical leaders exploring production AI in regulated healthcare\; earned-speaker 'Suggest a Speaker' route\; complements HLTH USA and HIMSS in ArcticBlue's regulated-healthcare coverage.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://boston-ai-healthcare.re-work.co/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-130@arcticblue-event-tracker
@@ -2506,16 +2366,6 @@ DESCRIPTION:India's premier fintech event at Jio World Centre with India's Finan
 URL:https://www.globalfintechfest.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-122@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20260908
-DTEND;VALUE=DATE:20260910
-SUMMARY:AI in Financial Services Conference London 2026 (AIFS)
-LOCATION:London\, UK
-DESCRIPTION:8th annual UK flagship AI-in-FS conference at Convene 155 Bishopsgate\; 350+ senior leaders from Citi\, Goldman Sachs\, Commerzbank\; 60% Director+ level\; covers agentic AI\, responsible AI\, and regulatory compliance — ideal regulated-finance audience for Verma.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://aiinfinancesummit.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-121@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20260928
@@ -2544,26 +2394,6 @@ SUMMARY:AI Horizons 2026 Pittsburgh
 LOCATION:Pittsburgh\, PA\, USA
 DESCRIPTION:Pittsburgh's premier AI summit (CMU-affiliated) covering AI in healthcare\, manufacturing\, finance\, robotics\, and defense — emerging enterprise AI hub with cross-sector coverage for ArcticBlue's verticals.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://aihorizonspgh.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-117@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20260506
-DTEND;VALUE=DATE:20260507
-SUMMARY:Evanta CDAO New York Community Executive Summit 2026
-LOCATION:New York\, NY\, USA
-DESCRIPTION:Exclusive CDAO Executive Summit with sessions on AI agents and data foundations for production AI\; intimate peer-to-peer format with Chief Data Officers from Fortune 500 — strong ArcticBlue fit for enterprise AI advisory conversations.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.evanta.com/cdao/new-york/new-york-cdao-executive-summit-9320
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-116@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20260811
-DTEND;VALUE=DATE:20260813
-SUMMARY:CDAO Chicago 2026 (Corinium)
-LOCATION:Chicago\, IL\, USA
-DESCRIPTION:9th annual Corinium CDAO Chicago (largest annual gathering of senior data decision-makers in the US Midwest)\; AI strategy\, governance\, and data-driven decision-making focus\; active speaker/suggestion portal — strong ArcticBlue earning opportunity.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://da-metro-chicago.coriniumintelligence.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-115@arcticblue-event-tracker
@@ -2604,26 +2434,6 @@ SUMMARY:Caribbean AI Summit 2026
 LOCATION:San Juan\, Puerto Rico
 DESCRIPTION:First-ever Caribbean AI Summit at Puerto Rico Convention Center — strategic for Carlos's Caribbean home market\; opportunity to position ArcticBlue as the region's enterprise AI leader at its inaugural event.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://caribbeansummit.ai/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-108@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261201
-DTEND;VALUE=DATE:20261202
-SUMMARY:Agentic AI Summit London 2026
-LOCATION:London\, UK
-DESCRIPTION:AI Accelerator Institute’s year-end Agentic AI Summit in London — co-located with CAIO and Generative AI Summits\; European agentic AI engineering and enterprise practitioner audience\; open speaker application.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://world.aiacceleratorinstitute.com/location/agenticailondon
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-107@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261029
-DTEND;VALUE=DATE:20261030
-SUMMARY:AI Accelerator Institute Boston 2026 (Agentic AI + CAIO + Generative AI Summits)
-LOCATION:Boston\, MA\, USA
-DESCRIPTION:Four co-located summits in one day at Westin Boston Seaport: Agentic AI\, Generative AI\, Chief AI Officer\, and CISO — one pass covers all tracks\; strong engineering + enterprise leadership audience perfect for ArcticBlue's prototyping-to-production offering.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://world.aiacceleratorinstitute.com/location/agenticaiboston
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-106@arcticblue-event-tracker
@@ -2684,16 +2494,6 @@ SUMMARY:11th Congreso America Digital 2026
 LOCATION:Santiago\, Chile
 DESCRIPTION:Latin America's largest digital business congress (5\,000+ C-Level executives) covering AI\, cloud\, fintech\, and digital transformation — ideal stage for ArcticBlue's LatAm enterprise AI positioning.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://congreso.america-digital.com/?lang=en
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-100@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261027
-DTEND;VALUE=DATE:20261030
-SUMMARY:ODSC AI West 2026
-LOCATION:Burlingame\, CA\, USA
-DESCRIPTION:Open Data Science Conference West at Hyatt Regency SFO — leading applied AI technical and business practitioner conference in Silicon Valley\; cutting-edge AI deployment sessions with open speaker and partner application.\nPriority: Low\nAdded by: dust@arcticblue.ai
-URL:https://odsc.ai/west/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-99@arcticblue-event-tracker
@@ -2916,16 +2716,6 @@ DESCRIPTION:Economist Enterprise’s flagship Asia AI summit at Grand Hyatt Sing
 URL:https://events.economistenterprise.com/ai-innovation-asia/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-68@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261202
-DTEND;VALUE=DATE:20261203
-SUMMARY:Evanta Boston CIO Executive Summit 2026
-LOCATION:Boston\, MA\, USA
-DESCRIPTION:Gartner/Evanta peer-led CIO summit at Renaissance Boston Seaport District — Boston regional CIO community focused on AI and digital transformation\; sponsor model provides direct 1:1 meeting access with New England enterprise CIOs.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.evanta.com/cio/boston/boston-cio-executive-summit-8427
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-67@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261117
@@ -2946,16 +2736,6 @@ DESCRIPTION:Conference Board's flagship US AI leadership summit at the Marriott 
 URL:https://www.conference-board.org/events/ai-leadership
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-64@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261201
-DTEND;VALUE=DATE:20261202
-SUMMARY:AIAI Chief AI Officer + Generative AI Summit London
-LOCATION:London\, UK
-DESCRIPTION:AIAI's London cluster (consistent with Berlin Sep 15\, Boston Oct 28\, Toronto Nov 12) extends ArcticBlue's UK enterprise AI presence with the proven co-located CAIO/GenAI summit format.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://world.aiacceleratorinstitute.com/location/london
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-62@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261103
@@ -2964,26 +2744,6 @@ SUMMARY:Evanta Dallas CIO Executive Summit 2026
 LOCATION:Irving\, TX\, USA
 DESCRIPTION:Gartner/Evanta peer-led CIO summit at The Westin Irving Convention Center — Dallas-Fort Worth regional CIO community gathering focused on AI and digital transformation\; complements ALIGN AI Dallas (Oct 21) for a Texas cluster.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.evanta.com/cio/dallas/dallas-cio-executive-summit-8492
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-59@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:Millennium Alliance Transformational CHRO Assembly – November 2026
-LOCATION:Atlanta\, GA\, USA
-DESCRIPTION:Millennium Alliance’s exclusive invite-only CHRO Assembly at The Whitley Atlanta Buckhead — 97% VP-level and above attendance\; ArcticBlue’s CHRO technology transformation narrative directly relevant to this buyer audience.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/transformational-chro-assembly-november-2026/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-46@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261201
-DTEND;VALUE=DATE:20261202
-SUMMARY:AIAI Chief AI Officer Summit London
-LOCATION:London\, UK
-DESCRIPTION:AIAI's flagship Q4 London CAIO Summit co-located with GenAI and Agentic AI Summits\; dedicated Chief AI Officer audience\; open earned speaker application\; strong European Q4 enterprise AI cluster for ArcticBlue's London presence.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://world.aiacceleratorinstitute.com/location/caiolondon
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-45@arcticblue-event-tracker
@@ -3006,26 +2766,6 @@ DESCRIPTION:Co-located with AIAI GenAI Summit Boston\; dedicated agentic AI trac
 URL:https://world.aiacceleratorinstitute.com/location/agenticaiboston
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-43@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261028
-DTEND;VALUE=DATE:20261029
-SUMMARY:AIAI Chief AI Officer Summit Boston
-LOCATION:Boston\, MA\, USA
-DESCRIPTION:Dedicated CAIO Summit in Boston with 60%+ senior management audience\; open earned speaker application\; day before AIAI GenAI/Agentic Boston cluster—strong two-day Boston enterprise AI presence for ArcticBlue.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://world.aiacceleratorinstitute.com/location/caioboston
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-41@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261112
-DTEND;VALUE=DATE:20261113
-SUMMARY:Generative AI Summit Toronto 2026
-LOCATION:Toronto\, ON\, Canada
-DESCRIPTION:AI Accelerator Institute's Toronto Generative AI Summit — co-located with Agentic AI Summit Toronto\; engineering and enterprise AI practitioner audience in Canada's largest tech market\; open speaker application.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://world.aiacceleratorinstitute.com/location/toronto
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-36@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261001
@@ -3044,26 +2784,6 @@ SUMMARY:Future: Enterprise & AI 2026
 LOCATION:Brussels\, Belgium
 DESCRIPTION:The Conference Board's senior European enterprise AI leadership summit — CEO/CIO/COO audience on leading AI transformation\; high-trust peer format directly relevant to ArcticBlue's enterprise value proposition.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.conference-board.org/events/future-enterprise-and-ai
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-31@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:Millennium Alliance Enterprise AI HR Transformation Assembly — November 2026
-LOCATION:Atlanta\, GA\, USA
-DESCRIPTION:Exclusive CHRO assembly at The Whitley Atlanta Buckhead — ArcticBlue's workforce AI and operating model change narrative resonates directly with this senior HR C-suite audience\; open speaker application.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/enterprise-ai-hr-transformation-assembly-november-2026/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-30@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261109
-DTEND;VALUE=DATE:20261111
-SUMMARY:Chief AI Officer Exchange Fall 2026
-LOCATION:Atlanta\, GA\, USA
-DESCRIPTION:AIDA Network's premier invitation-only enterprise AI executive gathering — closed-door peer format with exact CAIO/CDO audience\; high-signal relationship-building for ArcticBlue's enterprise pipeline.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.aidataanalytics.network/events-chiefaiofficerexchangefall
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-27@arcticblue-event-tracker
@@ -3106,26 +2826,6 @@ DESCRIPTION:ISG's European enterprise AI ROI summit in Paris — same trusted IS
 URL:https://aiimpact.isg-one.com/paris
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-19@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261201
-DTEND;VALUE=DATE:20261202
-SUMMARY:Chief AI Officer Summit London 2026
-LOCATION:London\, UK
-DESCRIPTION:Re-Work/Corinium's London CAIO Summit — ArcticBlue's exact ICP (Chief AI Officers) in London\; direct earned speaking route via Corinium speaker inquiry.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://caio-london.re-work.co/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-15@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261109
-DTEND;VALUE=DATE:20261113
-SUMMARY:Gartner IT Symposium/Xpo EMEA 2026
-LOCATION:Barcelona\, Spain
-DESCRIPTION:Gartner's European CIO/IT leadership flagship — 5\,000+ EMEA CIOs and CTOs setting 2027 AI technology investment priorities\; essential European enterprise AI event.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.gartner.com/en/conferences/emea/symposium-spain
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-13@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261102
@@ -3144,16 +2844,6 @@ SUMMARY:ISG AI Impact Summit New York
 LOCATION:New York\, NY\, USA
 DESCRIPTION:ISG's flagship US enterprise AI summit measuring real ROI gaps — directly mirrors ArcticBlue's thesis on closing the AI ambition-to-execution gap\, in New York.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://aiimpact.isg-one.com/newyork
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-11@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20261026
-DTEND;VALUE=DATE:20261028
-SUMMARY:Corinium CDAO Fall + CAIO Fall 2026
-LOCATION:Boston\, MA\, USA
-DESCRIPTION:Co-located CDAO + inaugural CAIO Fall at Boston Seaport — ArcticBlue's exact ICP (Chief AI Officers + data chiefs) in the same venue over two days\; suggest-a-speaker route.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://cdao-fall.coriniumintelligence.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-6@arcticblue-event-tracker
