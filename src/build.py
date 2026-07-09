@@ -2075,6 +2075,13 @@ def build():
     .q-btn.primary {{ background: #1fa0dc; border-color: #1fa0dc; color: #fff; }}
     .q-btn.primary:hover {{ background: #1488bf; }}
     .q-btn.danger:hover {{ border-color: #d64545; color: #d64545; }}
+    /* "Mark applied" + the × dismiss sit side by side, not stacked. */
+    .q-btn-row {{ display: flex; gap: 6px; align-items: stretch; }}
+    .q-btn-row .q-btn.primary {{ flex: 1; }}
+    .q-btn-x {{
+      flex: 0 0 auto; padding: 5px 10px; font-size: 1rem; line-height: 1;
+      font-weight: 700; color: var(--ab-fg-3);
+    }}
     .queue-empty, .planner-empty {{
       padding: 20px; border: 1px dashed var(--ab-rule); border-radius: 10px;
       color: var(--ab-fg-3); font-size: 0.9rem; text-align: center;
@@ -3128,6 +3135,9 @@ def build():
             rec.attend_verdict = 'Worth attending';
             patch.attend_verdict = 'Worth attending';
           }}
+          // A fresh flag revives it in Angela's queue if it was dismissed.
+          rec.queue_dismissed = false;
+          patch.queue_dismissed = false;
         }} else {{ ilist.splice(hit, 1); }}
         rec.interested = ilist;
         patch.interested = ilist;
@@ -4202,7 +4212,11 @@ def build():
       var lc = me.toLowerCase(), hit = -1;
       for (var z = 0; z < cur.length; z++) {{ if (String(cur[z]).toLowerCase() === lc) {{ hit = z; break; }} }}
       var patch = {{}};
-      if (hit === -1) {{ cur.push(me); patch.attend_verdict = 'Worth attending'; }}  // interest funnels into Angela's Should-Attend
+      if (hit === -1) {{
+        cur.push(me);
+        patch.attend_verdict = 'Worth attending';  // interest funnels into Angela's Should-Attend
+        patch.queue_dismissed = false;   // a fresh flag revives it in Angela's queue if it was dismissed
+      }}
       else {{ cur.splice(hit, 1); }}
       patch.interested = cur;
       if (window.opsWrite) window.opsWrite(kind === 'manual' ? 'manual_events' : 'event_state', key, patch);
@@ -5979,6 +5993,7 @@ def build():
         stages: stages,
         decision: (st && st.decision) || base.decision || '',
         deadline: (st && st.deadline) || base.deadline || '',
+        queue_dismissed: !!((st && st.queue_dismissed) || base.queue_dismissed),
         past: isPastEvent(base),
         hidden: !!(st && st.hidden),
         sort: meta.sort,
@@ -6383,10 +6398,12 @@ def build():
       var order = window.opsStageOrder || ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
       // Queue = events still needing an application. Count only interested
       // people NOT already booked/attending (window.visibleInterested).
-      var items = opsAllItems().filter(function (it) {{ return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past; }});
+      // queue_dismissed = Angela said "not relevant" (the × next to Mark
+      // applied) — keeps it off the queue without touching who's interested.
+      var items = opsAllItems().filter(function (it) {{ return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past && !it.queue_dismissed; }});
 
       function deadlineHtml(it) {{
-        if (!it.deadline || isDeadlinePast(it.deadline)) return '';
+        if (_isJunkVal(it.deadline) || isDeadlinePast(it.deadline)) return '';
         var soon = isDeadlineSoon(it.deadline);
         return '<span class="q-deadline' + (soon ? ' soon' : '') + '">&#9203; ' + escapeHtml(it.deadline) + '</span>';
       }}
@@ -6433,7 +6450,12 @@ def build():
         var rows = list.map(function (it) {{
           return rowHtml(it, function (x) {{
             var btns = '';
-            if (kind === 'toApply') btns += '<button class="q-btn primary" data-act="submitted" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark applied</button>';
+            if (kind === 'toApply') {{
+              btns += '<div class="q-btn-row">' +
+                '<button class="q-btn primary" data-act="submitted" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark applied</button>' +
+                '<button class="q-btn danger q-btn-x" data-act="dismiss" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '" title="Not relevant — remove from the queue without marking applied" aria-label="Remove from queue">&times;</button>' +
+              '</div>';
+            }}
             else if (kind === 'submitted') btns += '<button class="q-btn primary" data-act="booked" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark booked</button>';
             // "Details" now sits inline next to the event name (see rowHtml).
             return btns;
@@ -6458,7 +6480,10 @@ def build():
         btn.addEventListener('click', function (e) {{
           e.stopPropagation();
           var it = items.filter(function (x) {{ return x.kind === btn.getAttribute('data-k') && String(x.key) === btn.getAttribute('data-key'); }})[0];
-          if (it) markStage(it, btn.getAttribute('data-act') === 'submitted' ? 'Submitted' : 'Booked');
+          if (!it) return;
+          var act = btn.getAttribute('data-act');
+          if (act === 'dismiss') {{ opsQuickWrite(it.kind, it.key, {{ queue_dismissed: true }}); }}
+          else markStage(it, act === 'submitted' ? 'Submitted' : 'Booked');
         }});
       }});
       updateViewBadges();
