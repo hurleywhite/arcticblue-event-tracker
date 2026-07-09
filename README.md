@@ -1,26 +1,26 @@
 # ArcticBlue Event Tracker
 
-Internal tracker for every in-person AI event ArcticBlue is considering. Public read for everyone; private ops state (saved/urgent/status/speaker/notes) gated to three allow-listed editors. Daily auto-build, Vercel-hosted, Supabase-backed.
+Internal tracker for every in-person AI event ArcticBlue is considering. Public, read-only for everyone; editing (interest, pipeline stage, speaker, priority, notes, manual events) is gated to an ArcticBlue editor allow-list. Daily auto-build, Vercel-hosted, Supabase-backed.
 
 **Live:** https://arcticblue-event-tracker-deploy.vercel.app/
 **Public calendar feed:** https://arcticblue-event-tracker-deploy.vercel.app/calendar.ics
 
 ---
 
-## Two tabs, two audiences
+## Two audiences: read vs. edit
 
-- **For Everyone** — public, anyone can read. Card grid with date, location, type, priority, verified URLs (no invented URLs — see AGENT-CONTEXT.md Rule 2). Filters: search · priority · region · type. Today / Up-next callout. Collapsible archive.
+It's **one app** — everyone can read it; signing in unlocks editing.
 
-- **For Angela** — magic-link sign-in (Supabase Auth). Three emails are allow-listed: `angela@arcticblue.ai`, `hurley@arcticblue.ai`, `thor@arcticblue.ai`. RLS on `event_state` and `manual_events` blocks any other authenticated user even if they bypass the UI. Features:
-  - **Stats bar** — Upcoming / Saved / Urgent / Speaker set / Status set / Hidden
-  - **Filters** — search · region · Saved only · Urgent only · Has speaker · Show hidden
-  - **Grid view** — one card per event with chips (★/Urgent/Hidden) + inline status/speaker/priority/track badges + an "Edit ops" disclosure for the full form
-  - **Calendar view** — month-by-month grid with region-color chips, speaker initials, saved/urgent styling; click any chip to jump back to the card
-  - **+ Add event** — form for manual events (also pre-fillable by pasting an email or web copy → click "Extract fields" → JS heuristically pulls name/date/location/region/URL)
-  - **CSV import/export** — download current `event_state` as CSV, edit in Excel/Sheets, upload back with diff preview before commit
-  - **Download saved .ics** — one-shot iCal file of currently-saved events
-  - **Subscribe in calendar app** — copies the always-fresh public feed URL with paste instructions for Apple / Google / Outlook
-  - **Realtime updates** — Supabase channel keeps multiple tabs / users in sync without refresh
+- **Anyone (no login)** — the whole tracker is public and read-only. Browse every tracked event across four views — **My Events · All Events · Calendar · Map** — with a stats bar (Upcoming · My Interests · Pending · Booked · Team Interests · Attending) and filters (keyword search · **Pipeline · Region · Fits · Months**). **Click any card** to open its full detail pop-up. Cards show date, location, type, a **priority** read (High / Medium / Low), pipeline **stage** (Submitted = blue, Booked = green, …), an **Apply to speak** link, and verified event URLs only (no invented URLs — see AGENT-CONTEXT.md Rule 2). An **Ask Anything** AI box ranks and answers questions over the current events.
+
+- **ArcticBlue editors (magic-link sign-in)** — editing is gated to team emails on the `allowed_editors` allow-list (managed in Supabase). RLS on `event_state` and `manual_events` blocks any other authenticated user even if they bypass the UI. Pick who you are ("Viewing as …") and you can:
+  - **★ Star events you're interested in** — feeds the per-person **My Events** view and the My / Team Interests stats
+  - **Set pipeline stage, speaker, priority, notes and links** from a card's detail pop-up → **Edit**
+  - **Archive** events you're setting aside (from the pop-up; the card then shows an "Archived" label)
+  - **+ Add event** by hand, or **Paste email** / web copy to auto-extract name / date / location / URL
+  - **Find new events** — AI web search that adds fresh in-person events to the catalog
+  - **Download saved `.ics`** or **subscribe** to the always-fresh public calendar feed (Apple / Google / Outlook)
+  - **Realtime** — a Supabase channel keeps multiple tabs / users in sync without a refresh
 
 ---
 
