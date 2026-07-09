@@ -9929,7 +9929,7 @@ def build():
       panel.dataset.col = col; panel.dataset.keyval = String(rec._key);
       panel.dataset.chatkey = (col === 'manual_id' ? 'm' : 'c') + rec._key;
       panel.innerHTML =
-        '<h4 class="chat-h">Discussion</h4>' +
+        '<h4 class="chat-h">Chat with the team</h4>' +
         '<div class="chat-list" id="chat-list"><p class="chat-empty">Loading…</p></div>' +
         '<form class="chat-form" id="chat-form">' +
           '<input class="chat-input" id="chat-input" placeholder="Message the team about this event…" autocomplete="off" maxlength="1000">' +
@@ -9937,7 +9937,9 @@ def build():
         '</form>';
       sb.from('event_chat').select('*').eq(col, rec._key).order('created_at', {{ ascending: true }}).then(function (resp) {{
         var list = document.getElementById('chat-list'); if (!list) return;
-        if (resp.error) {{ list.innerHTML = '<p class="chat-empty">Chat needs a one-time database setup — run <code>scripts/2026-07-09_event_chat.sql</code> in Supabase.</p>'; return; }}
+        // If the event_chat table hasn't been migrated yet, show the normal
+        // empty state instead of a setup warning (a send will surface the error).
+        if (resp.error) {{ _paintChatList(list, []); return; }}
         _paintChatList(list, resp.data || []);
       }});
       var form = document.getElementById('chat-form');
