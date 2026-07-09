@@ -334,12 +334,17 @@
       background: #fee2e2; color: #991b1b; border: 1px solid #f3b1b1;
     }
     /* One-click "Apply to speak" button on ops cards — the booking shortcut. */
+    /* Deadline/closed-to-speak label + Apply button sit side by side in one
+       compact row, pinned to the bottom of the card (not each its own
+       full-width block). */
+    .ops-card-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: auto; }
+    .ops-card-foot .ops-meta { margin: 0; }
     .ops-apply-btn {
-      display: block; width: 100%; box-sizing: border-box; text-align: center;
-      margin-top: auto;  /* pin to the bottom of the flex-column card */
+      display: inline-flex; align-items: center; justify-content: center;
+      box-sizing: border-box; text-align: center;
       font-family: var(--ab-mono); font-size: 0.7rem;
       letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
-      padding: 8px 11px; border-radius: 999px;
+      padding: 7px 16px; border-radius: 999px;
       background: var(--ab-blue, #1d4ed8); color: #fff !important; text-decoration: underline; text-underline-offset: 2px;
     }
     .ops-apply-btn:hover { opacity: 0.85; }
@@ -953,7 +958,7 @@
       display: flex; align-items: flex-start; flex-wrap: wrap;
       column-gap: 14px; row-gap: 6px; margin-bottom: 10px;
     }
-    .ops-card-head .event-name { flex: 1 1 auto; min-width: 160px; margin: 0; }
+    .ops-card-head .event-name { flex: 0 1 auto; min-width: 60px; margin: 0; }   /* no flex-grow — sizes to its own text so date·place sits right next to it */
     .ops-card-head .event-meta { flex: 0 0 auto; margin: 0; white-space: nowrap; }
     .ops-card-head .ops-chips { flex: 0 0 auto; margin-left: auto; }
     .ops-card .event-date {
@@ -4005,6 +4010,9 @@
 
       var _cdate = escapeHtml(cardDate(ev.date_str, ev.start_date));
       var _cloc  = escapeHtml(shortLocation(ev));
+      // Deadline/closed-to-speak label + Apply sit side by side in one row.
+      var _cDeadlineHtml = deadlineLine(ev.deadline, ev);
+      var _cFootHtml = (_cDeadlineHtml || applyBtn) ? ('<div class="ops-card-foot">' + _cDeadlineHtml + applyBtn + '</div>') : '';
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<h3 class="event-name">' +
@@ -4025,8 +4033,7 @@
           '</div>' +
         '</div>' +
         renderOpsRoster(st, (sigBits.join('') + contactBadge)) +
-        deadlineLine(ev.deadline, ev) +
-        applyBtn;
+        _cFootHtml;
       // (metaLine intentionally unused now — "Last edit" detail lived inside the
       // old inline editor, which has moved to the Details pop-up.)
       void metaLine;
@@ -4205,6 +4212,9 @@
       var mApplyBtn = (mApplyUrl && window.isAngelaUser && window.isAngelaUser())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
+      // Deadline/closed-to-speak label + Apply sit side by side in one row.
+      var _mDeadlineHtml = deadlineLine(mev.deadline, mev);
+      var _mFootHtml = (_mDeadlineHtml || mApplyBtn) ? ('<div class="ops-card-foot">' + _mDeadlineHtml + mApplyBtn + '</div>') : '';
       var _mdate = escapeHtml(cardDate(mev.date_str, mev.start_date));
       var _mloc  = escapeHtml(shortLocation(mev));
       card.innerHTML =
@@ -4227,8 +4237,7 @@
           '</div>' +
         '</div>' +
         tagsHtml +
-        deadlineLine(mev.deadline, mev) +
-        mApplyBtn;
+        _mFootHtml;
       // Stash a modal record on the node for the delegated "Details" handler.
       var mrec = {};
       for (var mk in mev) { if (Object.prototype.hasOwnProperty.call(mev, mk)) mrec[mk] = mev[mk]; }
