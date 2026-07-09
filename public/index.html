@@ -122,6 +122,7 @@
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
       border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.14);
     }
+    .who-dropdown[hidden] { display: none; }   /* [hidden] alone loses to .who-dropdown's display:flex */
     .who-dropdown .who-init { min-width: 22px; height: 22px; }
     .who-other {
       width: 100%; margin-top: 2px; padding: 4px 0 0; border: 0; background: none;
