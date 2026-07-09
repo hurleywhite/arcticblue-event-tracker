@@ -996,16 +996,6 @@ DESCRIPTION:The convergence of AI governance\, data privacy\, regulatory enforce
 URL:https://iapp.org/conference/iapp-psr
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-304@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20260715
-DTEND;VALUE=DATE:20260716
-SUMMARY:Supply Chain AI Symposium 2026
-LOCATION:The Old Post Office\, Chicago\, IL\, USA
-DESCRIPTION:FreightWaves’ annual in-person AI symposium for supply chain and operations leaders — enterprise AI in operations theme aligns with ArcticBlue’s agentic workflows-in-ops message for COOs and VP Supply Chain audiences.\nPriority: Low\nAdded by: dust@arcticblue.ai
-URL:https://live.freightwaves.com/supply-chain-ai-symposium-2026
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-303@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261110

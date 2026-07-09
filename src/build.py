@@ -1321,6 +1321,15 @@ def build():
     .ops-card:hover {{ border-color: var(--ab-rule-strong); box-shadow: 0 2px 10px rgba(0,0,0,0.07); }}
     .ops-card:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 2px; }}
     .ops-card.is-saved {{ border-color: var(--ab-blue); }}
+    .ops-card.is-mine  {{ border-color: var(--ab-blue); }}   /* the signed-in person starred it */
+    /* Hover-only card controls (star + archive ×): hidden until you hover/focus the card. */
+    .ops-hover {{ opacity: 0; pointer-events: none; transition: opacity 120ms ease; }}
+    .ops-card:hover .ops-hover, .ops-card:focus-within .ops-hover {{ opacity: 1; pointer-events: auto; }}
+    .ops-archive-x {{
+      font-family: var(--ab-sans); font-size: 1.05rem; line-height: 1; cursor: pointer;
+      background: transparent; border: 0; color: var(--ab-fg-3); padding: 0 5px; border-radius: 3px;
+    }}
+    .ops-archive-x:hover {{ color: var(--ab-red); background: var(--ab-bg-3); }}
     .ops-card-head {{
       display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
       margin-bottom: 8px;
@@ -4139,7 +4148,7 @@ def build():
     }}
     function starButtonHtml(list) {{
       var on = meInInterested(list);
-      return '<button class="saved-star' + (on ? ' is-on' : '') + '" data-star type="button"' +
+      return '<button class="saved-star ops-hover' + (on ? ' is-on' : '') + '" data-star type="button"' +
         ' aria-label="I\\'m interested" title="Star = I\\'m interested (adds you to the interested list + Angela\\'s queue)">' +
         (on ? '\\u2605' : '\\u2606') + '</button>';
     }}
@@ -4159,9 +4168,11 @@ def build():
       var att = (st.attendees || []).map(_personName).filter(Boolean);
       if (att.length) rows.push(_rosterRow('Attending', escapeHtml(att.join(', ')), stageStyle('Attending')));
       else if (stages.indexOf('Attending') !== -1) rows.push(_rosterRow('Attending', 'add who in Details &rarr; Edit', stageStyle('Attending'), true));
-      // Interested — feeds Angela's apply queue.
+      // Interested names — feeds Angela's apply queue, so ONLY she sees the list.
+      // For everyone else, their own interest shows as the blue card outline +
+      // blue star (is-mine), not a "Name interested" label.
       var intr = (st.interested || []).filter(Boolean);
-      if (intr.length) rows.push(_rosterRow('Interested', '&#9733; ' + escapeHtml(intr.join(', ')), ''));
+      if (intr.length && window.isAngelaUser && window.isAngelaUser()) rows.push(_rosterRow('Interested', '&#9733; ' + escapeHtml(intr.join(', ')), ''));
       // Secondary: small track pill (kept, out of the roster). The priority
       // range now rides in via `extra` (the sigBits priority badge) so it shows
       // for everyone — no separate Angela-only priority pill here anymore.
@@ -4345,6 +4356,7 @@ def build():
       card.dataset.past = _opsPast ? '1' : '';
       if (_opsPast) card.classList.add('is-past');
       if (st.saved)  card.classList.add('is-saved');
+      if (meInInterested(st.interested)) card.classList.add('is-mine');   // I starred it → blue outline
       if (st.hidden) card.classList.add('is-hidden');
       // Urgent = manually flagged OR an apply/CFP deadline that's closing soon.
       // (The event merely being upcoming does NOT make it urgent.)
@@ -4375,7 +4387,7 @@ def build():
       var _cardPri = cardPriority(ev, st);
       if (_cardPri) sigBits.push('<span class="ops-tag pri-' + _cardPri.toLowerCase() + '">' + escapeHtml(_cardPri) + '</span>');
       var applyUrl = (st && st.apply_url) || speakingRouteUrl(ev.speaking_route);
-      var applyBtn = applyUrl
+      var applyBtn = (applyUrl && window.isAngelaUser && window.isAngelaUser())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
 
@@ -4384,8 +4396,10 @@ def build():
           '<div class="ops-chips">' +
             starButtonHtml(st.interested) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            // Archived shows as a static label; archiving/unarchiving is done in the pop-up.
-            (st.hidden ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>' : '') +
+            // Archived → static label; otherwise a hover-only × to archive it.
+            (st.hidden
+              ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
+              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">\\u00d7</button>') +
             decBadge + saBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(ev.date_str, ev.start_date)) + '</p>' +
@@ -4604,7 +4618,7 @@ def build():
         ? '<p class="ops-meta" title="Past / announced speakers">Speakers: ' + escapeHtml(mev.past_speakers) + '</p>'
         : '';
       var mApplyUrl = mev.apply_url || speakingRouteUrl(mev.speaking_route);
-      var mApplyBtn = mApplyUrl
+      var mApplyBtn = (mApplyUrl && window.isAngelaUser && window.isAngelaUser())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
       card.innerHTML =
@@ -4612,8 +4626,10 @@ def build():
           '<div class="ops-chips">' +
             starButtonHtml(mev.interested) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            // Archived shows as a static label; archiving/unarchiving is done in the pop-up.
-            (mev.hidden ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>' : '') +
+            // Archived → static label; otherwise a hover-only × to archive it.
+            (mev.hidden
+              ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
+              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">\\u00d7</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(mev.date_str, mev.start_date)) + '</p>' +
@@ -4644,6 +4660,7 @@ def build():
 
       if (mev.hidden) card.classList.add('is-hidden');
       if (mev.saved)  card.classList.add('is-saved');
+      if (meInInterested(mev.interested)) card.classList.add('is-mine');   // I starred it → blue outline
       if (mev.urgent) card.classList.add('is-urgent');
       // Star = "I'm interested" (per-signed-in-person), not a shared bookmark.
       var _manStar = card.querySelector('.saved-star');
