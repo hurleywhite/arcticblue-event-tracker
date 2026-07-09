@@ -540,18 +540,32 @@ def build():
       text-transform: none; letter-spacing: normal;
       color: var(--ab-blue, #1d4ed8); text-decoration: underline;
     }}
-    /* One-click "who am I" initials — quick-switch without typing a name. */
-    .who-picker {{ display: inline-flex; gap: 4px; vertical-align: middle; }}
+    /* "Who am I" — your bubble; click it to drop down everyone else's bubbles
+       to switch, or "Other…" to type a name not on the roster. */
+    .who-switcher {{ position: relative; display: inline-block; vertical-align: middle; }}
     .who-init {{
       display: inline-flex; align-items: center; justify-content: center;
       min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
       background: var(--ab-blue); color: #fff; border: 0; cursor: pointer;
       font-family: var(--ab-sans); font-size: 0.6rem; font-weight: 700;
       letter-spacing: 0; text-transform: none; line-height: 1;
-      transition: opacity 120ms ease, box-shadow 120ms ease;
+      transition: opacity 120ms ease;
     }}
     .who-init:hover {{ opacity: 0.82; }}
-    .who-init.is-active {{ box-shadow: 0 0 0 2px var(--ab-fg); }}
+    .who-current {{ box-shadow: 0 0 0 2px var(--ab-rule-strong); }}
+    .who-dropdown {{
+      position: absolute; top: 100%; right: 0; margin-top: 6px; z-index: 40;
+      display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; width: 138px;
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
+      border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.14);
+    }}
+    .who-dropdown .who-init {{ min-width: 22px; height: 22px; }}
+    .who-other {{
+      width: 100%; margin-top: 2px; padding: 4px 0 0; border: 0; background: none;
+      border-top: 1px solid var(--ab-rule); cursor: pointer; text-align: left;
+      font-family: var(--ab-mono); font-size: 0.62rem; color: var(--ab-fg-3);
+      text-decoration: underline; text-transform: none; letter-spacing: normal;
+    }}
     /* App title — centered in the nav bar, same line as the logo + last-updated. */
     .app-title {{
       font-family: "Nunito Sans", var(--ab-sans);
@@ -2610,16 +2624,7 @@ def build():
         <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
       </a>
       <h1 class="app-title">ArcticBlue's Event Tracker</h1>
-      <div class="nav-meta">{last_updated.upper()} <span class="who">· <span class="who-picker" id="who-picker">
-        <button type="button" class="who-init" data-setname="Angela" title="Angela">A</button>
-        <button type="button" class="who-init" data-setname="Verma" title="Verma">V</button>
-        <button type="button" class="who-init" data-setname="Thor" title="Thor">T</button>
-        <button type="button" class="who-init" data-setname="Jerome" title="Jerome">JW</button>
-        <button type="button" class="who-init" data-setname="Joe" title="Joe">JL</button>
-        <button type="button" class="who-init" data-setname="Scott" title="Scott">S</button>
-        <button type="button" class="who-init" data-setname="Carlos" title="Carlos">C</button>
-        <button type="button" class="who-init" data-setname="Jim" title="Jim">J</button>
-      </span> <button type="button" id="change-name" class="inline">Change Users</button></span></div>
+      <div class="nav-meta">{last_updated.upper()} <span class="who">· <span class="who-switcher" id="who-switcher"></span></span></div>
     </div>
   </nav>
 
@@ -10036,28 +10041,72 @@ def build():
       }}
     }}
 
-    var $changeName = document.getElementById('change-name');
-    if ($changeName) {{
-      $changeName.addEventListener('click', function () {{
-        var cur = getCollabName();
+    // "Who am I" — your bubble + a dropdown of everyone else's bubbles to
+    // switch, alphabetical by name. "Other…" opens the free-text prompt for
+    // anyone not on this roster (unchanged behavior from the old Change Users).
+    var WHO_ROSTER = [
+      {{ name: 'Angela', init: 'A' }},
+      {{ name: 'Carlos', init: 'C' }},
+      {{ name: 'Hurley', init: 'H' }},
+      {{ name: 'Jerome', init: 'JW' }},
+      {{ name: 'Jim',    init: 'J' }},
+      {{ name: 'Joe',    init: 'JL' }},
+      {{ name: 'Scott',  init: 'S' }},
+      {{ name: 'Thor',   init: 'T' }},
+      {{ name: 'Verma',  init: 'V' }}
+    ];
+    function _whoInitFor(name) {{
+      var n = String(name || '').trim().toLowerCase();
+      var hit = WHO_ROSTER.filter(function (p) {{ return p.name.toLowerCase() === n; }})[0];
+      return hit ? hit.init : (n ? n.charAt(0).toUpperCase() : '?');
+    }}
+    function _closeWhoDropdown() {{
+      var dd = document.getElementById('who-dropdown');
+      var btn = document.getElementById('who-current-btn');
+      if (dd) dd.setAttribute('hidden', '');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }}
+    function _renderWhoSwitcher() {{
+      var host = document.getElementById('who-switcher');
+      if (!host) return;
+      var cur = getCollabName();
+      var others = WHO_ROSTER.filter(function (p) {{ return p.name.toLowerCase() !== cur.toLowerCase(); }});
+      host.innerHTML =
+        '<button type="button" class="who-init who-current" id="who-current-btn" aria-haspopup="true" aria-expanded="false" title="' +
+          (cur ? 'Switch who you are (currently ' + escapeHtml(cur) + ')' : 'Set who you are') + '">' + escapeHtml(_whoInitFor(cur)) + '</button>' +
+        '<div class="who-dropdown" id="who-dropdown" hidden>' +
+          others.map(function (p) {{
+            return '<button type="button" class="who-init" data-setname="' + escapeHtml(p.name) + '" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.init) + '</button>';
+          }}).join('') +
+          '<button type="button" class="who-other" id="who-other-btn">Other&hellip;</button>' +
+        '</div>';
+      var curBtn = document.getElementById('who-current-btn');
+      var dropdown = document.getElementById('who-dropdown');
+      curBtn.addEventListener('click', function (e) {{
+        e.stopPropagation();
+        var willOpen = dropdown.hasAttribute('hidden');
+        _closeWhoDropdown();
+        if (willOpen) {{ dropdown.removeAttribute('hidden'); curBtn.setAttribute('aria-expanded', 'true'); }}
+      }});
+      dropdown.querySelectorAll('.who-init[data-setname]').forEach(function (btn) {{
+        btn.addEventListener('click', function (e) {{
+          e.stopPropagation();
+          setCollabName(btn.getAttribute('data-setname'));
+          _renderWhoSwitcher();
+        }});
+      }});
+      document.getElementById('who-other-btn').addEventListener('click', function (e) {{
+        e.stopPropagation();
+        _closeWhoDropdown();
         var n = (window.prompt('Your name:', cur) || '').trim();
-        if (n) setCollabName(n);
+        if (n) {{ setCollabName(n); _renderWhoSwitcher(); }}
       }});
     }}
-    // One-click "who am I" initials next to Change Users.
-    function _paintWhoPicker() {{
-      var cur = (getCollabName() || '').toLowerCase();
-      document.querySelectorAll('.who-init').forEach(function (btn) {{
-        btn.classList.toggle('is-active', btn.getAttribute('data-setname').toLowerCase() === cur);
-      }});
-    }}
-    document.querySelectorAll('.who-init').forEach(function (btn) {{
-      btn.addEventListener('click', function () {{
-        setCollabName(btn.getAttribute('data-setname'));
-        _paintWhoPicker();
-      }});
+    document.addEventListener('click', function (e) {{
+      var switcher = document.getElementById('who-switcher');
+      if (switcher && !switcher.contains(e.target)) _closeWhoDropdown();
     }});
-    _paintWhoPicker();
+    _renderWhoSwitcher();
 
     // Open immediately — no session wait, no magic link.
     route();
