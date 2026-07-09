@@ -54,4 +54,4 @@ exception when duplicate_object then null; end $$;
 -- Sanity: confirm the table + open insert policy.
 select table_name from information_schema.tables
 where table_schema = 'public' and table_name = 'event_chat';
-select polname, permissive, roles, cmd from pg_policies where tablename = 'event_chat';
+select policyname, permissive, roles, cmd from pg_policies where tablename = 'event_chat';
