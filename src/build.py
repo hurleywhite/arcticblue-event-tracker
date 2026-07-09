@@ -1336,6 +1336,22 @@ def build():
       background: transparent; border: 0; color: var(--ab-fg-3); padding: 0 5px; border-radius: 3px;
     }}
     .ops-archive-x:hover {{ color: var(--ab-red); background: var(--ab-bg-3); }}
+    /* Tiny per-card chat indicator ("💬 N"), always visible when there are messages. */
+    .chat-count {{ font-family: var(--ab-mono); font-size: 0.58rem; color: var(--ab-fg-3); letter-spacing: 0.02em; align-self: center; white-space: nowrap; }}
+    /* Modal "Discussion" thread. */
+    .event-chat {{ margin-top: 22px; border-top: 1px solid var(--ab-rule); padding-top: 16px; }}
+    .chat-h {{ font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 10px; }}
+    .chat-list {{ display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; margin: 0 0 12px; }}
+    .chat-empty {{ font-size: 0.85rem; color: var(--ab-fg-3); font-style: italic; margin: 0; }}
+    .chat-msg {{ background: var(--ab-bg-2); border: 1px solid var(--ab-rule); border-radius: 8px; padding: 8px 10px; }}
+    .chat-meta {{ display: flex; gap: 8px; align-items: baseline; margin-bottom: 3px; }}
+    .chat-who {{ font-weight: 700; font-size: 0.8rem; color: var(--ab-fg); }}
+    .chat-when {{ font-family: var(--ab-mono); font-size: 0.6rem; color: var(--ab-fg-3); }}
+    .chat-body {{ margin: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }}
+    .chat-form {{ display: flex; gap: 8px; }}
+    .chat-input {{ flex: 1; padding: 9px 12px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font: inherit; font-size: 0.9rem; }}
+    .chat-send {{ padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ab-blue); background: var(--ab-blue); color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }}
+    .chat-send:hover {{ opacity: 0.9; }}
     .ops-card-head {{
       display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
       margin-bottom: 8px;
@@ -3473,10 +3489,13 @@ def build():
     html += '<div class="modal-view">' + (v || '<p class="modal-nolink">No extra detail on file for this event yet.</p>') + '</div>';
     var editForm = editFormHtml(rec);
     if (editForm) html += '<div class="modal-editform" hidden>' + editForm + '</div>';
+    // Team Discussion thread (chat) — populated by the ops closure (it owns sb).
+    html += '<div class="event-chat" id="event-chat-panel"></div>';
 
     $body.innerHTML = html;
     wireQuickBar(rec);
     wireEditForm(rec);
+    if (window.opsRenderChat) window.opsRenderChat(rec);
 
     // "Edit event" toggle — header top-right, same spot for every event. It
     // swaps the read-only view for the (identically-laid-out) edit form.
@@ -3516,7 +3535,7 @@ def build():
       actHtml += '<span class="modal-nolink">No verified website URL on file.</span>';
     }}
     var _applyUrl = rec.apply_url || speakingRouteUrl(rec.speaking_route);
-    if (_applyUrl) {{
+    if (_applyUrl && window.isAngelaUser && window.isAngelaUser()) {{
       actHtml += '<a class="modal-visit modal-apply" href="' + esc(_applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>';
     }}
     $actions.innerHTML = actHtml;
@@ -4413,6 +4432,7 @@ def build():
               ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
               : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">\\u00d7</button>') +
             decBadge + saBadge +
+            '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(ev.date_str, ev.start_date)) + '</p>' +
         '</div>' +
@@ -4644,6 +4664,7 @@ def build():
               ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
               : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">\\u00d7</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
+            '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(mev.date_str, mev.start_date)) + '</p>' +
         '</div>' +
@@ -7063,6 +7084,7 @@ def build():
         dedupeOpsCards();   // collapse scraped duplicate cards before layout
         regroupOpsByMonth();
         applyFilters();
+        loadChatCounts();   // fill the little "💬 N" chat badges on the cards
         // Rebuild the dedup index from this fresh fetch — realtime
         // events from other tabs / sessions land here, so we want every
         // re-render to refresh _knownNames too.
@@ -8773,6 +8795,10 @@ def build():
           .on('postgres_changes', {{ event: '*', schema: 'public', table: 'manual_events' }}, function () {{
             opsEchoRender(email);
           }})
+          .on('postgres_changes', {{ event: '*', schema: 'public', table: 'event_chat' }}, function () {{
+            if (typeof loadChatCounts === 'function') loadChatCounts();
+            if (typeof _reloadOpenChat === 'function') _reloadOpenChat();
+          }})
           .subscribe();
       }} catch (e) {{
         // Realtime is a nice-to-have; if it fails, polling on user action still works
@@ -9820,6 +9846,85 @@ def build():
       }}
       // Catalog event — soft-delete via opsWrite (re-renders + filters it out).
       return window.opsWrite('event_state', key, {{ status: '__deleted__' }});
+    }};
+
+    // ── Per-event team chat (the "Discussion" thread) ───────────────
+    // The modal lives in a separate closure with no direct `sb`, so it hands us
+    // the record and we own fetch / render / send here. Degrades quietly to a
+    // "run the migration" note if the event_chat table isn't there yet.
+    var _chatCounts = {{}};
+    function loadChatCounts() {{
+      sb.from('event_chat').select('event_num,manual_id').then(function (resp) {{
+        if (resp.error || !resp.data) return;   // table not migrated yet -> no counts, no noise
+        var counts = {{}};
+        resp.data.forEach(function (r) {{
+          var k = (r.manual_id != null) ? ('m' + r.manual_id) : (r.event_num != null ? ('c' + r.event_num) : null);
+          if (k) counts[k] = (counts[k] || 0) + 1;
+        }});
+        _chatCounts = counts; _paintChatCounts();
+      }});
+    }}
+    function _paintChatCounts() {{
+      Array.prototype.forEach.call(document.querySelectorAll('.chat-count[data-chatkey]'), function (el) {{
+        var n = _chatCounts[el.getAttribute('data-chatkey')] || 0;
+        el.textContent = n ? ('\\uD83D\\uDCAC ' + n) : '';
+        el.style.display = n ? '' : 'none';
+      }});
+    }}
+    function _paintChatList(list, msgs) {{
+      list.innerHTML = '';
+      if (!msgs.length) {{ list.innerHTML = '<p class="chat-empty">No messages yet — start the conversation.</p>'; return; }}
+      msgs.forEach(function (m) {{
+        var when = '';
+        try {{ when = new Date(m.created_at).toLocaleString('en-US', {{ month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }}); }} catch (e) {{}}
+        var div = document.createElement('div'); div.className = 'chat-msg';
+        div.innerHTML = '<div class="chat-meta"><span class="chat-who">' + escapeHtml(String(m.author || '')) +
+          '</span> <span class="chat-when">' + escapeHtml(when) + '</span></div>' +
+          '<p class="chat-body">' + escapeHtml(String(m.body || '')) + '</p>';
+        list.appendChild(div);
+      }});
+      list.scrollTop = list.scrollHeight;
+    }}
+    function _reloadOpenChat() {{
+      var panel = document.getElementById('event-chat-panel');
+      if (!panel || !panel.dataset.col) return;
+      var list = document.getElementById('chat-list'); if (!list) return;
+      sb.from('event_chat').select('*').eq(panel.dataset.col, panel.dataset.keyval)
+        .order('created_at', {{ ascending: true }}).then(function (resp) {{
+          if (!resp.error) _paintChatList(list, resp.data || []);
+        }});
+    }}
+    window.opsRenderChat = function (rec) {{
+      var panel = document.getElementById('event-chat-panel');
+      if (!panel) return;
+      if (!rec || rec._key == null) {{ panel.innerHTML = ''; return; }}
+      var col = rec._table === 'manual_events' ? 'manual_id' : 'event_num';
+      panel.dataset.col = col; panel.dataset.keyval = String(rec._key);
+      panel.dataset.chatkey = (col === 'manual_id' ? 'm' : 'c') + rec._key;
+      panel.innerHTML =
+        '<h4 class="chat-h">Discussion</h4>' +
+        '<div class="chat-list" id="chat-list"><p class="chat-empty">Loading…</p></div>' +
+        '<form class="chat-form" id="chat-form">' +
+          '<input class="chat-input" id="chat-input" placeholder="Message the team about this event…" autocomplete="off" maxlength="1000">' +
+          '<button type="submit" class="chat-send">Send</button>' +
+        '</form>';
+      sb.from('event_chat').select('*').eq(col, rec._key).order('created_at', {{ ascending: true }}).then(function (resp) {{
+        var list = document.getElementById('chat-list'); if (!list) return;
+        if (resp.error) {{ list.innerHTML = '<p class="chat-empty">Chat needs a one-time database setup — run <code>scripts/2026-07-09_event_chat.sql</code> in Supabase.</p>'; return; }}
+        _paintChatList(list, resp.data || []);
+      }});
+      var form = document.getElementById('chat-form');
+      if (form) form.addEventListener('submit', function (e) {{
+        e.preventDefault();
+        var inp = document.getElementById('chat-input');
+        var body = (inp.value || '').trim(); if (!body) return;
+        var who = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || ''; if (!who) return;
+        var row = {{ author: who, body: body }}; row[col] = rec._key; inp.value = '';
+        sb.from('event_chat').insert(row).then(function (resp) {{
+          if (resp.error) {{ status('Message not sent: ' + resp.error.message, 'error'); inp.value = body; return; }}
+          _reloadOpenChat(); loadChatCounts();
+        }});
+      }});
     }};
     window.opsOpenEditor = function (table, key) {{
       // Editing now lives in the Details pop-up, not an inline card editor.
