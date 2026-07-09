@@ -1366,6 +1366,9 @@ def build():
       font-family: var(--ab-sans); font-weight: 700;
       font-size: 1.05rem; line-height: 1.3; letter-spacing: -0.01em;
       margin: 0; color: var(--ab-fg); overflow-wrap: anywhere;
+      /* Reserve two lines for the title so a one-line name doesn't shove the
+         date/place + labels up — everything below lines up across cards. */
+      min-height: 2.6em;
     }}
     /* Date + place on ONE line under the title. */
     .ops-card .event-meta {{
