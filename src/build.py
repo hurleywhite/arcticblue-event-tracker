@@ -1440,16 +1440,6 @@ def build():
       cursor: default; pointer-events: none; text-decoration: none; border-radius: 3px;
       background: var(--ab-blue); color: var(--ab-bg); border-color: var(--ab-blue);
     }}
-    /* Tiny visual key at the top: squared = a label, underlined pill = clickable. */
-    .ab-legend {{
-      font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.03em;
-      color: var(--ab-fg-3); margin: 0 0 12px; line-height: 2;
-    }}
-    .ab-legend .ops-tag, .ab-legend .ops-chip {{
-      pointer-events: none; font-size: 0.56rem; padding: 2px 7px;
-      vertical-align: middle; margin: 0 2px;
-    }}
-    .ab-legend .ops-chip {{ color: var(--ab-fg-2); }}
 
     .ops-card.is-hidden {{ opacity: 0.55; background: var(--ab-bg-2); }}
     /* Past events: dimmed when revealed via "Show past" (default: filtered out). */
@@ -2774,7 +2764,6 @@ def build():
           <label class="ops-filter-chip" title="Events where an email contact (organizer POC) was found"><input type="checkbox" id="ops-f-contact">Contact found</label>
           <span class="ops-shown" id="ops-shown"></span>
         </div>
-        <p class="ab-legend" aria-label="Key: squared tags are labels, underlined pills are clickable"><span class="ops-tag">Aa</span> squared = a label &nbsp;·&nbsp; <span class="ops-chip">Aa</span> underlined pill = clickable</p>
         <div class="ops-results-header" id="ops-results-header">
           <button type="button" class="ops-dupe-review" id="ops-dupe-review" title="Show the auto-detected duplicate events so you can delete them (open one, then Details → Edit → Delete this event)" hidden></button>
           <span class="ops-count" id="ops-count"></span>
