@@ -2121,6 +2121,9 @@ def build():
     .q-btn.primary {{ background: #1fa0dc; border-color: #1fa0dc; color: #fff; }}
     .q-btn.primary:hover {{ background: #1488bf; }}
     .q-btn.danger:hover {{ border-color: #d64545; color: #d64545; }}
+    /* "In the last week" rows + suggestion "why" line (My Events). */
+    .wn-check {{ padding: 4px 10px; font-size: 0.85rem; }}
+    .sug-why {{ margin: 2px 0 0; font-family: var(--ab-mono); font-size: 0.64rem; color: var(--ab-fg-3); letter-spacing: 0.03em; }}
     /* "Mark applied" + the × dismiss sit side by side, not stacked. */
     .q-btn-row {{ display: flex; gap: 6px; align-items: stretch; }}
     .q-btn-row .q-btn.primary {{ flex: 1; }}
@@ -6600,6 +6603,109 @@ def build():
       return {{ me: me, support: support, named: named, upcoming: upcoming, past: past }};
     }}
 
+    // ── "In the last week" + "Suggested for you" (My Events) ─────────
+    // Per-person local read/dismiss state — checking an item off, or clicking
+    // into it, takes it down (Slack-style). Nothing is written to the DB.
+    function _wnStoreKey() {{ return 'ab.whatsnew.' + (getCollabName() || '').toLowerCase(); }}
+    function _wnState() {{ try {{ return JSON.parse(localStorage.getItem(_wnStoreKey()) || '{{}}'); }} catch (e) {{ return {{}}; }} }}
+    function _wnSave(s) {{ try {{ localStorage.setItem(_wnStoreKey(), JSON.stringify(s)); }} catch (e) {{}} }}
+    function _wnDismiss(item) {{
+      var s = _wnState();
+      if (item.chatKey) {{ s.chatSeen = s.chatSeen || {{}}; s.chatSeen[item.chatKey] = ((_chatMeta[item.chatKey] || {{}}).latest) || new Date().toISOString(); }}
+      else {{ s.dismissed = s.dismissed || {{}}; s.dismissed[item.id] = 1; }}
+      _wnSave(s);
+    }}
+    function _whatsNewItems() {{
+      var me = (getCollabName() || '').trim().toLowerCase().split(/\\s+/)[0];
+      var st = _wnState(), dis = st.dismissed || {{}}, seen = st.chatSeen || {{}};
+      var cutoff = new Date(Date.now() - 7 * 86400000).toISOString();
+      var byNum = {{}}, byMid = {{}};
+      (_lastEvs || []).forEach(function (e) {{ byNum[e.num] = e; }});
+      (_lastManual || []).forEach(function (m) {{ byMid[m.id] = m; }});
+      var items = [];
+      // Teammates' edits (event_state carries updated_by/at; only OTHERS' edits).
+      (_lastStateRows || []).forEach(function (r) {{
+        if (!r.updated_at || r.updated_at < cutoff) return;
+        var whoF = firstNameFromEmail(r.updated_by || '') || '';
+        if (!whoF || whoF.toLowerCase() === me) return;
+        var ev = byNum[r.event_num]; if (!ev) return;
+        var id = 'u:c' + r.event_num + ':' + r.updated_at;
+        if (dis[id]) return;
+        var stg = stageTagsOf(r);
+        items.push({{ id: id, ts: r.updated_at, kind: 'catalog', key: ev.num,
+          label: whoF + ' updated ' + (ev.name || 'an event') + (stg.length ? ' \\u2014 now ' + stg.join(' \\u00b7 ') : '') }});
+      }});
+      // Newly added manual events.
+      (_lastManual || []).forEach(function (m) {{
+        if (!m.created_at || m.created_at < cutoff) return;
+        var whoF = firstNameFromEmail(m.created_by || '') || '';
+        if (whoF.toLowerCase() === me) return;
+        var id = 'a:m' + m.id; if (dis[id]) return;
+        items.push({{ id: id, ts: m.created_at, kind: 'manual', key: m.id,
+          label: (whoF || 'Someone') + ' added ' + (m.name || 'an event') }});
+      }});
+      // New comments since you last opened that event's chat (others' only).
+      Object.keys(_chatMeta || {{}}).forEach(function (k) {{
+        var meta = _chatMeta[k]; var last = seen[k] || '';
+        var fresh = (meta.msgs || []).filter(function (x) {{ return x.at > last && String(x.author || '').toLowerCase().split(/\\s+/)[0] !== me; }});
+        if (!fresh.length) return;
+        var kind = k.charAt(0) === 'm' ? 'manual' : 'catalog'; var key = k.slice(1);
+        var rec = kind === 'manual' ? byMid[key] : byNum[key]; if (!rec) return;
+        items.push({{ id: 'c:' + k, ts: meta.latest, kind: kind, key: key, chatKey: k,
+          label: fresh.length + ' new comment' + (fresh.length > 1 ? 's' : '') + ' on ' + (rec.name || 'an event') }});
+      }});
+      items.sort(function (a, b) {{ return a.ts < b.ts ? 1 : -1; }});
+      return items.slice(0, 8);
+    }}
+    // Top-10 personal suggestions — persona-matched (region + themes/ICP),
+    // buyer-rich/high-priority boosted, quality-thresholded (fewer than 10 is
+    // fine; never pad with weak picks). Compliance/regulatory-centric events
+    // are excluded outright — not what ArcticBlue does.
+    function _suggestionsFor() {{
+      var meFirst = (getCollabName() || '').trim().toLowerCase().split(/\\s+/)[0];
+      var P = (window.AB_PERSONAS || {{}})[meFirst] || null;
+      var BAD = /complian|regulat|regtech|gdpr|\\baudit/i;
+      var kws = [];
+      if (P) {{
+        [].concat(P.themes || [], P.icp_industries || []).join(' ').toLowerCase()
+          .replace(/[^a-z0-9]+/g, ' ').split(' ').forEach(function (w) {{
+            if (w.length >= 5 && !/complian|governan|regulat|oversight|enterprise|industr|cross|function|market/.test(w) && kws.indexOf(w) === -1) kws.push(w);
+          }});
+      }}
+      var geo = ((P && P.geo) || []).map(function (g) {{ return String(g).toLowerCase(); }});
+      function regionHit(region) {{
+        var r = String(region || '').toLowerCase();
+        return geo.some(function (g) {{
+          if (g === 'us' || g === 'canada' || g === 'na') return r.indexOf('us') !== -1 || r.indexOf('canada') !== -1 || r.indexOf('americas') !== -1;
+          if (g === 'uk' || g === 'emea' || g === 'europe' || g === 'switzerland') return r.indexOf('europe') !== -1;
+          if (g === 'latam' || g === 'spain') return r.indexOf('latin') !== -1 || r.indexOf('europe') !== -1;
+          if (g === 'apac') return r.indexOf('asia') !== -1;
+          if (g === 'global-flagship') return true;
+          return r.indexOf(g) !== -1;
+        }});
+      }}
+      var scored = [];
+      opsAllItems().forEach(function (it) {{
+        if (it.past || it.hidden || it.queue_dismissed) return;
+        if (it.stages.length) return;                       // already in the pipeline
+        if (BAD.test(it.name)) return;                      // compliance-centric — skip
+        if ((it.interested || []).some(function (n) {{ return String(n).toLowerCase().split(/\\s+/)[0] === meFirst; }})) return;
+        var o = it.startObj || {{}};
+        var s = 0, why = [];
+        if (P && geo.length && regionHit(it.region)) {{ s += 3; why.push(it.region); }}
+        var hits = 0;
+        for (var i = 0; i < kws.length && hits < 4; i++) {{
+          if (it.text.indexOf(kws[i]) !== -1) {{ hits++; if (why.length < 4) why.push(kws[i]); }}
+        }}
+        s += hits;
+        if (/buyer/i.test(o.audience_type || '')) {{ s += 2; why.push('buyer-rich'); }}
+        if (/high/i.test(o.priority_override || o.priority || '')) s += 1;
+        if (s >= (P ? 5 : 4)) scored.push({{ it: it, s: s, why: why }});
+      }});
+      scored.sort(function (a, b) {{ return b.s - a.s || a.it.sort - b.it.sort; }});
+      return scored.slice(0, 10);
+    }}
+    var _wnLast = [];
     function renderMyEvents() {{
       var host = document.getElementById('ops-myevents');
       if (!host) return;
@@ -6638,11 +6744,55 @@ def build():
       var upTitle = b.support ? 'Attending &amp; speaking' : 'You&#39;re attending';
       // Past events collapse into a dropdown, hidden by default (like the grid's
       // month groups). _myEventsPastOpen remembers if the reader expanded them.
-      host.innerHTML = intro +
+      // "In the last week" — teammates' updates + new comments; check one off
+      // (or click into it) and it comes down, like Slack read-state.
+      _wnLast = _whatsNewItems();
+      var wnHtml = _wnLast.length
+        ? '<div class="queue-section wn-section"><div class="queue-sec-head"><span class="queue-sec-title">In the last week</span><span class="queue-sec-count">' + _wnLast.length + '</span></div>' +
+          _wnLast.map(function (w, i) {{
+            return '<div class="queue-row wn-row"><div class="queue-main">' +
+              '<button type="button" class="queue-name wn-open" data-wn-open="' + i + '">' + escapeHtml(w.label) + '</button>' +
+            '</div><div class="queue-actions"><button type="button" class="q-btn wn-check" data-wn-check="' + i + '" title="Mark as seen — takes this off the list">&#10003;</button></div></div>';
+          }}).join('') + '</div>'
+        : '';
+      // Bottom: only-the-best picks for whoever is signed in.
+      var _sug = _suggestionsFor();
+      var _sugTitle = ((window.AB_PERSONAS || {{}})[(b.me || '').trim().toLowerCase().split(/\\s+/)[0]]) ? 'Suggested for you' : 'Top suggestions for the team';
+      var sugHtml = _sug.length
+        ? '<div class="queue-section sug-section"><div class="queue-sec-head"><span class="queue-sec-title">' + _sugTitle + '</span><span class="queue-sec-count">' + _sug.length + '</span></div>' +
+          _sug.map(function (x) {{
+            var it = x.it;
+            var loc = [it.region, it.location].filter(Boolean).join(' \\u00b7 ');
+            return '<div class="queue-row sug-row"><div class="queue-main">' +
+              '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+              '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
+              (x.why.length ? '<p class="sug-why">Fits: ' + escapeHtml(x.why.join(' \\u00b7 ')) + '</p>' : '') +
+            '</div></div>';
+          }}).join('') + '</div>'
+        : '';
+      host.innerHTML = intro + wnHtml +
         section(upTitle, b.upcoming, 'Nothing upcoming yet.') +
-        (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen) : '');
+        (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen) : '') +
+        sugHtml;
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
+      }});
+      host.querySelectorAll('[data-wn-open]').forEach(function (el) {{
+        el.addEventListener('click', function () {{
+          var w = _wnLast[parseInt(el.getAttribute('data-wn-open'), 10)];
+          if (!w) return;
+          _wnDismiss(w);
+          opsOpenRef(w.kind, String(w.key));
+          renderMyEvents();
+        }});
+      }});
+      host.querySelectorAll('[data-wn-check]').forEach(function (el) {{
+        el.addEventListener('click', function () {{
+          var w = _wnLast[parseInt(el.getAttribute('data-wn-check'), 10)];
+          if (!w) return;
+          _wnDismiss(w);
+          renderMyEvents();
+        }});
       }});
       host.querySelectorAll('[data-brief-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ openBriefDrawer(el.getAttribute('data-brief-kind'), el.getAttribute('data-brief-key')); }});
@@ -9963,15 +10113,22 @@ def build():
     // the record and we own fetch / render / send here. Degrades quietly to a
     // "run the migration" note if the event_chat table isn't there yet.
     var _chatCounts = {{}};
+    var _chatMeta = {{}};   // per event: {{count, latest, msgs:[{{author, at}}]}} — feeds "In the last week"
     function loadChatCounts() {{
-      sb.from('event_chat').select('event_num,manual_id').then(function (resp) {{
+      sb.from('event_chat').select('event_num,manual_id,author,created_at').then(function (resp) {{
         if (resp.error || !resp.data) return;   // table not migrated yet -> no counts, no noise
-        var counts = {{}};
+        var counts = {{}}, meta = {{}};
         resp.data.forEach(function (r) {{
           var k = (r.manual_id != null) ? ('m' + r.manual_id) : (r.event_num != null ? ('c' + r.event_num) : null);
-          if (k) counts[k] = (counts[k] || 0) + 1;
+          if (!k) return;
+          counts[k] = (counts[k] || 0) + 1;
+          var m = (meta[k] = meta[k] || {{ count: 0, latest: '', msgs: [] }});
+          m.count++;
+          if ((r.created_at || '') > m.latest) m.latest = r.created_at || '';
+          m.msgs.push({{ author: r.author || '', at: r.created_at || '' }});
         }});
-        _chatCounts = counts; _paintChatCounts();
+        _chatCounts = counts; _chatMeta = meta; _paintChatCounts();
+        if (currentView === 'myevents') renderMyEvents();   // refresh "new comments" rows
       }});
     }}
     function _paintChatCounts() {{
@@ -10024,6 +10181,15 @@ def build():
         // empty state instead of a setup warning (a send will surface the error).
         if (resp.error) {{ _paintChatList(list, []); return; }}
         _paintChatList(list, resp.data || []);
+        // Opening the thread marks it read — its "new comments" row in
+        // My Events comes down automatically (Slack-style).
+        try {{
+          var _sn = _wnState(); _sn.chatSeen = _sn.chatSeen || {{}};
+          _sn.chatSeen[panel.dataset.chatkey] = (resp.data && resp.data.length)
+            ? (resp.data[resp.data.length - 1].created_at || new Date().toISOString())
+            : new Date().toISOString();
+          _wnSave(_sn);
+        }} catch (e) {{}}
       }});
       var form = document.getElementById('chat-form');
       if (form) form.addEventListener('submit', function (e) {{
