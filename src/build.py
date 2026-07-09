@@ -1411,7 +1411,7 @@ def build():
     .contact-badge {{
       font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
       letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;
-      padding: 3px 8px; border-radius: 3px; background: #065f46; color: #fff;
+      padding: 3px 8px; border-radius: 3px; background: var(--ab-red); color: #fff;
     }}
     /* Archived = a static (rectangular) status label; archiving is done in the pop-up. */
     .ops-archived-tag {{
