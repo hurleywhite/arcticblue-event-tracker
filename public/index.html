@@ -3006,7 +3006,8 @@
     // Read-only view. The edit form below mirrors this exact layout.
     var v = '';
     // (Interest is shown once, in the quick-bar above — no duplicate field here.)
-    v += field('Why it fits ArcticBlue', rec.why);
+    // "Why it fits ArcticBlue" removed from the read view (Hurley 2026-07-09) —
+    // still editable in the Edit form and used by search/suggestions scoring.
     v += field('About', rec.about);
     v += field('Focus areas', rec.focus_areas);
     v += field('Typical attendees', rec.typical_attendees);

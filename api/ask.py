@@ -204,6 +204,51 @@ def _is_submitted(stages):
     return any(s in (stages or []) for s in _APPLIED_STAGES)
 
 
+def _deadline_state(deadline, today):
+    """'open' | 'closed' | None(unknown) from the free-text CFP deadline."""
+    s = str(deadline or '').strip().lower()
+    if not s or re.search(r'not\s+specified|tbd|tba|n/?a|unknown|check\s+official', s):
+        return None
+    if re.search(r'rolling|ongoing|year.?round|continuous|\bopen\b', s):
+        return 'open'
+    iso = _endish_iso(None, None, deadline)
+    if not iso:
+        # Yearless "closes 24 Jul"-style deadlines: assume the current cycle.
+        mo = next((n for name, n in _MONTHS.items() if name in s), None)
+        day = re.search(r'\b(\d{1,2})\b', s)
+        if mo and day:
+            iso = '%s-%02d-%02d' % (today[:4], mo, min(int(day.group(1)), 31))
+        else:
+            return None
+    return 'closed' if iso < today else 'open'
+
+
+def _derived_status(stages, speaker, deadline, endish, today):
+    """ONE authoritative human status string — matches the card face exactly.
+    e.g. 'Booked — Thor speaking' / 'Submitted to speak (CFP closed) · open to
+    attend' / 'Closed to speak · open to attend'. This is what the model must
+    answer status questions with — never re-derive from raw tags."""
+    stages = stages or []
+    past = bool(endish) and endish < today
+    dl = _deadline_state(deadline, today)
+    bits = []
+    if 'Booked' in stages:
+        bits.append('Booked' + ((' — %s speaking' % speaker) if speaker else ' to speak'))
+    elif _is_submitted(stages):
+        bits.append('Submitted to speak' + (' (CFP now closed)' if dl == 'closed' else ''))
+    elif dl == 'closed':
+        bits.append('Closed to speak')
+    elif dl == 'open':
+        bits.append('Open to speak')
+    if 'Attending' in stages:
+        bits.append('attending')
+    elif not past and bits and 'Booked' not in stages:
+        bits.append('open to attend')
+    if past:
+        bits.append('event has passed')
+    return ' · '.join(bits) if bits else None
+
+
 def _gather_events(host):
     """Compact, model-friendly list of every event: catalog (events.json) +
     manual (manual_events) merged with ops state (event_state). Each event is
@@ -250,6 +295,11 @@ def _gather_events(host):
                     'audience': e.get('audience_type'), 'price': e.get('pricing'),
                     'deadline': e.get('deadline'),
                     'stage': ', '.join(stages) if stages else None,
+                    # THE authoritative one-line status (same as the card face).
+                    'status': _derived_status(stages, ops.get('speaker'),
+                                              e.get('deadline'), endish, today),
+                    'starts': (str(e.get('start_date'))[:10]
+                               if e.get('start_date') else endish),
                     # True only once a speaking application is actually IN.
                     # 'Identified' / no stage => submitted=False (a candidate).
                     'submitted': _is_submitted(stages),
@@ -287,6 +337,9 @@ def _gather_events(host):
                 'audience': m.get('audience_type'), 'price': m.get('pricing'),
                 'deadline': m.get('deadline'),
                 'stage': ', '.join(stages) if stages else None,
+                'status': _derived_status(stages, m.get('speaker'),
+                                          m.get('deadline'), endish, today),
+                'starts': endish,
                 'submitted': _is_submitted(stages),
                 'booked': 'Booked' in stages,
                 'attending': 'Attending' in stages,
@@ -375,8 +428,21 @@ _SYSTEM = (
     "spoken\", INCLUDE past booked events (upcoming=false) too and note which have "
     "passed; do NOT answer \"none booked\" when booked=true events exist in the "
     "data, even if all of them are in the past.\n"
-    "- Each event carries 'upcoming' (true/false), 'region' (canonical), and "
-    "'fits' (the ArcticBlue people it suits). For 'upcoming' / 'next' / "
+    "- STATUS IS AUTHORITATIVE: each event carries 'status' — a derived, "
+    "always-true one-liner (e.g. 'Submitted to speak (CFP now closed) · open to "
+    "attend', 'Booked — Thor speaking', 'Closed to speak · open to attend'). "
+    "When asked the status of any event, ANSWER WITH THAT FIELD'S WORDING — "
+    "never re-derive it from stage tags, never say just 'submitted' when the "
+    "status says more. If status is null, say we have no status on file.\n"
+    "- ACT NOW: for \"what do we need to do right now / what needs action\", "
+    "return (a) events with status 'Open to speak' whose 'deadline' falls within "
+    "~30 days of today — applications to get in; (b) booked or attending events "
+    "whose 'starts' is within ~30 days — travel/prep; (c) submitted events whose "
+    "event 'starts' within ~21 days with no reply — chase. Order by 'starts'. "
+    "Say WHY each needs action in a few words.\n"
+    "- Each event carries 'upcoming' (true/false), 'starts' (ISO date — compare "
+    "to today's date for 'next week' / 'this month' math), 'region' (canonical), "
+    "and 'fits' (the ArcticBlue people it suits). For 'upcoming' / 'next' / "
     "'this month' questions, return ONLY upcoming=true events, soonest first. "
     "Treat 'fits' as the authority on who an event is for — never recommend an "
     "event for a person unless their name appears in that event's 'fits'.\n"
