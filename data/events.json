@@ -253,7 +253,11 @@
    "city": "Aspen",
    "country": "USA",
    "external_id": "44c3231a-bb5d-4c6f-9ead-a799cff283b8",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Buyer-rich (in-house enterprise leaders); cost to attend not publicly listed on official pages, check official website for delegate/ticket price",
+   "past_speakers": "CEO, Fortune 500 Tech Firm; Founder, AI Startup; Director, Government Innovation Office; VP, Enterprise Cloud Solutions; CEO, Cybersecurity Leader; Founder, Quantum Computing Lab; VP, Digital Transformation, Fortune Global 500",
+   "meeting_formats": "Curated roundtables; attendee app for pre-booking 1:1 meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 23,
@@ -1143,7 +1147,9 @@
    "venue": "Sandy Springs Performing Arts Center",
    "pricing": "$599–$999 in-person all-access; complimentary in-person pass for qualified attendees only; $999 regular price",
    "meeting_formats": "roundtables; attendee app for pre-booking meetings; networking receptions",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "Senior data leaders from Fortune 500 companies; executives from innovative AI startups",
+   "attendee_count": "South’s largest enterprise data & AI conference (exact count"
   },
   {
    "num": 40,
@@ -1471,7 +1477,9 @@
    "typical_attendees": "Head of AI, VP Data Science, enterprise AI practitioners, CDOs, risk and compliance officers from US financial services enterprises",
    "speaking_route": "Suggest a Speaker: ny-ai-finance.re-work.co/suggest-a-speaker",
    "contact_info": "re-work.co",
-   "focus_areas": "AI and ML applications for financial services operations; Enterprise AI governance and risk management in finance; AI-driven compliance and regulatory reporting automation; Agentic AI for enterprise banking and financial workflows; AI ROI measurement and business impact in financial services"
+   "focus_areas": "AI and ML applications for financial services operations; Enterprise AI governance and risk management in finance; AI-driven compliance and regulatory reporting automation; Agentic AI for enterprise banking and financial workflows; AI ROI measurement and business impact in financial services",
+   "past_speakers": "Chief AI Technologist, LLM Suite (CDAO), JPMorganChase; Biswa Sengupta, JPMorganChase",
+   "audience_type": "Mixed"
   },
   {
    "num": 60,
@@ -2104,7 +2112,11 @@
    "source": "arcticscout",
    "start_date": "2026-04-16",
    "end_date": "2026-04-16",
-   "speaking_route": "No public CFP; speaking through sponsor/partner packages"
+   "speaking_route": "Apply to speak: https://ingo.cdm.events/callforspeakers",
+   "pricing": "Check Official Website for discount code CHICAGO26",
+   "past_speakers": "Sakshi Jaiswal, AI Experiments to Enterprise AI; Shelby Cannon, The Speed Dilemma",
+   "meeting_formats": "exclusive Strategy Sprints (peer-to-peer problem-solving, no slides/panels)",
+   "audience_type": "Mixed"
   },
   {
    "num": 100,
@@ -4308,7 +4320,13 @@
    "external_id": "19961cfb-0823-4828-927b-2d01b6c6c723",
    "source": "arcticscout",
    "start_date": "2026-02-10",
-   "end_date": "2026-02-12"
+   "end_date": "2026-02-12",
+   "pricing": "$149 - $2,499",
+   "past_speakers": "Enterprise IT exec, Technology Marketing Corporation; App developer, TMC; CX professional, TMC; Data analyst, TMC; Marketer, TMC",
+   "meeting_formats": "Collocated with ITEXPO #TECHSUPERSHOW exhibit floor for networking",
+   "audience_type": "Mixed",
+   "attendee_count": "3rd Annual event",
+   "deadline": "Contact Dave Rodriguez at 203-852-6800 x146 for call-for-speakers details"
   },
   {
    "num": 178,
@@ -5861,7 +5879,8 @@
    "end_date": "2026-11-05",
    "meeting_formats": "In-person and digital pass; attendee networking with peers",
    "audience_type": "Buyer-rich",
-   "deadline": "2026 agenda now available; no call-for-speakers deadline published"
+   "deadline": "2026 agenda now available; no call-for-speakers deadline published",
+   "past_speakers": "Senior figures in strategy, technology, data and policy; global leaders across technology, business and policy"
   },
   {
    "num": 234,
@@ -6541,7 +6560,12 @@
    "focus_areas": "Enterprise AI strategy for Midwest industries (financial services, manufacturing, healthcare); Agentic AI deployment and AI orchestration; AI governance and organizational AI readiness; AI talent, leadership, and transformation culture; Measurable AI business outcomes",
    "seed": false,
    "urgent": false,
-   "external_id": "a3dec80f-a30e-40ee-85cb-1dc2e194d1fa"
+   "external_id": "a3dec80f-a30e-40ee-85cb-1dc2e194d1fa",
+   "venue": "Downtown Chicago",
+   "pricing": "Apply For Your Seat (cost not publicly listed; contact The Institute for delegate pricing)",
+   "past_speakers": "Head of Evangelism, Ari Kaplan; Global Chief Innovation Officer, Amol Bargaje; Chief Technology Officer, Lawana Jones",
+   "meeting_formats": "Invite-only Day 1 Workshop Series for senior executives; exclusive invite-only Think Tank Dinner at Bob's Chophouse",
+   "audience_type": "Mixed"
   },
   {
    "num": 259,
