@@ -783,6 +783,9 @@ def build():
        full-width block). */
     .ops-card-foot {{ display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: auto; }}
     .ops-card-foot .ops-meta {{ margin: 0; }}
+    /* Apply always sits flush right — same spot on every card, whether or not
+       a deadline/contact note is present to its left. */
+    .ops-card-foot .ops-apply-btn {{ margin-left: auto; }}
     .ops-apply-btn {{
       display: inline-flex; align-items: center; justify-content: center;
       box-sizing: border-box; text-align: center;
@@ -1381,7 +1384,9 @@ def build():
     /* Tiny per-card chat indicator ("💬 N"), always visible when there are messages. */
     .chat-count {{ font-family: var(--ab-mono); font-size: 0.58rem; color: var(--ab-fg-3); letter-spacing: 0.02em; align-self: center; white-space: nowrap; }}
     /* Modal "Discussion" thread. */
-    .event-chat {{ margin-top: 22px; border-top: 1px solid var(--ab-rule); padding-top: 16px; }}
+    /* Sits right after the quickbar, which already supplies the divider line
+       (border-bottom) — no second border here, or you get a doubled-up gap. */
+    .event-chat {{ margin-top: 4px; margin-bottom: 20px; }}
     .chat-h {{ font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 10px; }}
     .chat-list {{ display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; margin: 0 0 12px; }}
     .chat-empty {{ font-size: 0.85rem; color: var(--ab-fg-3); font-style: italic; margin: 0; }}
@@ -3528,6 +3533,9 @@ def build():
 
     var html = '';
     html += quickBarHtml(rec);
+    // Team Discussion thread — right after the quickbar (Status/Interested/
+    // Hide: Archive), ahead of the read-only detail fields.
+    html += '<div class="event-chat" id="event-chat-panel"></div>';
 
     // Read-only view. The edit form below mirrors this exact layout.
     var v = '';
@@ -3569,8 +3577,6 @@ def build():
     html += '<div class="modal-view">' + (v || '<p class="modal-nolink">No extra detail on file for this event yet.</p>') + '</div>';
     var editForm = editFormHtml(rec);
     if (editForm) html += '<div class="modal-editform" hidden>' + editForm + '</div>';
-    // Team Discussion thread (chat) — populated by the ops closure (it owns sb).
-    html += '<div class="event-chat" id="event-chat-panel"></div>';
 
     $body.innerHTML = html;
     wireQuickBar(rec);
