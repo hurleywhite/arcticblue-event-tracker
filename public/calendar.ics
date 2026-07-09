@@ -26,14 +26,6 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-413@arcticblue-event-tracker
-DTSTAMP:20260709T000000Z
-DTSTART;VALUE=DATE:20260718
-DTEND;VALUE=DATE:20260719
-SUMMARY:Bahrain Date Conflict (Don't book events)
-DESCRIPTION:Priority: Medium\nAdded by: Angela
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-412@arcticblue-event-tracker
 DTSTAMP:20260709T000000Z
 DTSTART;VALUE=DATE:20261126

@@ -1328,13 +1328,15 @@ def build():
     .ops-card:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 2px; }}
     .ops-card.is-saved {{ border-color: var(--ab-blue); }}
     .ops-card.is-mine  {{ border-color: var(--ab-blue); }}   /* the signed-in person starred it */
-    /* Hover-only card controls (star + archive ×): hidden until you hover/focus the card. */
+    /* Hover-only card controls (star + archive/hide): hidden until you hover/focus the card. */
     .ops-hover {{ opacity: 0; pointer-events: none; transition: opacity 120ms ease; }}
     .ops-card:hover .ops-hover, .ops-card:focus-within .ops-hover {{ opacity: 1; pointer-events: auto; }}
     .ops-archive-x {{
-      font-family: var(--ab-sans); font-size: 1.45rem; font-weight: 700; line-height: 1; cursor: pointer;
-      background: transparent; border: 0; color: var(--ab-red); padding: 0 4px; border-radius: 3px;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; background: transparent; border: 0; color: var(--ab-red);
+      padding: 3px; border-radius: 5px; line-height: 1;
     }}
+    .ops-archive-x svg {{ width: 18px; height: 18px; }}
     .ops-archive-x:hover {{ color: var(--ab-red); background: var(--ab-bg-3); }}
     /* Tiny per-card chat indicator ("💬 N"), always visible when there are messages. */
     .chat-count {{ font-family: var(--ab-mono); font-size: 0.58rem; color: var(--ab-fg-3); letter-spacing: 0.02em; align-self: center; white-space: nowrap; }}
@@ -4392,6 +4394,16 @@ def build():
       return false;
     }}
 
+    // "Hide" icon (eye with a slash) for the card's hover-only archive control —
+    // matches the Lucide icon set already used elsewhere in this file.
+    var OPS_HIDE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="17" height="17">' +
+      '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>' +
+      '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>' +
+      '<path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>' +
+      '<line x1="2" x2="22" y1="2" y2="22"/>' +
+    '</svg>';
+
     function buildOpsCard(ev, st, email) {{
       var card = document.createElement('article');
       card.className = 'ops-card';
@@ -4480,10 +4492,10 @@ def build():
           '<div class="ops-chips">' +
             starButtonHtml(st.interested) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            // Archived → static label; otherwise a hover-only × to archive it.
+            // Archived → static label; otherwise a hover-only "hide" icon to archive it.
             (st.hidden
               ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">\\u00d7</button>') +
+              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
             decBadge + saBadge +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
@@ -4712,10 +4724,10 @@ def build():
           '<div class="ops-chips">' +
             starButtonHtml(mev.interested) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            // Archived → static label; otherwise a hover-only × to archive it.
+            // Archived → static label; otherwise a hover-only "hide" icon to archive it.
             (mev.hidden
               ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">\\u00d7</button>') +
+              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
