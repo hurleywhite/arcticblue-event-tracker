@@ -301,6 +301,12 @@
     /* CFP deadline on the card face; red when urgent or within ~30 days. */
     .deadline-line { font-weight: 600; }
     .deadline-line.deadline-soon { color: #b91c1c !important; font-weight: 700; }
+    /* "Closed to speak" — CFP window has passed (rectangular label). */
+    .closed-to-speak {
+      display: inline-block; font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px;
+      background: #fee2e2; color: #991b1b; border: 1px solid #f3b1b1;
+    }
     /* One-click "Apply to speak" button on ops cards — the booking shortcut. */
     .ops-apply-btn {
       display: block; width: 100%; box-sizing: border-box; text-align: center;
@@ -983,7 +989,7 @@
     .contact-badge {
       font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
       letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;
-      padding: 3px 8px; border-radius: 3px; background: var(--ab-red); color: #fff;
+      padding: 3px 8px; border-radius: 3px; background: #dcfce7; color: #15803d; border: 1px solid #86efac;
     }
     /* Archived = a static (rectangular) status label; archiving is done in the pop-up. */
     .ops-archived-tag {
@@ -2110,7 +2116,7 @@
         <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
       </a>
       <h1 class="app-title">ArcticBlue's Event Tracker</h1>
-      <div class="nav-meta">JULY 09, 2026 <span class="who">· Viewing as <strong id="ops-email">Team</strong> <button type="button" id="change-name" class="inline">change</button></span></div>
+      <div class="nav-meta">JULY 09, 2026 <span class="who">· Signed in as <strong id="ops-email">Team</strong> <button type="button" id="change-name" class="inline">change</button></span></div>
     </div>
   </nav>
 
@@ -3760,7 +3766,12 @@
     }
     function deadlineLine(d, o) {
       if (d == null || !String(d).trim()) return '';
-      if (isDeadlinePast(d)) return '';  // don't show a deadline that's gone
+      if (isDeadlinePast(d)) {
+        // CFP/apply window has closed. On events that HAVEN'T happened yet, show a
+        // "Closed to speak" label (you can still attend, just not apply to speak).
+        return (typeof isPastEvent === 'function' && isPastEvent(o)) ? '' :
+          '<p class="ops-meta"><span class="closed-to-speak" title="The apply-to-speak / CFP window has closed">Closed to speak</span></p>';
+      }
       var txt = String(d).trim();
       // A CFP deadline on or after the event itself is nonsensical — you can't
       // submit a talk once the event has started. (Angela saw "CFP deadline:
@@ -3847,7 +3858,8 @@
       // so they don't clutter/mute the manual ones Angela scans for.
       var saBadge = (shouldAttendKind(st.attend_verdict) === 'human' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="sa-badge">★ Should Attend</span>' : '';
       card.dataset.contactFound = hasEmailContact(st, ev) ? '1' : '';
-      var contactBadge = card.dataset.contactFound === '1' ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
+      // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
+      var contactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       // A link added/edited in event_state (override) wins over the catalog URL,
       // so adding a link to a link-less catalog event lights up the card ↗.
       var _cardUrl = (st.url && String(st.url).trim()) ? String(st.url).trim() : (ev.url || '');
@@ -4025,7 +4037,8 @@
       var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>' : '';
       var mSaBadge = (shouldAttendKind(mev.attend_verdict) === 'human' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="sa-badge">★ Should Attend</span>' : '';
       card.dataset.contactFound = (hasEmailContact(mev) || _EMAIL_RE.test(String(mev.poc_email || ''))) ? '1' : '';
-      var mContactBadge = card.dataset.contactFound === '1' ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
+      // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
+      var mContactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       var mRecent = isRecentlyAdded(mev.created_at);
       card.dataset.recent = mRecent ? '1' : '';
       // The "Recently Added" triage badge is a support-team cue (Angela/Hurley);
@@ -7424,17 +7437,62 @@
       ['hong kong', 22.3193, 114.1694], ['dana point', 33.4669, -117.698],
       ['loudoun', 39.09, -77.64],
       ['venezuela', 10.4806, -66.9036], ['bachelor', 39.5806, -106.5347],
+      ['new orleans', 29.9511, -90.0715], ['grapevine', 32.9343, -97.0781],
+      ['sydney', -33.8688, 151.2093], ['melbourne', -37.8136, 144.9631],
+      ['gold coast', -28.0167, 153.4], ['yokohama', 35.4437, 139.638],
+      ['tokyo', 35.6762, 139.6503], ['mumbai', 19.076, 72.8777],
+      ['bengaluru', 12.9716, 77.5946], ['bangalore', 12.9716, 77.5946],
+      ['new delhi', 28.6139, 77.209], ['seoul', 37.5665, 126.978],
+      ['shanghai', 31.2304, 121.4737], ['tel aviv', 32.0853, 34.7818],
       ['london', 51.5074, -0.1278]
     ];
-
+    // Strip accents so "São Paulo" / "Bogotá" match "sao paulo" / "bogota".
+    function _deaccent(s) {
+      try { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { return s; }
+    }
+    // Checked BEFORE CITY_COORDS so shared names (San José, Santa Clara,
+    // Santiago) resolve to Latin America — not their US namesakes — when the
+    // location actually names a LatAm place.
+    var LATAM_COORDS = [
+      ['costa rica', 9.9281, -84.0907], ['san salvador', 13.6929, -89.2182],
+      ['el salvador', 13.6929, -89.2182], ['guatemala', 14.6349, -90.5069],
+      ['mexico city', 19.4326, -99.1332], ['ciudad de mexico', 19.4326, -99.1332],
+      ['guadalajara', 20.6597, -103.3496], ['monterrey', 25.6866, -100.3161],
+      ['cancun', 21.1619, -86.8515], ['bogota', 4.711, -74.0721],
+      ['medellin', 6.2442, -75.5812], ['lima', -12.0464, -77.0428],
+      ['buenos aires', -34.6037, -58.3816], ['santiago', -33.4489, -70.6693],
+      ['rio de janeiro', -22.9068, -43.1729], ['quito', -0.1807, -78.4678],
+      ['montevideo', -34.9011, -56.1645], ['caracas', 10.4806, -66.9036]
+    ];
+    // Last resort — no known city matched, so land the pin in the right COUNTRY
+    // (its capital / largest city) instead of dropping the event off the map.
+    var COUNTRY_COORDS = [
+      ['costa rica', 9.9281, -84.0907], ['panama', 8.9824, -79.5199],
+      ['guatemala', 14.6349, -90.5069], ['colombia', 4.711, -74.0721],
+      ['peru', -12.0464, -77.0428], ['ecuador', -0.1807, -78.4678],
+      ['chile', -33.4489, -70.6693], ['argentina', -34.6037, -58.3816],
+      ['uruguay', -34.9011, -56.1645], ['brazil', -23.5505, -46.6333],
+      ['venezuela', 10.4806, -66.9036], ['dominican republic', 18.4861, -69.9312],
+      ['puerto rico', 18.4655, -66.1057], ['mexico', 19.4326, -99.1332],
+      ['india', 19.076, 72.8777], ['japan', 35.6762, 139.6503],
+      ['australia', -33.8688, 151.2093], ['china', 31.2304, 121.4737],
+      ['south korea', 37.5665, 126.978], ['saudi arabia', 24.7136, 46.6753],
+      ['united arab emirates', 25.2048, 55.2708]
+    ];
     function geoOf(rec) {
-      var hay = ((rec.city || '') + ' ' + (rec.venue || '') + ' ' +
-                 (rec.location || '')).toLowerCase();
-      if (!hay.trim()) return null;
-      for (var i = 0; i < CITY_COORDS.length; i++) {
-        if (hay.indexOf(CITY_COORDS[i][0]) !== -1) {
-          return [CITY_COORDS[i][1], CITY_COORDS[i][2]];
-        }
+      var raw = (rec.city || '') + ' ' + (rec.venue || '') + ' ' + (rec.location || '');
+      if (!raw.trim()) return null;
+      // Guard "New Mexico" (US state) from the 'mexico' country fallback.
+      var hay = _deaccent(raw.toLowerCase()).replace(/new mexico/g, 'newmex');
+      var i;
+      for (i = 0; i < LATAM_COORDS.length; i++) {
+        if (hay.indexOf(LATAM_COORDS[i][0]) !== -1) return [LATAM_COORDS[i][1], LATAM_COORDS[i][2]];
+      }
+      for (i = 0; i < CITY_COORDS.length; i++) {
+        if (hay.indexOf(CITY_COORDS[i][0]) !== -1) return [CITY_COORDS[i][1], CITY_COORDS[i][2]];
+      }
+      for (i = 0; i < COUNTRY_COORDS.length; i++) {
+        if (hay.indexOf(COUNTRY_COORDS[i][0]) !== -1) return [COUNTRY_COORDS[i][1], COUNTRY_COORDS[i][2]];
       }
       return null;
     }
