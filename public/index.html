@@ -281,7 +281,7 @@
       letter-spacing: 0.12em; text-transform: uppercase;
       padding: 3px 9px; border-radius: 2px; font-weight: 600;
     }
-    .badge.p-high { background: var(--ab-fg); color: #fff; }
+    .badge.p-high { background: #166534; color: #fff; }
     .badge.p-medium { background: var(--ab-bg-3); color: var(--ab-fg-2); border: 1px solid var(--ab-rule); }
     .badge.p-low { background: transparent; color: var(--ab-fg-3); border: 1px solid var(--ab-rule); }
     /* Buyer/seller read: green = buyers (what we want), amber = mixed, red = vendor fest. */
@@ -940,7 +940,7 @@
     }
     .ops-tag.status   { background: #ecfdf5; color: #065f46; }
     .ops-tag.speaker  { background: #eff6ff; color: #1e40af; }
-    .ops-tag.pri-high   { background: #1f2937; color: #fff; }
+    .ops-tag.pri-high   { background: #166534; color: #fff; }
     .ops-tag.pri-medium { background: #fef3c7; color: #92400e; }
     .ops-tag.pri-low    { background: var(--ab-bg-3); color: var(--ab-fg-3); }
     /* Pipeline-stage pills (primary) get bg/fg inline from stageStyle();
@@ -975,6 +975,13 @@
       font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
       letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;
       padding: 3px 8px; border-radius: 3px; background: #065f46; color: #fff;
+    }
+    /* Archived = a static (rectangular) status label; archiving is done in the pop-up. */
+    .ops-archived-tag {
+      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+      padding: 3px 8px; border-radius: 3px;
+      border: 1px solid var(--ab-rule); background: var(--ab-bg-2); color: var(--ab-fg-3);
     }
     /* Region row sits tight under the pipeline row. */
     #region-filters { margin-top: -4px; }
@@ -1284,7 +1291,7 @@
     }
     .extra-chip:hover { opacity: 0.9; color: var(--ab-fg); border-color: var(--ab-fg-3); }
     .extra-chip.is-on { opacity: 1; box-shadow: 0 0 0 2px var(--ab-fg); transform: translateY(-1px); }
-    .extra-chip.pri-high.is-on   { background: #1f2937; color: #fff; border-color: #1f2937; box-shadow: 0 0 0 2px #1f2937; }
+    .extra-chip.pri-high.is-on   { background: #166534; color: #fff; border-color: #166534; box-shadow: 0 0 0 2px #166534; }
     .extra-chip.pri-medium.is-on { background: #fef3c7; color: #92400e; border-color: #92400e; box-shadow: 0 0 0 2px #92400e; }
     .extra-chip.pri-low.is-on    { background: var(--ab-bg-3); color: var(--ab-fg-3); border-color: var(--ab-fg-3); box-shadow: 0 0 0 2px var(--ab-fg-3); }
     .extra-chip.track-sponsor.is-on  { background: #dbeafe; color: #1e40af; border-color: #1e40af; box-shadow: 0 0 0 2px #1e40af; }
@@ -1936,7 +1943,7 @@
     }
     .ask-card .ac-tag.buyer { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
     .ask-card .ac-tag.worth { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
-    .ask-card .ac-tag.pri-high   { background: #1f2937; color: #fff; border-color: #1f2937; }
+    .ask-card .ac-tag.pri-high   { background: #166534; color: #fff; border-color: #166534; }
     .ask-card .ac-tag.pri-medium { background: #fef3c7; color: #92400e; border-color: #fde68a; }
     .ask-card .ac-tag.pri-low    { background: var(--ab-bg-3); color: var(--ab-fg-3); border-color: var(--ab-rule); }
     /* Reasoning under the ranked cards — small + muted so cards stay the headline. */
@@ -2509,12 +2516,12 @@
       (summary
         ? '<span class="qa-int-summary">' + summary + '</span>'
         : '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>');
-    // Archive moves to the bottom under a "Hide:" label (catalog only — manual
-    // events are removed from the edit form, not archived here).
-    var hideRow = isCat
-      ? '<span class="qa-row-label">Hide:</span>' +
-        '<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unarchive' : 'Archive') + '</button>'
-      : '';
+    // Archive lives at the bottom under a "Hide:" label. Archiving now happens
+    // ONLY in this pop-up (the card face just shows an "Archived" label), so the
+    // control is here for BOTH catalog and manual events. Manual events also keep
+    // their separate "Delete this event" button in the edit form.
+    var hideRow = '<span class="qa-row-label">Hide:</span>' +
+        '<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unarchive' : 'Archive') + '</button>';
     return '<div class="modal-quickbar">' +
            '<div class="qa-row" style="align-items:center;"><span class="qa-row-label">Status:</span>' + bStage.join('') + '</div>' +
            '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div>' +
@@ -3586,12 +3593,12 @@
       return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
     }
     function _rosterRow(label, who, style, muted) {
-      // All roster labels share ONE uniform pill style (.ops-roster-tag) — the
-      // per-stage colour is intentionally ignored so "Speaker"/"Interested"
-      // don't look different from "Submitted"/"Booked"/etc.
-      void style;
+      // Pipeline-stage rows carry their stage colour so they MATCH the Pipeline
+      // filter chips (Submitted = blue, Booked = green, etc.). Non-stage rows
+      // (Speaker/Interested) pass style='' and stay the neutral grey label.
+      var attr = style ? ' style="' + style + '"' : '';
       return '<div class="ops-roster-row">' +
-        '<span class="ops-roster-tag">' + escapeHtml(label) + '</span>' +
+        '<span class="ops-roster-tag"' + attr + '>' + escapeHtml(label) + '</span>' +
         '<span class="ops-roster-who' + (muted ? ' muted' : '') + '">' + who + '</span>' +
       '</div>';
     }
@@ -3862,7 +3869,8 @@
           '<div class="ops-chips">' +
             starButtonHtml(st.interested) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            '<button class="ops-chip' + (st.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (st.hidden ? '1' : '0') + '" type="button" title="Archive — set this event aside (it collapses into the Archived group)">Archive</button>' +
+            // Archived shows as a static label; archiving/unarchiving is done in the pop-up.
+            (st.hidden ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>' : '') +
             decBadge + saBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(ev.date_str, ev.start_date)) + '</p>' +
@@ -4089,7 +4097,8 @@
           '<div class="ops-chips">' +
             starButtonHtml(mev.interested) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            '<button class="ops-chip' + (mev.hidden ? ' is-on' : '') + '" data-field="hidden" data-on="' + (mev.hidden ? '1' : '0') + '" type="button" title="Archive — set this event aside (it collapses into the Archived group)">Archive</button>' +
+            // Archived shows as a static label; archiving/unarchiving is done in the pop-up.
+            (mev.hidden ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>' : '') +
             mDecBadge + mSaBadge + mRecentBadge +
           '</div>' +
           '<p class="event-date">' + escapeHtml(cardDate(mev.date_str, mev.start_date)) + '</p>' +
