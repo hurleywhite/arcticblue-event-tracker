@@ -9174,6 +9174,15 @@
       }
       return run.then(function (resp) {
         if (resp && resp.error) { status('Save failed: ' + resp.error.message, 'error'); }
+        else if (resp && resp.strippedMigrationCols && resp.strippedMigrationCols.length) {
+          // The write LANDED, but one or more user-entered columns don't exist in
+          // the database yet (a pending migration), so those values were dropped.
+          // Say so instead of flashing a misleading "Saved" (this was the silent
+          // "Apply to speak link doesn't store" bug).
+          status('Saved the rest — but "' + resp.strippedMigrationCols.join('", "') +
+            '" could not be stored: that column is missing from the database. It needs a one-time Supabase migration before it will save.', 'error');
+          renderOps(who);
+        }
         else { flashOk('Saved'); renderOps(who); }
         return resp;
       });
