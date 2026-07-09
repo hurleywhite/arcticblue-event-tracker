@@ -327,12 +327,19 @@
     /* CFP deadline on the card face; red when urgent or within ~30 days. */
     .deadline-line { font-weight: 600; }
     .deadline-line.deadline-soon { color: #b91c1c !important; font-weight: 700; }
-    /* "Closed to speak" — CFP window has passed (rectangular label). */
-    .closed-to-speak {
-      display: inline-block; font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
-      letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px;
-      background: #fee2e2; color: #991b1b; border: 1px solid #f3b1b1;
+    /* THE status line — one quiet derived line per card ("Closed to speak ·
+       Open to attend", "Booked — Thor speaking"). Plain text + a small colored
+       dot; no boxes, no color assault. */
+    .ops-status-line {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px;
+      margin: 0 0 10px; font-size: 0.86rem; font-weight: 600; color: var(--ab-fg-2);
     }
+    .st-bit { display: inline-flex; align-items: center; white-space: nowrap; }
+    .st-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; flex-shrink: 0; }
+    .st-ok   { background: #047857; }
+    .st-wait { background: #0ea5e9; }
+    .st-no   { background: #b91c1c; }
+    .st-sep  { color: var(--ab-fg-3); font-weight: 400; }
     /* One-click "Apply to speak" button on ops cards — the booking shortcut. */
     /* Deadline/closed-to-speak label + Apply button sit side by side in one
        compact row, pinned to the bottom of the card (not each its own
@@ -3881,19 +3888,46 @@
       var junkPhrase = /\b(not\s+(specified|announced|available|listed|provided|determined|set|known)|unspecified|unknown|no\s+(deadline|cfp|date)|to\s+be\s+(determined|announced|confirmed)|tbd|tba)\b/i.test(s);
       return junkPhrase && !/\d/.test(s) && !/rolling|ongoing|year.?round|continuous|\bopen\b/i.test(s);
     }
+    // ONE derived status line per card — computed from the data, never
+    // hand-edited (Thor: "closed for speaking, open for attending" must show
+    // without anyone editing it in). Examples:
+    //   Booked — Thor speaking
+    //   Submitted to speak (CFP closed) · Open to attend
+    //   Closed to speak · Open to attend
+    //   Attending — Jerome
+    // Shows NOTHING when we know nothing — no invented status, no filler.
+    function cardStatusLine(ev, st) {
+      st = st || ev;
+      var stages = stageTagsOf(st);
+      var past = isPastEvent(ev);
+      var speaker = (st.speaker || '').trim();
+      var att = ((st.attendees || ev.attendees) || []).map(_personName).filter(Boolean);
+      var d = (st.deadline != null && String(st.deadline).trim()) ? st.deadline : ev.deadline;
+      var closed = !past && d && !_isJunkVal(d) && isDeadlinePast(d);
+      var speakBit = '', attendBit = '';
+      if (stages.indexOf('Booked') !== -1) {
+        speakBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + (speaker ? ' \u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>';
+      } else if (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) {
+        speakBit = '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (closed ? ' (CFP closed)' : '') + '</span>';
+      } else if (closed) {
+        speakBit = '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>';
+      } else if (!past && d && !_isJunkVal(d)) {
+        speakBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Open to speak</span>';
+      }
+      if (att.length) attendBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Attending \u2014 ' + escapeHtml(att.join(', ')) + '</span>';
+      else if (!past && speakBit && stages.indexOf('Booked') === -1) attendBit = '<span class="st-bit">Open to attend</span>';
+      var bits = [speakBit, attendBit].filter(Boolean);
+      if (!bits.length) return '';
+      return '<p class="ops-status-line">' + bits.join('<span class="st-sep">\u00b7</span>') + '</p>';
+    }
     function deadlineLine(d, o) {
-      // CFP/apply deadlines (incl. "Closed to speak") are Angela's business —
-      // nobody else needs to see them on the card face.
+      // Raw CFP deadline DATES are Angela's business (she runs applications) —
+      // the derived open/closed STATUS shows for everyone via cardStatusLine.
       if (!(window.isAngelaUser && window.isAngelaUser())) return '';
       if (d == null || !String(d).trim()) return '';
       var txt = String(d).trim();
       if (_isJunkVal(txt)) return '';   // skip "not specified" / "TBD" / "N/A" clutter
-      if (isDeadlinePast(d)) {
-        // CFP/apply window has closed. On events that HAVEN'T happened yet, show a
-        // "Closed to speak" label (you can still attend, just not apply to speak).
-        return (typeof isPastEvent === 'function' && isPastEvent(o)) ? '' :
-          '<p class="ops-meta"><span class="closed-to-speak" title="The apply-to-speak / CFP window has closed">Closed to speak</span></p>';
-      }
+      if (isDeadlinePast(d)) return '';  // closed state is on the status line now
       // A CFP deadline on or after the event itself is nonsensical — you can't
       // submit a talk once the event has started. (Angela saw "CFP deadline:
       // 1 September 2026" on an event running July 7-10.) Hide it rather than
@@ -3980,7 +4014,8 @@
       if (_soon) card.dataset.deadlineSoon = '1';
       if (st.urgent || (isDeadlineUrgent(ev.deadline) && !_opsPast)) card.classList.add('is-urgent');
       card.dataset.decision = (st.decision || '');
-      var decBadge = st.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>' : '';
+      // "✓ Go" is Angela's promotion call — Angela-only on the card face.
+      var decBadge = (st.decision === 'go' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="decision-badge go">✓ Go</span>' : '';
       // Card-face Should-Attend badge (Angela: needs to spot them while scanning).
       // HUMAN flags get a prominent star badge; the 256 AI auto-picks get only a
       // faint tag so they don't drown the ones the team hand-picked.
@@ -3999,10 +4034,7 @@
         ? '<p class="ops-meta" title="' + escapeHtml(st.updated_by) + '">Last edit · ' + escapeHtml(firstNameFromEmail(st.updated_by)) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
         : '';
 
-      // Attending-signal strip + one-click apply (the booking shortcut).
-      // Priority (High/Medium/Low) is intentionally NOT shown on the card face
-      // anymore — open the event to see it in the pop-up.
-      var sigBits = [];
+      // One-click apply (the booking shortcut) — Angela-only.
       var applyUrl = (st && st.apply_url) || speakingRouteUrl(ev.speaking_route);
       var applyBtn = (applyUrl && window.isAngelaUser && window.isAngelaUser())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
@@ -4010,9 +4042,9 @@
 
       var _cdate = escapeHtml(cardDate(ev.date_str, ev.start_date));
       var _cloc  = escapeHtml(shortLocation(ev));
-      // Deadline/closed-to-speak label + Apply sit side by side in one row.
+      // Angela's working row: raw CFP date + contact cue + Apply, side by side.
       var _cDeadlineHtml = deadlineLine(ev.deadline, ev);
-      var _cFootHtml = (_cDeadlineHtml || applyBtn) ? ('<div class="ops-card-foot">' + _cDeadlineHtml + applyBtn + '</div>') : '';
+      var _cFootHtml = (_cDeadlineHtml || applyBtn || contactBadge) ? ('<div class="ops-card-foot">' + _cDeadlineHtml + contactBadge + applyBtn + '</div>') : '';
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<h3 class="event-name">' +
@@ -4032,7 +4064,7 @@
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
         '</div>' +
-        renderOpsRoster(st, (sigBits.join('') + contactBadge)) +
+        cardStatusLine(ev, st) +
         _cFootHtml;
       // (metaLine intentionally unused now — "Last edit" detail lived inside the
       // old inline editor, which has moved to the Details pop-up.)
@@ -4169,7 +4201,8 @@
       if (_manSoon) card.dataset.deadlineSoon = '1';
       if (isDeadlineUrgent(mev.deadline) && !_manPast) card.classList.add('is-urgent');
       card.dataset.decision = (mev.decision || '');
-      var mDecBadge = mev.decision === 'go' ? '<span class="decision-badge go">✓ Go</span>' : '';
+      // "✓ Go" is Angela's promotion call — Angela-only on the card face.
+      var mDecBadge = (mev.decision === 'go' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="decision-badge go">✓ Go</span>' : '';
       var mSaBadge = (shouldAttendKind(mev.attend_verdict) === 'human' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="sa-badge">★ Should Attend</span>' : '';
       card.dataset.contactFound = (hasEmailContact(mev) || _EMAIL_RE.test(String(mev.poc_email || ''))) ? '1' : '';
       // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
@@ -4189,32 +4222,17 @@
       var whoTitle = mev.created_by ? (' title="' + escapeHtml(mev.created_by) + '"') : '';
       var who      = whoText;
 
-      // Reuse the per-role roster by adapting the manual row into a state-like obj.
-      // Priority (High/Medium/Low) is intentionally NOT shown on the card face
-      // anymore — open the event to see it in the pop-up.
-      var tagsHtml = renderOpsRoster({
-        status:      mev.status,
-        status_tags: mev.status_tags,
-        speaker:     mev.speaker,
-        attendees:   mev.attendees,
-        interested:  mev.interested,
-        priority_override: mev.priority,
-        track:    null
-      }, mContactBadge);
-
-      // POC / notes / submission status / fee / price / past speakers are all
-      // deliberately kept OFF the card face now — cards stay minimal (name,
-      // date · place, stage, closed-to-speak, apply). Every one of these is
-      // still fully visible in the Details pop-up (rendered independently
-      // there from the raw record), so nothing is lost — it's just not
-      // duplicated on the card itself.
+      // The card face stays minimal: name, date · place, ONE derived status
+      // line, chat count. Everything else (POC / notes / fee / priority /
+      // per-person rosters) lives in the Details pop-up.
+      var tagsHtml = cardStatusLine(mev, mev);
       var mApplyUrl = mev.apply_url || speakingRouteUrl(mev.speaking_route);
       var mApplyBtn = (mApplyUrl && window.isAngelaUser && window.isAngelaUser())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
-      // Deadline/closed-to-speak label + Apply sit side by side in one row.
+      // Angela's working row: raw CFP date + contact cue + Apply, side by side.
       var _mDeadlineHtml = deadlineLine(mev.deadline, mev);
-      var _mFootHtml = (_mDeadlineHtml || mApplyBtn) ? ('<div class="ops-card-foot">' + _mDeadlineHtml + mApplyBtn + '</div>') : '';
+      var _mFootHtml = (_mDeadlineHtml || mApplyBtn || mContactBadge) ? ('<div class="ops-card-foot">' + _mDeadlineHtml + mContactBadge + mApplyBtn + '</div>') : '';
       var _mdate = escapeHtml(cardDate(mev.date_str, mev.start_date));
       var _mloc  = escapeHtml(shortLocation(mev));
       card.innerHTML =
@@ -7574,6 +7592,7 @@
       ['mexico city', 19.4326, -99.1332], ['ciudad de mexico', 19.4326, -99.1332],
       ['guadalajara', 20.6597, -103.3496], ['monterrey', 25.6866, -100.3161],
       ['cancun', 21.1619, -86.8515], ['bogota', 4.711, -74.0721],
+      ['cartagena', 10.391, -75.4794], ['panama city', 8.9824, -79.5199],
       ['medellin', 6.2442, -75.5812], ['lima', -12.0464, -77.0428],
       ['buenos aires', -34.6037, -58.3816], ['santiago', -33.4489, -70.6693],
       ['rio de janeiro', -22.9068, -43.1729], ['quito', -0.1807, -78.4678],
