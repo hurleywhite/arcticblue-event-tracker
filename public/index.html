@@ -103,6 +103,18 @@
       text-transform: none; letter-spacing: normal;
       color: var(--ab-blue, #1d4ed8); text-decoration: underline;
     }
+    /* One-click "who am I" initials — quick-switch without typing a name. */
+    .who-picker { display: inline-flex; gap: 4px; vertical-align: middle; }
+    .who-init {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+      background: var(--ab-blue); color: #fff; border: 0; cursor: pointer;
+      font-family: var(--ab-sans); font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0; text-transform: none; line-height: 1;
+      transition: opacity 120ms ease, box-shadow 120ms ease;
+    }
+    .who-init:hover { opacity: 0.82; }
+    .who-init.is-active { box-shadow: 0 0 0 2px var(--ab-fg); }
     /* App title — centered in the nav bar, same line as the logo + last-updated. */
     .app-title {
       font-family: "Nunito Sans", var(--ab-sans);
@@ -793,8 +805,10 @@
       text-decoration: underline; cursor: pointer; margin-left: 6px;
     }
 
-    /* Ops grid — same skeleton as .event-grid but with edit controls */
-    .ops-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    /* Ops grid — one full-width card per line (was a multi-column tile grid) so
+       every card is the same width and its internal labels land in the exact
+       same spot, card after card, instead of shifting with each column's size. */
+    .ops-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
     .ops-empty { grid-column: 1 / -1; text-align: center; padding: 56px 24px; color: var(--ab-fg-2); }
     .ops-empty-title { font-size: 1.05rem; font-weight: 600; color: var(--ab-fg); margin: 0 0 6px; }
     .ops-empty-sub { font-size: 0.9rem; margin: 0 0 16px; }
@@ -2159,7 +2173,16 @@
         <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
       </a>
       <h1 class="app-title">ArcticBlue's Event Tracker</h1>
-      <div class="nav-meta">JULY 09, 2026 <span class="who">· <button type="button" id="change-name" class="inline">Change Users</button></span></div>
+      <div class="nav-meta">JULY 09, 2026 <span class="who">· <span class="who-picker" id="who-picker">
+        <button type="button" class="who-init" data-setname="Angela" title="Angela">A</button>
+        <button type="button" class="who-init" data-setname="Verma" title="Verma">V</button>
+        <button type="button" class="who-init" data-setname="Thor" title="Thor">T</button>
+        <button type="button" class="who-init" data-setname="Jerome" title="Jerome">JW</button>
+        <button type="button" class="who-init" data-setname="Joe" title="Joe">JL</button>
+        <button type="button" class="who-init" data-setname="Scott" title="Scott">S</button>
+        <button type="button" class="who-init" data-setname="Carlos" title="Carlos">C</button>
+        <button type="button" class="who-init" data-setname="Jim" title="Jim">J</button>
+      </span> <button type="button" id="change-name" class="inline">Change Users</button></span></div>
     </div>
   </nav>
 
@@ -9495,6 +9518,20 @@
         if (n) setCollabName(n);
       });
     }
+    // One-click "who am I" initials next to Change Users.
+    function _paintWhoPicker() {
+      var cur = (getCollabName() || '').toLowerCase();
+      document.querySelectorAll('.who-init').forEach(function (btn) {
+        btn.classList.toggle('is-active', btn.getAttribute('data-setname').toLowerCase() === cur);
+      });
+    }
+    document.querySelectorAll('.who-init').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setCollabName(btn.getAttribute('data-setname'));
+        _paintWhoPicker();
+      });
+    });
+    _paintWhoPicker();
 
     // Open immediately — no session wait, no magic link.
     route();
