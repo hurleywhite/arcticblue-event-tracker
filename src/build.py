@@ -534,15 +534,6 @@ def build():
       text-transform: none; letter-spacing: normal;
       font-weight: 700; color: var(--ab-fg-2); white-space: nowrap;
     }}
-    .nav-meta .who strong {{ color: var(--ab-fg); font-weight: 800; }}
-    /* Small blue initials avatar for whoever typed in their name. */
-    .who-avatar {{
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 19px; height: 19px; border-radius: 50%; vertical-align: -4px;
-      background: var(--ab-blue); color: #fff; margin-right: 5px;
-      font-family: var(--ab-sans); font-size: 0.6rem; font-weight: 700;
-      letter-spacing: 0; text-transform: none;
-    }}
     .nav-meta .who button.inline {{
       border: 0; background: none; padding: 0 0 0 6px; cursor: pointer;
       font-family: var(--ab-mono); font-size: inherit; font-weight: 700;
@@ -2598,7 +2589,7 @@ def build():
         <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
       </a>
       <h1 class="app-title">ArcticBlue's Event Tracker</h1>
-      <div class="nav-meta">{last_updated.upper()} <span class="who">· Signed in as <span class="who-avatar" id="ops-avatar" aria-hidden="true" hidden></span><strong id="ops-email">Team</strong> <button type="button" id="change-name" class="inline">change</button></span></div>
+      <div class="nav-meta">{last_updated.upper()} <span class="who">· <button type="button" id="change-name" class="inline">Change Users</button></span></div>
     </div>
   </nav>
 
@@ -3712,8 +3703,6 @@ def build():
     var $signinSubmit = document.getElementById('signin-submit');
     var $sentTo       = document.getElementById('signin-sent-to');
     var $unauthEmail  = document.getElementById('unauth-email');
-    var $opsEmail     = document.getElementById('ops-email');
-    var $opsAvatar    = document.getElementById('ops-avatar');
     var $signoutUnauth = document.getElementById('signout-unauth');
     var $signoutOps    = document.getElementById('signout-ops');
     var $opsGrid   = document.getElementById('ops-grid');
@@ -9799,34 +9788,10 @@ def build():
       try {{ n = (localStorage.getItem('ab.collab.name') || '').trim(); }} catch (e) {{}}
       return n;
     }}
-    // Two-letter initials for the little blue "who's signed in" avatar. Prefers
-    // the team roster's real full name (jerome -> "Jerome Wouters" -> "JW", joe
-    // -> "Joe Lalley" -> "JL") so a short typed name still gets both initials;
-    // falls back to first+last word of whatever was actually typed for anyone
-    // not in the roster, or a single letter for a one-word name.
-    function _personInitials(name) {{
-      var s = String(name == null ? '' : name).trim();
-      if (!s) return '';
-      var P = window.AB_PERSONAS || {{}};
-      var key = s.toLowerCase().split(/\\s+/)[0];
-      var full = (P[key] && P[key].name) ? P[key].name : s;
-      var parts = full.trim().split(/\\s+/).filter(Boolean);
-      if (parts.length >= 2) return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-      return (parts[0] || '').charAt(0).toUpperCase();
-    }}
-    function _paintOpsAvatar(name) {{
-      if (!$opsAvatar) return;
-      var initials = _personInitials(name);
-      if (!initials) {{ $opsAvatar.setAttribute('hidden', ''); $opsAvatar.textContent = ''; return; }}
-      $opsAvatar.textContent = initials;
-      $opsAvatar.removeAttribute('hidden');
-    }}
     function setCollabName(n) {{
       n = (n || '').trim();
       var prev = getCollabName();
       try {{ localStorage.setItem('ab.collab.name', n); }} catch (e) {{}}
-      if ($opsEmail) $opsEmail.textContent = n || 'Team';
-      _paintOpsAvatar(n);
       applyFilterVisibility();   // Angela-only "Filters" panel + urgent follow the name
       // The signed-in name drives identity-specific views: the "My Event
       // Interests" stat, the myinterested filter, and interested highlighting.
@@ -9843,8 +9808,6 @@ def build():
         n = (window.prompt('Your name (so teammates can see who edited what):', '') || '').trim();
         setCollabName(n);
       }}
-      if ($opsEmail) $opsEmail.textContent = n || 'Team';
-      _paintOpsAvatar(n);
       return n || 'Team';
     }}
 
@@ -10001,8 +9964,6 @@ def build():
     // route() — no auth. Always show the collaborative tracker.
     function route() {{
       var who = getCollabName() || 'Team';
-      if ($opsEmail) $opsEmail.textContent = who;
-      _paintOpsAvatar(getCollabName());
       showOnly($ops);
       wireViewToggle();
       wireFilters();
