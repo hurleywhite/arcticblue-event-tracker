@@ -4681,42 +4681,12 @@ def build():
         track:    null
       }}, mContactBadge);
 
-      // Contact strip below the location line — only render if at least one field
-      var pocBits = [];
-      if (mev.poc_name)  pocBits.push(escapeHtml(mev.poc_name));
-      if (mev.poc_email) pocBits.push('<a href="mailto:' + escapeHtml(mev.poc_email) + '" style="color:var(--ab-blue);text-decoration:none;">' + escapeHtml(mev.poc_email) + '</a>');
-      if (mev.poc_linkedin) pocBits.push('<a href="' + escapeHtml(mev.poc_linkedin) + '" target="_blank" rel="noopener" style="color:var(--ab-blue);text-decoration:none;">LinkedIn ↗</a>');
-      var pocLine = pocBits.length ? '<p class="event-loc" style="font-size:0.8rem;">POC: ' + pocBits.join(' · ') + '</p>' : '';
-
-      var addtlLine = (mev.additional_contacts && mev.additional_contacts.trim())
-        ? '<details style="margin:6px 0;"><summary style="cursor:pointer;font-family:var(--ab-mono);font-size:0.66rem;color:var(--ab-fg-3);letter-spacing:0.06em;text-transform:uppercase;">+ Additional contacts</summary><p style="font-size:0.82rem;color:var(--ab-fg-2);white-space:pre-wrap;margin:6px 0;">' + escapeHtml(mev.additional_contacts) + '</p></details>'
-        : '';
-
-      // Card face shows a SHORT note preview (clamped to 2 lines) so a long
-      // pasted note doesn't flood the grid — the full note lives in Details.
-      var _noteRaw = (mev.notes || '').trim();
-      var notesLine = _noteRaw
-        ? '<p class="event-note-preview" title="' + escapeHtml(_noteRaw) + '">' + escapeHtml(_noteRaw.replace(/\\s+/g, ' ')) + '</p>'
-        : '';
-
-      var _hasFee = mev.speaking_fee && !_isJunkVal(mev.speaking_fee);
-      var submLine = (!_isJunkVal(mev.submission_status) && mev.submission_status !== mev.status)
-        ? '<p class="ops-meta">Submission notes: ' + escapeHtml(mev.submission_status) + '</p>'
-        : '';
-
-      var feeLine = (_hasFee || mev.paid !== null && mev.paid !== undefined)
-        ? '<p class="ops-meta">' +
-            (_hasFee ? 'Fee: ' + escapeHtml(mev.speaking_fee) : '') +
-            (_hasFee && (mev.paid !== null && mev.paid !== undefined) ? ' · ' : '') +
-            (mev.paid !== null && mev.paid !== undefined ? 'Paid: ' + (mev.paid ? 'yes' : 'no') : '') +
-          '</p>'
-        : '';
-      var priceLine = (!_isJunkVal(mev.pricing))
-        ? '<p class="ops-meta">Price to attend: ' + escapeHtml(mev.pricing) + '</p>'
-        : '';
-      var speakersLine = (!_isJunkVal(mev.past_speakers))
-        ? '<p class="ops-meta" title="Past / announced speakers">Speakers: ' + escapeHtml(mev.past_speakers) + '</p>'
-        : '';
+      // POC / notes / submission status / fee / price / past speakers are all
+      // deliberately kept OFF the card face now — cards stay minimal (name,
+      // date · place, stage, closed-to-speak, apply). Every one of these is
+      // still fully visible in the Details pop-up (rendered independently
+      // there from the raw record), so nothing is lost — it's just not
+      // duplicated on the card itself.
       var mApplyUrl = mev.apply_url || speakingRouteUrl(mev.speaking_route);
       var mApplyBtn = (mApplyUrl && window.isAngelaUser && window.isAngelaUser())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
@@ -4744,11 +4714,6 @@ def build():
         '<p class="event-meta">' + (_mdate ? '<span class="em-date">' + _mdate + '</span>' : '') + ((_mdate && _mloc) ? ' \\u00b7 ' : '') + (_mloc || '') + '</p>' +
         tagsHtml +
         deadlineLine(mev.deadline, mev) +
-        pocLine +
-        notesLine +
-        addtlLine +
-        submLine +
-        feeLine +
         mApplyBtn;
       // Stash a modal record on the node for the delegated "Details" handler.
       var mrec = {{}};
