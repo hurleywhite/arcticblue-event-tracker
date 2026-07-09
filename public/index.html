@@ -3795,15 +3795,27 @@
       if (!dt || isNaN(dt)) return false;  // unparseable -> don't assume past
       return ((dt - new Date()) / 86400000) < 0;  // strictly before today
     }
+    // Non-informative placeholder values we should never print as a label
+    // ("CFP deadline: not specified", "Fee: N/A", …). Blank counts as junk too.
+    var _JUNK_VAL_RE = /^(n\/?a|na|none|null|nil|unknown|unspecified|not\s+(specified|announced|available|listed|provided|applicable|known|set)|tbd|tba|to\s+be\s+(determined|announced|confirmed)|-+|\.+|\u2014+|\?+)$/i;
+    function _isJunkVal(v) {
+      var s = String(v == null ? '' : v).trim();
+      if (!s || _JUNK_VAL_RE.test(s)) return true;
+      // A phrase like "CFP deadline not specified" (no real date) is also junk,
+      // but keep anything that carries an actual date or a rolling window.
+      var junkPhrase = /\b(not\s+(specified|announced|available|listed|provided|determined|set|known)|unspecified|unknown|no\s+(deadline|cfp|date)|to\s+be\s+(determined|announced|confirmed)|tbd|tba)\b/i.test(s);
+      return junkPhrase && !/\d/.test(s) && !/rolling|ongoing|year.?round|continuous|\bopen\b/i.test(s);
+    }
     function deadlineLine(d, o) {
       if (d == null || !String(d).trim()) return '';
+      var txt = String(d).trim();
+      if (_isJunkVal(txt)) return '';   // skip "not specified" / "TBD" / "N/A" clutter
       if (isDeadlinePast(d)) {
         // CFP/apply window has closed. On events that HAVEN'T happened yet, show a
         // "Closed to speak" label (you can still attend, just not apply to speak).
         return (typeof isPastEvent === 'function' && isPastEvent(o)) ? '' :
           '<p class="ops-meta"><span class="closed-to-speak" title="The apply-to-speak / CFP window has closed">Closed to speak</span></p>';
       }
-      var txt = String(d).trim();
       // A CFP deadline on or after the event itself is nonsensical — you can't
       // submit a talk once the event has started. (Angela saw "CFP deadline:
       // 1 September 2026" on an event running July 7-10.) Hide it rather than
@@ -4120,21 +4132,22 @@
         ? '<p class="event-note-preview" title="' + escapeHtml(_noteRaw) + '">' + escapeHtml(_noteRaw.replace(/\s+/g, ' ')) + '</p>'
         : '';
 
-      var submLine = (mev.submission_status && mev.submission_status.trim() && mev.submission_status !== mev.status)
+      var _hasFee = mev.speaking_fee && !_isJunkVal(mev.speaking_fee);
+      var submLine = (!_isJunkVal(mev.submission_status) && mev.submission_status !== mev.status)
         ? '<p class="ops-meta">Submission notes: ' + escapeHtml(mev.submission_status) + '</p>'
         : '';
 
-      var feeLine = (mev.speaking_fee || mev.paid !== null && mev.paid !== undefined)
+      var feeLine = (_hasFee || mev.paid !== null && mev.paid !== undefined)
         ? '<p class="ops-meta">' +
-            (mev.speaking_fee ? 'Fee: ' + escapeHtml(mev.speaking_fee) : '') +
-            (mev.speaking_fee && (mev.paid !== null && mev.paid !== undefined) ? ' · ' : '') +
+            (_hasFee ? 'Fee: ' + escapeHtml(mev.speaking_fee) : '') +
+            (_hasFee && (mev.paid !== null && mev.paid !== undefined) ? ' · ' : '') +
             (mev.paid !== null && mev.paid !== undefined ? 'Paid: ' + (mev.paid ? 'yes' : 'no') : '') +
           '</p>'
         : '';
-      var priceLine = (mev.pricing && String(mev.pricing).trim())
+      var priceLine = (!_isJunkVal(mev.pricing))
         ? '<p class="ops-meta">Price to attend: ' + escapeHtml(mev.pricing) + '</p>'
         : '';
-      var speakersLine = (mev.past_speakers && String(mev.past_speakers).trim())
+      var speakersLine = (!_isJunkVal(mev.past_speakers))
         ? '<p class="ops-meta" title="Past / announced speakers">Speakers: ' + escapeHtml(mev.past_speakers) + '</p>'
         : '';
       var mApplyUrl = mev.apply_url || speakingRouteUrl(mev.speaking_route);
