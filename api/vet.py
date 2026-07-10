@@ -260,19 +260,28 @@ def _fallback_extract(text, url, exa_meta):
     if title and 5 < len(title.strip()) < 140:
         out['name'] = title.strip()
 
-    # Date — try long, then short month formats; range and single forms
+    # Date — cover the common written + numeric forms, most specific first.
     ml = r'(?:January|February|March|April|May|June|July|August|September|October|November|December)'
-    ms = r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)'
+    ms = r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)'
+    mon = r'(?:' + ml + r'|' + ms + r')\.?'
     date_patterns = [
-        ml + r'\s+\d{1,2}\s*[–—-]\s*(?:' + ml + r'\s+)?\d{1,2},\s+\d{4}',
-        ml + r'\s+\d{1,2},\s+\d{4}',
-        ms + r'\s+\d{1,2}\s*[–—-]\s*\d{1,2},\s+\d{4}',
-        ms + r'\s+\d{1,2},\s+\d{4}',
+        # Month D[–[Month ]D], YYYY  (comma optional: "Sept 14 2026" or "Sept 14, 2026")
+        mon + r'\s+\d{1,2}\s*[–—-]\s*(?:' + mon + r'\s+)?\d{1,2},?\s+\d{4}',
+        mon + r'\s+\d{1,2},?\s+\d{4}',
+        # D[–D] Month YYYY  (day-first, e.g. "14–16 September 2026")
+        r'\d{1,2}\s*[–—-]\s*\d{1,2}\s+' + mon + r'\s+\d{4}',
+        r'\d{1,2}\s+' + mon + r'\s+\d{4}',
+        # ISO and slash-numeric ranges/singles
+        r'\d{4}-\d{2}-\d{2}',
+        r'\d{1,2}/\d{1,2}(?:/\d{2,4})?\s*[–—-]\s*\d{1,2}/\d{1,2}/\d{2,4}',
+        r'\d{1,2}/\d{1,2}/\d{2,4}',
+        # Month + year only, as a last resort ("September 2026")
+        mon + r'\s+\d{4}',
     ]
     for pat in date_patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
-            out['date_str'] = m.group(0)
+            out['date_str'] = m.group(0).strip()
             break
 
     # Location — keyword line first
@@ -325,7 +334,7 @@ that does enterprise + halo events). Given the candidate event text below, do TW
    page genuinely doesn't say. Do NOT invent facts.
    {{
      "name":        "<event name>",
-     "date_str":    "<original date string, e.g. 'September 14–16, 2026'>",
+     "date_str":    "<the event's dates in the page's own words — look hard, this matters. Any format is fine: 'September 14–16, 2026', '14–16 September 2026', '9/14/2026', or ISO. If the page shows only a month and year (e.g. 'September 2026'), return that. Only null if the page truly gives no date.>",
      "location":    "<City, Country or City, State>",
      "region":      "<one of: Americas, Europe, Asia-Pacific, MENA, Global>",
      "type":        "<Enterprise | Halo | Research | Industry>",
