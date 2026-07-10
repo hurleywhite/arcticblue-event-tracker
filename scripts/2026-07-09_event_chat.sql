@@ -2,20 +2,21 @@
 -- ArcticBlue Event Tracker — per-event team chat ("Chat with the team")
 --
 -- Adds a chat thread to every event: a small "💬 N" indicator shows on each
--- card, and opening an event shows the thread + a box to post a message.
+-- card, and opening an event shows the thread + a box to post a message. You
+-- can delete your own messages (a small × next to yours only — the app hides
+-- the button on everyone else's; enforced in the UI, not by real login).
 --
--- NO sign-in required to post — same trust model as the rest of the tracker
--- (star, archive, edit fields): you just type who you are, and that's it.
--- Read AND write are both open (RLS is enabled mainly so future policies can
--- be tightened later without a schema change, and to keep delete/update
--- locked down since the UI never issues those).
+-- NO sign-in required to post or delete — same trust model as the rest of the
+-- tracker (star, archive, edit fields): you just type who you are.
+-- Read, insert, and delete are all open. Update is intentionally left
+-- unavailable — there's no "edit message" UI.
 --
 -- Idempotent — safe to run more than once. Run in the Supabase SQL editor for
 -- project efkvhlmfdwlobvdmvqiq.
 --
 -- NOTE: if you previously ran an earlier version of this script, re-running
 -- this one replaces the old "allow-listed editors only" insert policy with
--- the open one below.
+-- the open one below, and adds the delete policy (new).
 -- ====================================================================
 
 create table if not exists public.event_chat (
@@ -46,12 +47,17 @@ create policy event_chat_insert on public.event_chat for insert
     length(trim(body))   > 0 and length(body)   <= 2000
   );
 
+-- Anyone can DELETE a message — the app only shows the × on your own (by
+-- matching the typed name), so this stays open rather than needing real auth.
+drop policy if exists event_chat_delete on public.event_chat;
+create policy event_chat_delete on public.event_chat for delete using (true);
+
 -- Live updates across tabs / users.
 do $$ begin
   alter publication supabase_realtime add table public.event_chat;
 exception when duplicate_object then null; end $$;
 
--- Sanity: confirm the table + open insert policy.
+-- Sanity: confirm the table + policies (select/insert/delete should all show).
 select table_name from information_schema.tables
 where table_schema = 'public' and table_name = 'event_chat';
 select policyname, permissive, roles, cmd from pg_policies where tablename = 'event_chat';

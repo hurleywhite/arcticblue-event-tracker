@@ -1394,6 +1394,12 @@ def build():
     .chat-meta {{ display: flex; gap: 8px; align-items: baseline; margin-bottom: 3px; }}
     .chat-who {{ font-weight: 700; font-size: 0.8rem; color: var(--ab-fg); }}
     .chat-when {{ font-family: var(--ab-mono); font-size: 0.6rem; color: var(--ab-fg-3); }}
+    /* Delete — only rendered on your own messages. */
+    .chat-del {{
+      margin-left: auto; border: 0; background: none; cursor: pointer;
+      color: var(--ab-fg-3); font-size: 1rem; line-height: 1; padding: 0 2px;
+    }}
+    .chat-del:hover {{ color: var(--ab-red); }}
     .chat-body {{ margin: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }}
     .chat-form {{ display: flex; gap: 8px; }}
     .chat-input {{ flex: 1; padding: 9px 12px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font: inherit; font-size: 0.9rem; }}
@@ -10148,16 +10154,31 @@ def build():
     function _paintChatList(list, msgs) {{
       list.innerHTML = '';
       if (!msgs.length) {{ list.innerHTML = '<p class="chat-empty">No messages yet — start the conversation.</p>'; return; }}
+      var me = (getCollabName() || '').trim().toLowerCase();
       msgs.forEach(function (m) {{
         var when = '';
         try {{ when = new Date(m.created_at).toLocaleString('en-US', {{ month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }}); }} catch (e) {{}}
+        var mine = me && String(m.author || '').trim().toLowerCase() === me;
         var div = document.createElement('div'); div.className = 'chat-msg';
+        div.dataset.msgId = m.id;
         div.innerHTML = '<div class="chat-meta"><span class="chat-who">' + escapeHtml(String(m.author || '')) +
-          '</span> <span class="chat-when">' + escapeHtml(when) + '</span></div>' +
+          '</span> <span class="chat-when">' + escapeHtml(when) + '</span>' +
+          (mine ? '<button type="button" class="chat-del" data-chat-del="' + escapeHtml(String(m.id)) + '" title="Delete your message" aria-label="Delete message">&times;</button>' : '') +
+          '</div>' +
           '<p class="chat-body">' + escapeHtml(String(m.body || '')) + '</p>';
         list.appendChild(div);
       }});
       list.scrollTop = list.scrollHeight;
+      list.querySelectorAll('[data-chat-del]').forEach(function (btn) {{
+        btn.addEventListener('click', function () {{
+          if (!window.confirm('Delete this message? This cannot be undone.')) return;
+          var id = btn.getAttribute('data-chat-del');
+          sb.from('event_chat').delete().eq('id', id).then(function (resp) {{
+            if (resp.error) {{ status('Delete failed: ' + resp.error.message, 'error'); return; }}
+            _reloadOpenChat(); loadChatCounts();
+          }});
+        }});
+      }});
     }}
     function _reloadOpenChat() {{
       var panel = document.getElementById('event-chat-panel');
