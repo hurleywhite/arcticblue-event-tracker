@@ -5170,16 +5170,19 @@
       if (!show && typeof currentView !== 'undefined' && (currentView === 'planner' || currentView === 'queue')) {
         setView(getCollabName() ? 'myevents' : 'grid');
       }
-      // The whole extra-filters box (Filters toggle + hidden dropdowns) is now
-      // Angela-only — the search moved up into the top row for everyone, so this
-      // box holds nothing but Angela's power filters. Hide it entirely for others.
-      var box = document.querySelector('.ops-filters');
-      if (box) {
-        box.style.display = show ? '' : 'none';
-        if (!show) box.classList.add('collapsed');   // keep collapsed for when Angela returns
-      }
+      // Ticket price / priority / track / speaking + the three checkboxes are
+      // Angela's power-user set — keep them OUT of everyone else's filter drawer,
+      // which then holds only the filters that were there before for them:
+      // Pipeline / Region / Fits / Months (+ Should-attend, gated above).
+      ['filter-price', 'filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = show ? '' : 'none';
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('#tf-drawer .ops-filter-chip'), function (l) {
+        l.style.display = show ? '' : 'none';
+      });
       var $ft = document.getElementById('ops-filter-toggle');
-      if ($ft) { $ft.style.display = ''; if (!show) $ft.setAttribute('aria-expanded', 'false'); }
+      if ($ft && !show) $ft.setAttribute('aria-expanded', 'false');
       updateFilterToggle();
     }
 
@@ -5792,6 +5795,8 @@
                   (manualRows || []).filter(function (m) { return !isPastEvent(m); }).length;
       var stByNum = {};
       (stateRows || []).forEach(function (r) { stByNum[r.event_num] = r; });
+      var evByNum = {};
+      (evs || []).forEach(function (e) { evByNum[e.num] = e; });
       var saved = 0, urgent = 0, inPipeline = 0, booked = 0, attending = 0;
       var buyerRich = 0, interestedCount = 0, myInterested = 0;
       var me = (getCollabName() || 'Team').toLowerCase();
@@ -5815,9 +5820,13 @@
       (stateRows || []).forEach(function (r) {
         if (r.saved)  saved++;
         var stages = stageTagsOf(r);
-        if (_iPending(stages, r.speaker)) inPipeline++;
-        if (stages.indexOf('Booked') !== -1) booked++;
-        if (_iAttend(r.attendees)) attending++;
+        // The status chips count only UPCOMING events (a past Booked/Attending
+        // shouldn't inflate the number when the grid hides past by default).
+        var _ev = evByNum[r.event_num];
+        var _up = _ev && !isPastEvent(_ev);
+        if (_up && _iPending(stages, r.speaker)) inPipeline++;
+        if (_up && stages.indexOf('Booked') !== -1) booked++;
+        if (_up && _iAttend(r.attendees)) attending++;
         if (r.interested && r.interested.length) interestedCount++;
         if (_isMine(r.interested)) myInterested++;
       });
@@ -5831,9 +5840,10 @@
       // Manual events carry their own stage tags + deadlines — fold them in.
       (manualRows || []).forEach(function (m) {
         var stages = stageTagsOf(m);
-        if (_iPending(stages, m.speaker)) inPipeline++;
-        if (stages.indexOf('Booked') !== -1) booked++;
-        if (_iAttend(m.attendees)) attending++;
+        var _mup = !isPastEvent(m);   // upcoming-only, like the catalog counts above
+        if (_mup && _iPending(stages, m.speaker)) inPipeline++;
+        if (_mup && stages.indexOf('Booked') !== -1) booked++;
+        if (_mup && _iAttend(m.attendees)) attending++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if (m.interested && m.interested.length) interestedCount++;
         if (_isMine(m.interested)) myInterested++;
@@ -9276,6 +9286,13 @@
         // Click a pin → slide this place's events into the right sidebar.
         marker.on('click', function () { openMapSidebar(g); });
       });
+      // Recenter to fit whatever is plotted, so a filter can't leave matching
+      // pins off-screen ("the map isn't showing everything"). Cap the zoom so a
+      // single event doesn't slam to street level; skip if nothing's placed.
+      var _pts = Object.keys(byCoord).map(function (k) { return byCoord[k].ll; });
+      if (_pts.length) {
+        try { _opsMap.fitBounds(L.latLngBounds(_pts), { padding: [40, 40], maxZoom: 10 }); } catch (e) {}
+      }
       var note = document.getElementById('ops-map-note');
       if (note) {
         note.textContent = placed + ' events on the map' +
