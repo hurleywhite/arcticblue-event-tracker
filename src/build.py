@@ -4631,7 +4631,7 @@ def build():
       if (stages.indexOf('Booked') !== -1) {{
         speakBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>';
       }} else if (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) {{
-        speakBit = '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (closed ? ' (CFP closed)' : '') + '</span>';
+        speakBit = '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + (closed ? ' (CFP closed)' : '') + '</span>';
       }} else if (closed) {{
         speakBit = '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>';
       }} else if (!past && d && !_isJunkVal(d)) {{
@@ -6830,14 +6830,16 @@ def build():
           var isSpk = stages.indexOf('Booked') !== -1 && (support || speakerTokens(c.dataset.speaker || r.speaker || '').indexOf(meFold) !== -1);
           if (!isAtt && !isSpk) return;
           var _pastFlag = c.dataset.past === '1';
-          var _attDisp = atts.map(function (a) {{ return a ? a.charAt(0).toUpperCase() + a.slice(1) : ''; }}).filter(Boolean);
+          // Use the SAME derived status the card already rendered, so My Lineup
+          // reads identically to the grid ("Submitted to speak — Thor ·
+          // Attending — Jerome") instead of its own vocabulary.
+          var _slEl = c.querySelector('.ops-status-line');
           var item = {{
             kind: (r._table === 'manual_events') ? 'manual' : 'catalog',
             key: r._key, name: r.name || 'Event', date_str: r.date_str || '',
             region: r.region || '', location: r.location || '', speaker: r.speaker || '',
-            attendees: _attDisp, stages: stages,
+            statusHtml: _slEl ? _slEl.outerHTML : '',
             sort: parseInt(c.dataset.sort || '99999999', 10),
-            _myRole: isSpk ? 'Speaking' : 'Attending',
             _past: _pastFlag, briefReady: c.dataset.briefReady === '1'
           }};
           (_pastFlag ? past : upcoming).push(item);
@@ -7024,29 +7026,8 @@ def build():
       }}
       function rowHtml(it) {{
         var loc = [it.location].filter(Boolean).join(' &middot; ');
-        var chips;
-        if (b.support) {{
-          // Team Lineup: show each person with their OWN role — the speaker with
-          // their speaking stage, and each attendee as Attending. (Not one role
-          // for the whole event: Thor can be Submitted-to-speak while Jerome is
-          // the one Attending.)
-          var SPK = ['Booked', 'Meeting held', 'Followed up', 'Submitted'];
-          var spkStage = null;
-          for (var si = 0; si < SPK.length; si++) {{ if ((it.stages || []).indexOf(SPK[si]) !== -1) {{ spkStage = SPK[si]; break; }} }}
-          var spkFirst = abFold(it.speaker || '').split(/\\s+/)[0];
-          var parts = [];
-          if (it.speaker) {{
-            parts.push('<span class="q-role-chip"><span class="q-int-chip">' + escapeHtml(it.speaker) + '</span>' +
-              (spkStage ? '<span class="q-stage-pill" style="' + stageStyle(spkStage) + '">' + spkStage + '</span>' : '') + '</span>');
-          }}
-          (it.attendees || []).forEach(function (a) {{
-            if (spkFirst && abFold(a).split(/\\s+/)[0] === spkFirst) return;   // don't list the speaker twice
-            parts.push('<span class="q-role-chip"><span class="q-int-chip">' + escapeHtml(a) + '</span><span class="q-stage-pill" style="' + stageStyle('Attending') + '">Attending</span></span>');
-          }});
-          chips = parts.join('');
-        }} else {{
-          chips = it._myRole ? '<span class="q-stage-pill" style="' + stageStyle(it._myRole === 'Speaking' ? 'Booked' : 'Attending') + '">' + it._myRole + '</span>' : '';
-        }}
+        // Same derived status the grid card shows — one vocabulary everywhere.
+        var statusHtml = it.statusHtml || '';
         // The Day-Of brief now lives here (no separate tab) — on upcoming rows.
         var brief = it._past ? '' :
           (it.briefReady ? '<span class="dayof-ready">&#10003; brief ready</span>' : '') +
@@ -7055,7 +7036,7 @@ def build():
             '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
             '<button type="button" class="ops-details-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
             '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
-            '<div class="queue-chips">' + chips + '</div>' +
+            statusHtml +
           '</div>' +
           (brief ? '<div class="queue-actions">' + brief + '</div>' : '') +
           '</div>';
