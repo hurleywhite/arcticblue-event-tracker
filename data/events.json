@@ -830,7 +830,14 @@
    "speaking_route": "CFP: developer.salesforce.com/blogs/2026/04/the-dreamforce-2026-call-for-participation-is-now-open",
    "contact_info": "salesforce.com/dreamforce",
    "pay_to_play": "Mix",
-   "focus_areas": "Agentic AI for enterprise operations (Agentforce); AI-driven CRM and enterprise workflow automation; Enterprise AI ROI and measurable business impact; Responsible AI governance and compliance; Digital and operating model transformation at scale"
+   "focus_areas": "Agentic AI for enterprise operations (Agentforce); AI-driven CRM and enterprise workflow automation; Enterprise AI ROI and measurable business impact; Responsible AI governance and compliance; Digital and operating model transformation at scale",
+   "venue": "Moscone Center (North, South & West), 747 Howard St, San Francisco, CA 94103",
+   "pricing": "In-person: $999 (Early Bird, saves ~$1,300 off full price), $799 per pass (Group Rate for 5+), ~$2,299 (Full Conference Price); Streaming via Salesforce+: Free",
+   "past_speakers": "Marc Benioff, CEO, Salesforce; Brian Millham, President and COO, Salesforce; Sabby Gill, CMO, Salesforce",
+   "meeting_formats": "Roundtable discussions, networking with community, Welcome Reception, Dreamfest, hands-on workshops",
+   "audience_type": "Mixed",
+   "attendee_count": "40,000+",
+   "deadline": "speakers drop soon (not officially announced as of April 21, 2026)"
   },
   {
    "num": 42,
@@ -4291,7 +4298,11 @@
    "external_id": "869f0213-4457-407a-bf0f-bb3d0b2ea06d",
    "source": "arcticscout",
    "start_date": "2026-02-10",
-   "end_date": "2026-02-12"
+   "end_date": "2026-02-12",
+   "past_speakers": "100 leading tech voices on stage (specific names not listed in sources); includes elite blockchain/crypto companies, visionary leaders, investors, and policymakers shaping the global digital economy[7]",
+   "meeting_formats": "Deal-driven networking, curated roundtables, and pitch competitions with VC publicity[1][9]",
+   "audience_type": "Mixed",
+   "attendee_count": "14,500+"
   },
   {
    "num": 177,
@@ -4820,7 +4831,11 @@
    "external_id": "50bd7281-a61b-4d4f-a9aa-62be5887b29f",
    "source": "arcticscout",
    "start_date": "2026-11-17",
-   "end_date": "2026-11-19"
+   "end_date": "2026-11-19",
+   "pricing": "Registration is now open; specific delegate/ticket prices not listed in search results",
+   "past_speakers": "400+ world-class speakers across six core pillars including connectivity, AI, data centres, cybersecurity, and digital transformation[5][6]",
+   "meeting_formats": "Outcome-driven networking focused on enterprise excellence and socioeconomic development; dedicated startup programmes for pitching and connecting with buyers[1][4]",
+   "audience_type": "Mixed"
   },
   {
    "num": 195,
@@ -6930,7 +6945,11 @@
    "focus_areas": "AI-driven HR transformation and intelligent automation; Redesigning the world of work with AI; Employee experience and engagement in the AI era; Talent acquisition and development with AI; Digital dexterity and workforce upskilling",
    "seed": false,
    "urgent": false,
-   "external_id": "50829c6e-05bf-452f-aff8-833504a265d1"
+   "external_id": "50829c6e-05bf-452f-aff8-833504a265d1",
+   "venue": "The Whitley Atlanta Buckhead, Atlanta, GA",
+   "past_speakers": "CHRO, Global Tech Corp; VP HR Innovation, Enterprise Systems Inc; Director AI Workforce, Digital Solutions Ltd",
+   "meeting_formats": "Hosted 1:1 meetings, curated roundtables, attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 273,
