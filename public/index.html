@@ -7535,10 +7535,10 @@
             var _city = escapeHtml(String(loc).split(',')[0].trim());
             if (loc) {
               tripHtml += '<div class="trip-nonear">' +
-                '<span class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then.</span>' +
                 '<button type="button" class="q-btn primary trip-find-near" data-plan-near="' + escapeHtml(loc) +
                   '" data-plan-quarter="' + escapeHtml(_quarterOfSort(ev.sort)) + '">' +
                   '&#128269; Find events near ' + _city + '</button>' +
+                '<span class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then.</span>' +
               '</div>';
             } else {
               tripHtml += '<p class="trip-nonear-note">Add a city to this event (Edit \u2192 Location) to find nearby events to batch.</p>';
