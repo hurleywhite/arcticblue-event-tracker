@@ -6918,7 +6918,6 @@ def build():
           html += '<div class="queue-row sug-row"><div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
-              (x.why.length ? '<p class="sug-why">Fits: ' + escapeHtml(x.why.join(' \\u00b7 ')) + '</p>' : '') +
             '</div><div class="queue-actions">' +
               '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ I&#39;m interested</button>' +
             '</div></div>';
