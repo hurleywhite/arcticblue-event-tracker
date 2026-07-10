@@ -3277,7 +3277,7 @@
       v += field('Speaking route', rec.speaking_route);
       // Short facts in a 2-up grid
       var grid = '';
-      grid += field('Deadline', rec.deadline);
+      grid += field('Deadline', (window.isStaleDeadline && window.isStaleDeadline(rec.deadline)) ? '' : rec.deadline);
       grid += field('Attendee count', rec.attendee_count);
       grid += field('Audience', rec.audience_type);
       grid += field('Price to attend', rec.pricing);
@@ -4159,6 +4159,34 @@
       var junkPhrase = /\b(not\s+(specified|announced|available|listed|provided|determined|set|known)|unspecified|unknown|no\s+(deadline|cfp|date)|to\s+be\s+(determined|announced|confirmed)|tbd|tba)\b/i.test(s);
       return junkPhrase && !/\d/.test(s) && !/rolling|ongoing|year.?round|continuous|\bopen\b/i.test(s);
     }
+    // Enrichment sometimes leaves a DATED hedge on the deadline — e.g.
+    // "speakers drop soon (not officially announced as of April 21, 2026)".
+    // Once that "as of" stamp is more than a week old the note is no longer
+    // relevant, so the read view should hide it (only recent info is shown).
+    // A real FUTURE date that survives stripping the "as of" clause is kept —
+    // only date-less hedges and stale stamps are treated as stale.
+    function isStaleDeadline(d) {
+      var s = String(d == null ? '' : d).trim();
+      if (!s) return false;
+      if (_isJunkVal(s)) return true;
+      // Strip any "(… as of <date>)" or bare "as of <date>" enrichment stamp.
+      var bare = s.replace(/\([^)]*\bas of\b[^)]*\)/ig, ' ')
+                   .replace(/\bas of\s+[a-z0-9.,\/ -]{4,22}/ig, ' ')
+                   .replace(/\s+/g, ' ').trim();
+      var hasRealDate = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d/i.test(bare)
+                     || /\d{4}-\d{1,2}-\d{1,2}/.test(bare)
+                     || /\b\d{1,2}\/\d{1,2}\b/.test(bare);
+      if (hasRealDate) return false;   // a concrete date remains -> still useful
+      // No real date left. Stale if the "as of" stamp is >1 week old…
+      var m = s.match(/as of\s+([a-z]{3,9}\.?\s+\d{1,2},?\s*\d{4}|\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/\d{2,4})/i);
+      if (m) {
+        var dt = new Date(m[1]);
+        if (!isNaN(dt) && (Date.now() - dt.getTime()) > 7 * 86400000) return true;
+      }
+      // …or it's a bare, date-less "not … announced / … soon / expected" hedge.
+      return /\bnot\s+\S+\s+(announced|confirmed|released|published)\b|\b(announced?|drop|dropping|release[ds]?)\s+soon\b|\bexpected\s+(soon|shortly|later)\b|\bto be (announced|confirmed|determined)\b/i.test(s);
+    }
+    window.isStaleDeadline = isStaleDeadline;
     // ONE derived status line per card — computed from the data, never
     // hand-edited (Thor: "closed for speaking, open for attending" must show
     // without anyone editing it in). Examples:
@@ -4175,24 +4203,33 @@
       var att = ((st.attendees || ev.attendees) || []).map(_personName).filter(Boolean);
       var d = (st.deadline != null && String(st.deadline).trim()) ? st.deadline : ev.deadline;
       var closed = !past && d && !_isJunkVal(d) && isDeadlinePast(d);
-      var speakBit = '', attendBit = '';
+      // Each bit carries a priority: COMMITTED presence (Attending / Booked)
+      // leads (p1), then the pending "Submitted to speak" (p2), then the
+      // soft Open/Closed states (p3) — so a card that is both "submitted to
+      // speak" and "attending" reads "Attending … · Submitted to speak …".
+      var bits = [];   // { p: priority, h: html }
       if (stages.indexOf('Booked') !== -1) {
-        speakBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + (speaker ? ' \u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>';
+        bits.push({ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + (speaker ? ' \u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>' });
       } else if (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) {
-        speakBit = '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \u2014 ' + escapeHtml(speaker) : '') + (closed ? ' (CFP closed)' : '') + '</span>';
+        bits.push({ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \u2014 ' + escapeHtml(speaker) : '') + (closed ? ' (CFP closed)' : '') + '</span>' });
       } else if (closed) {
-        speakBit = '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>';
+        bits.push({ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>' });
       } else if (!past && d && !_isJunkVal(d)) {
-        speakBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Open to speak</span>';
+        bits.push({ p: 3, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Open to speak</span>' });
       }
-      if (att.length) attendBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Attending \u2014 ' + escapeHtml(att.join(', ')) + '</span>';
+      var hasSpeakBit = bits.length > 0;
+      if (att.length) {
+        bits.push({ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending \u2014 ' + escapeHtml(att.join(', ')) + '</span>' });
       // The Attending STAGE is set but no attendee is named yet — still show it,
       // so ticking "Attending" on the add form holds visibly (add who in Edit).
-      else if (stages.indexOf('Attending') !== -1 && !past) attendBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Attending</span>';
-      else if (!past && speakBit && stages.indexOf('Booked') === -1) attendBit = '<span class="st-bit">Open to attend</span>';
-      var bits = [speakBit, attendBit].filter(Boolean);
+      } else if (stages.indexOf('Attending') !== -1 && !past) {
+        bits.push({ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending</span>' });
+      } else if (!past && hasSpeakBit && stages.indexOf('Booked') === -1) {
+        bits.push({ p: 3, h: '<span class="st-bit">Open to attend</span>' });
+      }
       if (!bits.length) return '';
-      return '<p class="ops-status-line">' + bits.join('<span class="st-sep">\u00b7</span>') + '</p>';
+      bits.sort(function (a, b) { return a.p - b.p; });   // committed presence leads (stable within a tier)
+      return '<p class="ops-status-line">' + bits.map(function (b) { return b.h; }).join('<span class="st-sep">\u00b7</span>') + '</p>';
     }
     function deadlineLine(d, o) {
       // Raw CFP deadline DATES are Angela's business (she runs applications) —
@@ -4201,6 +4238,7 @@
       if (d == null || !String(d).trim()) return '';
       var txt = String(d).trim();
       if (_isJunkVal(txt)) return '';   // skip "not specified" / "TBD" / "N/A" clutter
+      if (isStaleDeadline(txt)) return '';  // skip stale "…as of April 21" hedges
       if (isDeadlinePast(d)) return '';  // closed state is on the status line now
       // A CFP deadline on or after the event itself is nonsensical — you can't
       // submit a talk once the event has started. (Angela saw "CFP deadline:
