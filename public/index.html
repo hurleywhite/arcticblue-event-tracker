@@ -118,14 +118,28 @@
     .who-current { box-shadow: 0 0 0 2px var(--ab-rule-strong); }
     .who-dropdown {
       position: absolute; top: 100%; right: 0; margin-top: 6px; z-index: 40;
-      display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; width: 138px;
+      display: flex; flex-direction: column; gap: 3px; padding: 7px; width: 178px;
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
       border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.14);
     }
     .who-dropdown[hidden] { display: none; }   /* [hidden] alone loses to .who-dropdown's display:flex */
-    .who-dropdown .who-init { min-width: 22px; height: 22px; }
+    .who-menu-item {
+      display: flex; align-items: center; gap: 9px; width: 100%;
+      padding: 7px 9px; border: 0; background: none; border-radius: 7px;
+      cursor: pointer; text-align: left; font-family: var(--ab-sans);
+      font-size: 0.82rem; font-weight: 650; color: var(--ab-fg);
+    }
+    .who-menu-item:hover { background: var(--ab-bg-3); }
+    .who-menu-item svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--ab-fg-3); }
+    .who-switch-label {
+      font-family: var(--ab-mono); font-size: 0.56rem; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--ab-fg-3);
+      padding: 6px 9px 3px; margin-top: 2px; border-top: 1px solid var(--ab-rule);
+    }
+    .who-switch-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 5px 2px; }
+    .who-dropdown .who-init { min-width: 24px; height: 24px; font-size: 0.62rem; }
     .who-other {
-      width: 100%; margin-top: 2px; padding: 4px 0 0; border: 0; background: none;
+      width: 100%; margin-top: 3px; padding: 7px 9px 3px; border: 0; background: none;
       border-top: 1px solid var(--ab-rule); cursor: pointer; text-align: left;
       font-family: var(--ab-mono); font-size: 0.62rem; color: var(--ab-fg-3);
       text-decoration: underline; text-transform: none; letter-spacing: normal;
@@ -1739,13 +1753,17 @@
       border: 1px solid var(--ab-rule); border-radius: 12px;
       background: var(--ab-bg); padding: 20px 22px; margin: 0 0 24px;
     }
-    .profile-card-head { display: flex; align-items: center; gap: 11px; }
+    .profile-card-head { display: flex; align-items: center; gap: 13px; padding: 0 0 18px; border-bottom: 1px solid var(--ab-rule); }
     .profile-avatar {
       width: 34px; height: 34px; border-radius: 50%; flex: 0 0 auto;
       display: grid; place-items: center; font-family: var(--ab-mono);
       font-weight: 700; font-size: 0.92rem; color: #fff; background: var(--ab-blue);
     }
-    .profile-who { font-family: var(--ab-sans); font-weight: 700; font-size: 1.05rem; color: var(--ab-fg); }
+    .profile-avatar-lg { width: 46px; height: 46px; font-size: 1.2rem; }
+    .profile-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .profile-who { font-family: var(--ab-sans); font-weight: 700; font-size: 1.15rem; color: var(--ab-fg); }
+    .profile-role { font-size: 0.82rem; color: var(--ab-fg-3); }
+    .profile-materials { margin-top: 18px; }
     .profile-field { margin: 17px 0 0; }
     .profile-field label {
       display: block; font-family: var(--ab-mono); font-size: 0.68rem; font-weight: 600;
@@ -2360,7 +2378,6 @@
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
           <button type="button" role="tab" data-view="planahead" aria-selected="false">Plan Ahead</button>
-          <button type="button" role="tab" data-view="myprofile" aria-selected="false">My Profile</button>
           <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Events</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
@@ -6571,6 +6588,7 @@
       if (P && P.name) return P.name;
       return key ? key.charAt(0).toUpperCase() + key.slice(1) : '';
     }
+    function _profileRole(key) { var P = (window.AB_PERSONAS || {})[key]; return (P && P.role) || ''; }
     function _fmtBytes(n) {
       n = Number(n) || 0;
       if (n < 1024) return n + ' B';
@@ -6602,9 +6620,18 @@
       if (dbMissing) {
         html += '<div class="profile-setup-note"><strong>One-time setup needed.</strong> The profile store isn&#39;t in the database yet, so nothing here will save. Whoever runs the tracker needs to run the <code>team_profiles</code> setup once, then reload.</div>';
       }
-      html += '<div class="profile-card"><div class="profile-card-head">' +
-        '<span class="profile-avatar">' + initial + '</span>' +
-        '<span class="profile-who">' + escapeHtml(disp) + '</span></div>';
+      var role = _profileRole(meKey);
+      html += '<div class="profile-card">' +
+        '<div class="profile-card-head">' +
+          '<span class="profile-avatar profile-avatar-lg">' + initial + '</span>' +
+          '<span class="profile-id"><span class="profile-who">' + escapeHtml(disp) + '</span>' +
+            (role ? '<span class="profile-role">' + escapeHtml(role) + '</span>' : '') + '</span>' +
+        '</div>';
+      // Materials first, upload at the very top — the fastest thing you came to do.
+      html += '<div class="profile-field profile-materials"><label>Materials <span class="hint">&middot; bios, decks, one-pagers</span></label>' +
+        '<div class="profile-upload-row"><input type="file" id="pf-file-input" aria-label="Choose a file to upload"><button type="button" class="q-btn primary" id="pf-upload">Upload file</button></div>' +
+        '<div class="profile-files" id="pf-files"><p class="profile-file-empty">Loading files&hellip;</p></div></div>';
+      // Then the written profile.
       PROFILE_FIELDS.forEach(function (f) {
         var val = myRow ? (myRow[f.k] || '') : '';
         html += '<div class="profile-field"><label for="pf-' + f.k + '">' + escapeHtml(f.label) +
@@ -6613,9 +6640,6 @@
       });
       html += '<div class="profile-actions"><button type="button" class="q-btn primary" id="pf-save">Save profile</button>' +
         '<span class="profile-saved-note" id="pf-saved" hidden>&#10003; Saved</span></div>';
-      html += '<div class="profile-field" style="margin-top:20px;"><label>Files <span class="hint">&middot; bios, decks, one-pagers</span></label>' +
-        '<div class="profile-files" id="pf-files"><p class="profile-file-empty">Loading files&hellip;</p></div>' +
-        '<div class="profile-upload-row"><input type="file" id="pf-file-input" aria-label="Choose a file to upload"><button type="button" class="q-btn" id="pf-upload">Upload</button></div></div>';
       html += '</div>';   // end .profile-card
       var mates = (allRows || []).filter(function (r) { return r.person !== meKey && (r.bio || r.topics || r.past_talks || r.notes); });
       if (mates.length) {
@@ -10258,12 +10282,18 @@
       var others = WHO_ROSTER.filter(function (p) { return p.name.toLowerCase() !== cur.toLowerCase(); });
       host.innerHTML =
         '<button type="button" class="who-init who-current" id="who-current-btn" aria-haspopup="true" aria-expanded="false" title="' +
-          (cur ? 'Switch who you are (currently ' + escapeHtml(cur) + ')' : 'Set who you are') + '">' + escapeHtml(_whoInitFor(cur)) + '</button>' +
+          (cur ? escapeHtml(cur) + ' — profile & switch' : 'Set who you are') + '">' + escapeHtml(_whoInitFor(cur)) + '</button>' +
         '<div class="who-dropdown" id="who-dropdown" hidden>' +
-          others.map(function (p) {
-            return '<button type="button" class="who-init" data-setname="' + escapeHtml(p.name) + '" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.init) + '</button>';
-          }).join('') +
-          '<button type="button" class="who-other" id="who-other-btn">Other&hellip;</button>' +
+          '<button type="button" class="who-menu-item" id="who-myprofile-btn">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>' +
+            'My Profile</button>' +
+          (others.length
+            ? '<div class="who-switch-label">Switch to</div><div class="who-switch-row">' +
+              others.map(function (p) {
+                return '<button type="button" class="who-init" data-setname="' + escapeHtml(p.name) + '" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.init) + '</button>';
+              }).join('') + '</div>'
+            : '') +
+          '<button type="button" class="who-other" id="who-other-btn">Someone else&hellip;</button>' +
         '</div>';
       var curBtn = document.getElementById('who-current-btn');
       var dropdown = document.getElementById('who-dropdown');
@@ -10272,6 +10302,13 @@
         var willOpen = dropdown.hasAttribute('hidden');
         _closeWhoDropdown();
         if (willOpen) { dropdown.removeAttribute('hidden'); curBtn.setAttribute('aria-expanded', 'true'); }
+      });
+      document.getElementById('who-myprofile-btn').addEventListener('click', function (e) {
+        e.stopPropagation();
+        _closeWhoDropdown();
+        if (!getCollabName()) { var n = (window.prompt('Your name:', '') || '').trim(); if (n) setCollabName(n); else return; }
+        setView('myprofile');
+        _renderWhoSwitcher();
       });
       dropdown.querySelectorAll('.who-init[data-setname]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
