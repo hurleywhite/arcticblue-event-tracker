@@ -552,6 +552,8 @@
     .modal-quickbar .qa.on {
       background: #166534; color: #fff; border-color: #166534;
     }
+    /* Rejected-to-speak is a negative outcome — reads red when set. */
+    .modal-quickbar .qa-neg.on { background: #b91c1c; border-color: #b91c1c; }
     /* Primary edit affordance — top-right of the modal header, same spot always. */
     /* Edit — the primary action, solid ArcticBlue. */
     .qa-edit {
@@ -1727,10 +1729,15 @@
       transition: border-color 120ms ease, box-shadow 120ms ease;
     }
     .queue-row:hover { border-color: #bfe3f5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    /* Whole-row click-to-open (My Lineup) — reads as one big button. */
+    .queue-row-open { cursor: pointer; }
+    .queue-row-open:hover { border-color: #1fa0dc; }
+    .queue-row-open:focus-visible { outline: 2px solid var(--ab-blue); outline-offset: 2px; }
+    .queue-row-open:hover .queue-name { color: #1fa0dc; }
     .queue-main { min-width: 0; }
     .queue-name {
       font-family: var(--ab-sans); font-weight: 650; font-size: 0.98rem; color: var(--ab-fg);
-      background: none; border: 0; padding: 0; cursor: pointer; text-align: left;
+      background: none; border: 0; padding: 0; text-align: left; display: inline-block; cursor: pointer;
     }
     .queue-name:hover { color: #1fa0dc; text-decoration: underline; }
     .queue-meta { font-size: 0.8rem; color: var(--ab-fg-3); margin: 3px 0 0; }
@@ -2809,6 +2816,7 @@
     bStage.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
     bStage.push('<button type="button" class="qa' + (has('Followed up') ? ' on' : '') + '" data-qa="followed-up">' + (has('Followed up') ? '✓ Followed up' : 'Followed up') + '</button>');
     bStage.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
+    bStage.push('<button type="button" class="qa qa-neg' + (has('Rejected') ? ' on' : '') + '" data-qa="rejected" title="Rejected to speak — the organizer passed. Angela can flag it so the team can opt to just attend.">' + (has('Rejected') ? '✓ Rejected' : 'Rejected to speak') + '</button>');
     // "Attending" is PER-PERSON: it reflects whether the signed-in person is in
     // the attendees list (Thor sees it off when only Jerome attends). Clicking it
     // adds/removes YOU. Angela assigns anyone via the edit-form Attending bubbles.
@@ -2911,8 +2919,8 @@
         rec.stage_tags = atags;
         patch.status_tags = atags;
       }
-      else if (qa === 'submitted' || qa === 'followed-up' || qa === 'booked') {
-        var stage = qa === 'submitted' ? 'Submitted' : (qa === 'followed-up' ? 'Followed up' : 'Booked');
+      else if (qa === 'submitted' || qa === 'followed-up' || qa === 'booked' || qa === 'rejected') {
+        var stage = qa === 'submitted' ? 'Submitted' : (qa === 'followed-up' ? 'Followed up' : (qa === 'booked' ? 'Booked' : 'Rejected'));
         var tags = (rec.stage_tags || []).slice();
         var idx = tags.indexOf(stage);
         if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
@@ -3647,6 +3655,7 @@
       { key: 'Followed up',  dot: '#d97706', bg: '#fde68a', fg: '#92400e' },
       { key: 'Meeting held', dot: '#8b5cf6', bg: '#ddd6fe', fg: '#5b21b6' },
       { key: 'Booked',       dot: '#047857', bg: '#bbf7d0', fg: '#14532d' },
+      { key: 'Rejected',     dot: '#dc2626', bg: '#fecaca', fg: '#991b1b' },
       { key: 'Attending',    dot: '#0d9488', bg: '#ccfbf1', fg: '#115e59' }
     ];
     var STAGE_BY_KEY = {};
@@ -3654,7 +3663,7 @@
     // "Most important" ranking for a single calendar tint when an event
     // carries several stages: a win (Booked) trumps everything, then
     // Attending, then progress backwards.
-    var STAGE_DISPLAY_RANK = ['Booked', 'Attending', 'Meeting held', 'Followed up', 'Submitted', 'Identified'];
+    var STAGE_DISPLAY_RANK = ['Booked', 'Attending', 'Rejected', 'Meeting held', 'Followed up', 'Submitted', 'Identified'];
 
     function stageStyle(key) {
       var s = STAGE_BY_KEY[key];
@@ -3689,6 +3698,7 @@
       if (!s) return [];
       if (/attending|will attend|attend only/i.test(s)) return ['Attending'];
       if (/book|self submitted|speaking|confirmed/i.test(s)) return ['Booked'];
+      if (/reject|turned down|not selected|not chosen|declined to speak/i.test(s)) return ['Rejected'];
       if (/not accept|declin|\bskip\b|passing|we.ll pass|no opening|date conflict|sponsorship only|don.?t call/i.test(s)) return [];
       if (/intro meeting|received intro|in contact|cc.?d on mtg|\bmeeting\b/i.test(s)) return ['Meeting held'];
       if (/follow.?up|followed up|chased|nudged/i.test(s)) return ['Followed up'];
@@ -4210,6 +4220,10 @@
       var bits = [];   // { p: priority, h: html }
       if (stages.indexOf('Booked') !== -1) {
         bits.push({ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + (speaker ? ' \u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>' });
+      } else if (stages.indexOf('Rejected') !== -1) {
+        // Rejected to speak — a terminal "no" that wins over a pending Submitted.
+        // Still shows "Open to attend" below, so the team can opt to just attend.
+        bits.push({ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected to speak' + (speaker ? ' \u2014 ' + escapeHtml(speaker) : '') + '</span>' });
       } else if (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) {
         bits.push({ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \u2014 ' + escapeHtml(speaker) : '') + (closed ? ' (CFP closed)' : '') + '</span>' });
       } else if (closed) {
@@ -6428,7 +6442,8 @@
             region: r.region || '', location: r.location || '', speaker: r.speaker || '',
             statusHtml: _slEl ? _slEl.outerHTML : '',
             sort: parseInt(c.dataset.sort || '99999999', 10),
-            _past: _pastFlag, briefReady: c.dataset.briefReady === '1'
+            _past: _pastFlag, briefReady: c.dataset.briefReady === '1',
+            is_private: !!r.is_private   // private events carry no public info to brief from
           };
           (_pastFlag ? past : upcoming).push(item);
         });
@@ -6636,13 +6651,16 @@
         var loc = [it.location].filter(Boolean).join(' &middot; ');
         // Same derived status the grid card shows — one vocabulary everywhere.
         var statusHtml = it.statusHtml || '';
-        // The Day-Of brief now lives here (no separate tab) — on upcoming rows.
-        var brief = it._past ? '' :
+        // The Day-Of brief lives here (no separate tab) — on upcoming rows. A
+        // PRIVATE event has no public info to brief from, so no brief button.
+        var brief = (it._past || it.is_private) ? '' :
           (it.briefReady ? '<span class="dayof-ready">&#10003; brief ready</span>' : '') +
           '<button type="button" class="q-btn primary" data-brief-kind="' + it.kind + '" data-brief-key="' + escapeHtml(String(it.key)) + '">Open brief &rarr;</button>';
-        return '<div class="queue-row"><div class="queue-main">' +
-            '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
-            '<button type="button" class="ops-details-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
+        // The whole row opens the event details on click (like the grid cards) —
+        // no separate "Details" button. The brief button stops propagation so it
+        // still fires its own action.
+        return '<div class="queue-row queue-row-open" role="button" tabindex="0" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '"><div class="queue-main">' +
+            '<span class="queue-name">' + escapeHtml(it.name) + '</span>' +
             '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
             statusHtml +
           '</div>' +
@@ -6712,7 +6730,13 @@
         });
       });
       host.querySelectorAll('[data-brief-kind]').forEach(function (el) {
-        el.addEventListener('click', function () { openBriefDrawer(el.getAttribute('data-brief-kind'), el.getAttribute('data-brief-key')); });
+        el.addEventListener('click', function (e) { e.stopPropagation(); openBriefDrawer(el.getAttribute('data-brief-kind'), el.getAttribute('data-brief-key')); });
+      });
+      // Whole-row keyboard open (rows are role="button" now).
+      host.querySelectorAll('.queue-row-open').forEach(function (row) {
+        row.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opsOpenRef(row.getAttribute('data-ref-kind'), row.getAttribute('data-ref-key')); }
+        });
       });
       var _pastHead = host.querySelector('.queue-section.collapsible .queue-sec-head');
       if (_pastHead) {
@@ -10845,7 +10869,7 @@
     // The modal's quick-action buttons + "Edit Event" call these. opsWrite
     // routes a patch to the right table; opsOpenEditor expands the source
     // card's full edit form.
-    var _STAGE_ORDER = ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
+    var _STAGE_ORDER = ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Rejected', 'Attending'];
     window.opsStageOrder = _STAGE_ORDER;
     window.opsWrite = function (table, key, patch) {
       var who = getCollabName() || 'Team';

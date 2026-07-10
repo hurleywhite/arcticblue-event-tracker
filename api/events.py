@@ -194,8 +194,11 @@ ALLOWED = {
 }
 BOOL_COLS = {'seed', 'urgent', 'paid'}
 
-# Canonical 5-stage pipeline — incoming status_tags are normalized to these.
-STAGES = ['Identified', 'Submitted', 'Meeting held', 'Booked', 'Declined']
+# Canonical pipeline stages — incoming status_tags are normalized to these.
+# "Rejected" = rejected to speak (organizer passed); distinct from "Declined"
+# (the team passed on the event).
+STAGES = ['Identified', 'Submitted', 'Followed up', 'Meeting held', 'Booked',
+          'Rejected', 'Attending', 'Declined']
 _STAGE_LOOKUP = {s.lower(): s for s in STAGES}
 
 _MONTHS = {
