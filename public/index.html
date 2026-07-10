@@ -1752,6 +1752,14 @@
     .queue-actions.sug-actions { flex-direction: row; flex-wrap: wrap; gap: 6px; align-items: center; }
     .q-btn.sug-skip { color: var(--ab-fg-3); }
     .q-btn.sug-skip:hover { border-color: #d64545; color: #d64545; }
+    /* "Batch your trips" — a cluster of nearby-in-time events under an anchor. */
+    .trip-cluster { border-left: 3px solid #1fa0dc; padding-left: 12px; margin: 0 0 20px; }
+    .trip-anchor { font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 8px; }
+    .trip-anchor strong { color: var(--ab-fg); }
+    .trip-anchor-name { font: inherit; font-weight: 700; color: var(--ab-fg); background: none; border: 0; padding: 0; cursor: pointer; }
+    .trip-anchor-name:hover { color: #1271a8; text-decoration: underline; }
+    .trip-anchor-meta { display: block; font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); margin-top: 2px; }
+    .trip-prox { font-family: var(--ab-mono); font-size: 0.66rem; color: #1271a8; margin: 3px 0 0; }
     /* ── My Profile view (bio, topics, past talks, files, notes) ───── */
     .profile-wrap { max-width: 760px; }
     .profile-card {
@@ -6580,6 +6588,81 @@
       if (mo < 1 || mo > 12) return { key: 'tbd', label: 'Date TBD', sort: 99999999 };
       return { key: y + '-' + mo, label: OPS_MONTH_NAMES[mo - 1] + ' ' + y, sort: y * 100 + mo };
     }
+    // ── Trip clustering — when you're already going to a city, what ELSE is on
+    // nearby within a few days, so one trip can cover two events. Anchored on
+    // the events you're attending / booked at / interested in; a candidate must
+    // be close in BOTH place (same or neighbouring city, via the map's city
+    // coords) and time (within ~3 days of your anchor's dates).
+    function _haversineKm(a, b) {
+      var R = 6371, toR = Math.PI / 180;
+      var dLat = (b[0] - a[0]) * toR, dLon = (b[1] - a[1]) * toR;
+      var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(a[0] * toR) * Math.cos(b[0] * toR) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+    }
+    function _sortToDate(s) {
+      if (!s || s >= 99999999) return null;
+      return new Date(Math.floor(s / 10000), Math.floor((s % 10000) / 100) - 1, (s % 100) || 1);
+    }
+    function _endSortOf(it) {
+      var e = it.end_date;
+      if (e && /^\d{4}-\d{2}-\d{2}/.test(e)) { return (+e.slice(0, 4)) * 10000 + (+e.slice(5, 7)) * 100 + (+e.slice(8, 10)); }
+      return it.sort;
+    }
+    function _tripClusters() {
+      var meFirst = abFold(getCollabName() || '').split(/\s+/)[0];
+      if (!meFirst) return [];
+      var BADt = /complian|regulat|regtech|gdpr|\baudit/i;
+      var skips = _sugSkips();
+      var NEAR_KM = 200, DAY_MS = 86400000, GAP_DAYS = 3;
+      var all = opsAllItems();
+      function role(it) {
+        if ((it.attendees || []).some(function (a) { return abFold(a).split(/\s+/)[0] === meFirst; })) return 'attending';
+        if (it.stages.indexOf('Booked') !== -1 && abFold(it.speaker || '').split(/\s+/)[0] === meFirst) return 'speaking at';
+        if ((it.interested || []).some(function (n) { return abFold(n).split(/\s+/)[0] === meFirst; })) return 'interested in';
+        return null;
+      }
+      var anchors = [];
+      all.forEach(function (it) {
+        if (it.past || it.hidden) return;
+        var r = role(it); if (!r) return;
+        var g = geoOf(it); if (!g) return;
+        if (!it.sort || it.sort >= 99999999) return;
+        anchors.push({ it: it, role: r, geo: g, startD: _sortToDate(it.sort), endD: _sortToDate(_endSortOf(it)) });
+      });
+      if (!anchors.length) return [];
+      anchors.sort(function (a, b) { return a.it.sort - b.it.sort; });
+      var clusters = [], usedKeys = {};
+      anchors.forEach(function (anchor) {
+        if (!anchor.startD || !anchor.endD) return;
+        var near = [], seenName = {};
+        all.forEach(function (it) {
+          if (it === anchor.it) return;
+          if (it.past || it.hidden || it.queue_dismissed) return;
+          if (it.stages.length) return;                       // already in the pipeline
+          if (BADt.test(it.name)) return;
+          if (role(it)) return;                               // already yours
+          if (skips[_sugSkipId(it.kind, it.key)]) return;
+          if (usedKeys[it.kind + ':' + it.key]) return;       // don't repeat across anchors
+          var nm = abFold(it.name); if (seenName[nm]) return;  // collapse duplicate events
+          var g = geoOf(it); if (!g) return;
+          var km = _haversineKm(anchor.geo, g);
+          if (km > NEAR_KM) return;
+          var cs = _sortToDate(it.sort), ce = _sortToDate(_endSortOf(it));
+          if (!cs || !ce) return;
+          var gap = Math.max(0, Math.ceil((cs - anchor.endD) / DAY_MS), Math.ceil((anchor.startD - ce) / DAY_MS));
+          if (gap > GAP_DAYS) return;
+          seenName[nm] = 1;
+          near.push({ it: it, gap: gap, km: km });
+        });
+        if (near.length) {
+          near.sort(function (a, b) { return a.it.sort - b.it.sort; });
+          near.forEach(function (n) { usedKeys[n.it.kind + ':' + n.it.key] = 1; });
+          clusters.push({ anchor: anchor.it, role: anchor.role, near: near });
+        }
+      });
+      return clusters;
+    }
     // ── Plan Ahead: the everyone-facing "decide what to go to" surface —
     // 2–4 month suggestions you clear with one call each: "I'm interested"
     // (goes on Angela's radar to register you) or "Not for me" (off your list
@@ -6593,8 +6676,39 @@
       var intro = '<p class="queue-intro myev-intro"><strong>Plan Ahead:</strong> ' +
         (personalized ? 'Events 2&ndash;4 months out that fit your focus. ' : 'Events 2&ndash;4 months out worth a look. ') +
         'Decide which to go to &mdash; flag the ones you want (Angela registers you) and skip the rest.</p>';
-      var sug = _suggestionsFor();
-      if (!sug.length) {
+      // Trip clusters first — "while you're already in X, here's what's nearby".
+      var clusters = _tripClusters();
+      var clusteredKeys = {};
+      var tripHtml = '';
+      if (clusters.length) {
+        tripHtml += '<div class="queue-sec-head"><span class="queue-sec-title">&#129517; Batch your trips</span><span class="queue-sec-count">' + clusters.length + '</span></div>' +
+          '<p class="queue-meta" style="margin:-4px 0 14px;">You&#39;re already going to these &mdash; here&#39;s what else is on within a few days, in the same or a nearby city.</p>';
+        clusters.forEach(function (cl) {
+          var aLoc = cl.anchor.location || cl.anchor.city || '';
+          tripHtml += '<div class="queue-section trip-cluster"><p class="trip-anchor">You&#39;re ' + escapeHtml(cl.role) +
+            ' <button class="trip-anchor-name" data-ref-kind="' + cl.anchor.kind + '" data-ref-key="' + escapeHtml(String(cl.anchor.key)) + '">' + escapeHtml(cl.anchor.name) + '</button>' +
+            '<span class="trip-anchor-meta">' + escapeHtml(cl.anchor.date_str || '') + (aLoc ? ' \u00b7 ' + escapeHtml(aLoc) : '') + '</span></p>';
+          cl.near.forEach(function (n) {
+            var it = n.it; clusteredKeys[it.kind + ':' + it.key] = 1;
+            var loc = it.location || '';
+            var prox = (n.gap === 0 ? 'overlaps' : ('~' + n.gap + ' day' + (n.gap === 1 ? '' : 's') + ' apart')) +
+              ' \u00b7 ' + (n.km < 25 ? 'same city' : ('~' + Math.round(n.km) + ' km away'));
+            tripHtml += '<div class="queue-row sug-row"><div class="queue-main">' +
+                '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+                '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \u00b7 ' + loc : '') + '</p>' +
+                '<p class="trip-prox">' + prox + '</p>' +
+              '</div><div class="queue-actions sug-actions">' +
+                '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ I&#39;m interested</button>' +
+                '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
+              '</div></div>';
+          });
+          tripHtml += '</div>';
+        });
+      }
+
+      // 2–4 month suggestions (excluding anything already shown in a trip cluster).
+      var sug = _suggestionsFor().filter(function (x) { return !clusteredKeys[x.it.kind + ':' + x.it.key]; });
+      if (!sug.length && !tripHtml) {
         // Empty because you cleared it vs. because nothing fit yet — say which.
         var anySkipped = Object.keys(_sugSkips()).length > 0;
         host.innerHTML = intro + '<div class="queue-empty">' +
@@ -6614,7 +6728,7 @@
         groups[m.key].items.push(x);
       });
       order.sort(function (a, b) { return groups[a].sort - groups[b].sort; });
-      var html = intro;
+      var html = intro + tripHtml;
       order.forEach(function (mkey) {
         var g = groups[mkey];
         var list = g.items.slice().sort(function (a, b) { return a.it.sort - b.it.sort; });
