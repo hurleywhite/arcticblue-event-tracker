@@ -2214,6 +2214,18 @@ def build():
     .trip-anchor-name:hover {{ color: #1271a8; text-decoration: underline; }}
     .trip-anchor-meta {{ display: block; font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); margin-top: 2px; }}
     .trip-prox {{ font-family: var(--ab-mono); font-size: 0.66rem; color: #1271a8; margin: 3px 0 0; }}
+    /* Angela's Batch-your-trips is grouped by person: a name header, then that
+       person's trips by date. */
+    .trip-person {{ margin: 0 0 22px; }}
+    .trip-person-name {{
+      display: flex; align-items: baseline; gap: 8px;
+      font-family: var(--ab-sans); font-size: 1rem; font-weight: 700;
+      color: var(--ab-fg); margin: 0 0 10px;
+      padding-bottom: 6px; border-bottom: 1px solid var(--ab-rule);
+    }}
+    .trip-person-count {{ font-size: 0.72rem; font-weight: 500; color: var(--ab-fg-3); }}
+    .trip-person .trip-cluster {{ margin-bottom: 14px; }}
+    .trip-person .trip-cluster:last-child {{ margin-bottom: 0; }}
     /* ── My Profile view (bio, topics, past talks, files, notes) ───── */
     .profile-wrap {{ max-width: 760px; }}
     .profile-card {{
@@ -7600,8 +7612,9 @@ def build():
           '<p class="queue-meta" style="margin:-4px 0 14px;">' +
           (support ? 'Where the team&#39;s already headed &mdash; and what else is on within a few days, same or nearby city.'
                    : 'You&#39;re already going to these &mdash; here&#39;s what else is on within a few days, in the same or a nearby city.') + '</p>';
-        clusters.forEach(function (cl) {{
-          var lead = cl.support ? (_whoLabel(cl.who) + ' is ' + escapeHtml(cl.role)) : ('You&#39;re ' + escapeHtml(cl.role));
+        // Render one anchor + its nearby events. `lead` is the "You're
+        // attending" / "Attending" phrase before the event name.
+        function renderCluster(cl, lead) {{
           tripHtml += anchorHead(lead, cl.anchor, '');
           cl.near.forEach(function (n) {{
             shownKeys[n.it.kind + ':' + n.it.key] = 1;
@@ -7610,7 +7623,31 @@ def build():
             tripHtml += sugRow(n.it, '<p class="trip-prox">' + prox + '</p>');
           }});
           tripHtml += '</div>';
-        }});
+        }}
+        if (support) {{
+          // Angela plans for everyone: group the trips BY PERSON, then by date
+          // within each person, so it reads "here's where Thor is going, then
+          // Verma, …". Persons ordered by their soonest trip.
+          var byWho = {{}}, whoOrder = [];
+          clusters.forEach(function (cl) {{
+            if (!byWho[cl.who]) {{ byWho[cl.who] = []; whoOrder.push(cl.who); }}
+            byWho[cl.who].push(cl);
+          }});
+          whoOrder.sort(function (a, b) {{ return (byWho[a][0].anchor.sort || 0) - (byWho[b][0].anchor.sort || 0); }});
+          whoOrder.forEach(function (who) {{
+            var list = byWho[who].slice().sort(function (a, b) {{ return (a.anchor.sort || 0) - (b.anchor.sort || 0); }});
+            tripHtml += '<div class="trip-person"><h4 class="trip-person-name">' + _whoLabel(who) +
+              '<span class="trip-person-count">' + list.length + ' trip' + (list.length === 1 ? '' : 's') + '</span></h4>';
+            list.forEach(function (cl) {{
+              // The person heading already names them — the row just states the role.
+              var role = cl.role.charAt(0).toUpperCase() + cl.role.slice(1);
+              renderCluster(cl, escapeHtml(role));
+            }});
+            tripHtml += '</div>';
+          }});
+        }} else {{
+          clusters.forEach(function (cl) {{ renderCluster(cl, 'You&#39;re ' + escapeHtml(cl.role)); }});
+        }}
       }}
       // ── Because you're interested in X (content similarity) ───────────
       var recs = _contentRecs();
