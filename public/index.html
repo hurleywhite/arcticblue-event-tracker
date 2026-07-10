@@ -648,6 +648,10 @@
     .me-int input { position: absolute; opacity: 0; width: 0; height: 0; }
     .me-int:hover { border-color: var(--ab-fg-3); color: var(--ab-fg); }
     .me-int.on { background: var(--ab-blue); color: #fff; border-color: var(--ab-blue); }
+    /* "Private event" toggle in the edit form. */
+    .me-toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: var(--ab-sans); font-size: 0.85rem; color: var(--ab-fg-2); }
+    .me-toggle input { width: 15px; height: 15px; accent-color: var(--ab-blue); flex: 0 0 auto; }
+    .badge-private { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
     /* Read-only "interested" chips in the detail view. */
     .int-chip {
       display: inline-block; margin: 0 6px 4px 0; padding: 3px 10px; border-radius: 999px;
@@ -2934,63 +2938,75 @@
     var pris = ['', 'High', 'Medium', 'Low'];
     var p2p = ['', 'Yes', 'No', 'Both'];
     var curPri = isCat ? (rec.priority_override || rec.priority || '') : (rec.priority || '');
+    var priv = rec.is_private === true;
     var h = '';
     if (!isCat) {
       h += ef('Event name', inp('name', rec.name));
       h += ef('Date', inp('date_str', rec.date_str, 'e.g. Sept 14–16, 2026'));
       h += ef('Location', inp('location', rec.location));
     }
+    // Private / invite-only events don't need the public-conference metadata —
+    // just POC, link, notes & chat. Toggling this hides the rest.
+    h += ef('Private event', '<label class="me-toggle"><input type="checkbox" data-private' + (priv ? ' checked' : '') + '> Private / invite-only &mdash; hide the public-event fields, keep just POC, link, notes &amp; chat</label>');
     // Field order (Thor's ask): pipeline stage, notes, ArcticBlue speaker
     // (bubbles), speaker topic, attending, then website link.
     h += ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
     h += ef('Notes', ta('notes', rec.notes, 3));
     h += ef('ArcticBlue speaker', '<div class="me-ints">' + spChips + '</div>');
-    h += ef('Speaker topic — drives the day-of news pull', inp('speaker_topic', rec.speaker_topic, 'e.g. AI workforce enablement'));
+    if (!priv) h += ef('Speaker topic — drives the day-of news pull', inp('speaker_topic', rec.speaker_topic, 'e.g. AI workforce enablement'));
     h += ef('Attending — surfaces a Day-Of brief', '<div class="me-ints">' + attChips + '</div>');
     h += ef((isCat ? 'Website / link' : 'Website'), inp('url', rec.url, 'https://'));
-    h += ef('Apply to speak link — powers the card button', inp('apply_url', rec.apply_url, 'https:// CFP or application page'));
+    if (!priv) h += ef('Apply to speak link — powers the card button', inp('apply_url', rec.apply_url, 'https:// CFP or application page'));
     h += ef('Interested (joins Angela\'s apply queue)', '<div class="me-ints">' + intChips + '</div>');
     h += ef('Priority', '<select class="me-input" data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) { return opt(v, curPri); }).join('') + '</select>');
-    h += ef('Why it fits ArcticBlue', ta('why', rec.why));
-    h += ef('About', ta('about', rec.about));
-    h += ef('Focus areas', ta('focus_areas', rec.focus_areas, 2));
-    h += ef('Typical attendees', ta('typical_attendees', rec.typical_attendees, 2));
-    h += ef('Speaking route', ta('speaking_route', rec.speaking_route, 2));
-    h += ef('Pay-to-play', '<select class="me-input" data-edit="pay_to_play">' + p2p.map(function (v) { return opt(v, rec.pay_to_play); }).join('') + '</select>');
-    h += ef('Venue', inp('venue', rec.venue));
+    if (!priv) {
+      h += ef('About', ta('about', rec.about));
+      h += ef('Focus areas', ta('focus_areas', rec.focus_areas, 2));
+      h += ef('Typical attendees', ta('typical_attendees', rec.typical_attendees, 2));
+      h += ef('Speaking route', ta('speaking_route', rec.speaking_route, 2));
+      h += ef('Pay-to-play', '<select class="me-input" data-edit="pay_to_play">' + p2p.map(function (v) { return opt(v, rec.pay_to_play); }).join('') + '</select>');
+      h += ef('Venue', inp('venue', rec.venue));
+      h += ef('Deadline', inp('deadline', rec.deadline, 'e.g. July 10, 2026'));
+    }
+    // Contact info stays for private events — it's part of the POC.
     h += ef('Contact info', inp('contact_info', rec.contact_info));
-    h += ef('Deadline', inp('deadline', rec.deadline, 'e.g. July 10, 2026'));
     // Fields that used to live only in the inline card editor — migrated here so
     // editing lives entirely in the Details pop-up (nothing lost).
     if (isCat) {
-      h += ef('Type', inp('type', rec.type, 'e.g. Enterprise'));
-      h += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) { return opt(v, rec.audience_type); }).join('') + '</select>');
-      h += ef('Meetings & networking (1:1s)', inp('meeting_formats', rec.meeting_formats, 'e.g. Hosted 1:1 meetings; roundtables'));
-      h += ef('Price to attend', inp('pricing', rec.pricing, 'e.g. $1,995 delegate pass; free for buyers'));
-      h += ef('Attendee count', inp('attendee_count', rec.attendee_count, 'e.g. 1,500+'));
-      h += ef('Track', '<select class="me-input" data-edit="track">' + ['', 'Sponsor', 'Earned', 'Both', 'Unknown'].map(function (v) { return opt(v, rec.track); }).join('') + '</select>');
-      // The free-text "legacy status" label that shows on the card face
-      // (e.g. "Sponsorship Only") — editable + clearable; the soft-delete
-      // sentinel is hidden so it can't be edited by accident.
-      h += ef('Status label (shown on the card)', inp('status', rec.workflow_status === '__deleted__' ? '' : rec.workflow_status, 'e.g. Sponsorship only · clear to remove'));
+      if (!priv) {
+        h += ef('Type', inp('type', rec.type, 'e.g. Enterprise'));
+        h += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) { return opt(v, rec.audience_type); }).join('') + '</select>');
+        h += ef('Meetings & networking (1:1s)', inp('meeting_formats', rec.meeting_formats, 'e.g. Hosted 1:1 meetings; roundtables'));
+        h += ef('Price to attend', inp('pricing', rec.pricing, 'e.g. $1,995 delegate pass; free for buyers'));
+        h += ef('Attendee count', inp('attendee_count', rec.attendee_count, 'e.g. 1,500+'));
+        h += ef('Track', '<select class="me-input" data-edit="track">' + ['', 'Sponsor', 'Earned', 'Both', 'Unknown'].map(function (v) { return opt(v, rec.track); }).join('') + '</select>');
+        // The free-text "legacy status" label that shows on the card face
+        // (e.g. "Sponsorship Only") — editable + clearable; the soft-delete
+        // sentinel is hidden so it can't be edited by accident.
+        h += ef('Status label (shown on the card)', inp('status', rec.workflow_status === '__deleted__' ? '' : rec.workflow_status, 'e.g. Sponsorship only · clear to remove'));
+      }
     } else {
-      h += ef('Region', '<select class="me-input" data-edit="region">' + ['', 'US & Canada', 'Latin America', 'Europe', 'Africa', 'MENA', 'Asia-Pacific', 'Global'].map(function (v) { return opt(v, rec.region); }).join('') + '</select>');
-      h += ef('Type', inp('type', rec.type));
-      h += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) { return opt(v, rec.audience_type); }).join('') + '</select>');
-      h += ef('Price to attend', inp('pricing', rec.pricing));
-      h += ef('Attendee count', inp('attendee_count', rec.attendee_count));
-      h += ef('Meetings & networking', inp('meeting_formats', rec.meeting_formats));
-      h += ef('Past / announced speakers', ta('past_speakers', rec.past_speakers, 2));
-      h += ef('Submission status', inp('submission_status', rec.submission_status));
+      if (!priv) {
+        h += ef('Region', '<select class="me-input" data-edit="region">' + ['', 'US & Canada', 'Latin America', 'Europe', 'Africa', 'MENA', 'Asia-Pacific', 'Global'].map(function (v) { return opt(v, rec.region); }).join('') + '</select>');
+        h += ef('Type', inp('type', rec.type));
+        h += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) { return opt(v, rec.audience_type); }).join('') + '</select>');
+        h += ef('Price to attend', inp('pricing', rec.pricing));
+        h += ef('Attendee count', inp('attendee_count', rec.attendee_count));
+        h += ef('Meetings & networking', inp('meeting_formats', rec.meeting_formats));
+        h += ef('Past / announced speakers', ta('past_speakers', rec.past_speakers, 2));
+        h += ef('Submission status', inp('submission_status', rec.submission_status));
+      }
       h += ef('POC name', inp('poc_name', rec.poc_name));
       h += ef('POC email', inp('poc_email', rec.poc_email));
       h += ef('POC LinkedIn', inp('poc_linkedin', rec.poc_linkedin));
-      h += ef('Additional contacts', ta('additional_contacts', rec.additional_contacts, 2));
-      h += ef('Speaking fee', inp('speaking_fee', rec.speaking_fee));
-      var paidCur = rec.paid === true ? 'true' : (rec.paid === false ? 'false' : '');
-      h += ef('Paid', '<select class="me-input" data-edit="paid">' + [['', '—'], ['true', 'Yes'], ['false', 'No']].map(function (o) { return '<option value="' + o[0] + '"' + (paidCur === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>');
+      if (!priv) {
+        h += ef('Additional contacts', ta('additional_contacts', rec.additional_contacts, 2));
+        h += ef('Speaking fee', inp('speaking_fee', rec.speaking_fee));
+        var paidCur = rec.paid === true ? 'true' : (rec.paid === false ? 'false' : '');
+        h += ef('Paid', '<select class="me-input" data-edit="paid">' + [['', '—'], ['true', 'Yes'], ['false', 'No']].map(function (o) { return '<option value="' + o[0] + '"' + (paidCur === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>');
+      }
     }
-    h += ef('Post-mortem (ROI: contacts · meetings · sales vs cost)', ta('postmortem', rec.postmortem, 2));
+    if (!priv) h += ef('Post-mortem (ROI: contacts · meetings · sales vs cost)', ta('postmortem', rec.postmortem, 2));
     h += '<div class="me-danger"><button type="button" class="me-delete">Delete this event</button>' +
          '<span class="me-danger-note">' + (isCat
            ? 'Removes this event from the tracker (stays gone after the daily sync).'
@@ -3081,6 +3097,14 @@
         window.opsWrite(rec._table, rec._key, patch);
       });
     });
+    // Private-event toggle — persist, then re-render the modal so both the
+    // read view and the edit form reflect the simplified (or full) layout.
+    var privCb = box.querySelector('[data-private]');
+    if (privCb) privCb.addEventListener('change', function () {
+      rec.is_private = privCb.checked;
+      window.opsWrite(rec._table, rec._key, { is_private: privCb.checked });
+      if (window.openEventModal) window.openEventModal(rec);
+    });
     // Delete (manual events only) — lives at the bottom of the Edit form.
     var delBtn = box.querySelector('.me-delete');
     if (delBtn) delBtn.addEventListener('click', function () {
@@ -3151,6 +3175,7 @@
     // (Buyer-rich audience is no longer its own badge — it now feeds the
     //  priority range above, so a buyer-rich room reads as higher priority.)
     if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
+    if (rec.is_private === true) badges.push('<span class="badge badge-private">Private</span>');
     $badges.innerHTML = badges.join('');
 
     $date.textContent  = rec.date_str || '';
@@ -3170,41 +3195,45 @@
     html += '<div class="event-chat" id="event-chat-panel"></div>';
 
     // Read-only view. The edit form below mirrors this exact layout.
-    var v = '';
-    // (Interest is shown once, in the quick-bar above — no duplicate field here.)
     // "Why it fits ArcticBlue" removed from the read view (Hurley 2026-07-09) —
-    // still editable in the Edit form and used by search/suggestions scoring.
-    v += field('About', rec.about);
-    v += field('Focus areas', rec.focus_areas);
-    v += field('Typical attendees', rec.typical_attendees);
-    v += field('Past / announced speakers', rec.past_speakers);
-    v += field('Meetings & networking', rec.meeting_formats);
-    v += field('Speaking route', rec.speaking_route);
-
-    // Short facts in a 2-up grid
-    var grid = '';
-    grid += field('Deadline', rec.deadline);
-    grid += field('Attendee count', rec.attendee_count);
-    grid += field('Audience', rec.audience_type);
-    grid += field('Price to attend', rec.pricing);
-    grid += field('Pay-to-play', rec.pay_to_play);
-    grid += field('Venue', rec.venue);
-    grid += field('Submission status', rec.submission_status);
-    grid += field('Speaking fee', rec.speaking_fee);
-    if (grid) v += '<div class="modal-grid">' + grid + '</div>';
-
-    v += field('ArcticBlue speaker', rec.speaker);
-
-    // Contacts
+    // still used by search/suggestions scoring.
+    var v = '';
+    // Point of contact — the one detail that matters for a private event.
     var contactBits = [];
     if (rec.poc_name)  contactBits.push(esc(rec.poc_name));
     if (rec.poc_email) contactBits.push('<a href="mailto:' + esc(rec.poc_email) + '">' + esc(rec.poc_email) + '</a>');
     if (rec.poc_linkedin) contactBits.push('<a href="' + esc(rec.poc_linkedin) + '" target="_blank" rel="noopener">LinkedIn ↗</a>');
-    if (contactBits.length) v += field('Point of contact', contactBits.join(' · '), true);
-    v += field('Contact info', rec.contact_info);
-    v += field('Additional contacts', rec.additional_contacts);
-    v += field('Post-mortem (ROI)', rec.postmortem);
-    v += field('Notes', rec.notes);
+    var pocHtml = (contactBits.length ? field('Point of contact', contactBits.join(' · '), true) : '') +
+                  field('Contact info', rec.contact_info);
+    if (rec.is_private) {
+      // Private / invite-only: just POC + notes (link is the title, chat above).
+      v += pocHtml;
+      v += field('ArcticBlue speaker', rec.speaker);
+      v += field('Notes', rec.notes);
+    } else {
+      v += field('About', rec.about);
+      v += field('Focus areas', rec.focus_areas);
+      v += field('Typical attendees', rec.typical_attendees);
+      v += field('Past / announced speakers', rec.past_speakers);
+      v += field('Meetings & networking', rec.meeting_formats);
+      v += field('Speaking route', rec.speaking_route);
+      // Short facts in a 2-up grid
+      var grid = '';
+      grid += field('Deadline', rec.deadline);
+      grid += field('Attendee count', rec.attendee_count);
+      grid += field('Audience', rec.audience_type);
+      grid += field('Price to attend', rec.pricing);
+      grid += field('Pay-to-play', rec.pay_to_play);
+      grid += field('Venue', rec.venue);
+      grid += field('Submission status', rec.submission_status);
+      grid += field('Speaking fee', rec.speaking_fee);
+      if (grid) v += '<div class="modal-grid">' + grid + '</div>';
+      v += field('ArcticBlue speaker', rec.speaker);
+      v += pocHtml;
+      v += field('Additional contacts', rec.additional_contacts);
+      v += field('Post-mortem (ROI)', rec.postmortem);
+      v += field('Notes', rec.notes);
+    }
 
     html += '<div class="modal-view">' + (v || '<p class="modal-nolink">No extra detail on file for this event yet.</p>') + '</div>';
     var editForm = editFormHtml(rec);
@@ -4262,6 +4291,7 @@
         if (st.attendees && st.attendees.length) rec.attendees = st.attendees;
         if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
         if (st.decision) rec.decision = st.decision;
+        if (st.is_private != null) rec.is_private = !!st.is_private;
         rec.stage_tags = opsStages;
       }
       rec.saved  = !!(st && st.saved);
@@ -7897,9 +7927,6 @@
         '<div class="ops-fieldset"><span class="key">Pipeline stages</span>' +
           stageCheckboxes([], 'status_tags') +
         '</div>' +
-        '<label><span class="key">Why it fits</span>' +
-          '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
-        '</label>' +
         '<details class="ops-edit"><summary>More details (About, Focus, Deadline, …)</summary>' +
           '<div class="ops-form" style="margin-top:8px;">' + richDetailFields({}) + '</div>' +
         '</details>' +
