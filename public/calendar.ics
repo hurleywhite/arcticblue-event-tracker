@@ -26,6 +26,24 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-430@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261103
+DTEND;VALUE=DATE:20261106
+SUMMARY:GBS (YPO Event)
+LOCATION:Istanbul\, Turkey
+DESCRIPTION:Priority: Medium\nAdded by: Thor
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-429@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20260922
+DTEND;VALUE=DATE:20260924
+SUMMARY:GDN
+LOCATION:Washington\, D.C.
+DESCRIPTION:Priority: Medium\nAdded by: Thor
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-428@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20261118
@@ -690,7 +708,7 @@ UID:manual-359@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20260801
 DTEND;VALUE=DATE:20260803
-SUMMARY:Agentic AI Summit 2026 – Berkeley
+SUMMARY:Berkeley RDI Agentic AI Summit
 LOCATION:UC Berkeley Campus\, Berkeley\, CA\, USA
 DESCRIPTION:Berkeley RDI's flagship agentic AI event draws 5\,000+ in-person attendees including top researchers\, enterprise AI builders from AWS\, Google DeepMind\, OpenAI\, Databricks — strong halo signal for ArcticBlue's agentic AI positioning.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://rdi.berkeley.edu/events/agentic-ai-summit
@@ -2320,7 +2338,7 @@ UID:manual-147@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20260923
 DTEND;VALUE=DATE:20260924
-SUMMARY:CDAO Washington D.C. 2026 (Corinium)
+SUMMARY:CDAO Washington D.C. - Enterprise (Corinium)
 LOCATION:Washington\, D.C.\, USA
 DESCRIPTION:Corinium's Enterprise Data & AI one-day summit in Washington D.C. for senior CDOs and enterprise AI leaders — great ArcticBlue speaking and networking opportunity at the intersection of government and enterprise AI adoption.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.coriniumintelligence.com/
@@ -2850,10 +2868,10 @@ UID:manual-67@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261119
-SUMMARY:Enterprise AI HR Transformation Assembly – November 2026
+SUMMARY:Enterprise AI CHRO Transformation Assembly – November
 LOCATION:Atlanta\, GA\, USA (The Ritz-Carlton\, Buckhead)
 DESCRIPTION:Millennium Alliance's CHRO-focused enterprise AI assembly at Ritz-Carlton Buckhead\; ArcticBlue's CHRO technology transformation ICP in an intimate invite-only format with guaranteed peer-to-peer access.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/
+URL:https://mill-all.com/assemblies/transformational-chro-assembly-november-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-66@arcticblue-event-tracker

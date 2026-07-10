@@ -6620,6 +6620,37 @@
       if (e && /^\d{4}-\d{2}-\d{2}/.test(e)) { return (+e.slice(0, 4)) * 10000 + (+e.slice(5, 7)) * 100 + (+e.slice(8, 10)); }
       return it.sort;
     }
+    // A "same host, same city" fingerprint. Catches near-identical events that
+    // name-dedup misses because their titles differ — e.g. Corinium's
+    // "CDAO Defense & Security", "CDAO Government" and "CDAO Washington D.C. 2026"
+    // (all CDAO, all Washington DC, all Sep 22-23) collapse to one cluster row.
+    // Key = first distinctive title word (the host/brand, e.g. "cdao") + the
+    // resolved map coordinates (rounded to ~city scale). Coords come from geoOf
+    // — NOT the raw location string, whose first token is often the venue
+    // ("Le Méridien Washington…"), which would give the same event three keys.
+    // City-name words in the title are skipped when picking the brand (so
+    // "Boston Data Forum" vs "Boston AI Summit" don't collapse on "boston");
+    // when a title has no distinctive word left, fall back to the full folded
+    // name so unrelated events are never over-merged.
+    var _BRAND_STOP = { the:1, and:1, for:1, ai:1, annual:1, summit:1, conference:1,
+      conf:1, forum:1, expo:1, congress:1, event:1, events:1, world:1, global:1,
+      national:1, international:1, intl:1, day:1, days:1, week:1, north:1, south:1,
+      america:1, americas:1, european:1, europe:1, asia:1, usa:1, uk:1, emea:1,
+      apac:1, latam:1 };
+    function _brandKey(it, g) {
+      var cityToks = {};
+      abFold(String(it.location || '') + ' ' + String(it.city || ''))
+        .replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).forEach(function (w) { if (w) cityToks[w] = 1; });
+      var words = abFold(it.name || '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+      var brand = '';
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i];
+        if (w.length >= 3 && !_BRAND_STOP[w] && !/^\d+$/.test(w) && !cityToks[w]) { brand = w; break; }
+      }
+      if (!brand) return 'name:' + abFold(it.name || '');   // nothing distinctive -> dedupe exact names only
+      var geoKey = g ? (Math.round(g[0] * 2) / 2) + ',' + (Math.round(g[1] * 2) / 2) : '?';
+      return brand + '|' + geoKey;
+    }
     function _tripClusters() {
       var meFirst = abFold(getCollabName() || '').split(/\s+/)[0];
       if (!meFirst) return [];
@@ -6664,10 +6695,22 @@
           var gap = Math.max(0, Math.ceil((cs - anchor.endD) / DAY_MS), Math.ceil((anchor.startD - ce) / DAY_MS));
           if (gap > GAP_DAYS) return;
           seenName[nm] = 1;
-          near.push({ it: it, gap: gap, km: km });
+          near.push({ it: it, gap: gap, km: km, geo: g });
         });
         if (near.length) {
           near.sort(function (a, b) { return a.it.sort - b.it.sort; });
+          // Collapse same-host/same-city near-dupes (CDAO Defense & Security /
+          // CDAO Government / CDAO Washington D.C. -> one row). Seed with the
+          // anchor's own brand so a second event from that host in the same city
+          // (you're already going) doesn't show either. Sorted first, so the
+          // soonest occurrence is the one kept.
+          var seenBrand = {};
+          seenBrand[_brandKey(anchor.it, anchor.geo)] = 1;
+          near = near.filter(function (n) {
+            var bk = _brandKey(n.it, n.geo);
+            if (seenBrand[bk]) return false;
+            seenBrand[bk] = 1; return true;
+          });
           near.forEach(function (n) { usedKeys[n.it.kind + ':' + n.it.key] = 1; });
           clusters.push({ anchor: anchor.it, role: anchor.role, near: near });
         }
