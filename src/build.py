@@ -1402,8 +1402,12 @@ def build():
        signal it; the star / chips / links inside keep their own actions. */
     .ops-card:hover {{ border-color: var(--ab-rule-strong); box-shadow: 0 2px 10px rgba(0,0,0,0.07); }}
     .ops-card:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 2px; }}
+    /* Recently added (yellow) — lowest-priority outline, so a blue interested /
+       should-attend outline below overrides it when both apply. */
+    .ops-card.is-recent {{ border-color: #eab308; }}
     .ops-card.is-saved {{ border-color: var(--ab-blue); }}
     .ops-card.is-mine  {{ border-color: var(--ab-blue); }}   /* the signed-in person starred it */
+    .ops-card.is-sa    {{ border-color: var(--ab-blue); }}   /* Angela flagged Should Attend (blue outline, like an interested card) */
     /* Hover-only card controls (star + archive/hide): hidden until you hover/focus the card. */
     .ops-hover {{ opacity: 0; pointer-events: none; transition: opacity 120ms ease; }}
     .ops-card:hover .ops-hover, .ops-card:focus-within .ops-hover {{ opacity: 1; pointer-events: auto; }}
@@ -1423,17 +1427,34 @@ def build():
     .chat-h {{ font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 10px; }}
     .chat-list {{ display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; margin: 0 0 12px; }}
     .chat-empty {{ font-size: 0.85rem; color: var(--ab-fg-3); font-style: italic; margin: 0; }}
-    .chat-msg {{ background: var(--ab-bg-2); border: 1px solid var(--ab-rule); border-radius: 8px; padding: 8px 10px; }}
+    .chat-msg {{ position: relative; background: var(--ab-bg-2); border: 1px solid var(--ab-rule); border-radius: 8px; padding: 8px 10px; }}
     .chat-meta {{ display: flex; gap: 8px; align-items: baseline; margin-bottom: 3px; }}
     .chat-who {{ font-weight: 700; font-size: 0.8rem; color: var(--ab-fg); }}
     .chat-when {{ font-family: var(--ab-mono); font-size: 0.6rem; color: var(--ab-fg-3); }}
-    /* Delete — only rendered on your own messages. */
-    .chat-del {{
-      margin-left: auto; border: 0; background: none; cursor: pointer;
-      color: var(--ab-fg-3); font-size: 1rem; line-height: 1; padding: 0 2px;
+    /* Slack-style hover toolbar: add-to-notes · 👍 · 👎 · delete (own only).
+       Floats top-right of the message, revealed on hover / keyboard focus. */
+    .chat-actions {{
+      position: absolute; top: -10px; right: 8px; display: flex; gap: 2px;
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); border-radius: 8px;
+      padding: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      opacity: 0; pointer-events: none; transition: opacity 110ms ease;
     }}
-    .chat-del:hover {{ color: var(--ab-red); }}
+    .chat-msg:hover .chat-actions, .chat-msg:focus-within .chat-actions {{ opacity: 1; pointer-events: auto; }}
+    .chat-act {{
+      border: 0; background: none; cursor: pointer; font-size: 0.85rem; line-height: 1;
+      padding: 4px 6px; border-radius: 6px; color: var(--ab-fg-2);
+    }}
+    .chat-act:hover {{ background: var(--ab-bg-3); }}
+    .chat-act-del {{ color: var(--ab-fg-3); font-size: 1.05rem; }}
+    .chat-act-del:hover {{ color: var(--ab-red); background: var(--ab-bg-3); }}
     .chat-body {{ margin: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }}
+    /* 👍/👎 tallies under a message. */
+    .chat-reacts {{ display: flex; gap: 6px; margin-top: 6px; }}
+    .chat-react {{
+      font-size: 0.72rem; font-family: var(--ab-mono); color: var(--ab-fg-2);
+      background: var(--ab-bg-3); border: 1px solid var(--ab-rule); border-radius: 999px; padding: 1px 8px;
+    }}
+    .chat-react.is-mine {{ border-color: var(--ab-blue); color: var(--ab-blue); }}
     .chat-form {{ display: flex; gap: 8px; }}
     .chat-input {{ flex: 1; padding: 9px 12px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font: inherit; font-size: 0.9rem; }}
     .chat-send {{ padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ab-blue); background: var(--ab-blue); color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }}
@@ -2210,6 +2231,41 @@ def build():
     .q-btn.danger:hover {{ border-color: #d64545; color: #d64545; }}
     /* "In the last week" rows + suggestion "why" line (My Events). */
     .wn-check {{ padding: 4px 10px; font-size: 0.85rem; }}
+    /* Comment threads surface as prominent cards (they likely need a reply). */
+    .wn-comment {{
+      display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+      background: rgba(31,160,220,0.09); border: 1px solid rgba(31,160,220,0.35);
+      border-radius: 10px; padding: 12px 14px; margin: 0 0 10px;
+      transition: background 120ms ease, border-color 120ms ease;
+    }}
+    .wn-comment:hover {{ background: rgba(31,160,220,0.14); border-color: rgba(31,160,220,0.6); }}
+    .wn-comment.is-mention {{ background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.5); }}
+    .wn-avatar {{
+      flex: 0 0 auto; width: 34px; height: 34px; border-radius: 999px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #1271a8; color: #fff; font-family: var(--ab-sans); font-weight: 700; font-size: 0.8rem;
+    }}
+    .wn-avatar--sm {{ width: 26px; height: 26px; font-size: 0.7rem; background: var(--ab-fg-3); }}
+    .wn-comment-main {{ min-width: 0; flex: 1 1 auto; }}
+    .wn-comment-head {{ font-size: 0.9rem; color: var(--ab-fg-2); }}
+    .wn-comment-head strong {{ color: var(--ab-fg); font-weight: 650; }}
+    .wn-time {{ font-family: var(--ab-mono); font-size: 0.66rem; color: var(--ab-fg-3); margin-left: 8px; }}
+    .wn-comment-quote {{ margin-top: 4px; font-size: 0.95rem; color: var(--ab-fg); font-weight: 500; line-height: 1.4; }}
+    .wn-comment .wn-check {{ flex: 0 0 auto; align-self: center; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); border-radius: 8px; cursor: pointer; color: var(--ab-fg-3); }}
+    .wn-comment .wn-check:hover {{ color: #15803d; border-color: #86efac; }}
+    /* Routine pipeline moves, grouped per person — collapsed by default. */
+    .wn-group {{ border: 1px solid var(--ab-rule); border-radius: 10px; margin: 0 0 8px; overflow: hidden; }}
+    .wn-group-head {{
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; user-select: none;
+      background: var(--ab-bg-2);
+    }}
+    .wn-group-head:hover {{ background: var(--ab-bg-3); }}
+    .wn-group-name {{ font-weight: 650; font-size: 0.9rem; color: var(--ab-fg); }}
+    .wn-group-count {{ font-size: 0.85rem; color: var(--ab-fg-3); }}
+    .wn-group-head .qsec-caret {{ margin-left: auto; }}
+    .wn-group.collapsed .qsec-caret {{ transform: rotate(-90deg); display: inline-block; }}
+    .wn-group.collapsed .wn-group-body {{ display: none; }}
+    .wn-group-body {{ padding: 4px 10px 6px; }}
     .sug-why {{ margin: 2px 0 0; font-family: var(--ab-mono); font-size: 0.64rem; color: var(--ab-fg-3); letter-spacing: 0.03em; }}
     /* "Mark applied" + the × dismiss sit side by side, not stacked. */
     .q-btn-row {{ display: flex; gap: 6px; align-items: stretch; }}
@@ -2218,8 +2274,20 @@ def build():
     .queue-actions.sug-actions {{ flex-direction: row; flex-wrap: wrap; gap: 6px; align-items: center; }}
     .q-btn.sug-skip {{ color: var(--ab-fg-3); }}
     .q-btn.sug-skip:hover {{ border-color: #d64545; color: #d64545; }}
+    /* ✕ to drop a single "Suggested for you" row (My Lineup). */
+    .q-btn.sug-hide-x {{ color: var(--ab-fg-3); border-color: transparent; font-size: 1rem; line-height: 1; padding: 2px 9px; }}
+    .q-btn.sug-hide-x:hover {{ color: var(--ab-red); border-color: var(--ab-rule-strong); }}
     /* "Batch your trips" — a cluster of nearby-in-time events under an anchor. */
-    .trip-cluster {{ border-left: 3px solid #1fa0dc; padding-left: 12px; margin: 0 0 20px; }}
+    .trip-cluster {{ position: relative; border-left: 3px solid #1fa0dc; padding-left: 12px; margin: 0 0 20px; }}
+    /* ✕ to hide a whole trip cluster / radar group from Plan Ahead (hover-reveal). */
+    .plan-hide-x {{
+      position: absolute; top: 2px; right: 0;
+      border: 0; background: none; cursor: pointer; color: var(--ab-fg-3);
+      font-size: 1.1rem; line-height: 1; padding: 2px 7px; border-radius: 5px;
+      opacity: 0; transition: opacity 120ms ease, color 120ms ease, background 120ms ease;
+    }}
+    .trip-cluster:hover .plan-hide-x, .plan-hide-x:focus-visible {{ opacity: 1; }}
+    .plan-hide-x:hover {{ color: var(--ab-red); background: var(--ab-bg-3); }}
     .trip-anchor {{ font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 8px; }}
     .trip-anchor strong {{ color: var(--ab-fg); }}
     .trip-anchor-name {{ font: inherit; font-weight: 700; color: var(--ab-fg); background: none; border: 0; padding: 0; cursor: pointer; }}
@@ -4566,9 +4634,19 @@ def build():
       if (!me) return false;
       return (list || []).some(function (n) {{ return String(n).toLowerCase() === me; }});
     }}
-    function toggleMyInterest(kind, key, list) {{
+    function toggleMyInterest(kind, key, list, saVerdict) {{
       var me = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || '';
       if (!me) return;   // no name -> nothing to flag
+      // Support (Angela) doesn't attend — for her the star is a team SHOULD-ATTEND
+      // flag, not a personal "I'm interested". Toggle attend_verdict (human) and
+      // never add her to the interested list.
+      if (isAngelaUser()) {{
+        var onSA = shouldAttendKind(saVerdict) === 'human';
+        var pSA = {{ attend_verdict: onSA ? null : 'Worth attending' }};
+        if (!onSA) pSA.queue_dismissed = false;
+        if (window.opsWrite) window.opsWrite(kind === 'manual' ? 'manual_events' : 'event_state', key, pSA);
+        return;
+      }}
       var cur = (list || []).slice();
       var lc = me.toLowerCase(), hit = -1;
       for (var z = 0; z < cur.length; z++) {{ if (String(cur[z]).toLowerCase() === lc) {{ hit = z; break; }} }}
@@ -4582,10 +4660,16 @@ def build():
       patch.interested = cur;
       if (window.opsWrite) window.opsWrite(kind === 'manual' ? 'manual_events' : 'event_state', key, patch);
     }}
-    function starButtonHtml(list) {{
-      var on = meInInterested(list);
+    function starButtonHtml(list, saVerdict) {{
+      // For Angela the star = "Should Attend" (team flag); for everyone else it's
+      // "I'm interested". The filled state + tooltip follow whichever it is.
+      var angela = isAngelaUser();
+      var on = angela ? (shouldAttendKind(saVerdict) === 'human') : meInInterested(list);
+      var lbl = angela ? 'Flag Should Attend' : 'I\\'m interested';
+      var ttl = angela ? 'Star = Should Attend \\u2014 flags this event for the team'
+                       : 'Star = I\\'m interested (adds you to the interested list + Angela\\'s queue)';
       return '<button class="saved-star ops-hover' + (on ? ' is-on' : '') + '" data-star type="button"' +
-        ' aria-label="I\\'m interested" title="Star = I\\'m interested (adds you to the interested list + Angela\\'s queue)">' +
+        ' aria-label="' + lbl + '" title="' + ttl + '">' +
         (on ? '\\u2605' : '\\u2606') + '</button>';
     }}
 
@@ -4894,6 +4978,9 @@ def build():
       if (_opsPast) card.classList.add('is-past');
       if (st.saved)  card.classList.add('is-saved');
       if (meInInterested(st.interested)) card.classList.add('is-mine');   // I starred it → blue outline
+      // Angela's Should-Attend now shows as the SAME blue outline (like an
+      // interested card), replacing the old "★ Should Attend" badge.
+      if (window.isAngelaUser && window.isAngelaUser() && shouldAttendKind(st.attend_verdict) === 'human') card.classList.add('is-sa');
       if (st.hidden) card.classList.add('is-hidden');
       // Urgent = manually flagged OR an apply/CFP deadline that's closing soon.
       // (The event merely being upcoming does NOT make it urgent.)
@@ -4909,7 +4996,8 @@ def build():
       // Only the team's HAND-PICKED should-attends get a card-face badge — the
       // 239 AI auto-picks stay off the face (findable via the "AI picks" filter)
       // so they don't clutter/mute the manual ones Angela scans for.
-      var saBadge = (shouldAttendKind(st.attend_verdict) === 'human' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="sa-badge">★ Should Attend</span>' : '';
+      // Should-Attend is now the blue card outline (is-sa), not a face badge.
+      var saBadge = '';
       card.dataset.contactFound = hasEmailContact(st, ev) ? '1' : '';
       // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
       var contactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
@@ -4941,7 +5029,7 @@ def build():
           '</h3>' +
           '<p class="event-meta">' + (_cdate ? '<span class="em-date">' + _cdate + '</span>' : '') + ((_cdate && _cloc) ? ' \\u00b7 ' : '') + (_cloc || '') + '</p>' +
           '<div class="ops-chips">' +
-            starButtonHtml(st.interested) +
+            starButtonHtml(st.interested, st.attend_verdict) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             // Archived → static label; otherwise a hover-only "hide" icon to archive it.
             (st.hidden
@@ -5092,17 +5180,18 @@ def build():
       card.dataset.decision = (mev.decision || '');
       // "✓ Go" is Angela's promotion call — Angela-only on the card face.
       var mDecBadge = (mev.decision === 'go' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="decision-badge go">✓ Go</span>' : '';
-      var mSaBadge = (shouldAttendKind(mev.attend_verdict) === 'human' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="sa-badge">★ Should Attend</span>' : '';
+      // Should-Attend is now the blue card outline (is-sa), not a face badge.
+      var mSaBadge = '';
       card.dataset.contactFound = (hasEmailContact(mev) || _EMAIL_RE.test(String(mev.poc_email || ''))) ? '1' : '';
       // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
       var mContactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       var mRecent = isRecentlyAdded(mev.created_at);
       card.dataset.recent = mRecent ? '1' : '';
-      // The "Recently Added" triage badge is a support-team cue (Angela/Hurley);
-      // dataset.recent still set so the Angela-only "Recently added" filter works.
-      var mRecentBadge = (mRecent && isSupportPerson(getCollabName() || ''))
-        ? '<span class="recent-badge" title="Added ' + escapeHtml(formatStamp(mev.created_at)) + '">Recently Added</span>'
-        : '';
+      // Recently added now shows as a YELLOW card outline, no label — a triage cue
+      // for support (Angela/Hurley), the same audience the old "Recently Added"
+      // badge served. dataset.recent still drives the "Recently added" filter.
+      if (mRecent && isSupportPerson(getCollabName() || '')) card.classList.add('is-recent');
+      var mRecentBadge = '';
       var manualMeta = opsMonthMeta(mev.start_date, mev.date_str);
       card.dataset.month = manualMeta.key;
       card.dataset.monthLabel = manualMeta.label;
@@ -5133,7 +5222,7 @@ def build():
           '</h3>' +
           '<p class="event-meta">' + (_mdate ? '<span class="em-date">' + _mdate + '</span>' : '') + ((_mdate && _mloc) ? ' \\u00b7 ' : '') + (_mloc || '') + '</p>' +
           '<div class="ops-chips">' +
-            starButtonHtml(mev.interested) +
+            starButtonHtml(mev.interested, mev.attend_verdict) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             // Archived → static label; otherwise a hover-only "hide" icon to archive it.
             (mev.hidden
@@ -5159,12 +5248,15 @@ def build():
       if (mev.hidden) card.classList.add('is-hidden');
       if (mev.saved)  card.classList.add('is-saved');
       if (meInInterested(mev.interested)) card.classList.add('is-mine');   // I starred it → blue outline
+      // Angela's Should-Attend shows as the same blue outline (was the badge).
+      if (window.isAngelaUser && window.isAngelaUser() && shouldAttendKind(mev.attend_verdict) === 'human') card.classList.add('is-sa');
       if (mev.urgent) card.classList.add('is-urgent');
       // Star = "I'm interested" (per-signed-in-person), not a shared bookmark.
+      // For Angela it's a Should-Attend flag (see toggleMyInterest).
       var _manStar = card.querySelector('.saved-star');
       if (_manStar) _manStar.addEventListener('click', function () {{
         _manStar.setAttribute('aria-busy', 'true');
-        toggleMyInterest('manual', mev.id, mev.interested);
+        toggleMyInterest('manual', mev.id, mev.interested, mev.attend_verdict);
       }});
       // Boolean toggles (urgent/hidden) — same UX as catalog cards, but
       // written to manual_events. Needs the columns from
@@ -5351,7 +5443,7 @@ def build():
       var _catStar = card.querySelector('.saved-star');
       if (_catStar) _catStar.addEventListener('click', function () {{
         _catStar.setAttribute('aria-busy', 'true');
-        toggleMyInterest('catalog', num, (card._modalRec && card._modalRec.interested) || []);
+        toggleMyInterest('catalog', num, (card._modalRec && card._modalRec.interested) || [], card.dataset.attend);
       }});
       // Boolean toggles (urgent + hidden chips)
       card.querySelectorAll('[data-field][data-on]').forEach(function (btn) {{
@@ -7062,6 +7154,23 @@ def build():
       else {{ s.dismissed = s.dismissed || {{}}; s.dismissed[item.id] = 1; }}
       _wnSave(s);
     }}
+    // Compact relative time for the activity feed ("2h", "3d", "1w").
+    function _relTime(ts) {{
+      try {{
+        var diff = (Date.now() - new Date(ts).getTime()) / 1000;
+        if (diff < 60) return 'now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h';
+        if (diff < 604800) return Math.floor(diff / 86400) + 'd';
+        return Math.floor(diff / 604800) + 'w';
+      }} catch (e) {{ return ''; }}
+    }}
+    // 1–2 letter avatar initials from a name.
+    function _wnInitials(name) {{
+      var parts = String(name || '').trim().split(/\\s+/).filter(Boolean);
+      if (!parts.length) return '?';
+      return (parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]) : parts[0].slice(0, 1)).toUpperCase();
+    }}
     function _whatsNewItems() {{
       var me = (getCollabName() || '').trim().toLowerCase().split(/\\s+/)[0];
       var st = _wnState(), dis = st.dismissed || {{}}, seen = st.chatSeen || {{}};
@@ -7102,8 +7211,9 @@ def build():
         var ev = byNum[r.event_num]; if (!ev) return;
         var id = 'u:c' + r.event_num + ':' + r.updated_at;
         if (dis[id]) return;
-        items.push({{ id: id, ts: r.updated_at, kind: 'catalog', key: ev.num,
-          label: whoF + ' marked ' + (ev.name || 'an event') + ' as ' + stg.map(function (s) {{ return s.toLowerCase(); }}).join(' &amp; ') }});
+        items.push({{ id: id, ts: r.updated_at, kind: 'catalog', key: ev.num, type: 'update', who: whoF,
+          label: whoF + ' marked ' + (ev.name || 'an event') + ' as ' + stg.map(function (s) {{ return s.toLowerCase(); }}).join(' &amp; '),
+          detail: 'marked ' + (ev.name || 'an event') + ' as ' + stg.map(function (s) {{ return s.toLowerCase(); }}).join(' &amp; ') }});
       }});
       // Newly added manual events — a teammate adding one by hand, never the
       // automated Dust ingest (dust@arcticblue.ai -> "Dust"), which finds and
@@ -7113,8 +7223,9 @@ def build():
         var whoF = firstNameFromEmail(m.created_by || '') || '';
         if (!whoF || whoF.toLowerCase() === me || whoF.toLowerCase() === 'dust') return;
         var id = 'a:m' + m.id; if (dis[id]) return;
-        items.push({{ id: id, ts: m.created_at, kind: 'manual', key: m.id,
-          label: whoF + ' added ' + (m.name || 'an event') }});
+        items.push({{ id: id, ts: m.created_at, kind: 'manual', key: m.id, type: 'update', who: whoF,
+          label: whoF + ' added ' + (m.name || 'an event'),
+          detail: 'added ' + (m.name || 'an event') }});
       }});
       // New comments since you last opened that event's chat (others' only).
       Object.keys(_chatMeta || {{}}).forEach(function (k) {{
@@ -7128,7 +7239,12 @@ def build():
         var mentioned = !!me && fresh.some(function (x) {{
           try {{ return new RegExp('(^|[^a-z0-9])@?' + me + '([^a-z0-9]|$)', 'i').test(String(x.body || '')); }} catch (e) {{ return false; }}
         }});
+        // Latest fresh comment drives the card's author + quote.
+        var latestMsg = fresh.reduce(function (a, b) {{ return (a && a.at > b.at) ? a : b; }}, null);
+        var cAuthor = latestMsg ? String(latestMsg.author || '').split(/\\s+/)[0] : '';
         items.push({{ id: 'c:' + k, ts: meta.latest, kind: kind, key: key, chatKey: k, mention: mentioned,
+          type: 'comment', author: cAuthor, preview: (latestMsg ? String(latestMsg.body || '') : ''),
+          eventName: (rec.name || 'an event'), count: fresh.length,
           label: (mentioned ? 'You were mentioned \\u2014 ' : (fresh.length + ' new comment' + (fresh.length > 1 ? 's' : '') + ' on ')) + (rec.name || 'an event') }});
       }});
       // Radar-only — EXCEPT comments that mention you, which always show.
@@ -7146,6 +7262,18 @@ def build():
     function _sugSkip(kind, key) {{
       var s = _sugSkips(); s[_sugSkipId(kind, key)] = 1;
       try {{ localStorage.setItem(_sugSkipKey(), JSON.stringify(s)); }} catch (e) {{}}
+    }}
+    // Plan-Ahead "hide this whole block" — dismisses a trip cluster or an Event
+    // Radar group (keyed by its anchor event) from Plan Ahead only. Unlike
+    // _sugSkip (a "not for me" on a single suggestion), this just declutters the
+    // page — the anchor is often an event you're attending / interested in, so we
+    // don't touch its status. Personal + local, like the other read-state.
+    function _planHideKey() {{ return 'ab.planhide.' + (getCollabName() || '').toLowerCase(); }}
+    function _planHides() {{ try {{ return JSON.parse(localStorage.getItem(_planHideKey()) || '{{}}'); }} catch (e) {{ return {{}}; }} }}
+    function _planHidden(kind, key) {{ return !!_planHides()[kind + ':' + key]; }}
+    function _planHide(kind, key) {{
+      var s = _planHides(); s[kind + ':' + key] = 1;
+      try {{ localStorage.setItem(_planHideKey(), JSON.stringify(s)); }} catch (e) {{}}
     }}
     // Only events 2–4 months out belong in a "plan ahead" suggestion — Thor's
     // own example ("Colombia Tech Week is a month out, too soon") is a HARD
@@ -7306,26 +7434,75 @@ def build():
       // "In the last week" — teammates' updates + new comments; check one off
       // (or click into it) and it comes down, like Slack read-state.
       _wnLast = _whatsNewItems();
-      var wnHtml = _wnLast.length
-        ? '<div class="queue-section wn-section"><div class="queue-sec-head"><span class="queue-sec-title">In the last week</span><span class="queue-sec-count">' + _wnLast.length + '</span></div>' +
-          _wnLast.map(function (w, i) {{
+      var wnHtml = '';
+      if (_wnLast.length) {{
+        // Comment threads surface at FULL visibility (they likely need a reply);
+        // routine pipeline moves get grouped per person into a collapsed
+        // "<Name> · N routine updates" row (tap to expand) so they don't drown
+        // the conversations that need you.
+        var _comments = [], _updates = [];
+        _wnLast.forEach(function (w, i) {{ (w.type === 'comment' ? _comments : _updates).push({{ w: w, i: i }}); }});
+        var _cardsHtml = _comments.map(function (o) {{
+          var w = o.w;
+          var quote = w.preview ? '&ldquo;' + escapeHtml(w.preview) + '&rdquo;' : escapeHtml(w.label);
+          var head = w.mention
+            ? '<strong>' + escapeHtml(w.author || 'Someone') + '</strong> mentioned you on <strong>' + escapeHtml(w.eventName || 'an event') + '</strong>'
+            : '<strong>' + escapeHtml(w.author || 'Someone') + '</strong> commented on <strong>' + escapeHtml(w.eventName || 'an event') + '</strong>';
+          return '<div class="wn-comment' + (w.mention ? ' is-mention' : '') + '" role="button" tabindex="0" data-wn-open="' + o.i + '">' +
+              '<span class="wn-avatar">' + escapeHtml(_wnInitials(w.author)) + '</span>' +
+              '<div class="wn-comment-main">' +
+                '<div class="wn-comment-head">' + head + '<span class="wn-time">' + escapeHtml(_relTime(w.ts)) + '</span></div>' +
+                '<div class="wn-comment-quote">' + quote + '</div>' +
+              '</div>' +
+              '<button type="button" class="wn-check" data-wn-check="' + o.i + '" title="Mark as seen">&#10003;</button>' +
+            '</div>';
+        }}).join('');
+        // Group routine updates by person.
+        var _byWho = {{}}, _whoOrder = [];
+        _updates.forEach(function (o) {{
+          var who = o.w.who || 'Someone';
+          if (!_byWho[who]) {{ _byWho[who] = []; _whoOrder.push(who); }}
+          _byWho[who].push(o);
+        }});
+        var _groupsHtml = _whoOrder.map(function (who) {{
+          var list = _byWho[who];
+          var rows = list.map(function (o) {{
             return '<div class="queue-row wn-row"><div class="queue-main">' +
-              '<button type="button" class="queue-name wn-open" data-wn-open="' + i + '">' + escapeHtml(w.label) + '</button>' +
-            '</div><div class="queue-actions"><button type="button" class="q-btn wn-check" data-wn-check="' + i + '" title="Mark as seen — takes this off the list">&#10003;</button></div></div>';
-          }}).join('') + '</div>'
-        : '';
+                '<button type="button" class="queue-name wn-open" data-wn-open="' + o.i + '">' + escapeHtml(o.w.detail || o.w.label) + '</button>' +
+              '</div><div class="queue-actions"><button type="button" class="q-btn wn-check" data-wn-check="' + o.i + '" title="Mark as seen">&#10003;</button></div></div>';
+          }}).join('');
+          return '<div class="wn-group collapsed">' +
+              '<div class="wn-group-head" role="button" tabindex="0">' +
+                '<span class="wn-avatar wn-avatar--sm">' + escapeHtml(_wnInitials(who)) + '</span>' +
+                '<span class="wn-group-name">' + escapeHtml(who) + '</span>' +
+                '<span class="wn-group-count">' + list.length + ' routine update' + (list.length === 1 ? '' : 's') + '</span>' +
+                '<span class="qsec-caret" aria-hidden="true">&#9662;</span>' +
+              '</div>' +
+              '<div class="wn-group-body">' + rows + '</div>' +
+            '</div>';
+        }}).join('');
+        wnHtml = '<div class="queue-section wn-section"><div class="queue-sec-head"><span class="queue-sec-title">In the last week</span><span class="queue-sec-count">' + _wnLast.length + '</span></div>' +
+          _cardsHtml + _groupsHtml + '</div>';
+      }}
       // Bottom: only-the-best picks for whoever is signed in.
       var _sug = _suggestionsFor().slice(0, 10);
       var _sugTitle = ((window.AB_PERSONAS || {{}})[(b.me || '').trim().toLowerCase().split(/\\s+/)[0]]) ? 'Suggested for you' : 'Top suggestions for the team';
+      // "Suggested for you" is collapsible (click the header to hide the whole
+      // block — remembered per person), and each row has a ✕ to drop just that
+      // one (a "not for me" shared with Plan Ahead's skip).
+      var _sugHide = false;
+      try {{ _sugHide = localStorage.getItem('ab.sugcollapse.' + (b.me || '').toLowerCase()) === '1'; }} catch (e) {{}}
       var sugHtml = _sug.length
-        ? '<div class="queue-section sug-section"><div class="queue-sec-head"><span class="queue-sec-title">' + _sugTitle + '</span><span class="queue-sec-count">' + _sug.length + '</span></div>' +
+        ? '<div class="queue-section sug-section collapsible' + (_sugHide ? ' collapsed' : '') + '">' +
+          '<div class="queue-sec-head" role="button" tabindex="0" title="Click to hide / show these suggestions"><span class="qsec-caret" aria-hidden="true">&#9662;</span>' +
+          '<span class="queue-sec-title">' + _sugTitle + '</span><span class="queue-sec-count">' + _sug.length + '</span></div>' +
           _sug.map(function (x) {{
             var it = x.it;
             var loc = [it.location].filter(Boolean).join(' \\u00b7 ');
             return '<div class="queue-row sug-row"><div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
-            '</div></div>';
+            '</div><div class="queue-actions"><button type="button" class="q-btn sug-hide-x" data-sug-hide-kind="' + it.kind + '" data-sug-hide-key="' + escapeHtml(String(it.key)) + '" title="Hide this suggestion" aria-label="Hide suggestion">&times;</button></div></div>';
           }}).join('') + '</div>'
         : '';
       host.innerHTML = intro + wnHtml +
@@ -7336,21 +7513,32 @@ def build():
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
       }});
       host.querySelectorAll('[data-wn-open]').forEach(function (el) {{
-        el.addEventListener('click', function () {{
+        var _open = function () {{
           var w = _wnLast[parseInt(el.getAttribute('data-wn-open'), 10)];
           if (!w) return;
           _wnDismiss(w);
           opsOpenRef(w.kind, String(w.key));
           renderMyEvents();
-        }});
+        }};
+        el.addEventListener('click', _open);
+        // Comment cards are role="button" — open on Enter / Space too.
+        if (el.classList.contains('wn-comment')) el.addEventListener('keydown', function (e) {{ if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); _open(); }} }});
       }});
       host.querySelectorAll('[data-wn-check]').forEach(function (el) {{
-        el.addEventListener('click', function () {{
+        el.addEventListener('click', function (e) {{
+          e.stopPropagation();   // don't also trigger the card/row's open
           var w = _wnLast[parseInt(el.getAttribute('data-wn-check'), 10)];
           if (!w) return;
           _wnDismiss(w);
           renderMyEvents();
         }});
+      }});
+      // Per-person "routine updates" groups start collapsed; tap the header to
+      // expand (ephemeral — no need to persist a one-week feed's open state).
+      host.querySelectorAll('.wn-group-head').forEach(function (head) {{
+        var _tg = function () {{ head.closest('.wn-group').classList.toggle('collapsed'); }};
+        head.addEventListener('click', _tg);
+        head.addEventListener('keydown', function (e) {{ if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); _tg(); }} }});
       }});
       host.querySelectorAll('[data-brief-kind]').forEach(function (el) {{
         el.addEventListener('click', function (e) {{ e.stopPropagation(); openBriefDrawer(el.getAttribute('data-brief-kind'), el.getAttribute('data-brief-key')); }});
@@ -7361,7 +7549,9 @@ def build():
           if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); opsOpenRef(row.getAttribute('data-ref-kind'), row.getAttribute('data-ref-key')); }}
         }});
       }});
-      var _pastHead = host.querySelector('.queue-section.collapsible .queue-sec-head');
+      // Past-events section is collapsible too — but the sug-section now shares
+      // that class, so target the past one specifically (:not(.sug-section)).
+      var _pastHead = host.querySelector('.queue-section.collapsible:not(.sug-section) .queue-sec-head');
       if (_pastHead) {{
         var _togglePast = function () {{
           var sec = _pastHead.closest('.queue-section');
@@ -7370,6 +7560,25 @@ def build():
         _pastHead.addEventListener('click', _togglePast);
         _pastHead.addEventListener('keydown', function (e) {{ if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); _togglePast(); }} }});
       }}
+      // "Suggested for you" — header click collapses/expands the whole block
+      // (remembered per person); each row's ✕ drops just that suggestion.
+      var _sugHead = host.querySelector('.sug-section .queue-sec-head');
+      if (_sugHead) {{
+        var _toggleSug = function () {{
+          var sec = _sugHead.closest('.sug-section');
+          var nowCollapsed = sec.classList.toggle('collapsed');
+          try {{ localStorage.setItem('ab.sugcollapse.' + (b.me || '').toLowerCase(), nowCollapsed ? '1' : '0'); }} catch (e) {{}}
+        }};
+        _sugHead.addEventListener('click', _toggleSug);
+        _sugHead.addEventListener('keydown', function (e) {{ if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); _toggleSug(); }} }});
+      }}
+      host.querySelectorAll('[data-sug-hide-kind]').forEach(function (btn) {{
+        btn.addEventListener('click', function (e) {{
+          e.stopPropagation();
+          _sugSkip(btn.getAttribute('data-sug-hide-kind'), btn.getAttribute('data-sug-hide-key'));
+          renderMyEvents();
+        }});
+      }});
       updateViewBadges();
     }}
 
@@ -7796,15 +8005,21 @@ def build():
             '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
           '</div></div>';
       }}
+      // Small "hide this whole block from Plan Ahead" ✕ for a trip cluster / radar
+      // group, keyed by its anchor event.
+      function _planHideX(ev) {{
+        return '<button type="button" class="plan-hide-x" data-plan-hide-kind="' + ev.kind +
+          '" data-plan-hide-key="' + escapeHtml(String(ev.key)) + '" title="Hide this from Plan Ahead" aria-label="Hide from Plan Ahead">&times;</button>';
+      }}
       function anchorHead(lead, ev, extraCls) {{
         var loc = ev.location || ev.city || '';
-        return '<div class="queue-section trip-cluster' + (extraCls ? ' ' + extraCls : '') + '"><p class="trip-anchor">' + lead +
+        return '<div class="queue-section trip-cluster' + (extraCls ? ' ' + extraCls : '') + '">' + _planHideX(ev) + '<p class="trip-anchor">' + lead +
           ' <button class="trip-anchor-name" data-ref-kind="' + ev.kind + '" data-ref-key="' + escapeHtml(String(ev.key)) + '">' + escapeHtml(ev.name) + '</button>' +
           '<span class="trip-anchor-meta">' + escapeHtml(ev.date_str || '') + (loc ? ' \\u00b7 ' + escapeHtml(loc) : '') + '</span></p>';
       }}
       var shownKeys = {{}};   // surfaced in trips / interest recs -> keep out of the monthly list
       // ── Batch your trips (geographic) ─────────────────────────────────
-      var clusters = _tripClusters();
+      var clusters = _tripClusters().filter(function (cl) {{ return !_planHidden(cl.anchor.kind, cl.anchor.key); }});
       var tripHtml = '';
       // Map an event's YYYYMMDD sort key to a "Q# YYYY" string, to seed the
       // area search's quarter when there's nothing to batch onto a trip.
@@ -7826,7 +8041,7 @@ def build():
         function renderCluster(cl) {{
           var ev = cl.anchor, loc = ev.location || ev.city || '';
           var r = (cl.role === 'speaking at') ? 'speaking' : cl.role;
-          tripHtml += '<div class="queue-section trip-cluster"><p class="trip-anchor">' +
+          tripHtml += '<div class="queue-section trip-cluster">' + _planHideX(ev) + '<p class="trip-anchor">' +
             '<button class="trip-anchor-name" data-ref-kind="' + ev.kind + '" data-ref-key="' + escapeHtml(String(ev.key)) + '">' + escapeHtml(ev.name) + '</button>' +
             ' <span class="trip-anchor-role">(' + escapeHtml(r) + ')</span>' +
             '<span class="trip-anchor-meta">' + escapeHtml(ev.date_str || '') + (loc ? ' \\u00b7 ' + escapeHtml(loc) : '') + '</span></p>';
@@ -7876,7 +8091,7 @@ def build():
         }}
       }}
       // ── Because you're interested in X (content similarity) ───────────
-      var recs = _contentRecs();
+      var recs = _contentRecs().filter(function (rc) {{ return !_planHidden(rc.anchor.kind, rc.anchor.key); }});
       var recHtml = '';
       if (recs.length) {{
         recHtml += '<div class="queue-sec-head"><span class="queue-sec-title">&#128225; Event Radar</span><span class="queue-sec-count">' + recs.length + '</span></div>' +
@@ -7954,7 +8169,7 @@ def build():
           var it = opsAllItems().filter(function (x) {{ return x.kind === kind && String(x.key) === key; }})[0];
           if (!it) return;
           btn.setAttribute('aria-busy', 'true');
-          toggleMyInterest(kind, it.key, it.interested);
+          toggleMyInterest(kind, it.key, it.interested, it.startObj && it.startObj.attend_verdict);
         }});
       }});
       host.querySelectorAll('[data-pa-skip]').forEach(function (btn) {{
@@ -7963,6 +8178,14 @@ def build():
           var row = btn.closest('.queue-row');
           if (row) row.style.display = 'none';   // instant feedback
           renderPlanAhead();                     // re-render: counts + empty state update
+        }});
+      }});
+      // ✕ on a trip cluster / radar group → hide that whole block from Plan Ahead.
+      host.querySelectorAll('[data-plan-hide-kind]').forEach(function (btn) {{
+        btn.addEventListener('click', function (e) {{
+          e.stopPropagation();
+          _planHide(btn.getAttribute('data-plan-hide-kind'), btn.getAttribute('data-plan-hide-key'));
+          renderPlanAhead();
         }});
       }});
     }}
@@ -11733,6 +11956,51 @@ def build():
         el.style.display = n ? '' : 'none';
       }});
     }}
+    // A message's 👍/👎 tallies (stored in event_chat.reactions jsonb —
+    // {{up:[names], down:[names]}}; absent until the migration runs → no line).
+    function _chatReactLine(rx, me) {{
+      if (!rx || typeof rx !== 'object') return '';
+      var up = (rx.up || []), down = (rx.down || []);
+      function mine(list) {{ return me && list.some(function (n) {{ return String(n).toLowerCase() === me; }}); }}
+      var out = [];
+      if (up.length)   out.push('<span class="chat-react' + (mine(up) ? ' is-mine' : '') + '" title="' + escapeHtml(up.join(', ')) + '">\\ud83d\\udc4d ' + up.length + '</span>');
+      if (down.length) out.push('<span class="chat-react' + (mine(down) ? ' is-mine' : '') + '" title="' + escapeHtml(down.join(', ')) + '">\\ud83d\\udc4e ' + down.length + '</span>');
+      return out.length ? '<div class="chat-reacts">' + out.join(' ') + '</div>' : '';
+    }}
+    // Toggle my 👍/👎 on a message (exclusive — thumbs-up clears my thumbs-down).
+    function _chatReact(m, dir) {{
+      var who = (getCollabName() || '').trim(); if (!who) {{ ensureCollabName(); return; }}
+      var lc = who.toLowerCase();
+      var rx = (m.reactions && typeof m.reactions === 'object') ? m.reactions : {{}};
+      var up   = (rx.up   || []).filter(function (n) {{ return String(n).toLowerCase() !== lc; }});
+      var down = (rx.down || []).filter(function (n) {{ return String(n).toLowerCase() !== lc; }});
+      var had = (rx[dir] || []).some(function (n) {{ return String(n).toLowerCase() === lc; }});
+      if (!had) {{ (dir === 'up' ? up : down).push(who); }}   // not set → add; already set → stays removed (toggle off)
+      sb.from('event_chat').update({{ reactions: {{ up: up, down: down }} }}).eq('id', m.id).then(function (resp) {{
+        if (resp.error) {{
+          status(/column|reactions/i.test(resp.error.message || '')
+            ? 'Reactions need a one-time Supabase migration (scripts/2026-07-10_chat_reactions.sql) before they save.'
+            : 'Reaction not saved: ' + resp.error.message, 'error');
+          return;
+        }}
+        _reloadOpenChat();
+      }});
+    }}
+    // "Add to notes" — append the message to the event's Notes (fresh-read the
+    // current value so we never clobber a concurrent edit), via opsWrite.
+    function _chatToNotes(m) {{
+      var panel = document.getElementById('event-chat-panel');
+      if (!panel || !panel.dataset.col) return;
+      var col = panel.dataset.col, key = panel.dataset.keyval;
+      var table = col === 'manual_id' ? 'manual_events' : 'event_state';
+      var idcol = col === 'manual_id' ? 'id' : 'event_num';
+      var line = (m.author ? String(m.author) + ': ' : '') + String(m.body || '');
+      sb.from(table).select('notes').eq(idcol, key).maybeSingle().then(function (resp) {{
+        var cur = (resp && resp.data && resp.data.notes) ? String(resp.data.notes) : '';
+        var next = cur ? (cur.replace(/\\s+$/, '') + '\\n' + line) : line;
+        if (window.opsWrite) window.opsWrite(table, key, {{ notes: next }});   // flashes "Saved" + re-renders
+      }});
+    }}
     function _paintChatList(list, msgs) {{
       list.innerHTML = '';
       if (!msgs.length) {{ list.innerHTML = '<p class="chat-empty">No messages yet — start the conversation.</p>'; return; }}
@@ -11743,24 +12011,37 @@ def build():
         var mine = me && String(m.author || '').trim().toLowerCase() === me;
         var div = document.createElement('div'); div.className = 'chat-msg';
         div.dataset.msgId = m.id;
-        div.innerHTML = '<div class="chat-meta"><span class="chat-who">' + escapeHtml(String(m.author || '')) +
-          '</span> <span class="chat-when">' + escapeHtml(when) + '</span>' +
-          (mine ? '<button type="button" class="chat-del" data-chat-del="' + escapeHtml(String(m.id)) + '" title="Delete your message" aria-label="Delete message">&times;</button>' : '') +
-          '</div>' +
-          '<p class="chat-body">' + escapeHtml(String(m.body || '')) + '</p>';
+        // Slack-style hover toolbar: add-to-notes · 👍 · 👎 · (delete, own only).
+        var actions = '<div class="chat-actions">' +
+          '<button type="button" class="chat-act" data-act="note" title="Add to event notes" aria-label="Add to notes">\\ud83d\\udcdd</button>' +
+          '<button type="button" class="chat-act" data-act="up" title="Thumbs up" aria-label="Thumbs up">\\ud83d\\udc4d</button>' +
+          '<button type="button" class="chat-act" data-act="down" title="Thumbs down" aria-label="Thumbs down">\\ud83d\\udc4e</button>' +
+          (mine ? '<button type="button" class="chat-act chat-act-del" data-act="del" title="Delete your message" aria-label="Delete message">\\u00d7</button>' : '') +
+          '</div>';
+        div.innerHTML = actions +
+          '<div class="chat-meta"><span class="chat-who">' + escapeHtml(String(m.author || '')) +
+          '</span> <span class="chat-when">' + escapeHtml(when) + '</span></div>' +
+          '<p class="chat-body">' + escapeHtml(String(m.body || '')) + '</p>' +
+          _chatReactLine(m.reactions, me);
+        div.querySelectorAll('.chat-act').forEach(function (btn) {{
+          btn.addEventListener('click', function (e) {{
+            e.stopPropagation();
+            var act = btn.getAttribute('data-act');
+            if (act === 'note') return _chatToNotes(m);
+            if (act === 'up')   return _chatReact(m, 'up');
+            if (act === 'down') return _chatReact(m, 'down');
+            if (act === 'del') {{
+              if (!window.confirm('Delete this message? This cannot be undone.')) return;
+              sb.from('event_chat').delete().eq('id', m.id).then(function (resp) {{
+                if (resp.error) {{ status('Delete failed: ' + resp.error.message, 'error'); return; }}
+                _reloadOpenChat(); loadChatCounts();
+              }});
+            }}
+          }});
+        }});
         list.appendChild(div);
       }});
       list.scrollTop = list.scrollHeight;
-      list.querySelectorAll('[data-chat-del]').forEach(function (btn) {{
-        btn.addEventListener('click', function () {{
-          if (!window.confirm('Delete this message? This cannot be undone.')) return;
-          var id = btn.getAttribute('data-chat-del');
-          sb.from('event_chat').delete().eq('id', id).then(function (resp) {{
-            if (resp.error) {{ status('Delete failed: ' + resp.error.message, 'error'); return; }}
-            _reloadOpenChat(); loadChatCounts();
-          }});
-        }});
-      }});
     }}
     function _reloadOpenChat() {{
       var panel = document.getElementById('event-chat-panel');
