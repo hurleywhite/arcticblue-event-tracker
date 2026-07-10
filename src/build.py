@@ -329,7 +329,7 @@ def render_event_card(ev, archived=False):
         <span class="badge {pc}">{e(priority_label)}</span>
       </header>
       <h3 class="event-name">{name_html}</h3>
-      <p class="event-loc"><span class="event-region">{e(region)}</span> · {e(ev['location'])}</p>
+      <p class="event-loc">{e(ev['location'])}</p>
       {signals_html}
       {f'<p class="event-why">{e(why)}</p>' if why else ''}
       <footer class="event-foot">
@@ -3643,9 +3643,9 @@ def build():
     }} else {{
       $title.textContent = rec.name || 'Event';
     }}
-    var regionTxt = rec.region ? '<span class="event-region">' + esc(rec.region) + '</span>' : '';
-    var locTxt = esc(rec.location || '');
-    $loc.innerHTML = regionTxt + (regionTxt && locTxt ? ' · ' : '') + locTxt;
+    // Just the city/venue — the region (MENA / Europe / …) is redundant next
+    // to it and adds nothing a reader needs.
+    $loc.innerHTML = esc(rec.location || '');
 
     var html = '';
     html += quickBarHtml(rec);
@@ -6327,7 +6327,7 @@ def build():
       var _actStage = act === 'Speaking' ? 'Booked' : (act === 'Attending' ? 'Attending' : null);
       var who = '<span class="q-stage-pill"' + (_actStage ? ' style="' + stageStyle(_actStage) + '"' : '') + '>' + escapeHtml(act) + '</span> ' +
         it._keys.map(function (k) {{ return '<span class="dayof-who">' + escapeHtml((P[k] || {{}}).name || k) + '</span>'; }}).join(', ');
-      var loc = [it.region, it.location].filter(Boolean).join(' · ');
+      var loc = [it.location].filter(Boolean).join(' · ');
       var ready = it.briefing_json ? '<span class="dayof-ready">&#10003; brief ready</span>' : '';
       return '<div class="dayof-card' + (isToday ? ' is-today' : '') + '">' +
         '<div class="dayof-card-main">' +
@@ -6628,7 +6628,7 @@ def build():
       function rowHtml(it, actions) {{
         var ints = window.visibleInterested(it.interested, it.speaker, it.attendees).map(function (n) {{ return '<span class="q-int-chip">' + escapeHtml(n) + '</span>'; }}).join('');
         var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>' : '';
-        var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
+        var loc = [it.location].filter(Boolean).join(' &middot; ');
         return '<div class="queue-row">' +
             '<div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
@@ -6929,7 +6929,7 @@ def build():
         return;
       }}
       function rowHtml(it) {{
-        var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
+        var loc = [it.location].filter(Boolean).join(' &middot; ');
         var who = (b.support && it.speaker) ? '<span class="q-int-chip">' + escapeHtml(it.speaker) + '</span>' : '';
         var role = it._myRole ? '<span class="q-stage-pill" style="' + stageStyle(it._myRole === 'Speaking' ? 'Booked' : 'Attending') + '">' + it._myRole + '</span>' : '';
         // The Day-Of brief now lives here (no separate tab) — on upcoming rows.
@@ -6976,7 +6976,7 @@ def build():
         ? '<div class="queue-section sug-section"><div class="queue-sec-head"><span class="queue-sec-title">' + _sugTitle + '</span><span class="queue-sec-count">' + _sug.length + '</span></div>' +
           _sug.map(function (x) {{
             var it = x.it;
-            var loc = [it.region, it.location].filter(Boolean).join(' \\u00b7 ');
+            var loc = [it.location].filter(Boolean).join(' \\u00b7 ');
             return '<div class="queue-row sug-row"><div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
@@ -7022,6 +7022,13 @@ def build():
       updateViewBadges();
     }}
 
+    // Month label + chronological sort key from an opsItem's YYYYMMDD `sort`.
+    function _sugMonth(sort) {{
+      if (!sort || sort >= 99999999) return {{ key: 'tbd', label: 'Date TBD', sort: 99999999 }};
+      var y = Math.floor(sort / 10000), mo = Math.floor((sort % 10000) / 100);
+      if (mo < 1 || mo > 12) return {{ key: 'tbd', label: 'Date TBD', sort: 99999999 }};
+      return {{ key: y + '-' + mo, label: OPS_MONTH_NAMES[mo - 1] + ' ' + y, sort: y * 100 + mo }};
+    }}
     // ── Plan Ahead: the everyone-facing "decide what to go to" surface —
     // 2–4 month suggestions you clear with one call each: "I'm interested"
     // (goes on Angela's radar to register you) or "Not for me" (off your list
@@ -7046,19 +7053,24 @@ def build():
           '</div>';
         return;
       }}
+      // Group by MONTH, not region — chronological reads better for "what's
+      // coming up to decide on", and the region label was redundant with the
+      // city on every row anyway.
       var groups = {{}}, order = [];
       sug.forEach(function (x) {{
-        var r = x.it.region || 'Global';
-        if (!groups[r]) {{ groups[r] = []; order.push(r); }}
-        groups[r].push(x);
+        var m = _sugMonth(x.it.sort);
+        if (!groups[m.key]) {{ groups[m.key] = {{ label: m.label, sort: m.sort, items: [] }}; order.push(m.key); }}
+        groups[m.key].items.push(x);
       }});
+      order.sort(function (a, b) {{ return groups[a].sort - groups[b].sort; }});
       var html = intro;
-      order.forEach(function (region) {{
-        var list = groups[region];
-        html += '<div class="queue-section"><div class="queue-sec-head"><span class="queue-sec-title">' + escapeHtml(region) + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
+      order.forEach(function (mkey) {{
+        var g = groups[mkey];
+        var list = g.items.slice().sort(function (a, b) {{ return a.it.sort - b.it.sort; }});
+        html += '<div class="queue-section"><div class="queue-sec-head"><span class="queue-sec-title">' + escapeHtml(g.label) + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
         list.forEach(function (x) {{
           var it = x.it;
-          var loc = [it.region, it.location].filter(Boolean).join(' \\u00b7 ');
+          var loc = [it.location].filter(Boolean).join(' \\u00b7 ');
           html += '<div class="queue-row sug-row"><div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
@@ -7480,7 +7492,7 @@ def build():
         }} else {{
           html += '<div class="gap-list">';
           gaps.slice(0, CAP).forEach(function (it) {{
-            var loc = [it.region, it.location].filter(Boolean).join(' &middot; ');
+            var loc = [it.location].filter(Boolean).join(' &middot; ');
             var flagged = it.interested.indexOf(terr.who) !== -1;
             html += '<div class="gap-row"><div>' +
                 '<button class="gap-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
