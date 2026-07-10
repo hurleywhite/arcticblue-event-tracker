@@ -8030,6 +8030,14 @@
           b.setAttribute('aria-selected', on ? 'true' : 'false');
         });
       }
+      // Search + filters are the Events surface's own tools — hide the whole
+      // row on the personal tabs (My Lineup / Plan Ahead / My Profile), where
+      // there's nothing to filter. (The controls stay in the DOM, so returning
+      // to Events restores them with their state intact.)
+      var $topf = document.getElementById('ops-topfilters');
+      if ($topf) $topf.style.display = isEventsView ? '' : 'none';
+      var $afb = document.getElementById('ops-active-filters');
+      if ($afb) $afb.style.display = isEventsView ? '' : 'none';
       var g = document.getElementById('ops-grid');
       var c = document.getElementById('ops-calendar');
       var m = document.getElementById('ops-map');
