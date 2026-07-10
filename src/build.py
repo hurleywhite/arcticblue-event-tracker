@@ -791,6 +791,19 @@ def build():
     .st-wait {{ background: #0ea5e9; }}
     .st-no   {{ background: #b91c1c; }}
     .st-sep  {{ color: var(--ab-fg-3); font-weight: 400; }}
+    /* Whisper-quiet data-freshness cue from updated_at. Deliberately faint —
+       it's a background reassurance / nudge, not a headline. */
+    .ops-fresh-line {{ margin: -4px 0 10px; }}
+    .ops-fresh {{
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.01em;
+      display: inline-flex; align-items: center; gap: 5px; color: var(--ab-fg-3);
+    }}
+    .ops-fresh::before {{
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor; opacity: 0.65; flex-shrink: 0;
+    }}
+    .ops-fresh.is-fresh {{ color: #6b8f7a; }}   /* muted sage — quietly reassuring */
+    .ops-fresh.is-stale {{ color: #b08968; }}   /* muted clay — a gentle "check me" */
     /* One-click "Apply to speak" button on ops cards — the booking shortcut. */
     /* Deadline/closed-to-speak label + Apply button sit side by side in one
        compact row, pinned to the bottom of the card (not each its own
@@ -4335,6 +4348,22 @@ def build():
       return dt;
     }}
 
+    // A whisper-quiet freshness cue from the row's existing updated_at (no
+    // schema change): recently touched reads "verified 3d ago"; long-untouched
+    // reads "stale · 45d untouched". Nothing shows for events never edited (no
+    // timestamp to stand behind). 30 days is the line between the two.
+    function freshnessTag(iso) {{
+      if (!iso) return '';
+      var t = new Date(iso).getTime();
+      if (isNaN(t)) return '';
+      var days = Math.max(0, Math.floor((Date.now() - t) / 86400000));
+      var stale = days > 30;
+      var ago = days === 0 ? 'today' : (days === 1 ? '1d ago' : days + 'd ago');
+      var text = stale ? ('stale \\u00b7 ' + days + 'd untouched') : ('verified ' + ago);
+      return '<span class="ops-fresh ' + (stale ? 'is-stale' : 'is-fresh') +
+        '" title="Last updated ' + escapeHtml(formatStamp(iso)) + '">' + text + '</span>';
+    }}
+
     // True if a row was created within the last 7 days (covers hand-added AND
     // Dust-ingested manual events — both stamp created_at on insert).
     function isRecentlyAdded(ts) {{
@@ -4791,6 +4820,7 @@ def build():
           '</div>' +
         '</div>' +
         cardStatusLine(ev, st) +
+        (freshnessTag(st && st.updated_at) ? '<p class="ops-fresh-line">' + freshnessTag(st.updated_at) + '</p>' : '') +
         _cFootHtml;
       // (metaLine intentionally unused now — "Last edit" detail lived inside the
       // old inline editor, which has moved to the Details pop-up.)
@@ -4982,6 +5012,7 @@ def build():
           '</div>' +
         '</div>' +
         tagsHtml +
+        (freshnessTag(mev.updated_at) ? '<p class="ops-fresh-line">' + freshnessTag(mev.updated_at) + '</p>' : '') +
         _mFootHtml;
       // Stash a modal record on the node for the delegated "Details" handler.
       var mrec = {{}};
@@ -6941,6 +6972,10 @@ def build():
     function _suggestionsFor() {{
       var meFirst = (getCollabName() || '').trim().toLowerCase().split(/\\s+/)[0];
       var P = (window.AB_PERSONAS || {{}})[meFirst] || null;
+      // Personalization: what this person has actually attended / spoken at
+      // (and flagged interested). This is the PRIMARY ranking signal below —
+      // the persona is the fallback when there's no track record yet.
+      var taste = _tasteProfile(meFirst);
       var BAD = /complian|regulat|regtech|gdpr|\\baudit/i;
       var kws = [];
       if (P) {{
@@ -7007,13 +7042,28 @@ def build():
         s += hits;
         if (/buyer/i.test(o.audience_type || '')) {{ s += 2; why.push('buyer-rich'); }}
         if (/high/i.test(o.priority_override || o.priority || '')) s += 1;
+        // How much this looks like what the person actually shows up for.
+        var tScore = _tasteScore(taste, it);
+        // Jim's remit is DC + government. Keep only events that are in DC, or
+        // clearly gov (named, or matching 2+ of his gov themes); bias DC up.
+        if (meFirst === 'jim') {{
+          var jloc = abFold([it.location, it.city, it.region].filter(Boolean).join(' '));
+          var inDC = jloc.indexOf('washington') !== -1;
+          if (!inDC && !_isGovDef(it) && hits < 2) return;
+          if (inDC) {{ s += 3; why.push('DC'); }}
+        }}
         // A 'stage' persona is there to SPEAK, so a topic-less pick — in-geo and
         // buyer-rich but matching none of their themes — isn't a fit (this was
-        // Joe, an HR speaker, getting London financial-services events).
-        if (P && mode === 'stage' && hits === 0) return;
-        if (s >= (P ? 5 : 4)) scored.push({{ it: it, s: s, why: why }});
+        // Joe, an HR speaker, getting London financial-services events). But if
+        // it strongly matches their track record, keep it.
+        if (P && mode === 'stage' && hits === 0 && tScore < 4) return;
+        // Include on persona fit OR a strong resemblance to their history.
+        if (s >= (P ? 5 : 4) || tScore >= 6) scored.push({{ it: it, s: s, tScore: tScore, why: why }});
       }});
-      scored.sort(function (a, b) {{ return b.s - a.s || a.it.sort - b.it.sort; }});
+      // Rank by track-record resemblance FIRST (most important), then persona
+      // fit, then soonest — so "suggested for you" leads with events like the
+      // ones this person keeps attending / speaking at.
+      scored.sort(function (a, b) {{ return (b.tScore - a.tScore) || (b.s - a.s) || (a.it.sort - b.it.sort); }});
       return scored;   // callers slice to their own depth (My Events widget vs. the full Plan Ahead page)
     }}
     var _wnLast = [];
@@ -7244,6 +7294,60 @@ def build():
       var r = _overlapN(pa.roles, pb.roles);
       return {{ t: t, r: r, score: t * 2 + r }};
     }}
+    // ── Taste profile — what a person actually does ──────────────────────
+    // The strongest personalization signal is a person's own track record:
+    // events they've ATTENDED or SPOKEN at (weight 2, past included — that IS
+    // their history) and events they've flagged INTERESTED in (weight 1). We
+    // accumulate the industry/topic + role tokens across all of them, so a
+    // candidate that looks like what they keep showing up for scores high.
+    function _tasteProfile(who) {{
+      var topics = {{}}, roles = {{}}, n = 0;
+      if (!who) return {{ topics: topics, roles: roles, has: false }};
+      opsAllItems().forEach(function (it) {{
+        var w = 0;
+        if ((it.attendees || []).some(function (a) {{ return abFold(a).split(/\\s+/)[0] === who; }})) w = 2;
+        else if (it.stages.indexOf('Booked') !== -1 && abFold(it.speaker || '').split(/\\s+/)[0] === who) w = 2;
+        else if ((it.interested || []).some(function (x) {{ return abFold(x).split(/\\s+/)[0] === who; }})) w = 1;
+        if (!w) return;
+        n++;
+        var p = _contentProfile(it);
+        for (var t in p.topics) {{ topics[t] = (topics[t] || 0) + w; }}
+        for (var r in p.roles)  {{ roles[r]  = (roles[r]  || 0) + w; }}
+      }});
+      return {{ topics: topics, roles: roles, has: n > 0 }};
+    }}
+    // How much a candidate resembles the person's taste (accumulated weights).
+    function _tasteScore(taste, it) {{
+      if (!taste || !taste.has) return 0;
+      var p = _contentProfile(it), s = 0, t;
+      for (t in p.topics) {{ if (taste.topics[t]) s += taste.topics[t] * 2; }}
+      for (t in p.roles)  {{ if (taste.roles[t])  s += taste.roles[t]; }}
+      return s;
+    }}
+    // ── Home bases — trip batching is smarter about time + distance ──────
+    // Each teammate's home city. The farther an anchor event is from home, the
+    // wider the batch net: a local event batches tight (a day or two, same
+    // metro); a long-haul trip batches the whole region for ~2 weeks (already
+    // flew to Istanbul — Rome the next week is worth the detour). Support keys
+    // map to NYC but go unused (their clusters are per-owner).
+    var HOME_BASE = {{
+      thor:   [40.71, -74.01],   // New York
+      joe:    [40.71, -74.01],   // New York
+      verma:  [40.72, -74.05],   // Jersey City
+      angela: [40.71, -74.01],   // New York
+      hurley: [40.71, -74.01],   // New York
+      jerome: [51.51, -0.13],    // London
+      carlos: [18.49, -69.93],   // Santo Domingo
+      jim:    [38.90, -77.04]     // Washington DC
+    }};
+    function _homeOf(who) {{ return HOME_BASE[who] || null; }}
+    // How wide to cast the batch net, by how far the anchor is from home (km).
+    function _tripWindow(homeDist) {{
+      if (homeDist > 4000) return {{ maxKm: 1600, maxGap: 12 }};   // intercontinental — batch the region
+      if (homeDist > 1200) return {{ maxKm: 650,  maxGap: 6  }};   // cross-country / far domestic
+      return {{ maxKm: 320, maxGap: 3 }};                          // near home — tight
+    }}
+    var SAME_CITY_KM = 40;   // within one metro: same-day is doable; across cities it isn't
     // Whose lineup drives Plan Ahead. A named teammate sees their own; support
     // (Angela/Hurley) plan for everyone, so they get the whole team's — every
     // persona first name. Returns [] when there's no signed-in name.
@@ -7272,7 +7376,7 @@ def build():
       var support = isSupportPerson(getCollabName() || '');
       var BADt = /complian|regulat|regtech|gdpr|\\baudit/i;
       var skips = _sugSkips();
-      var NEAR_KM = 200, DAY_MS = 86400000, GAP_DAYS = 3;
+      var DAY_MS = 86400000;
       var all = opsAllItems();
       // Anchors = committed travel (attending / booked) for any owner. One anchor
       // per (event, owner); a support user sees every teammate's trips labelled
@@ -7294,6 +7398,9 @@ def build():
       anchors.forEach(function (anchor) {{
         if (!anchor.startD || !anchor.endD) return;
         var ownerGov = _govOk(anchor.who);   // gov/A&D nearby only for Jim's (or support's) trips
+        // Widen the batch window with how far this trip already is from home.
+        var home = _homeOf(anchor.who);
+        var win = _tripWindow(home ? _haversineKm(home, anchor.geo) : 0);
         var near = [], seenName = {{}};
         all.forEach(function (it) {{
           if (it === anchor.it) return;
@@ -7307,21 +7414,33 @@ def build():
           var nm = abFold(it.name); if (seenName[nm]) return;  // collapse duplicate events
           var g = geoOf(it); if (!g) return;
           var km = _haversineKm(anchor.geo, g);
-          if (km > NEAR_KM) return;
+          if (km > win.maxKm) return;
           var cs = _sortToDate(it.sort), ce = _sortToDate(_endSortOf(it));
           if (!cs || !ce) return;
           var gap = Math.max(0, Math.ceil((cs - anchor.endD) / DAY_MS), Math.ceil((anchor.startD - ce) / DAY_MS));
-          if (gap > GAP_DAYS) return;
+          if (gap > win.maxGap) return;
+          // Can't be in two different cities on the same day — only same-metro
+          // events may overlap in time. Across cities, require a day between.
+          if (km >= SAME_CITY_KM && gap === 0) return;
           seenName[nm] = 1;
           near.push({{ it: it, gap: gap, km: km, geo: g }});
         }});
         if (near.length) {{
-          near.sort(function (a, b) {{ return a.it.sort - b.it.sort; }});
+          // Rank what to actually surface: a trip batches a HANDFUL, not a
+          // continent. Float events that match the anchor's topic (topic
+          // overlap >= 2), then the closest, then the soonest — so a long-haul
+          // trip (Web Summit Lisbon) shows the few most relevant/closest, not
+          // every European event within range.
+          var aProf = _contentProfile(anchor.it);
+          near.forEach(function (n) {{ n.rel = _simScore(aProf, _contentProfile(n.it)).t; }});
+          near.sort(function (a, b) {{
+            var ra = a.rel >= 2 ? 0 : 1, rb = b.rel >= 2 ? 0 : 1;
+            return ra - rb || a.km - b.km || a.gap - b.gap;
+          }});
           // Collapse same-host/same-city near-dupes (CDAO Defense & Security /
           // CDAO Government / CDAO Washington D.C. -> one row). Seed with the
           // anchor's own brand so a second event from that host in the same city
-          // (you're already going) doesn't show either. Sorted first, so the
-          // soonest occurrence is the one kept.
+          // (you're already going) doesn't show either.
           var seenBrand = {{}};
           seenBrand[_brandKey(anchor.it, anchor.geo)] = 1;
           near = near.filter(function (n) {{
@@ -7330,6 +7449,8 @@ def build():
             seenBrand[bk] = 1; return true;
           }});
           if (!near.length) return;   // dedupe emptied it — no cluster (e.g. lone same-brand neighbour)
+          near = near.slice(0, 5);    // cap — one trip covers a few, not twenty
+          near.sort(function (a, b) {{ return a.it.sort - b.it.sort; }});   // show the kept few chronologically
           near.forEach(function (n) {{ usedKeys[anchor.who + '|' + n.it.kind + ':' + n.it.key] = 1; }});
           clusters.push({{ anchor: anchor.it, who: anchor.who, support: support, role: anchor.role, near: near }});
         }}

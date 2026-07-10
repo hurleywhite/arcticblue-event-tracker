@@ -44,16 +44,6 @@ LOCATION:Washington\, D.C.
 DESCRIPTION:Priority: Medium\nAdded by: Thor
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-428@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261118
-DTEND;VALUE=DATE:20261119
-SUMMARY:IDC FutureTech Summit Spain 2026
-LOCATION:Madrid\, Spain
-DESCRIPTION:IDC's premier technology and innovation leadership summit in Spain — targeting CIOs\, CTOs\, and innovation leaders across the Spanish enterprise market\; key Q4 touchpoint for ArcticBlue's Spain market entry strategy.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://infosec-conferences.com/event/20261118-idc-futuretech-summit-spain-2026/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-427@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20261020
@@ -72,16 +62,6 @@ SUMMARY:Enterprise AI Maturity & Transformation Assembly – August 2026
 LOCATION:Omni Frisco Hotel at The Star\, Dallas\, TX
 DESCRIPTION:Millennium Alliance's exclusive CIO/CAIO assembly claims 76% Fortune 100 attendance\; closed-door peer format with guaranteed 1:1 meeting facilitation — high-density enterprise buyer room for ArcticBlue sponsorship-led access.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://mill-all.com/assemblies/enterprise-ai-maturity-transformation-assembly-august-2026/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-425@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261126
-DTEND;VALUE=DATE:20261127
-SUMMARY:AI Innovation Asia 2026
-LOCATION:Grand Hyatt Singapore\, Singapore
-DESCRIPTION:Economist Group's 3rd annual APAC AI leadership summit uniting 500 executives on 'closing the AI value gap'\; real-world case studies from Asia's top adopters\, regulators\, and solution providers — premium APAC influence stage for Verma's enterprise AI experimentation and de-risking narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.economistenterprise.com/ai-innovation-asia/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-424@arcticblue-event-tracker
@@ -134,26 +114,6 @@ DESCRIPTION:Gartner/Evanta's exclusive DC-metro CHRO one-day summit — governme
 URL:https://www.evanta.com/chro/washington-dc/washington-dc-chro-executive-summit-9388
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-419@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261115
-DTEND;VALUE=DATE:20261119
-SUMMARY:SHRM All Things Work 2026
-LOCATION:Nashville\, TN
-DESCRIPTION:SHRM's new flagship fall conference combining HR\, I&D\, and leadership upskilling with dedicated tracks on AI adoption\, compliance\, and workforce strategy — a unified audience of 1\,000+ HR and people leaders.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://conference.shrm.org/atw
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-418@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261026
-DTEND;VALUE=DATE:20261029
-SUMMARY:Gartner HR Symposium/Xpo™ Americas 2026
-LOCATION:Orlando\, FL
-DESCRIPTION:'The World's Most Important Gathering of CHROs and HR Executives™' — sessions on AI-ready workforce\, L&D skills transformation\, and CHRO leadership are a direct match to Joe's positioning\; sponsorship is the primary speaker route.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.gartner.com/en/conferences/na/hr-symposium-us
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-417@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20260927
@@ -162,16 +122,6 @@ SUMMARY:Garden State SHRM Annual Conference 2026
 LOCATION:Atlantic City\, NJ
 DESCRIPTION:Regional three-day SHRM conference drawing 1\,000+ HR professionals from the tri-state area — including enterprise HR and L&D leaders — with an open call for speakers at a short drive from Joe's NYC base.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.shrm.org/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-416@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261116
-DTEND;VALUE=DATE:20261117
-SUMMARY:Swiss AI Summit 2026
-LOCATION:Zurich\, Switzerland
-DESCRIPTION:Switzerland's leading AI conference at Kunsthaus Zürich\; 400+ decision-makers\, 50+ speakers from Zurich Insurance\, Die Mobiliar\, BNP Paribas\, Swisscom and Kinderspital Zürich — perfect Zurich-base ICP reach across insurance\, banking\, telco and healthcare verticals in ArcticBlue's second-priority city.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.swissaisummit.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-415@arcticblue-event-tracker
@@ -1604,16 +1554,6 @@ DESCRIPTION:APAC's premier life-insurance C-suite summit — CEOs\, CFOs\, CROs 
 URL:https://www.asiainsurancereview.com/Events/Home/Asia/Asialife2026
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-247@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261118
-DTEND;VALUE=DATE:20261119
-SUMMARY:Evanta Washington DC CHRO Executive Summit 2026
-LOCATION:Arlington\, VA
-DESCRIPTION:Gartner Evanta's DC-area CHRO Summit draws CHROs from federal\, healthcare\, finance\, and tech enterprises in the DC/Northern Virginia corridor — high-value CHRO audience for Joe's AI enablement and workforce transformation message.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.evanta.com/chro/washington-dc/washington-dc-chro-executive-summit-9388
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-244@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20261006
@@ -2652,16 +2592,6 @@ SUMMARY:Reuters Momentum AI Finance 2026
 LOCATION:New York\, NY\, USA
 DESCRIPTION:Reuters Events' premier financial services AI leadership summit — 300 hand-picked senior decision-makers (70% financial services)\, 65+ speakers\; past-the-pilot\, production AI governance for FSI\; ArcticBlue's ROI\, agentic AI\, and governance narrative is a perfect match for C-suite FS buyers.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://events.reutersevents.com/momentum/finance
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-96@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261105
-DTEND;VALUE=DATE:20261106
-SUMMARY:IDC FutureTech Summit London 2026
-LOCATION:County Hall\, London\, UK
-DESCRIPTION:IDC's premier European CTO/IT architecture event — 'Scaling AI Across Cloud and Enterprise Platforms' with EU AI Act governance and agentic AI adoption as core themes\; County Hall London venue\; ArcticBlue's enterprise AI architecture and responsible AI narrative fits the agenda well.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://event.idc.com/event/futuretech-summit-uk/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-94@arcticblue-event-tracker
