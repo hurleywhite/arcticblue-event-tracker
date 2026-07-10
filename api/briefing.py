@@ -203,6 +203,24 @@ def is_attending_or_speaking(state):
     return False
 
 
+def briefable(facts, state):
+    """A Day-Of brief RESEARCHES the event online — it needs a web footprint to
+    pull agenda, speakers and news from. A private / invite-only event (GDN, GBS,
+    internal roadshows) has none: no website, no public description, no focus
+    areas — so there's nothing to brief from and the model would only fabricate.
+    Skip those: require an explicit is_private=false AND at least one of
+    url / about / focus_areas. (is_private true short-circuits to False even if
+    some stray field is set.)"""
+    f = facts or {}
+    s = state or {}
+    if s.get('is_private') or f.get('is_private'):
+        return False
+    for k in ('url', 'about', 'focus_areas'):
+        if str(s.get(k) or f.get(k) or '').strip():
+            return True
+    return False
+
+
 def _today():
     return date.today().isoformat()
 
@@ -570,6 +588,11 @@ def _one(kind, key, host, regenerate):
         return {'error': "day-of briefs are only for events you're attending or "
                          "speaking at — not 'Should Attend'. Mark Attending or "
                          "Speaking Booked first."}, 400
+    if not briefable(facts, state):
+        return {'error': "This is a private / invite-only event with no public "
+                         "info online (no website, description or focus areas) — "
+                         "there's nothing to build a brief from.",
+                'skipped': True, 'private': True}, 200
     persona = load_personas()['personas'][keys[0]]
     mode = effective_mode(persona, row.get('status_tags'))
     activity = activity_label(row.get('status_tags'))
@@ -1318,6 +1341,8 @@ class handler(BaseHTTPRequestHandler):
             return
         row = state if kind == 'event_state' else facts
         if not is_attending_or_speaking(row):   # skip "Should Attend" / unconfirmed
+            return
+        if not briefable(facts, state):         # private/no-web-footprint → nothing to brief
             return
         persona = load_personas()['personas'][keys[0]]
         mode = effective_mode(persona, row.get('status_tags'))

@@ -6483,7 +6483,10 @@
             statusHtml: _slEl ? _slEl.outerHTML : '',
             sort: parseInt(c.dataset.sort || '99999999', 10),
             _past: _pastFlag, briefReady: c.dataset.briefReady === '1',
-            is_private: !!r.is_private   // private events carry no public info to brief from
+            // A Day-Of brief researches the event online. A PRIVATE / invite-only
+            // event (GDN, GBS …) has no web footprint — no url, no about, no
+            // focus areas — so there's nothing to brief from. Skip those.
+            briefable: !r.is_private && !!(String(r.url || '').trim() || String(r.about || '').trim() || String(r.focus_areas || '').trim())
           };
           (_pastFlag ? past : upcoming).push(item);
         });
@@ -6717,8 +6720,9 @@
         // Same derived status the grid card shows — one vocabulary everywhere.
         var statusHtml = it.statusHtml || '';
         // The Day-Of brief lives here (no separate tab) — on upcoming rows. A
-        // PRIVATE event has no public info to brief from, so no brief button.
-        var brief = (it._past || it.is_private) ? '' :
+        // private / invite-only event (no online footprint) can't be briefed,
+        // so no brief button (see `briefable`).
+        var brief = (it._past || !it.briefable) ? '' :
           (it.briefReady ? '<span class="dayof-ready">&#10003; brief ready</span>' : '') +
           '<button type="button" class="q-btn primary" data-brief-kind="' + it.kind + '" data-brief-key="' + escapeHtml(String(it.key)) + '">Open brief &rarr;</button>';
         // The whole row opens the event details on click (like the grid cards) —
