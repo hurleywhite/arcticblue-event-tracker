@@ -1214,48 +1214,28 @@
       margin-top: 8px;
     }
 
-    /* Stats summary bar */
-    .ops-stats {
-      display: grid; gap: 1px;
-      grid-template-columns: repeat(6, 1fr);
-      background: var(--ab-rule);
-      border: 1px solid var(--ab-rule);
-      border-radius: 10px;
-      overflow: hidden;
-      /* More breathing room under the title bar; slightly larger gap below the
-         stat bar than between the rows below it. */
-      margin-top: 22px;
-      margin-bottom: 24px;
+    /* Segmented status filter: All / Pending / Booked / Attending. Sits at the
+       left of the filter bar; the rest of the filters hide behind the icon. */
+    .ops-seg {
+      display: inline-flex; align-items: stretch; gap: 2px;
+      padding: 3px; border-radius: 10px; background: var(--ab-bg-3);
+      border: 1px solid var(--ab-rule); flex: 0 0 auto;
     }
-    .ops-stat {
-      background: var(--ab-bg); padding: 14px 16px;
-      display: flex; flex-direction: column; gap: 2px;
-      align-items: flex-start; text-align: left;
-      border: 0; font: inherit; cursor: pointer;
-      transition: background 0.12s;
+    .ops-seg[hidden] { display: none; }
+    .seg-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--ab-sans); font-size: 0.84rem; font-weight: 600;
+      color: var(--ab-fg-2); background: transparent; border: 0; cursor: pointer;
+      padding: 7px 13px; border-radius: 7px; white-space: nowrap; transition: all 0.12s;
     }
-    .ops-stat:hover { background: var(--ab-bg-3); }
-    .ops-stat.is-activestat { background: var(--ab-fg); }
-    .ops-stat.is-activestat .num,
-    .ops-stat.is-activestat .lbl { color: var(--ab-bg) !important; }
-    .ops-stat .num {
-      font-family: var(--ab-mono); font-weight: 600;
-      font-size: 1.4rem; letter-spacing: -0.02em;
-      color: var(--ab-fg); line-height: 1.1;
+    .seg-chip:hover { color: var(--ab-fg); background: var(--ab-bg); }
+    .seg-chip.is-on { background: var(--ab-fg); color: var(--ab-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+    .seg-num {
+      font-family: var(--ab-mono); font-size: 0.72rem; font-weight: 600;
+      color: var(--ab-fg-3); background: var(--ab-bg); border-radius: 999px; padding: 0 6px; min-width: 18px; text-align: center;
     }
-    .ops-stat .lbl {
-      font-family: var(--ab-mono); font-size: 0.66rem;
-      color: var(--ab-fg-3); letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-    .ops-stat.saved .num   { color: var(--ab-blue); }
-    .ops-stat.urgent .num  { color: var(--ab-red); }
-    @media (max-width: 800px) {
-      .ops-stats { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-    }
-    @media (max-width: 500px) {
-      .ops-stats { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
-    }
+    .seg-chip.is-on .seg-num { color: var(--ab-fg); background: var(--ab-bg); }
+    @media (max-width: 560px) { .ops-seg { width: 100%; } .seg-chip { flex: 1; justify-content: center; } }
 
     /* Status filter chip row */
     .status-filters {
@@ -1468,6 +1448,31 @@
     @media (max-width: 640px) { .ops-topfilters #ops-search { flex-basis: 100%; } }
     /* Ask Anything sits next to search — matched to the filter/search height. */
     .ops-topfilters .ab-btn--ask { flex: 0 0 auto; padding: 11px 16px; font-size: 0.86rem; font-weight: 700; }
+    /* Filter icon — reveals the drawer holding every non-status filter. */
+    .tf-toggle {
+      flex: 0 0 auto; position: relative; display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2); transition: all 0.12s;
+    }
+    .tf-toggle:hover { border-color: var(--ab-fg-3); color: var(--ab-fg); }
+    .tf-toggle[aria-expanded="true"] { background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }
+    .tf-toggle svg { width: 18px; height: 18px; }
+    .tf-toggle.has-active { border-color: var(--ab-blue); color: var(--ab-blue); }
+    .tf-count {
+      position: absolute; top: -6px; right: -6px; min-width: 17px; height: 17px; padding: 0 4px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 700; line-height: 1;
+      color: #fff; background: var(--ab-blue); border-radius: 999px;
+    }
+    .tf-count[hidden] { display: none; }
+    /* The drawer: a full-width panel of dropdown filters below the bar. */
+    .tf-drawer {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      margin: -8px 0 16px; padding: 12px; border: 1px solid var(--ab-rule);
+      border-radius: 10px; background: var(--ab-bg-2, var(--ab-bg));
+    }
+    .tf-drawer[hidden] { display: none; }
+    .tf-drawer .filter-dd-btn { width: auto; }
     /* "N filters active — Clear all", right under the top filter bar — an
        active filter (esp. Region/Months, easy to forget you set) shouldn't be
        invisible; everyone sees this, not just Angela. */
@@ -2475,7 +2480,6 @@
       <!-- The collaborative tracker — open to everyone, no login. -->
       <div id="angela-ops" hidden>
         <div id="ops-status" class="alert" hidden></div>
-        <div class="ops-stats" id="ops-stats" hidden></div>
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
@@ -2525,6 +2529,18 @@
           <button type="button" role="tab" class="subnav-btn" data-view="map" aria-selected="false">Map</button>
         </div>
         <div class="ops-topfilters" id="ops-topfilters">
+          <div class="ops-stats ops-seg" id="ops-stats" hidden></div>
+          <button type="button" class="tf-toggle" id="ops-filter-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="tf-drawer" title="More filters — region, months, pipeline and more" aria-label="More filters">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+            <span class="tf-count" id="tf-active-count" hidden></span>
+          </button>
+          <input type="search" id="ops-search" placeholder="Search: event name, location, key words, etc" aria-label="Search events">
+          <button class="ab-btn ab-btn--ask" id="ask-ai-btn" title="Ask the AI to analyse and rank the events currently in view — e.g. 'which of these should I attend in September?'">
+            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+            Ask Anything
+          </button>
+        </div>
+        <div class="tf-drawer" id="tf-drawer" hidden>
           <div class="filter-dd" id="filter-pipeline" title="Pipeline stage — where each event stands (pick several to combine)">
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Pipeline</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- stage chips injected by buildStageFilters() --></div>
@@ -2545,15 +2561,6 @@
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Should attend</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- Team pick / AI pick chips injected by buildExtraFilters() --></div>
           </div>
-          <input type="search" id="ops-search" placeholder="Search: event name, location, key words, etc" aria-label="Search events">
-          <button class="ab-btn ab-btn--ask" id="ask-ai-btn" title="Ask the AI to analyse and rank the events currently in view — e.g. 'which of these should I attend in September?'">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
-            Ask Anything
-          </button>
-        </div>
-        <p class="ops-active-filters" id="ops-active-filters" hidden></p>
-        <div class="ops-filters collapsed">
-          <button type="button" class="ops-filter-toggle" id="ops-filter-toggle" aria-expanded="false" aria-label="Show or hide filters">Filters <span class="ft-caret" aria-hidden="true">▾</span></button>
           <div class="filter-dd" id="filter-price" title="Ticket price as a buyer signal: a pricier pass usually means real buyers, not a hall of vendors">
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Ticket price</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- chips injected by buildExtraFilters() --></div>
@@ -2575,6 +2582,7 @@
           <label class="ops-filter-chip" title="Events where an email contact (organizer POC) was found"><input type="checkbox" id="ops-f-contact">Contact found</label>
           <span class="ops-shown" id="ops-shown"></span>
         </div>
+        <p class="ops-active-filters" id="ops-active-filters" hidden></p>
         <div class="ops-results-header" id="ops-results-header">
           <button type="button" class="ops-dupe-review" id="ops-dupe-review" title="Show the auto-detected duplicate events so you can delete them (open one, then Details → Edit → Delete this event)" hidden></button>
           <span class="ops-count" id="ops-count"></span>
@@ -5067,23 +5075,34 @@
     }
     function updateFilterToggle() {
       var $ft = document.getElementById('ops-filter-toggle');
+      var $badge = document.getElementById('tf-active-count');
       if (!$ft) return;
-      var box = $ft.closest('.ops-filters');
-      var collapsed = !!(box && box.classList.contains('collapsed'));
-      var n = countActiveOpsFilters();
-      $ft.innerHTML = 'Filters' + (n ? ' <span class="ft-active">· ' + n + ' active</span>' : '') +
-        ' <span class="ft-caret" aria-hidden="true">' + (collapsed ? '▾' : '▴') + '</span>';
+      // Every non-status filter (region/months/pipeline/price/… + the checkboxes
+      // and search) now lives behind this one icon — badge the count so an
+      // engaged filter is never invisible.
+      var n = countActiveOpsFilters() + countActiveTopFilters();
+      $ft.classList.toggle('has-active', n > 0);
+      if ($badge) {
+        if (n > 0) { $badge.textContent = n; $badge.hidden = false; }
+        else { $badge.textContent = ''; $badge.hidden = true; }
+      }
     }
     function wireFilterToggle() {
       var $ft = document.getElementById('ops-filter-toggle');
-      if (!$ft || $ft.dataset.wired) return;
+      var $drawer = document.getElementById('tf-drawer');
+      if (!$ft || !$drawer || $ft.dataset.wired) return;
       $ft.dataset.wired = '1';
-      $ft.addEventListener('click', function () {
-        var box = $ft.closest('.ops-filters');
-        if (!box) return;
-        var collapsed = box.classList.toggle('collapsed');
-        $ft.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-        updateFilterToggle();
+      $ft.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = $drawer.hidden;
+        $drawer.hidden = !open;
+        $ft.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      // Click outside the drawer (and not on the icon) closes it.
+      document.addEventListener('click', function (e) {
+        if ($drawer.hidden) return;
+        if ($drawer.contains(e.target) || $ft.contains(e.target)) return;
+        $drawer.hidden = true; $ft.setAttribute('aria-expanded', 'false');
       });
       updateFilterToggle();
     }
@@ -5760,7 +5779,7 @@
       );
       opsStatFilter = '';
       var $stats = document.getElementById('ops-stats');
-      if ($stats) Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (x) { x.classList.remove('is-activestat'); });
+      if ($stats) Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (x) { x.classList.toggle('is-on', x.dataset.stat === 'all'); });
       applyFilters();
     }
 
@@ -5819,20 +5838,20 @@
         if (_isMine(m.interested)) myInterested++;
         if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
       });
-      // Each tile is a one-click filter (data-stat). 'all' clears everything.
-      function tile(key, num, label, cls) {
-        var sel = opsStatFilter === key;
-        return '<button type="button" class="ops-stat' + (cls ? ' ' + cls : '') + (sel ? ' is-activestat' : '') +
-          '" data-stat="' + key + '" aria-pressed="' + (sel ? 'true' : 'false') + '"><span class="num">' + num +
-          '</span><span class="lbl">' + label + '</span></button>';
+      // A cut-and-dry segmented status filter (data-stat). 'All' clears the
+      // status filter; the rest are one-click chips. Other filters (region,
+      // months, pipeline stages, …) live behind the filter icon beside search.
+      function tile(key, num, label) {
+        var sel = (key === 'all') ? !opsStatFilter : (opsStatFilter === key);
+        return '<button type="button" class="seg-chip' + (sel ? ' is-on' : '') +
+          '" data-stat="' + key + '" aria-pressed="' + (sel ? 'true' : 'false') + '">' + label +
+          (key !== 'all' ? '<span class="seg-num">' + num + '</span>' : '') + '</button>';
       }
       $stats.innerHTML =
-        tile('all', total, 'Upcoming events', '') +
-        tile('myinterested', myInterested, 'My Interests', 'saved') +
-        tile('pipeline', inPipeline, 'Pending', '') +
-        tile('booked', booked, 'Booked', '') +
-        tile('interested', interestedCount, 'Team Interests', '') +
-        tile('attending', attending, _support ? 'Team Attending' : 'Attending', '');
+        tile('all', total, 'All') +
+        tile('pipeline', inPipeline, 'Pending') +
+        tile('booked', booked, 'Booked') +
+        tile('attending', attending, _support ? 'Team Attending' : 'Attending');
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {
         t.addEventListener('click', function () {
@@ -5866,9 +5885,9 @@
           }
           if (goGrid) setView('grid');
           applyFilters();
-          // Reflect the active tile without a full re-render.
+          // Reflect the active chip without a full re-render ('All' = nothing set).
           Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (x) {
-            x.classList.toggle('is-activestat', x.dataset.stat === opsStatFilter);
+            x.classList.toggle('is-on', x.dataset.stat === (opsStatFilter || 'all'));
           });
         });
       });
@@ -8915,6 +8934,11 @@
       if ($topf) $topf.style.display = isEventsView ? '' : 'none';
       var $afb = document.getElementById('ops-active-filters');
       if ($afb) $afb.style.display = isEventsView ? '' : 'none';
+      // The filter drawer is Events-only too; always leave it closed on a switch.
+      var $ffd = document.getElementById('tf-drawer');
+      if ($ffd) { $ffd.hidden = true; }
+      var $fft = document.getElementById('ops-filter-toggle');
+      if ($fft) { $fft.setAttribute('aria-expanded', 'false'); $fft.style.display = isEventsView ? '' : 'none'; }
       var g = document.getElementById('ops-grid');
       var c = document.getElementById('ops-calendar');
       var m = document.getElementById('ops-map');
