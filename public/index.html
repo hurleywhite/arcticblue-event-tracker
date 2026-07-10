@@ -2184,6 +2184,30 @@
       border: 1px solid #ddd6fe; font-weight: 600;
     }
     .ab-btn.ab-btn--ask:hover { background: linear-gradient(90deg, #e0e7ff, #f3e8ff); }
+    /* "+ Add" dropdown — the three add paths (manual / find new / paste email)
+       folded behind one primary button. */
+    .ops-add-wrap { position: relative; display: inline-block; }
+    .ab-btn__caret { width: 14px; height: 14px; flex-shrink: 0; margin-left: -2px; opacity: 0.85; }
+    #add-menu-btn[aria-expanded="true"] .ab-btn__caret { transform: rotate(180deg); }
+    .ops-add-menu {
+      position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+      min-width: 248px; padding: 6px;
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
+      border-radius: 12px; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .ops-add-menu[hidden] { display: none; }
+    .ops-add-item {
+      display: flex; align-items: flex-start; gap: 10px; width: 100%;
+      padding: 9px 10px; border: 0; border-radius: 8px; background: transparent;
+      cursor: pointer; text-align: left; font-family: var(--ab-sans);
+      transition: background-color 120ms ease;
+    }
+    .ops-add-item:hover, .ops-add-item:focus-visible { background: var(--ab-bg-3); outline: none; }
+    .ops-add-item__icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; color: #047857; }
+    .ops-add-item__txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .ops-add-item__t { font-size: 0.875rem; font-weight: 600; color: var(--ab-fg); line-height: 1.2; }
+    .ops-add-item__d { font-size: 0.75rem; color: var(--ab-fg-3); line-height: 1.2; }
     /* Chat panel */
     .ask-log { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; margin: 4px 0 12px; }
     .ask-msg { padding: 10px 13px; border-radius: 10px; font-size: 0.92rem; line-height: 1.5; max-width: 85%; white-space: pre-wrap; }
@@ -2442,18 +2466,27 @@
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
         </div>
         <div class="ops-toolbar" role="group" aria-label="Add events">
-            <button class="ab-btn ab-btn--primary" id="add-event-btn">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              Add event
-            </button>
-            <button class="ab-btn ab-btn--ghost ab-btn--blue" id="paste-email-btn" title="Paste an event email — name, dates and contacts are pre-filled for you">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
-              Paste email
-            </button>
-            <button class="ab-btn ab-btn--ask" id="search-dust-btn" title="Ask the AI to find new speaking events matching your criteria">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
-              Find new events
-            </button>
+            <div class="ops-add-wrap">
+              <button class="ab-btn ab-btn--primary" id="add-menu-btn" aria-haspopup="menu" aria-expanded="false" title="Add an event">
+                <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Add
+                <svg class="ab-btn__caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="ops-add-menu" id="add-menu" role="menu" aria-label="Add an event" hidden>
+                <button class="ops-add-item" id="add-event-btn" role="menuitem" type="button">
+                  <svg class="ops-add-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                  <span class="ops-add-item__txt"><span class="ops-add-item__t">Add manually</span><span class="ops-add-item__d">Type in an event yourself</span></span>
+                </button>
+                <button class="ops-add-item" id="search-dust-btn" role="menuitem" type="button">
+                  <svg class="ops-add-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+                  <span class="ops-add-item__txt"><span class="ops-add-item__t">Find new events</span><span class="ops-add-item__d">Let AI suggest events to add</span></span>
+                </button>
+                <button class="ops-add-item" id="paste-email-btn" role="menuitem" type="button">
+                  <svg class="ops-add-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+                  <span class="ops-add-item__txt"><span class="ops-add-item__t">Paste email</span><span class="ops-add-item__d">Pre-fill from an event email</span></span>
+                </button>
+              </div>
+            </div>
           <div class="ops-toolbar-group" role="group" aria-label="Sync and export" id="ops-sync-group">
             <span class="ops-toolbar-label">Sync</span>
             <button class="ab-btn ab-btn--ghost ab-btn--rose" id="ical-subscribe-btn" title="One auto-updating feed for Google Calendar, Apple Calendar or Outlook — plus a one-time .ics download">
@@ -10543,6 +10576,28 @@
       if ($icalBtn)   { var fi = $icalBtn.cloneNode(true);   $icalBtn.parentNode.replaceChild(fi, $icalBtn);     $icalBtn   = fi; }
       if ($askBtn)    { var fk = $askBtn.cloneNode(true);    $askBtn.parentNode.replaceChild(fk, $askBtn);       $askBtn    = fk; }
       if ($subBtn)    { var fs = $subBtn.cloneNode(true);    $subBtn.parentNode.replaceChild(fs, $subBtn);       $subBtn    = fs; }
+
+      // "+ Add" dropdown: toggle the menu holding the three add paths. The menu
+      // button + container are NOT cloned above, so wire once (guard flag) — the
+      // item buttons inside keep their own handlers (attached below). Clicking
+      // any item runs its action AND closes the menu (delegated on the container).
+      var $addMenuBtn = document.getElementById('add-menu-btn');
+      var $addMenu    = document.getElementById('add-menu');
+      if ($addMenuBtn && $addMenu && !$addMenuBtn._menuWired) {
+        $addMenuBtn._menuWired = true;
+        function _closeAddMenu() { $addMenu.hidden = true; $addMenuBtn.setAttribute('aria-expanded', 'false'); }
+        $addMenuBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var willOpen = $addMenu.hidden;
+          $addMenu.hidden = !willOpen;
+          $addMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        });
+        $addMenu.addEventListener('click', function () { _closeAddMenu(); });   // any item closes it
+        document.addEventListener('click', function (e) {
+          if (!$addMenu.hidden && !$addMenu.contains(e.target) && !$addMenuBtn.contains(e.target)) _closeAddMenu();
+        });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') _closeAddMenu(); });
+      }
 
       function openAddForm(opts) {
         opts = opts || {};

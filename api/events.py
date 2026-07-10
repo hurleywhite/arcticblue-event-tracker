@@ -381,6 +381,35 @@ def _fps_of(names):
     return {fp for fp in (_fingerprint(n) for n in names) if fp}
 
 
+def _name_token_set(name):
+    """The distinctive tokens of a name as a set (same normalization as
+    _fingerprint, but unordered) — for date-scoped duplicate matching."""
+    s = (name or '').lower()
+    s = re.sub(r'(\d)([a-z])', r'\1 \2', s)
+    s = re.sub(r'([a-z])(\d)', r'\1 \2', s)
+    s = re.sub(r'[^a-z0-9]+', ' ', s)
+    return frozenset(t for t in s.split() if t not in _DEDUPE_STOP and not _YEAR_RE.match(t))
+
+
+def _same_event_on_date(a, b):
+    """True when two token sets look like the SAME event (to be paired with an
+    equal start_date). Catches the case the plain fingerprint misses: the same
+    event re-added with an extra organizer / edition word — e.g.
+      "CDAO New York"                -> {cdao, new, york}
+      "CDAO New York 2026 - Corinium"-> {cdao, corinium, new, york}
+    one set is a subset of the other, so on the same date they're a duplicate.
+    Distinct co-located events ("CDAO Defense" vs "CDAO Government", share only
+    {cdao}) are NOT merged — a strict SUBSET with >= 2 shared tokens is
+    required, so events that merely share a common prefix ("Big Data LDN" vs
+    "Big Data & AI World London") stay separate."""
+    if len(a) < 2 or len(b) < 2:
+        return False
+    inter = a & b
+    if len(inter) < 2:
+        return False                      # need >= 2 shared distinctive tokens
+    return inter == a or inter == b       # one title is the other + extra words
+
+
 def _coerce(ev):
     """Filter an incoming dict to allowed columns + coerce types. Returns a
     row dict (may be empty) or None if the input isn't an object."""
@@ -843,29 +872,43 @@ def _row_has_fact_gaps(row):
                for col, _k in _FACT_COLS)
 
 
-def _existing_manual_names():
+def _existing_manual_dated():
+    """(name, start_date) for every manual event — start_date may be ''."""
     status, rows = _http_json(
-        'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name',
+        'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name,start_date',
         headers=_svc_headers(), timeout=15)
+    out = []
     if status == 200 and isinstance(rows, list):
-        return set((r.get('name') or '').strip().lower() for r in rows if r.get('name'))
-    return set()
+        for r in rows:
+            n = (r.get('name') or '').strip()
+            if n:
+                out.append((n, (r.get('start_date') or '').strip()))
+    return out
 
 
-def _catalog_names(host):
-    """Best-effort dedupe against the public catalog (events.json) served by
-    this same deployment. Failures just return an empty set."""
+def _catalog_dated(host):
+    """(name, start_date) from the public catalog (events.json) served by this
+    same deployment. Best-effort — failures just return an empty list."""
     if not host:
-        return set()
+        return []
     url = 'https://%s/events.json' % host
     status, data = _http_json('GET', url, timeout=15)
-    names = set()
+    out = []
     if status == 200 and isinstance(data, dict):
         for e in (data.get('events') or []):
-            n = (e.get('name') or '').strip().lower()
+            n = (e.get('name') or '').strip()
             if n:
-                names.add(n)
-    return names
+                out.append((n, (e.get('start_date') or '').strip()))
+    return out
+
+
+def _date_index(dated):
+    """start_date -> list of name token-sets, for date-scoped dup matching."""
+    idx = {}
+    for n, d in dated:
+        if d:
+            idx.setdefault(d, []).append(_name_token_set(n))
+    return idx
 
 
 # Columns that may not exist yet on older DBs (added by the 2026-06 migration).
@@ -1004,12 +1047,17 @@ class handler(BaseHTTPRequestHandler):
         if len(items) > MAX_EVENTS:
             return _send(self, 413, {'error': 'too many events (max %d per request)' % MAX_EVENTS})
 
-        # Dedupe sources (fetched once). We keep BOTH exact lowercased names and
-        # order-independent fingerprints for each source.
-        existing_names = _existing_manual_names()
-        catalog_names  = _catalog_names(self.headers.get('Host', ''))
-        existing_fps   = _fps_of(existing_names)
-        catalog_fps    = _fps_of(catalog_names)
+        # Dedupe sources (fetched once). We keep exact lowercased names,
+        # order-independent fingerprints, AND a start_date -> token-sets index
+        # (so a re-add of the same event on the same date with an extra
+        # organizer/edition word is caught even when its fingerprint differs).
+        manual_dated   = _existing_manual_dated()
+        catalog_dated  = _catalog_dated(self.headers.get('Host', ''))
+        existing_names = {n.lower() for n, _d in manual_dated}
+        catalog_names  = {n.lower() for n, _d in catalog_dated}
+        existing_fps   = _fps_of(n for n, _d in manual_dated)
+        catalog_fps    = _fps_of(n for n, _d in catalog_dated)
+        date_index     = _date_index(manual_dated + catalog_dated)
         seen_names, seen_fps = set(), set()
 
         inserted, rejected, skipped, errors = [], [], [], []
@@ -1049,12 +1097,21 @@ class handler(BaseHTTPRequestHandler):
 
             lname = name.lower()
             fp = _fingerprint(name)
-            is_dup = (
-                lname in seen_names or lname in existing_names or lname in catalog_names
-                or (fp and (fp in seen_fps or fp in existing_fps or fp in catalog_fps))
-            )
-            if is_dup:
-                skipped.append({'name': name, 'reason': 'duplicate'})
+            dup_reason = None
+            if (lname in seen_names or lname in existing_names or lname in catalog_names
+                    or (fp and (fp in seen_fps or fp in existing_fps or fp in catalog_fps))):
+                dup_reason = 'duplicate'
+            else:
+                # Same event, same DATE, re-worded title (extra organizer/edition
+                # word the fingerprint keeps) — e.g. "CDAO New York" vs
+                # "CDAO New York 2026 - Corinium" both on 2026-06-10.
+                sd = (row.get('start_date') or '').strip()
+                if sd and sd in date_index:
+                    rt = _name_token_set(name)
+                    if any(_same_event_on_date(rt, ot) for ot in date_index[sd]):
+                        dup_reason = 'duplicate (same title + date)'
+            if dup_reason:
+                skipped.append({'name': name, 'reason': dup_reason})
                 continue
 
             # Worthiness gate (OpenAI). Runs ONLY on genuinely-new events, so
@@ -1134,6 +1191,9 @@ class handler(BaseHTTPRequestHandler):
                 if fp:
                     seen_fps.add(fp)
                     existing_fps.add(fp)
+                _isd = (row.get('start_date') or '').strip()
+                if _isd:
+                    date_index.setdefault(_isd, []).append(_name_token_set(name))
             elif status == 409 or (isinstance(data, dict) and str(data.get('code')) == '23505'):
                 skipped.append({'name': name, 'reason': 'duplicate (db unique index)'})
             else:
