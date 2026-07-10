@@ -5386,7 +5386,16 @@
           // biggest typing cost. Fresh nodes (re-render) recompute; in-place
           // toggles don't change searchable text, so the cache stays valid.
           var _blob = card._searchBlob;
-          if (_blob == null) _blob = card._searchBlob = (card.textContent || '').toLowerCase();
+          if (_blob == null) {
+            // The visible card text PLUS hidden record fields — so searching a
+            // POC name ("ciara"), an organiser contact, a past speaker, or the
+            // about/focus text finds the event even though the stripped card
+            // face doesn't show them.
+            var _r = card._modalRec || {};
+            _blob = card._searchBlob = ((card.textContent || '') + ' ' +
+              [_r.poc_name, _r.poc_email, _r.contact_info, _r.speaker, _r.past_speakers,
+               _r.about, _r.focus_areas, _r.typical_attendees].filter(Boolean).join(' ')).toLowerCase();
+          }
           if (_blob.indexOf(q) === -1) on = false;
         }
         if (activeRegions.length && activeRegions.indexOf(card.dataset.region) === -1) on = false;

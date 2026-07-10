@@ -313,13 +313,17 @@ def _gather_events(host):
                     'upcoming': (endish is None) or (endish >= today),
                     'why': _truncate(e.get('why'), 200),
                     'url': e.get('url'),
+                    # Organiser point-of-contact (name/email) so "which events is
+                    # Ciara a POC for" can be answered. Catalog POC often sits in
+                    # free-text contact_info.
+                    'poc': _truncate(e.get('poc_name') or e.get('contact_info'), 140),
                     '_sort': endish or '9999-99-99',
                 })
     # Manual events
     st, rows = _http_json(
         'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name,date_str,location,'
         'region,type,priority,status_tags,speaker,attend_verdict,audience_type,'
-        'pricing,deadline,why,url',
+        'pricing,deadline,why,url,poc_name,poc_email,contact_info',
         headers={'apikey': SUPABASE_PUBLISHABLE,
                  'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE}, timeout=12)
     if st == 200 and isinstance(rows, list):
@@ -347,6 +351,7 @@ def _gather_events(host):
                 'fits': _fits(blob, region),
                 'upcoming': (endish is None) or (endish >= today),
                 'why': _truncate(m.get('why'), 200), 'url': m.get('url'),
+                'poc': _truncate(m.get('poc_name') or m.get('contact_info'), 140),
                 '_sort': endish or '9999-99-99',
             })
     # Drop empty-name rows; upcoming first (soonest first, never truncated),
@@ -440,6 +445,11 @@ _SYSTEM = (
     "whose 'starts' is within ~30 days — travel/prep; (c) submitted events whose "
     "event 'starts' within ~21 days with no reply — chase. Order by 'starts'. "
     "Say WHY each needs action in a few words.\n"
+    "- POC / ORGANISER CONTACT: each event may carry a 'poc' (the organiser "
+    "point-of-contact — a name and/or email). When asked who the contact/POC is "
+    "for an event, answer from 'poc'. When asked WHICH events a named person is "
+    "the POC for (e.g. 'which events is Ciara a POC for'), return every event "
+    "whose 'poc' contains that name (case-insensitive) as an events-mode list.\n"
     "- Each event carries 'upcoming' (true/false), 'starts' (ISO date — compare "
     "to today's date for 'next week' / 'this month' math), 'region' (canonical), "
     "and 'fits' (the ArcticBlue people it suits). For 'upcoming' / 'next' / "
