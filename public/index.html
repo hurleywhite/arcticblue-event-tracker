@@ -1432,6 +1432,18 @@
     @media (max-width: 640px) { .ops-topfilters #ops-search { flex-basis: 100%; } }
     /* Ask Anything sits next to search — matched to the filter/search height. */
     .ops-topfilters .ab-btn--ask { flex: 0 0 auto; padding: 11px 16px; font-size: 0.86rem; font-weight: 700; }
+    /* "N filters active — Clear all", right under the top filter bar — an
+       active filter (esp. Region/Months, easy to forget you set) shouldn't be
+       invisible; everyone sees this, not just Angela. */
+    .ops-active-filters {
+      margin: -8px 0 16px; font-family: "Nunito Sans", var(--ab-sans);
+      font-size: 0.82rem; font-weight: 700; color: var(--ab-blue);
+    }
+    .ops-active-filters button {
+      font: inherit; font-weight: 800; color: inherit; text-decoration: underline;
+      background: none; border: none; padding: 0; cursor: pointer;
+    }
+    .ops-active-filters button:hover { color: var(--ab-fg); }
     .ops-filters {
       display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 10px; align-items: stretch;
@@ -1536,8 +1548,8 @@
     }
 
     /* ── Queue view (Angela's application queue) ─────────────────── */
-    .ops-myevents, .ops-queue, .ops-planner, .ops-dayof { display: none; }
-    .ops-myevents.show, .ops-queue.show, .ops-planner.show, .ops-dayof.show { display: block; }
+    .ops-myevents, .ops-planahead, .ops-queue, .ops-planner, .ops-dayof { display: none; }
+    .ops-myevents.show, .ops-planahead.show, .ops-queue.show, .ops-planner.show, .ops-dayof.show { display: block; }
     /* ── Day-Of tab ─────────────────────────────────────────────── */
     .vt-count--dayof { background: #f59e0b; color: #fff; }
     .dayof-intro { font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 18px; line-height: 1.5; max-width: 760px; }
@@ -2274,6 +2286,7 @@
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Events<span class="vt-count" id="vt-myevents-count" hidden></span></button>
+          <button type="button" role="tab" data-view="planahead" aria-selected="false">Plan Ahead</button>
           <button type="button" role="tab" data-view="grid"     aria-selected="false">All Events</button>
           <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
           <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
@@ -2333,6 +2346,7 @@
             Ask Anything
           </button>
         </div>
+        <p class="ops-active-filters" id="ops-active-filters" hidden></p>
         <div class="ops-filters collapsed">
           <button type="button" class="ops-filter-toggle" id="ops-filter-toggle" aria-expanded="false" aria-label="Show or hide filters">Filters <span class="ft-caret" aria-hidden="true">▾</span></button>
           <div class="filter-dd" id="filter-price" title="Ticket price as a buyer signal: a pricier pass usually means real buyers, not a hall of vendors">
@@ -2377,6 +2391,7 @@
           </div>
         </div>
         <div class="ops-myevents" id="ops-myevents"></div>
+        <div class="ops-planahead" id="ops-planahead"></div>
         <div class="ops-queue" id="ops-queue"></div>
         <div class="ops-planner" id="ops-planner"></div>
         <div class="ops-dayof" id="ops-dayof"></div>
@@ -4775,6 +4790,33 @@
       updateFilterToggle();
     }
 
+    // How many of the everyone-visible TOP filter bar's dimensions (Pipeline /
+    // Region / Fits / Months / Should-attend + search) are currently engaged —
+    // separate from countActiveOpsFilters() above, which only covers Angela's
+    // collapsed power-user panel. A live filter is easy to forget you set
+    // (esp. Region/Months), so this stays visible to everyone, with one-click
+    // "Clear all" (reuses clearOpsFilters(), which already resets both bars).
+    function countActiveTopFilters() {
+      var n = 0;
+      var $search = document.getElementById('ops-search');
+      if ($search && ($search.value || '').trim()) n++;
+      ['filter-pipeline', 'filter-region', 'filter-fits', 'filter-months', 'filter-should'].forEach(function (id) {
+        var box = document.getElementById(id);
+        if (box && box.style.display !== 'none' && box.querySelector('.extra-chip.is-on')) n++;
+      });
+      return n;
+    }
+    function updateActiveTopFiltersBanner() {
+      var $el = document.getElementById('ops-active-filters');
+      if (!$el) return;
+      var n = countActiveTopFilters();
+      if (!n) { $el.hidden = true; $el.innerHTML = ''; return; }
+      $el.hidden = false;
+      $el.innerHTML = n + ' filter' + (n === 1 ? '' : 's') + ' active &mdash; <button type="button" id="ops-clear-top-filters">Clear all</button>';
+      var $btn = document.getElementById('ops-clear-top-filters');
+      if ($btn) $btn.addEventListener('click', clearOpsFilters);
+    }
+
     // The extra "Filters" panel (ticket price / priority / track / speaking +
     // Submitted / Recently added / Contact found) is Angela's power-user set —
     // only show the toggle when the signed-in name is Angela. Everyone else
@@ -5360,6 +5402,7 @@
       syncAriaPressed();  // reflect on/off state to screen readers
       updateFilterDropdownCounts();  // keep dropdown buttons' active counts current
       updateFilterToggle();          // keep the collapsed "Filters · N active" count fresh
+      updateActiveTopFiltersBanner(); // and the everyone-visible "N filters active — Clear all"
       // The map + calendar mirror the grid's filters — keep them in sync.
       if (currentView === 'map' && _opsMapLayer) renderOpsMap();
       if (currentView === 'calendar' && _calEvents) recalcCalendar();
@@ -6151,10 +6194,22 @@
       items.sort(function (a, b) { return a.ts < b.ts ? 1 : -1; });
       return items.slice(0, 8);
     }
-    // Top-10 personal suggestions — persona-matched (region + themes/ICP),
-    // buyer-rich/high-priority boosted, quality-thresholded (fewer than 10 is
-    // fine; never pad with weak picks). Compliance/regulatory-centric events
-    // are excluded outright — not what ArcticBlue does.
+    // Only events 2–4 months out belong in a "plan ahead" suggestion — Thor's
+    // own example ("Colombia Tech Week is a month out, too soon") is a HARD
+    // exclusion, not just a lower score. No known date -> can't judge it, skip.
+    function _inPlanWindow(sort) {
+      if (!sort || sort >= 99999999) return false;
+      var y = Math.floor(sort / 10000), mo = Math.floor((sort % 10000) / 100) - 1, d = sort % 100;
+      var days = Math.round((new Date(y, mo, d || 1) - new Date()) / 86400000);
+      return days >= 60 && days <= 120;
+    }
+    // Personal suggestions, 2–4 months out — persona-matched (region +
+    // themes/ICP), buyer-rich/high-priority boosted, quality-thresholded
+    // (fewer than 10 is fine; never pad with weak picks). Compliance/
+    // regulatory-centric events are excluded outright — not what ArcticBlue
+    // does. Returns the FULL scored list — callers slice to their own depth
+    // (the My Events widget shows a top-10 taste; the Plan Ahead page shows
+    // everything, grouped by region).
     function _suggestionsFor() {
       var meFirst = (getCollabName() || '').trim().toLowerCase().split(/\s+/)[0];
       var P = (window.AB_PERSONAS || {})[meFirst] || null;
@@ -6183,6 +6238,7 @@
         if (it.past || it.hidden || it.queue_dismissed) return;
         if (it.stages.length) return;                       // already in the pipeline
         if (BAD.test(it.name)) return;                      // compliance-centric — skip
+        if (!_inPlanWindow(it.sort)) return;                 // outside the 2–4 month planning window
         if ((it.interested || []).some(function (n) { return String(n).toLowerCase().split(/\s+/)[0] === meFirst; })) return;
         var o = it.startObj || {};
         var s = 0, why = [];
@@ -6197,7 +6253,7 @@
         if (s >= (P ? 5 : 4)) scored.push({ it: it, s: s, why: why });
       });
       scored.sort(function (a, b) { return b.s - a.s || a.it.sort - b.it.sort; });
-      return scored.slice(0, 10);
+      return scored;   // callers slice to their own depth (My Events widget vs. the full Plan Ahead page)
     }
     var _wnLast = [];
     function renderMyEvents() {
@@ -6250,7 +6306,7 @@
           }).join('') + '</div>'
         : '';
       // Bottom: only-the-best picks for whoever is signed in.
-      var _sug = _suggestionsFor();
+      var _sug = _suggestionsFor().slice(0, 10);
       var _sugTitle = ((window.AB_PERSONAS || {})[(b.me || '').trim().toLowerCase().split(/\s+/)[0]]) ? 'Suggested for you' : 'Top suggestions for the team';
       var sugHtml = _sug.length
         ? '<div class="queue-section sug-section"><div class="queue-sec-head"><span class="queue-sec-title">' + _sugTitle + '</span><span class="queue-sec-count">' + _sug.length + '</span></div>' +
@@ -6301,6 +6357,61 @@
         _pastHead.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _togglePast(); } });
       }
       updateViewBadges();
+    }
+
+    // ── Plan Ahead: a lighter, everyone-facing take on the 2–4 month
+    // suggestions — no sign-in, no coverage-gap/conflict logic (that stays in
+    // the Angela-only Planner). Just: what fits, grouped by region, with a
+    // one-click "+ I'm interested" so Angela knows who to register.
+    function renderPlanAhead() {
+      var host = document.getElementById('ops-planahead');
+      if (!host) return;
+      var meFirst = (getCollabName() || '').trim().toLowerCase().split(/\s+/)[0];
+      var personalized = !!((window.AB_PERSONAS || {})[meFirst]);
+      var intro = '<p class="queue-intro myev-intro"><strong>Plan Ahead:</strong> ' +
+        (personalized ? 'Events 2&ndash;4 months out that fit your focus' : 'Events 2&ndash;4 months out worth a look') +
+        ', grouped by region. Flag one and it goes on Angela&#39;s radar to register you.</p>';
+      var sug = _suggestionsFor();
+      if (!sug.length) {
+        host.innerHTML = intro + '<div class="queue-empty">Nothing in the 2&ndash;4 month window fits yet &mdash; check back as new events come in.</div>';
+        return;
+      }
+      var groups = {}, order = [];
+      sug.forEach(function (x) {
+        var r = x.it.region || 'Global';
+        if (!groups[r]) { groups[r] = []; order.push(r); }
+        groups[r].push(x);
+      });
+      var html = intro;
+      order.forEach(function (region) {
+        var list = groups[region];
+        html += '<div class="queue-section"><div class="queue-sec-head"><span class="queue-sec-title">' + escapeHtml(region) + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
+        list.forEach(function (x) {
+          var it = x.it;
+          var loc = [it.region, it.location].filter(Boolean).join(' \u00b7 ');
+          html += '<div class="queue-row sug-row"><div class="queue-main">' +
+              '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+              '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \u00b7 ' + loc : '') + '</p>' +
+              (x.why.length ? '<p class="sug-why">Fits: ' + escapeHtml(x.why.join(' \u00b7 ')) + '</p>' : '') +
+            '</div><div class="queue-actions">' +
+              '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ I&#39;m interested</button>' +
+            '</div></div>';
+        });
+        html += '</div>';
+      });
+      host.innerHTML = html;
+      host.querySelectorAll('[data-ref-kind]').forEach(function (el) {
+        el.addEventListener('click', function () { opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); });
+      });
+      host.querySelectorAll('[data-pa-flag]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var kind = btn.getAttribute('data-k'), key = btn.getAttribute('data-key');
+          var it = opsAllItems().filter(function (x) { return x.kind === kind && String(x.key) === key; })[0];
+          if (!it) return;
+          btn.setAttribute('aria-busy', 'true');
+          toggleMyInterest(kind, it.key, it.interested);
+        });
+      });
     }
 
     // ── Planner: scheduling conflicts + coverage gaps by territory ──
@@ -6853,6 +6964,7 @@
         // the tab-count badges (so flagging / conflicts update live).
         _lastEvs = evs; _lastStateMap = stateMap; _lastStateRows = stateRows; _lastManual = manualRows;
         if (currentView === 'myevents') renderMyEvents();
+        else if (currentView === 'planahead') renderPlanAhead();
         else if (currentView === 'queue') renderQueue();
         else if (currentView === 'planner') renderPlanner();
         updateViewBadges();
@@ -7622,7 +7734,7 @@
     var VIEW_KEY = 'ab.angela.view';
     var currentView = 'grid';
 
-    var VIEW_NAMES = ['myevents', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
+    var VIEW_NAMES = ['myevents', 'planahead', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
     function setView(name) {
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
       // The Day-Of brief now lives inside My Events — no standalone tab.
@@ -7642,16 +7754,19 @@
       var p = document.getElementById('ops-planner');
       var d = document.getElementById('ops-dayof');
       var me = document.getElementById('ops-myevents');
+      var pa = document.getElementById('ops-planahead');
       if (g) g.style.display = (name === 'grid') ? '' : 'none';
       var rh = document.getElementById('ops-results-header');
       if (rh) rh.style.display = (name === 'grid') ? '' : 'none';
       if (me) me.classList.toggle('show', name === 'myevents');
+      if (pa) pa.classList.toggle('show', name === 'planahead');
       if (c) c.classList.toggle('show', name === 'calendar');
       if (m) m.classList.toggle('show', name === 'map');
       if (q) q.classList.toggle('show', name === 'queue');
       if (p) p.classList.toggle('show', name === 'planner');
       if (d) d.classList.toggle('show', name === 'dayof');
       if (name === 'myevents') renderMyEvents();
+      if (name === 'planahead') renderPlanAhead();
       if (name === 'calendar') recalcCalendar();   // re-apply the live filters
       if (name === 'map') openOpsMap();
       if (name === 'queue') renderQueue();
