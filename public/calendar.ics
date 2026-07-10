@@ -26,6 +26,126 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-428@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261118
+DTEND;VALUE=DATE:20261119
+SUMMARY:IDC FutureTech Summit Spain 2026
+LOCATION:Madrid\, Spain
+DESCRIPTION:IDC's premier technology and innovation leadership summit in Spain — targeting CIOs\, CTOs\, and innovation leaders across the Spanish enterprise market\; key Q4 touchpoint for ArcticBlue's Spain market entry strategy.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://infosec-conferences.com/event/20261118-idc-futuretech-summit-spain-2026/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-427@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261020
+DTEND;VALUE=DATE:20261022
+SUMMARY:RISE AI Latin America Summit 2026
+LOCATION:Santiago\, Chile
+DESCRIPTION:Co-created by Universidad de los Andes and University of Notre Dame\; bilingual enterprise AI governance summit with 330+ leaders from 16 countries — ArcticBlue's top opportunity to lead responsible AI narrative in Tier 2 LatAm markets.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.riseaisummit.ai/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-426@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20260825
+DTEND;VALUE=DATE:20260827
+SUMMARY:Enterprise AI Maturity & Transformation Assembly – August 2026
+LOCATION:Omni Frisco Hotel at The Star\, Dallas\, TX
+DESCRIPTION:Millennium Alliance's exclusive CIO/CAIO assembly claims 76% Fortune 100 attendance\; closed-door peer format with guaranteed 1:1 meeting facilitation — high-density enterprise buyer room for ArcticBlue sponsorship-led access.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://mill-all.com/assemblies/enterprise-ai-maturity-transformation-assembly-august-2026/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-425@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261126
+DTEND;VALUE=DATE:20261127
+SUMMARY:AI Innovation Asia 2026
+LOCATION:Grand Hyatt Singapore\, Singapore
+DESCRIPTION:Economist Group's 3rd annual APAC AI leadership summit uniting 500 executives on 'closing the AI value gap'\; real-world case studies from Asia's top adopters\, regulators\, and solution providers — premium APAC influence stage for Verma's enterprise AI experimentation and de-risking narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://events.economistenterprise.com/ai-innovation-asia/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-424@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261104
+DTEND;VALUE=DATE:20261105
+SUMMARY:2nd Annual AI in Health Summit 2026
+LOCATION:London\, UK
+DESCRIPTION:Economist Group's curated AI-in-healthcare summit co-located with Future of Health Europe\; 41% Director+ attendees including UK's Chief Executive MHRA and National Data Guardian — ideal for Verma's regulated-healthcare AI governance narrative at a prestigious media brand stage.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://events.economistenterprise.com/ai-health-summit/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-423@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261001
+DTEND;VALUE=DATE:20261002
+SUMMARY:RegTech Summit London 2026
+LOCATION:etc.venues 8 Fenchurch Place\, London\, UK
+DESCRIPTION:A-Team Insight's focused one-day RegTech summit for senior compliance and technology decision-makers at financial institutions in London — targeted access to CROs\, CCOs\, and heads of regulatory technology who are exactly the buyers ArcticBlue needs to reach.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://a-teaminsight.com/events/regtech-summit-london/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-422@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20260826
+DTEND;VALUE=DATE:20260827
+SUMMARY:CNBC Africa AI Summit 2026
+LOCATION:The Maslow Hotel\, Sandton\, Johannesburg\, South Africa
+DESCRIPTION:CNBC Africa × Forbes Africa flagship one-day AI summit\; CEO panels on AI in African banking and financial services\; Discovery Bank CEO and Absa Group CEO confirmed — ideal Africa-market halo stage for Verma's regulated-industry AI mandate.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.cnbcafrica.com/events/cnbc-africa-ai-summit-2026
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-421@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261117
+DTEND;VALUE=DATE:20261119
+SUMMARY:Millennium Alliance Transformational CHRO Assembly – November 2026
+LOCATION:Atlanta\, GA
+DESCRIPTION:Second Millennium Alliance CHRO-only assembly of the year — 76% Fortune 100 CHROs\; two ICP touchpoints in one Q3/Q4 cycle deepening relationships with the most buyer-rich HR network.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://mill-all.com/assemblies/transformational-chro-assembly-november-2026/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-420@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261118
+DTEND;VALUE=DATE:20261119
+SUMMARY:Evanta Washington DC CHRO Community Executive Summit 2026
+LOCATION:Arlington\, VA
+DESCRIPTION:Gartner/Evanta's exclusive DC-metro CHRO one-day summit — government-adjacent enterprise CHROs with policy and workforce transformation priorities — Joe's government/public sector leadership angle and AI message resonates strongly.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/chro/washington-dc/washington-dc-chro-executive-summit-9388
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-419@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261115
+DTEND;VALUE=DATE:20261119
+SUMMARY:SHRM All Things Work 2026
+LOCATION:Nashville\, TN
+DESCRIPTION:SHRM's new flagship fall conference combining HR\, I&D\, and leadership upskilling with dedicated tracks on AI adoption\, compliance\, and workforce strategy — a unified audience of 1\,000+ HR and people leaders.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://conference.shrm.org/atw
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-418@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261026
+DTEND;VALUE=DATE:20261029
+SUMMARY:Gartner HR Symposium/Xpo™ Americas 2026
+LOCATION:Orlando\, FL
+DESCRIPTION:'The World's Most Important Gathering of CHROs and HR Executives™' — sessions on AI-ready workforce\, L&D skills transformation\, and CHRO leadership are a direct match to Joe's positioning\; sponsorship is the primary speaker route.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.gartner.com/en/conferences/na/hr-symposium-us
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-417@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20260927
+DTEND;VALUE=DATE:20260930
+SUMMARY:Garden State SHRM Annual Conference 2026
+LOCATION:Atlantic City\, NJ
+DESCRIPTION:Regional three-day SHRM conference drawing 1\,000+ HR professionals from the tri-state area — including enterprise HR and L&D leaders — with an open call for speakers at a short drive from Joe's NYC base.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.shrm.org/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-416@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20261116
@@ -44,16 +164,6 @@ SUMMARY:IDC FutureTech Summit UK 2026
 LOCATION:London\, UK
 DESCRIPTION:IDC's premier UK event for CTOs and IT architects on scaling AI across cloud and enterprise platforms\; backed by IDC analyst research credibility\; themes include responsible AI adoption\, EU AI Act compliance\, and AI ROI — directly aligned with ArcticBlue's enterprise scaling narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://event.idc.com/event/futuretech-summit-uk/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-414@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261007
-DTEND;VALUE=DATE:20261009
-SUMMARY:World Summit AI Amsterdam 2026
-LOCATION:Amsterdam\, Netherlands
-DESCRIPTION:10th anniversary flagship European AI summit at Taets Art & Event Park Amsterdam\; part of World AI Week (Oct 5-9)\; 10\,000+ attendees\, 300+ speakers from OpenAI board level\, global enterprises\; open speaker application form on official site.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://worldsummit.ai/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-412@arcticblue-event-tracker
