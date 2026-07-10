@@ -121,7 +121,7 @@ DTEND;VALUE=DATE:20261119
 SUMMARY:Millennium Alliance Transformational CHRO Assembly – November 2026
 LOCATION:Atlanta\, GA
 DESCRIPTION:Second Millennium Alliance CHRO-only assembly of the year — 76% Fortune 100 CHROs\; two ICP touchpoints in one Q3/Q4 cycle deepening relationships with the most buyer-rich HR network.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/transformational-chro-assembly-november-2026/
+URL:https://mill-all.com/assemblies/enterprise-ai-hr-transformation-assembly-november-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-420@arcticblue-event-tracker
@@ -551,7 +551,7 @@ DTEND;VALUE=DATE:20261114
 SUMMARY:Millennium Alliance Transformational Data Assembly Miami 2026
 LOCATION:Miami\, USA
 DESCRIPTION:Invite-only C-suite data and AI assembly at JW Marriott Turnberry Miami bringing 150-200 CDOs\, CIOs\, and Chief Analytics Officers from Fortune 1000 — Miami is Carlos's key Southeast gateway to LatAm enterprise buyers.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/transformational-data-assembly-miami-2026/
+URL:https://mill-all.com/assemblies/transformational-data-assembly-november-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-374@arcticblue-event-tracker
@@ -1274,16 +1274,6 @@ DESCRIPTION:Millennium Alliance CISO assembly on AI-driven cyber defense — 200
 URL:https://mill-all.com/assemblies/enterprise-ai-security-transformation-assembly-august-2026/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-291@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261103
-DTEND;VALUE=DATE:20261105
-SUMMARY:Enterprise AI Security Transformation Assembly Europe – November 2026
-LOCATION:Atzavara Hotel & Spa\, Barcelona\, Spain
-DESCRIPTION:Millennium Alliance's European CISO+AI assembly in Barcelona — European CISOs managing AI-driven threat defense and AI governance\; co-located with three other Millennium Alliance Europe assemblies at same venue for efficient multi-audience coverage.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/enterprise-ai-security-transformation-assembly-europe-november-2026/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-290@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20261006
@@ -1442,16 +1432,6 @@ SUMMARY:Chatbot Summit Amsterdam 2026
 LOCATION:Amsterdam\, Netherlands
 DESCRIPTION:World's #1 agentic AI conference in its 13th edition in Amsterdam\, bringing enterprise AI builders and executives together — strong platform for ArcticBlue's agentic AI for enterprise positioning.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.chatbotsummit.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-270@arcticblue-event-tracker
-DTSTAMP:20260710T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:Millennium Alliance Digital Enterprise CIO Transformation Assembly — Houston
-LOCATION:Houston\, USA
-DESCRIPTION:Millennium Alliance's intimate CIO-only hosted-meeting format in Houston's enterprise energy and healthcare hub\; guaranteed 1:1 meetings with CIO-level decision-makers from regulated industries — direct pipeline opportunity for ArcticBlue's Texas enterprise accounts.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-269@arcticblue-event-tracker
@@ -2618,10 +2598,10 @@ UID:manual-103@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20261015
 DTEND;VALUE=DATE:20261017
-SUMMARY:Millennium Alliance Enterprise AI Marketing Transformation Assembly — October 2026
-LOCATION:USA
+SUMMARY:Millennium Alliance Enterprise AI Marketing Transformation Assembly
+LOCATION:Houston\, Texas
 DESCRIPTION:Millennium Alliance's exclusive AI marketing transformation assembly for enterprise CMOs and marketing innovation leaders — relevant for ArcticBlue's GTM Innovation and AI-driven go-to-market repositioning offering.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/
+URL:https://mill-all.com/assemblies/enterprise-ai-marketing-transformation-assembly-october-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-102@arcticblue-event-tracker

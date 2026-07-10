@@ -6986,6 +6986,7 @@ def build():
         if (it.past || it.hidden || it.queue_dismissed) return;
         if (it.stages.length) return;                       // already in the pipeline
         if (BAD.test(it.name)) return;                      // compliance-centric — skip
+        if (!_govOk(meFirst) && _isGovDef(it)) return;       // gov/A&D is Jim's lane only
         if (!_inPlanWindow(it.sort)) return;                 // outside the 2–4 month planning window
         if (skips[_sugSkipId(it.kind, it.key)]) return;      // you decided "not for me"
         if ((it.interested || []).some(function (n) {{ return String(n).toLowerCase().split(/\\s+/)[0] === meFirst; }})) return;
@@ -7177,41 +7178,132 @@ def build():
       var geoKey = g ? (Math.round(g[0] * 2) / 2) + ',' + (Math.round(g[1] * 2) / 2) : '?';
       return brand + '|' + geoKey;
     }}
+    // ── Government / Aerospace & Defense is Jim's lane only ──────────────
+    // Public-sector, federal, defense and A&D events are Jim's fit; they must
+    // not leak into anyone else's suggestions, trip batches or interest recs.
+    // Match the event's NAME + structured type only — NOT its blurb or attendee
+    // list: broad enterprise events (World Summit AI, London Tech Week …) mention
+    // "government" among many attendee types, and matching those free-text fields
+    // wrongly pulled ~30 legit events out of Thor's fit. A truly gov/A&D event is
+    // named as one ("CDAO Government", "GovTech Summit", "CDAO Defense"). Note:
+    // "governance" is deliberately NOT matched — that's an enterprise theme.
+    var GOVDEF = /\\b(government|governmental|federal|govtech|defense|defence|military|aerospace|warfare|homeland|nato|army|navy)\\b|\\bpublic sector\\b|\\bnational security\\b|\\barmed forces\\b/i;
+    function _isGovDef(it) {{
+      var o = it.startObj || {{}};
+      return GOVDEF.test([it.name, o.type, o.industry, o.icp_industries].filter(Boolean).join(' '));
+    }}
+    // Who may see gov/A&D events: Jim (it's his fit) and support (Angela/Hurley,
+    // who plan for the whole team, Jim included). Everyone else is filtered.
+    function _govOk(first) {{ return first === 'jim' || isSupportPerson(first); }}
+
+    // ── Content similarity — "because you're interested in X" ───────────
+    // Match on what an event is ABOUT (industry + topics: focus_areas / about /
+    // type) and WHO it's for (target roles: typical_attendees). Ubiquitous words
+    // ("ai", "enterprise", "leaders" …) are dropped so matches turn on the
+    // distinctive signal (cloud/healthcare/insurance/identity; architects/
+    // developers/actuaries), not on words every event shares.
+    var _SIM_STOP = {{ the:1, and:1, for:1, with:1, from:1, all:1, new:1, your:1, our:1,
+      their:1, this:1, that:1, into:1, across:1, over:1, other:1, more:1, most:1, also:1,
+      plus:1, who:1, how:1, why:1, what:1, when:1, where:1, event:1, events:1, summit:1,
+      summits:1, conference:1, conferences:1, forum:1, forums:1, expo:1, congress:1,
+      annual:1, global:1, world:1, national:1, international:1, series:1, edition:1, day:1,
+      days:1, week:1, leaders:1, leader:1, leadership:1, executive:1, executives:1,
+      professional:1, professionals:1, director:1, directors:1, manager:1, managers:1,
+      management:1, officer:1, officers:1, head:1, heads:1, senior:1, junior:1, decision:1,
+      maker:1, makers:1, making:1, teams:1, team:1, people:1, attendees:1, delegates:1,
+      practitioner:1, practitioners:1, specialist:1, specialists:1, expert:1, experts:1,
+      stakeholder:1, stakeholders:1, representative:1, representatives:1, personnel:1,
+      staff:1, members:1, community:1, network:1, business:1, businesses:1, company:1,
+      companies:1, organization:1, organizations:1, organisation:1, industry:1, industries:1,
+      sector:1, sectors:1, market:1, markets:1, enterprise:1, enterprises:1, technology:1,
+      technologies:1, tech:1, digital:1, innovation:1, strategy:1, strategic:1, solutions:1,
+      solution:1, including:1, various:1, range:1, large:1, largest:1, leading:1, top:1, key:1,
+      major:1, several:1, many:1, attend:1, attending:1, join:1, features:1, featuring:1,
+      focus:1, focused:1, area:1, areas:1, ai:1, artificial:1, intelligence:1, data:1,
+      transformation:1, future:1, next:1, gen:1, generation:1 }};
+    function _simTokens(s) {{
+      var out = {{}};
+      abFold(String(s || '')).replace(/[^a-z0-9 ]/g, ' ').split(/\\s+/).forEach(function (w) {{
+        if (w.length >= 4 && !_SIM_STOP[w]) out[w] = 1;
+      }});
+      return out;
+    }}
+    function _contentProfile(it) {{
+      var o = it.startObj || {{}};
+      return {{
+        topics: _simTokens([o.focus_areas, o.about, o.type, o.industry].filter(Boolean).join(' ')),
+        roles:  _simTokens(o.typical_attendees)
+      }};
+    }}
+    function _overlapN(a, b) {{ var n = 0; for (var k in a) {{ if (b[k]) n++; }} return n; }}
+    // Score = how much two events share on industry/topics (weighted 2) + roles
+    // (weighted 1). Returns the components so callers can gate on a real
+    // industry match, not just a couple of stray role words.
+    function _simScore(pa, pb) {{
+      var t = _overlapN(pa.topics, pb.topics);
+      var r = _overlapN(pa.roles, pb.roles);
+      return {{ t: t, r: r, score: t * 2 + r }};
+    }}
+    // Whose lineup drives Plan Ahead. A named teammate sees their own; support
+    // (Angela/Hurley) plan for everyone, so they get the whole team's — every
+    // persona first name. Returns [] when there's no signed-in name.
+    function _planOwners() {{
+      var me = getCollabName() || '';
+      var first = abFold(me).split(/\\s+/)[0];
+      if (!first) return [];
+      if (isSupportPerson(me)) return Object.keys(window.AB_PERSONAS || {{}});
+      return [first];
+    }}
+    // The committed-travel role a given person has for an event (drives trip
+    // batching). Interested is NOT here — that's a maybe, handled by content
+    // recs, not "you're already going".
+    function _travelRole(it, who) {{
+      if ((it.attendees || []).some(function (a) {{ return abFold(a).split(/\\s+/)[0] === who; }})) return 'attending';
+      if (it.stages.indexOf('Booked') !== -1 && abFold(it.speaker || '').split(/\\s+/)[0] === who) return 'speaking at';
+      return null;
+    }}
+    function _anyRole(it, who) {{
+      return _travelRole(it, who) ||
+        ((it.interested || []).some(function (n) {{ return abFold(n).split(/\\s+/)[0] === who; }}) ? 'interested in' : null);
+    }}
     function _tripClusters() {{
-      var meFirst = abFold(getCollabName() || '').split(/\\s+/)[0];
-      if (!meFirst) return [];
+      var owners = _planOwners();
+      if (!owners.length) return [];
+      var support = isSupportPerson(getCollabName() || '');
       var BADt = /complian|regulat|regtech|gdpr|\\baudit/i;
       var skips = _sugSkips();
       var NEAR_KM = 200, DAY_MS = 86400000, GAP_DAYS = 3;
       var all = opsAllItems();
-      function role(it) {{
-        if ((it.attendees || []).some(function (a) {{ return abFold(a).split(/\\s+/)[0] === meFirst; }})) return 'attending';
-        if (it.stages.indexOf('Booked') !== -1 && abFold(it.speaker || '').split(/\\s+/)[0] === meFirst) return 'speaking at';
-        if ((it.interested || []).some(function (n) {{ return abFold(n).split(/\\s+/)[0] === meFirst; }})) return 'interested in';
-        return null;
-      }}
+      // Anchors = committed travel (attending / booked) for any owner. One anchor
+      // per (event, owner); a support user sees every teammate's trips labelled
+      // with who's going.
       var anchors = [];
       all.forEach(function (it) {{
         if (it.past || it.hidden) return;
-        var r = role(it); if (!r) return;
-        var g = geoOf(it); if (!g) return;
         if (!it.sort || it.sort >= 99999999) return;
-        anchors.push({{ it: it, role: r, geo: g, startD: _sortToDate(it.sort), endD: _sortToDate(_endSortOf(it)) }});
+        var g = null;
+        owners.forEach(function (who) {{
+          var r = _travelRole(it, who); if (!r) return;
+          if (!g) g = geoOf(it); if (!g) return;
+          anchors.push({{ it: it, who: who, role: r, geo: g, startD: _sortToDate(it.sort), endD: _sortToDate(_endSortOf(it)) }});
+        }});
       }});
       if (!anchors.length) return [];
       anchors.sort(function (a, b) {{ return a.it.sort - b.it.sort; }});
       var clusters = [], usedKeys = {{}};
       anchors.forEach(function (anchor) {{
         if (!anchor.startD || !anchor.endD) return;
+        var ownerGov = _govOk(anchor.who);   // gov/A&D nearby only for Jim's (or support's) trips
         var near = [], seenName = {{}};
         all.forEach(function (it) {{
           if (it === anchor.it) return;
           if (it.past || it.hidden || it.queue_dismissed) return;
           if (it.stages.length) return;                       // already in the pipeline
           if (BADt.test(it.name)) return;
-          if (role(it)) return;                               // already yours
+          if (_anyRole(it, anchor.who)) return;               // already on this person's list
+          if (!ownerGov && _isGovDef(it)) return;             // gov/A&D is Jim's lane
           if (skips[_sugSkipId(it.kind, it.key)]) return;
-          if (usedKeys[it.kind + ':' + it.key]) return;       // don't repeat across anchors
+          if (usedKeys[anchor.who + '|' + it.kind + ':' + it.key]) return;  // don't repeat within this person's trips
           var nm = abFold(it.name); if (seenName[nm]) return;  // collapse duplicate events
           var g = geoOf(it); if (!g) return;
           var km = _haversineKm(anchor.geo, g);
@@ -7237,11 +7329,74 @@ def build():
             if (seenBrand[bk]) return false;
             seenBrand[bk] = 1; return true;
           }});
-          near.forEach(function (n) {{ usedKeys[n.it.kind + ':' + n.it.key] = 1; }});
-          clusters.push({{ anchor: anchor.it, role: anchor.role, near: near }});
+          if (!near.length) return;   // dedupe emptied it — no cluster (e.g. lone same-brand neighbour)
+          near.forEach(function (n) {{ usedKeys[anchor.who + '|' + n.it.kind + ':' + n.it.key] = 1; }});
+          clusters.push({{ anchor: anchor.it, who: anchor.who, support: support, role: anchor.role, near: near }});
         }}
       }});
       return clusters;
+    }}
+    // "Because you're interested in X" — content recommendations. For each event
+    // an owner is INTERESTED in (a maybe, not committed travel), surface upcoming
+    // events that match on industry/topics + target roles, wherever they are.
+    // This is the content counterpart to trip batching (which is geographic).
+    function _contentRecs() {{
+      var owners = _planOwners();
+      if (!owners.length) return [];
+      var BADt = /complian|regulat|regtech|gdpr|\\baudit/i;
+      var skips = _sugSkips();
+      var all = opsAllItems();
+      // Interest anchors: one per (event, owner). Collapse to a single row per
+      // event, listing everyone interested, so support doesn't see it repeated.
+      var anchorMap = {{}}, anchorOrder = [];
+      all.forEach(function (it) {{
+        if (it.past || it.hidden) return;
+        if (!it.sort || it.sort >= 99999999) return;
+        var who = owners.filter(function (w) {{
+          return (it.interested || []).some(function (n) {{ return abFold(n).split(/\\s+/)[0] === w; }});
+        }});
+        if (!who.length) return;
+        var id = it.kind + ':' + it.key;
+        if (!anchorMap[id]) {{ anchorMap[id] = {{ it: it, who: who.slice() }}; anchorOrder.push(id); }}
+      }});
+      if (!anchorOrder.length) return [];
+      anchorOrder.sort(function (a, b) {{ return anchorMap[a].it.sort - anchorMap[b].it.sort; }});
+      var recs = [], MAX_ANCHORS = 6, PER = 3;
+      anchorOrder.slice(0, MAX_ANCHORS).forEach(function (id) {{
+        var A = anchorMap[id], anchor = A.it;
+        var ap = _contentProfile(anchor);
+        // Nothing to match on (a sparse manual event with no focus/roles) -> skip.
+        if (!Object.keys(ap.topics).length) return;
+        var ownerGov = A.who.some(_govOk);
+        var cand = [], seenBrand = {{}}, seenName = {{}};
+        seenBrand[_brandKey(anchor, geoOf(anchor))] = 1;
+        all.forEach(function (it) {{
+          if (it === anchor) return;
+          if (it.past || it.hidden || it.queue_dismissed) return;
+          if (it.stages.length) return;                       // already in the pipeline
+          if (BADt.test(it.name)) return;
+          if (!ownerGov && _isGovDef(it)) return;             // gov/A&D is Jim's lane
+          if (skips[_sugSkipId(it.kind, it.key)]) return;
+          // Skip anything an interested owner is already tied to.
+          if (A.who.some(function (w) {{ return _anyRole(it, w); }})) return;
+          var nm = abFold(it.name); if (seenName[nm]) return;
+          var sc = _simScore(ap, _contentProfile(it));
+          if (sc.t < 2 || sc.r < 1) return;                    // needs a real industry AND audience overlap
+          seenName[nm] = 1;
+          cand.push({{ it: it, sc: sc }});
+        }});
+        if (!cand.length) return;
+        cand.sort(function (a, b) {{ return b.sc.score - a.sc.score || a.it.sort - b.it.sort; }});
+        // Brand+city dedupe so near-identical hosts don't fill the list.
+        var picked = [];
+        for (var i = 0; i < cand.length && picked.length < PER; i++) {{
+          var bk = _brandKey(cand[i].it, geoOf(cand[i].it));
+          if (seenBrand[bk]) continue;
+          seenBrand[bk] = 1; picked.push(cand[i]);
+        }}
+        if (picked.length) recs.push({{ anchor: anchor, who: A.who, recs: picked }});
+      }});
+      return recs;
     }}
     // ── Plan Ahead: the everyone-facing "decide what to go to" surface —
     // 2–4 month suggestions you clear with one call each: "I'm interested"
@@ -7253,42 +7408,80 @@ def build():
       if (!host) return;
       var meFirst = (getCollabName() || '').trim().toLowerCase().split(/\\s+/)[0];
       var personalized = !!((window.AB_PERSONAS || {{}})[meFirst]);
+      var meName = getCollabName() || '';
+      var support = isSupportPerson(meName);
       var intro = '<p class="queue-intro myev-intro"><strong>Plan Ahead:</strong> ' +
-        (personalized ? 'Events 2&ndash;4 months out that fit your focus. ' : 'Events 2&ndash;4 months out worth a look. ') +
-        'Decide which to go to &mdash; flag the ones you want (Angela registers you) and skip the rest.</p>';
-      // Trip clusters first — "while you're already in X, here's what's nearby".
+        (support ? 'What the team is committed to, plus events worth a look. '
+                 : (personalized ? 'Events that fit your focus, and more like the ones you want. ' : 'Events worth a look. ')) +
+        'Flag the ones to go to (Angela registers you) and skip the rest.</p>';
+      // Person label helpers — trips + interest recs go team-wide for support.
+      // Label by the identifier the team actually uses (the persona key: Thor,
+      // Jerome, Verma, Carlos, Joe, Jim), which is how attendees are stored.
+      function _whoLabel(w) {{ return escapeHtml(w ? w.charAt(0).toUpperCase() + w.slice(1) : ''); }}
+      function _whoList(arr) {{ return (arr || []).map(_whoLabel).join(' &amp; '); }}
+      // One reusable suggestion row (name · date · loc + interested/skip).
+      function sugRow(it, extraHtml) {{
+        var loc = it.location || '';
+        return '<div class="queue-row sug-row"><div class="queue-main">' +
+            '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+            '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + escapeHtml(loc) : '') + '</p>' +
+            (extraHtml || '') +
+          '</div><div class="queue-actions sug-actions">' +
+            '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ I&#39;m interested</button>' +
+            '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
+          '</div></div>';
+      }}
+      function anchorHead(lead, ev, extraCls) {{
+        var loc = ev.location || ev.city || '';
+        return '<div class="queue-section trip-cluster' + (extraCls ? ' ' + extraCls : '') + '"><p class="trip-anchor">' + lead +
+          ' <button class="trip-anchor-name" data-ref-kind="' + ev.kind + '" data-ref-key="' + escapeHtml(String(ev.key)) + '">' + escapeHtml(ev.name) + '</button>' +
+          '<span class="trip-anchor-meta">' + escapeHtml(ev.date_str || '') + (loc ? ' \\u00b7 ' + escapeHtml(loc) : '') + '</span></p>';
+      }}
+      var shownKeys = {{}};   // surfaced in trips / interest recs -> keep out of the monthly list
+      // ── Batch your trips (geographic) ─────────────────────────────────
       var clusters = _tripClusters();
-      var clusteredKeys = {{}};
       var tripHtml = '';
       if (clusters.length) {{
         tripHtml += '<div class="queue-sec-head"><span class="queue-sec-title">&#129517; Batch your trips</span><span class="queue-sec-count">' + clusters.length + '</span></div>' +
-          '<p class="queue-meta" style="margin:-4px 0 14px;">You&#39;re already going to these &mdash; here&#39;s what else is on within a few days, in the same or a nearby city.</p>';
+          '<p class="queue-meta" style="margin:-4px 0 14px;">' +
+          (support ? 'Where the team&#39;s already headed &mdash; and what else is on within a few days, same or nearby city.'
+                   : 'You&#39;re already going to these &mdash; here&#39;s what else is on within a few days, in the same or a nearby city.') + '</p>';
         clusters.forEach(function (cl) {{
-          var aLoc = cl.anchor.location || cl.anchor.city || '';
-          tripHtml += '<div class="queue-section trip-cluster"><p class="trip-anchor">You&#39;re ' + escapeHtml(cl.role) +
-            ' <button class="trip-anchor-name" data-ref-kind="' + cl.anchor.kind + '" data-ref-key="' + escapeHtml(String(cl.anchor.key)) + '">' + escapeHtml(cl.anchor.name) + '</button>' +
-            '<span class="trip-anchor-meta">' + escapeHtml(cl.anchor.date_str || '') + (aLoc ? ' \\u00b7 ' + escapeHtml(aLoc) : '') + '</span></p>';
+          var lead = cl.support ? (_whoLabel(cl.who) + ' is ' + escapeHtml(cl.role)) : ('You&#39;re ' + escapeHtml(cl.role));
+          tripHtml += anchorHead(lead, cl.anchor, '');
           cl.near.forEach(function (n) {{
-            var it = n.it; clusteredKeys[it.kind + ':' + it.key] = 1;
-            var loc = it.location || '';
+            shownKeys[n.it.kind + ':' + n.it.key] = 1;
             var prox = (n.gap === 0 ? 'overlaps' : ('~' + n.gap + ' day' + (n.gap === 1 ? '' : 's') + ' apart')) +
               ' \\u00b7 ' + (n.km < 25 ? 'same city' : ('~' + Math.round(n.km) + ' km away'));
-            tripHtml += '<div class="queue-row sug-row"><div class="queue-main">' +
-                '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
-                '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
-                '<p class="trip-prox">' + prox + '</p>' +
-              '</div><div class="queue-actions sug-actions">' +
-                '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ I&#39;m interested</button>' +
-                '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
-              '</div></div>';
+            tripHtml += sugRow(n.it, '<p class="trip-prox">' + prox + '</p>');
           }});
           tripHtml += '</div>';
         }});
       }}
+      // ── Because you're interested in X (content similarity) ───────────
+      var recs = _contentRecs();
+      var recHtml = '';
+      if (recs.length) {{
+        recHtml += '<div class="queue-sec-head"><span class="queue-sec-title">&#128161; Because you&#39;re interested</span><span class="queue-sec-count">' + recs.length + '</span></div>' +
+          '<p class="queue-meta" style="margin:-4px 0 14px;">' +
+          (support ? 'More like what teammates flagged &mdash; same industry, audience and topics.'
+                   : 'More like the events you flagged &mdash; same industry, audience and topics.') + '</p>';
+        recs.forEach(function (rc) {{
+          var lead = support
+            ? (_whoList(rc.who) + ' ' + (rc.who.length > 1 ? 'are' : 'is') + ' interested in')
+            : 'Because you&#39;re interested in';
+          recHtml += anchorHead(lead, rc.anchor, 'rec-cluster');
+          rc.recs.forEach(function (p) {{
+            shownKeys[p.it.kind + ':' + p.it.key] = 1;
+            recHtml += sugRow(p.it, '');
+          }});
+          recHtml += '</div>';
+        }});
+      }}
 
-      // 2–4 month suggestions (excluding anything already shown in a trip cluster).
-      var sug = _suggestionsFor().filter(function (x) {{ return !clusteredKeys[x.it.kind + ':' + x.it.key]; }});
-      if (!sug.length && !tripHtml) {{
+      // 2–4 month suggestions (excluding anything already surfaced above).
+      var sug = _suggestionsFor().filter(function (x) {{ return !shownKeys[x.it.kind + ':' + x.it.key]; }});
+      if (!sug.length && !tripHtml && !recHtml) {{
         // Empty because you cleared it vs. because nothing fit yet — say which.
         var anySkipped = Object.keys(_sugSkips()).length > 0;
         host.innerHTML = intro + '<div class="queue-empty">' +
@@ -7308,22 +7501,12 @@ def build():
         groups[m.key].items.push(x);
       }});
       order.sort(function (a, b) {{ return groups[a].sort - groups[b].sort; }});
-      var html = intro + tripHtml;
+      var html = intro + tripHtml + recHtml;
       order.forEach(function (mkey) {{
         var g = groups[mkey];
         var list = g.items.slice().sort(function (a, b) {{ return a.it.sort - b.it.sort; }});
         html += '<div class="queue-section"><div class="queue-sec-head"><span class="queue-sec-title">' + escapeHtml(g.label) + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
-        list.forEach(function (x) {{
-          var it = x.it;
-          var loc = [it.location].filter(Boolean).join(' \\u00b7 ');
-          html += '<div class="queue-row sug-row"><div class="queue-main">' +
-              '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
-              '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
-            '</div><div class="queue-actions sug-actions">' +
-              '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ I&#39;m interested</button>' +
-              '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
-            '</div></div>';
-        }});
+        list.forEach(function (x) {{ html += sugRow(x.it, ''); }});
         html += '</div>';
       }});
       host.innerHTML = html;
