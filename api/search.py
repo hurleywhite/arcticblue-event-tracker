@@ -220,6 +220,15 @@ events that match the criteria below. Prefer well-known, reputable
 events with verified websites, and STRONGLY prefer buyer-rich audiences
 (in-house enterprise decision-makers) over vendor-to-vendor sales expos.
 
+STRICT FIT — ArcticBlue sells to enterprise BUSINESS decision-makers, so:
+- EXCLUDE academic / scientific / medical / biomedical paper-presentation
+  conferences (e.g. IEEE / Springer / "International Conference on ..." research
+  symposia), student events, and vendor-to-vendor sales expos. These are never a
+  fit no matter where or when they are.
+- Return ONLY events you would rate recommend "yes" or "maybe". If you cannot
+  find {count} that qualify, return FEWER — an empty list is BETTER than padding
+  with "no", unverified, projected/unconfirmed, or off-target events.
+
 ALREADY TRACKED — do NOT return any of these, nor trivial rewordings of
 them. (A different city/region edition of a series IS welcome — e.g. a
 Singapore edition when only the London one is tracked.) Use this list as a
@@ -227,7 +236,7 @@ TASTE PROFILE: suggest events of similar caliber and audience that are
 missing from it:
 {tracked_str}
 
-{recurring_block}{location_block}Criteria
+{recurring_block}{location_block}{exclude_block}{window_block}Criteria
 - Quarters to include:  {quarters_str}
 - Event types to include: {types_str}
 - Regions to include:   {regions_str}
@@ -254,7 +263,8 @@ CRITICAL: do not invent URLs. If you don't have a verified URL for an event, set
 """
 
 
-def _build_prompt(count, types, quarters, regions, tracked, recurring=None, location=''):
+def _build_prompt(count, types, quarters, regions, tracked, recurring=None,
+                  location='', date_from='', date_to='', exclude=''):
     def fmt(arr):
         if not arr: return 'no preference'
         return ', '.join(arr)
@@ -290,6 +300,26 @@ def _build_prompt(count, types, quarters, regions, tracked, recurring=None, loca
         )
     else:
         location_block = ''
+    # Exclude the trip event itself — you're searching for things to STACK onto
+    # it, not to re-surface it.
+    exclude = (exclude or '').strip()
+    exclude_block = (f"NEVER return \"{exclude}\" or a reworded version of it — that IS the "
+                     f"trip you're stacking onto; it's already tracked.\n\n") if exclude else ''
+    # Date WINDOW — when stacking onto a booked trip, the SPECIFIC dates matter,
+    # not the whole quarter. These override the quarter list.
+    date_from = (date_from or '').strip()
+    date_to = (date_to or '').strip()
+    if date_from and date_to:
+        window_block = (
+            f"DATE WINDOW (HARD — overrides the quarter): the trip is booked for "
+            f"{date_from} to {date_to}. Return ONLY events whose dates fall within about "
+            f"two weeks BEFORE {date_from} through two weeks AFTER {date_to}, so a single "
+            f"trip can cover them. IGNORE the quarter list where it conflicts — do NOT "
+            f"return events in other months of the same quarter, and do NOT return events "
+            f"in other years.\n\n"
+        )
+    else:
+        window_block = ''
     return SEARCH_PROMPT.format(
         count           = max(1, min(int(count or 10), 25)),
         types_str       = fmt(types),
@@ -298,6 +328,8 @@ def _build_prompt(count, types, quarters, regions, tracked, recurring=None, loca
         tracked_str     = tracked_str,
         recurring_block = recurring_block,
         location_block  = location_block,
+        exclude_block   = exclude_block,
+        window_block    = window_block,
     )
 
 
@@ -421,6 +453,11 @@ class handler(BaseHTTPRequestHandler):
         # Optional city/country to anchor the search on — set when stacking events
         # onto a trip already booked there (Plan Ahead "Find events near <city>").
         location = str(body.get('location') or '').strip()[:120]
+        # When stacking onto a booked trip, the SPECIFIC dates (not the whole
+        # quarter) drive it, and the trip event itself must be excluded.
+        date_from = str(body.get('date_from') or '').strip()[:20]
+        date_to   = str(body.get('date_to') or '').strip()[:20]
+        exclude   = str(body.get('exclude') or '').strip()[:200]
         # Events ArcticBlue attended/spoke at in the past — find their next-year
         # editions first, then fall back to the criteria above.
         recurring = _list(body.get('recurring'))
@@ -448,7 +485,8 @@ class handler(BaseHTTPRequestHandler):
         # yield near count — but cap it so the JSON reply stays within the token
         # budget (too many events => truncated, unparseable array => 0 results).
         ask = min(max(count * 3, 12), 18)
-        prompt = _build_prompt(ask, types, quarters, regions, tracked, recurring, location)
+        prompt = _build_prompt(ask, types, quarters, regions, tracked, recurring,
+                               location, date_from, date_to, exclude)
         engine = 'perplexity' if PPLX_API_KEY else 'dust'
         if engine == 'perplexity':
             try:
@@ -476,12 +514,24 @@ class handler(BaseHTTPRequestHandler):
         # model ignoring the exclusion list can't produce repeats.
         cleaned = []
         dupes_filtered = 0
+        off_target_filtered = 0
+        exclude_fp = _fingerprint(exclude) if exclude else ''
         for ev in events:
             if not isinstance(ev, dict): continue
             nm = (ev.get('name') or '').strip()
             fp = _fingerprint(nm)
             if nm.lower() in tracked_lows or (fp and fp in tracked_fps):
                 dupes_filtered += 1
+                continue
+            # The trip event itself (searching to STACK, not re-surface it).
+            if exclude and (nm.lower() == exclude.lower() or (fp and fp == exclude_fp)):
+                dupes_filtered += 1
+                continue
+            # The model was told to only return yes/maybe. Belt-and-suspenders:
+            # drop anything it still rated "no" (off-target / unverified) so junk
+            # like a biomedical research conference can't slip into the results.
+            if str(ev.get('recommend') or '').strip().lower() == 'no':
+                off_target_filtered += 1
                 continue
             url = ev.get('url')
             if isinstance(url, str):
@@ -498,6 +548,7 @@ class handler(BaseHTTPRequestHandler):
             'events':   cleaned,
             'count':    len(cleaned),
             'dupes_filtered': dupes_filtered,
+            'off_target_filtered': off_target_filtered,
             'raw':      agent_text[:8000],
             'status':   reply.get('status'),
             'engine':   engine,
@@ -507,5 +558,9 @@ class handler(BaseHTTPRequestHandler):
                 'types':    types,
                 'quarters': quarters,
                 'regions':  regions,
+                'location': location,
+                'date_from': date_from,
+                'date_to':  date_to,
+                'exclude':  exclude,
             },
         })

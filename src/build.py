@@ -8036,6 +8036,13 @@ def build():
         if (!/^[0-9]{{4}}$/.test(y) || !mo) return '';
         return 'Q' + (Math.floor((mo - 1) / 3) + 1) + ' ' + y;
       }}
+      // YYYYMMDD sort key -> ISO "YYYY-MM-DD", to seed the area search's exact
+      // date window (so it hunts around the TRIP'S DATES, not the whole quarter).
+      function _isoFromSort(sort) {{
+        var s = String(sort || '');
+        if (s.length < 8) return '';
+        return s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8);
+      }}
       if (clusters.length) {{
         tripHtml += '<div class="queue-sec-head"><span class="queue-sec-title">&#129517; Batch your trips</span><span class="queue-sec-count">' + clusters.length + '</span></div>' +
           '<p class="queue-meta" style="margin:-4px 0 14px;">' +
@@ -8063,9 +8070,14 @@ def build():
           if (!cl.near.length) {{
             var _city = escapeHtml(String(loc).split(',')[0].trim());
             if (loc) {{
+              var _pStart = ev.start_date || _isoFromSort(ev.sort);
+              var _pEnd = ev.end_date || ev.start_date || _isoFromSort(_endSortOf(ev));
               tripHtml += '<div class="trip-nonear">' +
                 '<button type="button" class="q-btn primary trip-find-near" data-plan-near="' + escapeHtml(loc) +
-                  '" data-plan-quarter="' + escapeHtml(_quarterOfSort(ev.sort)) + '">' +
+                  '" data-plan-quarter="' + escapeHtml(_quarterOfSort(ev.sort)) +
+                  '" data-plan-start="' + escapeHtml(_pStart) +
+                  '" data-plan-end="' + escapeHtml(_pEnd) +
+                  '" data-plan-exclude="' + escapeHtml(ev.name || '') + '">' +
                   '&#128269; Find events near ' + _city + '</button>' +
                 '<span class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then.</span>' +
               '</div>';
@@ -8161,7 +8173,10 @@ def build():
           var openP = $opsGrid.querySelector(':scope > .add-event-card'); if (openP) openP.remove();
           openSearchPanel(getCollabName(), {{
             location: btn.getAttribute('data-plan-near'),
-            quarter:  btn.getAttribute('data-plan-quarter')
+            quarter:  btn.getAttribute('data-plan-quarter'),
+            dateFrom: btn.getAttribute('data-plan-start'),
+            dateTo:   btn.getAttribute('data-plan-end'),
+            exclude:  btn.getAttribute('data-plan-exclude')
           }});
           setTimeout(function () {{
             var el = document.getElementById('search-panel');
@@ -11153,7 +11168,7 @@ def build():
         // Plain re-click = toggle closed. A SEEDED open (e.g. from a Plan-Ahead
         // "Find events near <city>" button) always reopens with the new seed.
         existing.remove();
-        if (!seed.location && !seed.quarter) return;
+        if (!seed.location && !seed.quarter && !seed.dateFrom) return;
       }}
 
       var qOpts = _currentQuarterOptions();
@@ -11169,7 +11184,10 @@ def build():
         '<h3>Find events (AI search)</h3>' +
         '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
           (seed.location
-            ? 'Searching for events in or near <strong>' + escapeHtml(seed.location) + '</strong> around that trip, so you can stack more onto one journey. Adjust the fields below and run it.'
+            ? 'Searching for events in or near <strong>' + escapeHtml(seed.location) + '</strong>' +
+              ((seed.dateFrom && seed.dateTo) ? ' around <strong>' + escapeHtml(seed.dateFrom) + ' \\u2013 ' + escapeHtml(seed.dateTo) + '</strong>' : '') +
+              (seed.exclude ? ' (to stack onto ' + escapeHtml(seed.exclude) + ', which is excluded)' : '') +
+              ' \\u2014 so you can cover more in one trip. Adjust the fields below and run it.'
             : 'AI web search finds upcoming in-person events matching your criteria — buyer-rich audiences preferred. It first looks for next-year editions of events the team has attended, then fills in with your criteria. Added events are vetted and auto-enriched.') +
         '</p>' +
         '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">' +
@@ -11227,7 +11245,10 @@ def build():
           }});
         }} catch (e) {{}}
         var _near = (panel.querySelector('#search-near').value || '').trim();
-        var criteria = {{ count: count, types: SEARCH_TYPE_OPTIONS.slice(), quarters: getQuarters(), regions: getRegions(), recurring: _recurring.slice(0, 30), location: _near }};
+        // Seeded from a trip: search its EXACT date window (overrides quarter) and
+        // exclude the trip event itself.
+        var criteria = {{ count: count, types: SEARCH_TYPE_OPTIONS.slice(), quarters: getQuarters(), regions: getRegions(), recurring: _recurring.slice(0, 30), location: _near,
+          date_from: seed.dateFrom || '', date_to: seed.dateTo || '', exclude: seed.exclude || '' }};
         var runBtn = panel.querySelector('#search-run-btn');
         var meta   = panel.querySelector('#search-meta');
         runBtn.disabled = true; runBtn.textContent = 'Searching\\u2026';
@@ -11252,8 +11273,11 @@ def build():
               meta.textContent = 'Find failed (' + st + '): ' + (data && data.error || 'unknown error');
               return;
             }}
+            var _filts = [];
+            if (data.dupes_filtered) _filts.push(data.dupes_filtered + ' already-tracked');
+            if (data.off_target_filtered) _filts.push(data.off_target_filtered + ' off-target');
             meta.textContent = 'Found ' + (data.events || []).length + ' new events in ' + dur + 's' +
-              (data.dupes_filtered ? ' (' + data.dupes_filtered + ' already-tracked filtered out)' : '') + '.';
+              (_filts.length ? ' (' + _filts.join(' + ') + ' filtered out)' : '') + '.';
             renderSearchResults(panel, data, email);
           }}).catch(function (err) {{
             runBtn.disabled = false; runBtn.textContent = 'Find more';
@@ -11267,7 +11291,7 @@ def build():
       var events = (data.events || []);
       var $r = panel.querySelector('#search-results');
       if (events.length === 0) {{
-        $r.innerHTML = '<p class="alert">No events found for these criteria. Try widening the types or quarters.</p>';
+        $r.innerHTML = '<p class="alert">No events matched \\u2014 the search skips academic/research and off-target events, anything already tracked, and (for a trip search) anything outside those dates. Often there just isn\\u2019t another good fit near that place and time. Try widening the dates, region, or types.</p>';
         return;
       }}
 
