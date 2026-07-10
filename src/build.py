@@ -1967,6 +1967,22 @@ def build():
     }}
     .view-toggle button.active .vt-count {{ background: #1fa0dc; }}
     .vt-count.alert {{ background: #d64545; }}
+    /* Secondary view switcher under the merged "Events" tab. List / Calendar
+       / Map are three shapes of the same event set, so they read as a
+       sub-level, not primary tabs. Shown only on an Events sub-view. */
+    .events-subnav {{
+      display: inline-flex; gap: 2px; padding: 3px;
+      background: var(--ab-bg-3); border-radius: 8px; margin: 0 0 16px;
+    }}
+    .events-subnav[hidden] {{ display: none; }}
+    .subnav-btn {{
+      font-family: var(--ab-sans); font-weight: 650; font-size: 0.85rem;
+      padding: 6px 15px; border-radius: 6px; border: 0; background: transparent;
+      color: var(--ab-fg-2); cursor: pointer;
+      transition: background 120ms ease, color 120ms ease;
+    }}
+    .subnav-btn:hover {{ color: var(--ab-fg); }}
+    .subnav-btn.active {{ background: var(--ab-bg); color: var(--ab-fg); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }}
 
     /* Go decision badge (cards + modal + queue rows). */
     .decision-badge {{
@@ -2867,9 +2883,7 @@ def build():
           <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
           <button type="button" role="tab" data-view="planahead" aria-selected="false">Plan Ahead</button>
           <button type="button" role="tab" data-view="myprofile" aria-selected="false">My Profile</button>
-          <button type="button" role="tab" data-view="grid"     aria-selected="false">Catalog</button>
-          <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
-          <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
+          <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Events</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
         </div>
@@ -2898,6 +2912,11 @@ def build():
             </button>
           </div>
         </div>
+        </div>
+        <div class="events-subnav" id="events-subnav" role="tablist" aria-label="Events view" hidden>
+          <button type="button" role="tab" class="subnav-btn" data-view="grid" aria-selected="false">List</button>
+          <button type="button" role="tab" class="subnav-btn" data-view="calendar" aria-selected="false">Calendar</button>
+          <button type="button" role="tab" class="subnav-btn" data-view="map" aria-selected="false">Map</button>
         </div>
         <div class="ops-topfilters" id="ops-topfilters">
           <div class="filter-dd" id="filter-pipeline" title="Pipeline stage — where each event stands (pick several to combine)">
@@ -8501,6 +8520,9 @@ def build():
     // ── View toggle (Grid / Calendar) ───────────────────────────────
     var VIEW_KEY = 'ab.angela.view';
     var currentView = 'grid';
+    // The "Events" tab remembers which of List / Calendar / Map you last used,
+    // so returning to it lands you back where you were.
+    var _lastEventsSub = 'grid';
 
     var VIEW_NAMES = ['myevents', 'planahead', 'myprofile', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
     function setView(name) {{
@@ -8510,11 +8532,30 @@ def build():
       // Planner + Queue are Angela-only — redirect anyone else who lands on them.
       if ((name === 'planner' || name === 'queue') && window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
       currentView = name;
+      var isEventsView = (name === 'grid' || name === 'calendar' || name === 'map');
+      if (isEventsView) _lastEventsSub = name;
       document.querySelectorAll('.view-toggle button[data-view]').forEach(function (b) {{
         var on = b.dataset.view === name;
         b.classList.toggle('active', on);
         b.setAttribute('aria-selected', on ? 'true' : 'false');
       }});
+      // The merged "Events" tab has no data-view of its own — it's active for
+      // ANY of its List / Calendar / Map sub-views, which live in a secondary
+      // switcher shown only while you're on one of them.
+      var $eventsTab = document.getElementById('tab-events');
+      if ($eventsTab) {{
+        $eventsTab.classList.toggle('active', isEventsView);
+        $eventsTab.setAttribute('aria-selected', isEventsView ? 'true' : 'false');
+      }}
+      var $subnav = document.getElementById('events-subnav');
+      if ($subnav) {{
+        $subnav.hidden = !isEventsView;
+        Array.prototype.forEach.call($subnav.querySelectorAll('[data-view]'), function (b) {{
+          var on = b.dataset.view === name;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
+        }});
+      }}
       var g = document.getElementById('ops-grid');
       var c = document.getElementById('ops-calendar');
       var m = document.getElementById('ops-map');
@@ -8552,6 +8593,18 @@ def build():
         var fresh = b.cloneNode(true);
         b.parentNode.replaceChild(fresh, b);
         fresh.addEventListener('click', function () {{ setView(fresh.dataset.view); }});
+      }});
+      // The merged "Events" tab (no data-view) opens your last-used sub-view;
+      // its List / Calendar / Map switcher lives outside .view-toggle.
+      var $eventsTab = document.getElementById('tab-events');
+      if ($eventsTab && !$eventsTab.dataset.wired) {{
+        $eventsTab.dataset.wired = '1';
+        $eventsTab.addEventListener('click', function () {{ setView(_lastEventsSub || 'grid'); }});
+      }}
+      document.querySelectorAll('.events-subnav button[data-view]').forEach(function (b) {{
+        if (b.dataset.wired) return;
+        b.dataset.wired = '1';
+        b.addEventListener('click', function () {{ setView(b.dataset.view); }});
       }});
       // A refresh keeps you on the view you were last on (Calendar / All Events
       // / Map / My Events). Only a FIRST-time visitor with no saved view lands
