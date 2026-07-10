@@ -2240,6 +2240,16 @@ def build():
     .profile-file-name:hover {{ color: var(--ab-blue); text-decoration: underline; }}
     .profile-file-size {{ font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-3); white-space: nowrap; }}
     .profile-file-empty {{ font-size: 0.84rem; color: var(--ab-fg-3); font-style: italic; }}
+    /* Delete-a-file button — clearly a delete: trash icon + label, reddens on hover. */
+    .profile-file-del {{
+      display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto; white-space: nowrap;
+      font-family: var(--ab-sans); font-size: 0.76rem; font-weight: 600;
+      padding: 5px 9px; border-radius: 6px; cursor: pointer;
+      color: var(--ab-fg-3); background: var(--ab-bg); border: 1px solid var(--ab-rule);
+      transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+    }}
+    .profile-file-del svg {{ width: 14px; height: 14px; }}
+    .profile-file-del:hover {{ color: #b91c1c; border-color: #e5a5a5; background: #fdf3f3; }}
     .profile-upload-row {{ display: flex; align-items: center; gap: 10px; margin: 11px 0 0; flex-wrap: wrap; }}
     .profile-upload-row input[type=file] {{ font-size: 0.82rem; color: var(--ab-fg-2); max-width: 100%; }}
     .profile-teammate {{
@@ -7357,7 +7367,9 @@ def build():
           var size = (f.metadata && f.metadata.size) ? _fmtBytes(f.metadata.size) : '';
           return '<div class="profile-file"><a class="profile-file-name" href="#" data-file="' + escapeHtml(f.name) + '">' + escapeHtml(f.name) + '</a>' +
             (size ? '<span class="profile-file-size">' + size + '</span>' : '') +
-            '<button type="button" class="q-btn danger" data-delfile="' + escapeHtml(f.name) + '" title="Delete this file">&times;</button></div>';
+            '<button type="button" class="profile-file-del" data-delfile="' + escapeHtml(f.name) + '" aria-label="Delete ' + escapeHtml(f.name) + '" title="Delete this file">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>' +
+              '<span>Delete</span></button></div>';
         }}).join('');
         $files.querySelectorAll('[data-file]').forEach(function (a) {{
           a.addEventListener('click', function (e) {{
