@@ -1458,13 +1458,12 @@
     .tf-toggle[aria-expanded="true"] { background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }
     .tf-toggle svg { width: 18px; height: 18px; }
     .tf-toggle.has-active { border-color: var(--ab-blue); color: var(--ab-blue); }
-    .tf-count {
-      position: absolute; top: -6px; right: -6px; min-width: 17px; height: 17px; padding: 0 4px;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 700; line-height: 1;
-      color: #fff; background: var(--ab-blue); border-radius: 999px;
+    /* A small dot, top-right, when any secondary (drawer) filter is active. */
+    .tf-dot {
+      position: absolute; top: -3px; right: -3px; width: 9px; height: 9px;
+      background: var(--ab-blue); border: 2px solid var(--ab-bg); border-radius: 50%;
     }
-    .tf-count[hidden] { display: none; }
+    .tf-dot[hidden] { display: none; }
     /* The drawer: a full-width panel of dropdown filters below the bar. */
     .tf-drawer {
       display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
@@ -1549,23 +1548,24 @@
     }
 
     /* View toggle (Grid / Calendar) */
+    /* Primary nav — underlined TEXT tabs (not pills). The row's hairline doubles
+       as the tab track; the active tab's 2px border sits on it. */
     .view-toggle {
-      display: inline-flex; flex-wrap: wrap; gap: 4px;
-      max-width: 100%; padding: 4px; background: var(--ab-bg-3);
-      border-radius: 10px; margin-bottom: 16px;
+      display: inline-flex; flex-wrap: wrap; gap: 2px 22px; align-items: flex-end;
     }
     .view-toggle button {
-      font-family: var(--ab-sans); font-weight: 700; font-size: 1.35rem;
-      letter-spacing: -0.01em; padding: 9px 20px; border-radius: 7px; border: 0;
+      font-family: var(--ab-sans); font-weight: 400; font-size: 1.2rem;
+      letter-spacing: -0.01em; padding: 6px 1px; border: 0;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
       background: transparent; color: var(--ab-fg-2);
-      cursor: pointer; transition: background 120ms ease, color 120ms ease;
+      cursor: pointer; transition: color 120ms ease, border-color 120ms ease;
     }
     .view-toggle button:hover { color: var(--ab-fg); }
-    .view-toggle button.active { background: var(--ab-bg); color: var(--ab-fg); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
-    /* Small count pill inside a view-toggle tab (Queue / Planner alerts). */
+    .view-toggle button.active { font-weight: 500; color: var(--ab-fg); border-bottom-color: var(--ab-fg); }
+    /* Small count pill inside a view-toggle tab (My lineup / Queue / Planner). */
     .vt-count {
-      display: inline-block; min-width: 18px; margin-left: 7px; padding: 0 6px;
-      font-family: var(--ab-mono); font-size: 0.7rem; line-height: 18px;
+      display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 6px;
+      font-family: var(--ab-mono); font-size: 0.68rem; line-height: 18px;
       text-align: center; border-radius: 9px; vertical-align: middle;
       background: var(--ab-fg-3); color: #fff;
     }
@@ -1574,18 +1574,19 @@
     /* Secondary view switcher under the merged "Events" tab. List / Calendar
        / Map are three shapes of the same event set, so they read as a
        sub-level, not primary tabs. Shown only on an Events sub-view. */
+    /* View switcher — icon-only segmented group (List / Calendar / Map). */
     .events-subnav {
-      display: inline-flex; gap: 2px; padding: 3px;
-      background: var(--ab-bg-3); border-radius: 8px; margin: 0 0 16px;
+      display: inline-flex; gap: 2px; padding: 3px; flex: 0 0 auto;
+      background: var(--ab-bg-3); border: 1px solid var(--ab-rule); border-radius: 10px;
     }
     .events-subnav[hidden] { display: none; }
     .subnav-btn {
-      font-family: var(--ab-sans); font-weight: 650; font-size: 0.85rem;
-      padding: 6px 15px; border-radius: 6px; border: 0; background: transparent;
-      color: var(--ab-fg-2); cursor: pointer;
-      transition: background 120ms ease, color 120ms ease;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 7px; border: 0; background: transparent;
+      color: var(--ab-fg-2); cursor: pointer; transition: all 120ms ease;
     }
-    .subnav-btn:hover { color: var(--ab-fg); }
+    .subnav-btn svg { width: 17px; height: 17px; }
+    .subnav-btn:hover { color: var(--ab-fg); background: var(--ab-bg); }
     .subnav-btn.active { background: var(--ab-bg); color: var(--ab-fg); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
 
     /* Go decision badge (cards + modal + queue rows). */
@@ -2302,14 +2303,22 @@
       color: var(--ab-fg-3); margin-right: 2px; user-select: none;
     }
 
-    /* Row 2: view tabs on the left, add-event actions pushed to the right so
-       the row's right edge lines up with the stat cards + filter rows. */
+    /* Row 1 — primary nav: underlined text tabs on the left; the tracked/manual
+       caption, Sync (Angela) and Add on the right. The bottom hairline is the
+       tab track the active tab's border sits on. */
     .ops-controls-row {
-      display: flex; flex-wrap: wrap; align-items: center;
-      justify-content: space-between; gap: 16px; margin-bottom: 16px;
+      display: flex; flex-wrap: wrap; align-items: flex-end;
+      justify-content: space-between; gap: 10px 16px;
+      border-bottom: 1px solid var(--ab-rule); margin-bottom: 16px;
     }
-    .ops-controls-row .view-toggle,
-    .ops-controls-row .ops-toolbar { margin-bottom: 0; }
+    .ops-controls-right {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding-bottom: 6px;   /* lift off the hairline, in line with the tab text */
+    }
+    .ops-navcount {
+      font-family: var(--ab-mono); font-size: 0.72rem;
+      color: var(--ab-fg-3); letter-spacing: 0.04em; white-space: nowrap;
+    }
     /* Results header — the tracked/manual count sits above the grid. */
     .ops-results-header {
       display: flex; align-items: center; justify-content: flex-end;
@@ -2483,13 +2492,25 @@
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
-          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
-          <button type="button" role="tab" data-view="planahead" aria-selected="false">Plan Ahead</button>
+          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
+          <button type="button" role="tab" data-view="planahead" aria-selected="false">Plan ahead</button>
           <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Events</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
         </div>
-        <div class="ops-toolbar" role="group" aria-label="Add events">
+        <div class="ops-controls-right">
+            <span class="ops-navcount" id="ops-count"></span>
+            <div class="ops-toolbar-group" role="group" aria-label="Sync and export" id="ops-sync-group">
+              <span class="ops-toolbar-label">Sync</span>
+              <button class="ab-btn ab-btn--ghost ab-btn--rose" id="ical-subscribe-btn" title="One auto-updating feed for Google Calendar, Apple Calendar or Outlook — plus a one-time .ics download">
+                <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
+                Calendar sync
+              </button>
+              <button class="ab-btn ab-btn--ghost ab-btn--amber" id="csv-btn" title="Download the tracker as a spreadsheet, or upload an edited one">
+                <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"/><path d="M3 10h18"/><path d="M10 6v12"/></svg>
+                Spreadsheet
+              </button>
+            </div>
             <div class="ops-add-wrap">
               <button class="ab-btn ab-btn--primary" id="add-menu-btn" aria-haspopup="menu" aria-expanded="false" title="Add an event">
                 <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
@@ -2511,31 +2532,20 @@
                 </button>
               </div>
             </div>
-          <div class="ops-toolbar-group" role="group" aria-label="Sync and export" id="ops-sync-group">
-            <span class="ops-toolbar-label">Sync</span>
-            <button class="ab-btn ab-btn--ghost ab-btn--rose" id="ical-subscribe-btn" title="One auto-updating feed for Google Calendar, Apple Calendar or Outlook — plus a one-time .ics download">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
-              Calendar sync
-            </button>
-            <button class="ab-btn ab-btn--ghost ab-btn--amber" id="csv-btn" title="Download the tracker as a spreadsheet, or upload an edited one">
-              <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"/><path d="M3 10h18"/><path d="M10 6v12"/></svg>
-              Spreadsheet
-            </button>
-          </div>
         </div>
-        </div>
-        <div class="events-subnav" id="events-subnav" role="tablist" aria-label="Events view" hidden>
-          <button type="button" role="tab" class="subnav-btn" data-view="grid" aria-selected="false">List</button>
-          <button type="button" role="tab" class="subnav-btn" data-view="calendar" aria-selected="false">Calendar</button>
-          <button type="button" role="tab" class="subnav-btn" data-view="map" aria-selected="false">Map</button>
         </div>
         <div class="ops-topfilters" id="ops-topfilters">
+          <div class="events-subnav" id="events-subnav" role="tablist" aria-label="Events view" hidden>
+            <button type="button" role="tab" class="subnav-btn" data-view="grid" aria-selected="false" aria-label="List view" title="List view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></button>
+            <button type="button" role="tab" class="subnav-btn" data-view="calendar" aria-selected="false" aria-label="Calendar view" title="Calendar view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg></button>
+            <button type="button" role="tab" class="subnav-btn" data-view="map" aria-selected="false" aria-label="Map view" title="Map view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></button>
+          </div>
           <div class="ops-stats ops-seg" id="ops-stats" hidden></div>
           <button type="button" class="tf-toggle" id="ops-filter-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="tf-drawer" title="More filters — region, months, pipeline and more" aria-label="More filters">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
-            <span class="tf-count" id="tf-active-count" hidden></span>
+            <span class="tf-dot" id="tf-active-count" hidden></span>
           </button>
-          <input type="search" id="ops-search" placeholder="Search: event name, location, key words, etc" aria-label="Search events">
+          <input type="search" id="ops-search" placeholder="Search events" aria-label="Search events">
           <button class="ab-btn ab-btn--ask" id="ask-ai-btn" title="Ask the AI to analyse and rank the events currently in view — e.g. 'which of these should I attend in September?'">
             <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
             Ask Anything
@@ -2586,7 +2596,6 @@
         <p class="ops-active-filters" id="ops-active-filters" hidden></p>
         <div class="ops-results-header" id="ops-results-header">
           <button type="button" class="ops-dupe-review" id="ops-dupe-review" title="Show the auto-detected duplicate events so you can delete them (open one, then Details → Edit → Delete this event)" hidden></button>
-          <span class="ops-count" id="ops-count"></span>
         </div>
         <div class="ops-grid" id="ops-grid"></div>
         <div class="ops-calendar" id="ops-calendar"></div>
@@ -5079,15 +5088,15 @@
       var $ft = document.getElementById('ops-filter-toggle');
       var $badge = document.getElementById('tf-active-count');
       if (!$ft) return;
-      // Every non-status filter (region/months/pipeline/price/… + the checkboxes
-      // and search) now lives behind this one icon — badge the count so an
-      // engaged filter is never invisible.
+      // Every non-status filter (region/months/pipeline/… + the checkboxes and
+      // search) lives behind this one icon — show a dot when any is engaged so
+      // an active filter is never invisible. Search is a visible input, so it
+      // doesn't count toward the "hidden filters active" dot.
       var n = countActiveOpsFilters() + countActiveTopFilters();
+      var $search = document.getElementById('ops-search');
+      if ($search && ($search.value || '').trim()) n--;   // search is visible, not hidden
       $ft.classList.toggle('has-active', n > 0);
-      if ($badge) {
-        if (n > 0) { $badge.textContent = n; $badge.hidden = false; }
-        else { $badge.textContent = ''; $badge.hidden = true; }
-      }
+      if ($badge) $badge.hidden = !(n > 0);
     }
     function wireFilterToggle() {
       var $ft = document.getElementById('ops-filter-toggle');
@@ -5154,7 +5163,7 @@
       if ($myTab) {
         var _teamView = isSupportPerson(getCollabName() || '');
         var _badge = $myTab.querySelector('.vt-count');
-        $myTab.textContent = _teamView ? 'Team Lineup' : 'My Lineup';
+        $myTab.textContent = _teamView ? 'Team lineup' : 'My lineup';
         if (_badge) $myTab.appendChild(_badge);   // re-attach the count badge
       }
       // Sync/export (Calendar sync + Spreadsheet) is Angela-only.
@@ -6557,10 +6566,16 @@
         if (!fresh.length) return;
         var kind = k.charAt(0) === 'm' ? 'manual' : 'catalog'; var key = k.slice(1);
         var rec = kind === 'manual' ? byMid[key] : byNum[key]; if (!rec) return;
-        items.push({ id: 'c:' + k, ts: meta.latest, kind: kind, key: key, chatKey: k,
-          label: fresh.length + ' new comment' + (fresh.length > 1 ? 's' : '') + ' on ' + (rec.name || 'an event') });
+        // A comment that names/@mentions YOU always surfaces — even if the event
+        // isn't otherwise on your radar (this is how a teammate flags you in).
+        var mentioned = !!me && fresh.some(function (x) {
+          try { return new RegExp('(^|[^a-z0-9])@?' + me + '([^a-z0-9]|$)', 'i').test(String(x.body || '')); } catch (e) { return false; }
+        });
+        items.push({ id: 'c:' + k, ts: meta.latest, kind: kind, key: key, chatKey: k, mention: mentioned,
+          label: (mentioned ? 'You were mentioned \u2014 ' : (fresh.length + ' new comment' + (fresh.length > 1 ? 's' : '') + ' on ')) + (rec.name || 'an event') });
       });
-      items = items.filter(function (w) { return _onRadar(w.kind, w.key); });   // radar-only
+      // Radar-only — EXCEPT comments that mention you, which always show.
+      items = items.filter(function (w) { return w.mention || _onRadar(w.kind, w.key); });
       items.sort(function (a, b) { return a.ts < b.ts ? 1 : -1; });
       return items.slice(0, 8);
     }
@@ -11047,7 +11062,7 @@
     var _chatCounts = {};
     var _chatMeta = {};   // per event: {count, latest, msgs:[{author, at}]} — feeds "In the last week"
     function loadChatCounts() {
-      sb.from('event_chat').select('event_num,manual_id,author,created_at').then(function (resp) {
+      sb.from('event_chat').select('event_num,manual_id,author,created_at,body').then(function (resp) {
         if (resp.error || !resp.data) return;   // table not migrated yet -> no counts, no noise
         var counts = {}, meta = {};
         resp.data.forEach(function (r) {
@@ -11057,7 +11072,7 @@
           var m = (meta[k] = meta[k] || { count: 0, latest: '', msgs: [] });
           m.count++;
           if ((r.created_at || '') > m.latest) m.latest = r.created_at || '';
-          m.msgs.push({ author: r.author || '', at: r.created_at || '' });
+          m.msgs.push({ author: r.author || '', at: r.created_at || '', body: r.body || '' });
         });
         _chatCounts = counts; _chatMeta = meta; _paintChatCounts();
         if (currentView === 'myevents') renderMyEvents();   // refresh "new comments" rows
