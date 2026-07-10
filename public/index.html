@@ -5401,7 +5401,15 @@
         if (activeRegions.length && activeRegions.indexOf(card.dataset.region) === -1) on = false;
         if (activeMonths.length && activeMonths.indexOf(card.dataset.month) === -1) on = false;
         if (activeFits.length) {
-          var _fitHit = activeFits.some(function (k) { var pf = AB_PROFILE_BY_KEY[k]; return pf && profileFits(pf, card.dataset.fitText, card.dataset.region); });
+          var _intNames = (card.dataset.interestedNames || '').split('|').filter(Boolean);
+          var _fitHit = activeFits.some(function (k) {
+            var pf = AB_PROFILE_BY_KEY[k]; if (!pf) return false;
+            if (profileFits(pf, card.dataset.fitText, card.dataset.region)) return true;
+            // If that person flagged "I'm interested", the event fits THEM —
+            // keep it in their Fits filter even when the keywords don't match.
+            var kf = abFold(pf.key);
+            return _intNames.some(function (n) { return abFold(n).split(/\s+/)[0] === kf; });
+          });
           if (!_fitHit) on = false;
         }
         if (fSaved && !card.classList.contains('is-saved'))  on = false;
