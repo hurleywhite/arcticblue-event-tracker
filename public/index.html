@@ -2576,7 +2576,7 @@
   var AB_ROSTER = ['Thor', 'Verma', 'Jerome', 'Joe', 'Scott', 'Carlos', 'Jim'];
   // Persona single-source-of-truth (config/personas.json), baked in. Global so
   // both the modal (attendees picker) and the ops views (Day-Of) read it.
-  window.AB_PERSONAS = {"_README": "Single source of truth for ArcticBlue speaker personas. Read by the Day-Of briefing route (api/briefing.py), baked into the tracker UI by src/build.py, and intended for the event-curator prompts too so the three never drift. Keys map 1:1 to the tracker's 'Fits: X' tags and the 'attendees' field. 'mode' forks the whole brief: room = work the floor; stage = earn/own the platform.", "personas": {"joe": {"name": "Joe Lalley", "role": "Co-Founder, ArcticMind", "mode": "stage", "geo": ["US", "Canada", "UK"], "icp_industries": ["cross-industry enterprise", "HR / L&D function"], "buyer_titles": ["CHRO", "Chief People Officer", "Chief Learning Officer", "Chief Talent Officer", "VP/Head of L&D", "Head of People Analytics", "Head of Change"], "themes": ["AI workforce literacy & adoption", "practice-based fluency", "change management for AI", "preventing skill atrophy", "problem-first culture"], "signature_angles": ["10/90 Rule (10% tech, 90% enablement)", "Human in the Helm", "Shadow AI -> Strategic Orchestration", "Problem-First Mindset (Question to Learn)"], "outcome_target": "1 speaking route opened + 2 facilitator/partner leads", "flags": ["runs facilitator/partner network — partner-rich events score higher", "author: check for open CFP / speaker route day-of"]}, "carlos": {"name": "Carlos Chacon Almeida", "role": "Head of Americas Sales", "mode": "room", "geo": ["US", "Canada", "LatAm", "Spain"], "icp_industries": ["Financial Services", "Insurance", "Healthcare", "Fintech", "Enterprise SaaS", "Retail/eCommerce", "Telco", "Media"], "buyer_titles": ["CEO", "CPO", "CMO", "CDO", "CTO/CIO", "COO", "Chief AI Officer", "Chief Innovation Officer", "CRO", "VP/SVP of AI", "Head of Digital Transformation"], "themes": ["enterprise AI rollout", "digital transformation", "LatAm / Spanish-market AI adoption"], "signature_angles": ["ArcticBlue de-risks the AI bet before a 6-7 figure contract", "Spanish-language differentiation in LatAm"], "outcome_target": "3+ qualified enterprise buyer conversations; contacts captured", "flags": ["prioritize Spanish-speaking attendees and rooms"]}, "jerome": {"name": "Jerome Wouters", "role": "Head of Sales EMEA", "mode": "room", "geo": ["UK", "Switzerland", "EMEA"], "icp_industries": ["Insurance", "Financial Services", "Healthcare", "Telco"], "buyer_titles": ["CEO", "CIO/CTO", "Chief AI Officer", "COO", "Head of AI", "Digital Transformation leaders"], "themes": ["enterprise AI rollout done safely", "AI governance & risk", "structured experimentation", "agentic workflows", "measurable ROI"], "signature_angles": ["90% of enterprise AI fails on uncertainty — experiment, don't roadmap", "vendor feasibility testing before the big contract"], "outcome_target": "3+ qualified EMEA regulated-industry conversations; contacts captured", "flags": []}, "thor": {"name": "Thor Ernstsson", "role": "CEO / Co-Founder", "mode": "stage", "geo": ["global-flagship"], "icp_industries": ["cross-industry enterprise", "boards"], "buyer_titles": ["CEO", "board director", "Chief AI Officer", "CDO", "CIO/CTO", "COO", "Chief Innovation/Strategy Officer"], "themes": ["frontier enterprise AI strategy", "rapid experimentation over roadmaps", "the 90% failure thesis"], "signature_angles": ["90%+ of enterprise AI initiatives fail on uncertainty, not tech — go/pivot/kill beats the 12-18 month roadmap"], "outcome_target": "1 keynote/podcast/flagship-stage intro + 2 senior peer connections", "flags": ["author/keynote-tier: check for open speaker route; weight prestige introductions"]}, "verma": {"name": "Anuraag Verma", "role": "Co-Founder / Delivery", "mode": "stage", "geo": ["NA", "APAC", "Europe", "Africa"], "icp_industries": ["Insurance", "Healthcare", "Finance/Banking", "Capital Markets", "Fintech"], "buyer_titles": ["board director", "CEO", "CIO", "CTO", "Chief AI Officer", "CFO", "COO", "Chief Risk Officer", "Chief Data Officer", "Head of Risk"], "themes": ["de-risking AI in regulated industries", "AI governance & compliance", "board-level AI oversight", "culture of experimentation"], "signature_angles": ["regulated industries: the cost of a wrong AI bet is highest — validate before you scale"], "outcome_target": "1 board/C-suite speaking or advisory conversation + 2 regulated-industry leads", "flags": ["board-level keynote-tier"]}}, "arcticblue": {"voice": "Direct, practitioner-to-practitioner. No hype, no filler, no invented numbers.", "proof_points": ["45% faster case resolution", "83% persona accuracy", "450+ executives trained", "90%+ of enterprise AI initiatives fail on uncertainty, not technology"], "never_fabricate": ["attendee names", "metrics", "quotes", "speaker claims", "event details not in the source data or web-confirmed"]}}.personas;
+  window.AB_PERSONAS = {"_README": "Single source of truth for ArcticBlue speaker/targeting personas. Read by the Day-Of briefing route (api/briefing.py) and baked into the tracker UI by src/build.py (drives the persona-scored suggestions in Plan Ahead + My Lineup). 'geo' tokens are matched by geoHit(): broad-region words (US & Canada, Europe, Latin America, Asia-Pacific, Africa, MENA, global-flagship) match an event's canonical region; anything else is treated as a city/country name matched against the event's location text (accent-folded). 'mode' forks scoring + briefs: room = work the floor for buyers (geo + buyers is enough); stage = there to speak (needs a topical theme match). Default targeting rule: stay within the listed geographies unless an event is exceptionally high-quality, in which case it's a flagged exception, not the default.", "personas": {"joe": {"name": "Joe Lalley", "role": "Co-Founder, ArcticMind — Content / Workshops", "mode": "stage", "geo": ["US & Canada"], "icp_industries": ["Human Resources", "Learning & Development", "People Operations", "Talent Management"], "buyer_titles": ["CHRO", "Chief People Officer", "VP of HR", "Chief Learning Officer", "Head of L&D", "Human Development leaders", "Talent Management leaders", "Digital Design leads"], "themes": ["AI enablement for the workforce", "learning transformation", "practice-based fluency", "workforce reskilling", "people analytics", "HR technology adoption", "organizational change management", "future of work"], "signature_angles": ["10/90 Rule (10% tech, 90% enablement)", "Human in the Helm", "Shadow AI -> Strategic Orchestration", "Problem-First Mindset (Question to Learn)"], "outcome_target": "1 speaking route opened + 2 facilitator/partner leads", "flags": ["audience-first: HR / L&D / People leaders, not technical practitioners", "primary ~85% = enterprise HR/L&D/People Ops events; secondary ~15% = enterprise AI / digital-transformation events only when an HR/CLO/CHRO-level audience is confirmed or plausible", "exclude purely technical (engineering/IT-only) events — no people angle, no fit"]}, "carlos": {"name": "Carlos Chacon Almeida", "role": "Sales Lead, Americas", "mode": "room", "geo": ["US & Canada", "Mexico City", "Monterrey", "Santo Domingo", "San Juan", "Sao Paulo", "Bogota", "Buenos Aires", "Lima", "Santiago", "Quito"], "icp_industries": ["Financial Services", "Insurance", "Fintech", "Healthcare", "Enterprise SaaS", "Retail", "eCommerce", "Telco", "Media"], "buyer_titles": ["CPO", "CMO", "CDO", "CTO/CIO", "COO", "Chief Strategy Officer", "Chief Innovation Officer", "CRO", "Chief Customer Officer", "VP of AI/Innovation", "Founder/CEO"], "themes": ["AI-driven product development", "GTM innovation", "speed-to-market", "scaling AI beyond proof-of-concept"], "signature_angles": ["ArcticBlue de-risks the AI bet before a 6-7 figure contract", "Spanish-language differentiation in LatAm"], "outcome_target": "3+ qualified mid-market/enterprise buyer conversations; contacts captured", "flags": ["US & Canada are the densest mid-market buying environments (primary); Mexico City + the Caribbean (Santo Domingo, where Carlos is based; San Juan) are strong secondary", "broader LatAm (Sao Paulo, Bogota, Buenos Aires) = flag separately — longer cycles, stronger banking/telco/government adjacency", "fintech is the top-priority industry", "company size: 100-500 mid-market and larger"]}, "jerome": {"name": "Jerome Wouters", "role": "Head of Sales, EMEA", "mode": "room", "geo": ["Europe", "Zurich", "London", "Dublin", "Berlin", "Brussels", "Amsterdam", "Geneva", "Luxembourg", "Munich", "Frankfurt", "Vienna", "Stockholm", "Copenhagen", "Oslo", "Helsinki", "Madrid", "Barcelona", "Milan", "Lisbon"], "icp_industries": ["Financial Services", "Insurance", "Healthcare", "Fintech", "Enterprise SaaS", "Retail", "eCommerce", "Telco", "Media"], "buyer_titles": ["CPO", "CMO", "CDO", "CTO/CIO", "COO", "CSO", "Chief Strategy Officer", "Chief Innovation Officer", "CRO", "Chief Customer Officer", "VP of AI/Innovation"], "themes": ["AI experimentation", "GTM transformation", "GDPR-safe AI tooling", "strategy", "innovation", "transformation", "product", "marketing", "AI governance in the European regulatory context"], "signature_angles": ["90% of enterprise AI fails on uncertainty — experiment, don't roadmap", "vendor feasibility testing before the big contract"], "outcome_target": "3+ qualified EMEA enterprise conversations; contacts captured", "flags": ["UK, Zurich, and DACH are the densest enterprise AI buying markets — prioritize there first", "target 500+ employee enterprises", "Northern Africa leads should be flagged separately from core European deals"]}, "thor": {"name": "Thor Ernstsson", "role": "CEO / Co-Founder", "mode": "stage", "geo": ["New York", "San Francisco", "Washington", "Las Vegas", "Miami", "London", "Zurich", "Riyadh", "Dubai", "Abu Dhabi", "Mexico City", "Sao Paulo"], "icp_industries": ["Healthcare", "Healthtech", "Technology"], "buyer_titles": ["CEO", "CIO/CTO", "CSO", "Chief AI Officer", "COO", "Digital Transformation leaders"], "themes": ["enterprise AI rollout", "agentic workflows", "AI governance", "measurable AI ROI", "operating model change", "technology transformation"], "signature_angles": ["90%+ of enterprise AI initiatives fail on uncertainty, not tech — go/pivot/kill beats the 12-18 month roadmap"], "outcome_target": "1 keynote/podcast/flagship-stage intro + 2 senior peer connections", "flags": ["executive/strategic level — enterprise AI adoption at scale, governance frameworks, proving ROI, not deep technical implementation", "NYC/SF/DC/Las Vegas/Miami primary US; London/Zurich + Gulf (Riyadh/Dubai/Abu Dhabi) international; Mexico City + Sao Paulo secondary LatAm", "author/keynote-tier: check for open speaker route; weight prestige introductions"]}, "verma": {"name": "Anuraag Verma", "role": "Operations / Delivery", "mode": "stage", "geo": ["New York", "San Francisco", "Washington", "Las Vegas", "Miami", "London", "Zurich", "Riyadh", "Dubai", "Abu Dhabi"], "icp_industries": ["Insurance", "Finance", "Fintech", "Banking", "Capital Markets", "Healthcare"], "buyer_titles": ["board director", "CEO", "CIO", "CTO", "Chief AI Officer", "CFO", "COO", "CSO", "Chief Data Officer", "Head of Digital Transformation"], "themes": ["de-risking AI in regulated industries", "scaling cultures of experimentation", "AI governance & compliance", "evidence-based decision-making", "regulated-industry innovation", "board-level AI oversight", "large-scale enterprise AI transformation"], "signature_angles": ["regulated industries: the cost of a wrong AI bet is highest — validate before you scale"], "outcome_target": "1 board/C-suite speaking or advisory conversation + 2 regulated-industry leads", "flags": ["board-level / C-suite audiences in regulated sectors (insurance, finance/banking, capital markets, fintech, healthcare)", "governance & transformation as a headline theme is the strongest fit signal", "same major-city list as Thor but no LatAm"]}}, "arcticblue": {"voice": "Direct, practitioner-to-practitioner. No hype, no filler, no invented numbers.", "proof_points": ["45% faster case resolution", "83% persona accuracy", "450+ executives trained", "90%+ of enterprise AI initiatives fail on uncertainty, not technology"], "never_fabricate": ["attendee names", "metrics", "quotes", "speaker claims", "event details not in the source data or web-confirmed"]}}.personas;
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -6295,30 +6295,35 @@
             if (w.length >= 5 && !/complian|governan|regulat|oversight|enterprise|industr|cross|function|market/.test(w) && kws.indexOf(w) === -1) kws.push(w);
           });
       }
-      var geo = ((P && P.geo) || []).map(function (g) { return String(g).toLowerCase(); });
+      // Accent-fold geo tokens so "Sao Paulo"/"Bogota" match the folded
+      // location blob, and city names compare cleanly.
+      var geo = ((P && P.geo) || []).map(function (g) { return abFold(g); });
       // 'stage' = there to speak (needs a topical reason); 'room' = there to
       // work the floor for buyers (geo + buyers is enough on its own).
       var mode = (P && P.mode) || 'room';
-      // Region match. Broad-region tags (us/canada, europe/emea, latam, apac,
-      // africa) match the event's canonical region. But COUNTRY/CITY tags —
-      // uk, spain, switzerland — match the event's LOCATION text instead, not
-      // the whole continent: otherwise "Spain" or "UK" pulls in ALL of Europe,
-      // which is why Carlos (Americas sales) was getting more Europe picks than
-      // Latin America, and Joe (US/Canada/UK) was getting Frankfurt/Zurich.
+      // Region match. Broad-region tokens (us & canada, europe/emea, latin
+      // america, asia-pacific, africa, mena) match the event's canonical
+      // region. Anything else is a CITY or COUNTRY name, matched against the
+      // event's location text — so a persona targeting specific cities
+      // (NYC / Zurich / Sao Paulo …) only hits events actually there, not the
+      // whole continent.
       function geoHit(it) {
         var r = String(it.region || '').toLowerCase();
-        var loc = it.text || '';   // abFold'd blob — includes city / country / location
+        // Match city/country tokens against the LOCATION fields only, not the
+        // full text blob — otherwise a US event whose blurb mentions "London"
+        // would false-match a Europe-targeting persona.
+        var loc = abFold([it.location, it.city, it.region].filter(Boolean).join(' '));
         return geo.some(function (g) {
-          if (g === 'us' || g === 'canada' || g === 'na') return r.indexOf('us') !== -1 || r.indexOf('canada') !== -1 || r.indexOf('americas') !== -1;
-          if (g === 'emea' || g === 'europe') return r.indexOf('europe') !== -1;
-          if (g === 'latam') return r.indexOf('latin') !== -1;
-          if (g === 'apac') return r.indexOf('asia') !== -1;
+          if (g === 'us & canada' || g === 'us' || g === 'usa' || g === 'canada' || g === 'north america' || g === 'na')
+            return r.indexOf('us') !== -1 || r.indexOf('canada') !== -1 || r.indexOf('americas') !== -1;
+          if (g === 'europe' || g === 'emea') return r.indexOf('europe') !== -1;
+          if (g === 'latin america' || g === 'latam') return r.indexOf('latin') !== -1;
+          if (g === 'asia-pacific' || g === 'apac' || g === 'asia') return r.indexOf('asia') !== -1;
           if (g === 'africa') return r.indexOf('africa') !== -1;
+          if (g === 'mena' || g === 'middle east') return r.indexOf('mena') !== -1 || r.indexOf('middle east') !== -1;
           if (g === 'global-flagship') return true;
-          if (g === 'uk') return /\b(uk|united kingdom|england|scotland|wales|london|manchester|edinburgh|glasgow|birmingham|leeds|bristol|cardiff)\b/.test(loc);
-          if (g === 'switzerland') return /\b(switzerland|swiss|zurich|geneva|basel|lausanne|bern|davos)\b/.test(loc);
-          if (g === 'spain') return /\b(spain|espana|madrid|barcelona|valencia|seville|sevilla|bilbao|malaga)\b/.test(loc);
-          return r.indexOf(g) !== -1 || loc.indexOf(g) !== -1;
+          // City / country name — match the event's location text.
+          return g.length >= 4 && loc.indexOf(g) !== -1;
         });
       }
       var scored = [];
@@ -6329,20 +6334,26 @@
         if (!_inPlanWindow(it.sort)) return;                 // outside the 2–4 month planning window
         if ((it.interested || []).some(function (n) { return String(n).toLowerCase().split(/\s+/)[0] === meFirst; })) return;
         var o = it.startObj || {};
-        var s = 0, why = [], hi = /high/i.test(o.priority_override || o.priority || '');
-        if (P && geo.length && geoHit(it)) { s += 3; why.push(it.region); }
+        var inGeo = (P && geo.length) ? geoHit(it) : false;
+        // Default targeting rule: stay within the listed geographies. A hard
+        // gate — the spec's "exceptional" out-of-geo events are rare AND meant
+        // to be flagged, and the data has no reliable flagship marker (priority
+        // is "high" on ~46% of events, too noisy to mean exceptional), so those
+        // are left to Catalog search rather than padded into the suggestions.
+        if (P && geo.length && !inGeo) return;
+        var s = 0, why = [];
+        if (inGeo) { s += 3; why.push(it.region); }
         var hits = 0;
         for (var i = 0; i < kws.length && hits < 4; i++) {
           if (it.text.indexOf(kws[i]) !== -1) { hits++; if (why.length < 4) why.push(kws[i]); }
         }
         s += hits;
         if (/buyer/i.test(o.audience_type || '')) { s += 2; why.push('buyer-rich'); }
-        if (hi) s += 1;
-        // A 'stage' persona is there to SPEAK, so a topic-less pick — in-region
-        // and buyer-rich but matching none of their themes — isn't a fit (this
-        // was Joe, an HR speaker, getting London financial-services events).
-        // High-priority flagships are the exception: worth the trip regardless.
-        if (P && mode === 'stage' && hits === 0 && !hi) return;
+        if (/high/i.test(o.priority_override || o.priority || '')) s += 1;
+        // A 'stage' persona is there to SPEAK, so a topic-less pick — in-geo and
+        // buyer-rich but matching none of their themes — isn't a fit (this was
+        // Joe, an HR speaker, getting London financial-services events).
+        if (P && mode === 'stage' && hits === 0) return;
         if (s >= (P ? 5 : 4)) scored.push({ it: it, s: s, why: why });
       });
       scored.sort(function (a, b) { return b.s - a.s || a.it.sort - b.it.sort; });
@@ -6409,7 +6420,6 @@
             return '<div class="queue-row sug-row"><div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \u00b7 ' + loc : '') + '</p>' +
-              (x.why.length ? '<p class="sug-why">Fits: ' + escapeHtml(x.why.join(' \u00b7 ')) + '</p>' : '') +
             '</div></div>';
           }).join('') + '</div>'
         : '';
@@ -6683,16 +6693,16 @@
     // region is in `regions`, OR any keyword hits the event's folded text blob
     // (matched as whole words). Keep keywords lowercase + punctuation-free.
     var AB_PROFILES = [
-      { key: 'Jerome', label: 'Europe', regions: ['Europe'], locked: true,
-         kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','uk','united kingdom','gdpr','web summit','vivatech','viva technology','dld','tnw','ai summit london'] },
-      { key: 'Joe', label: 'HR & human enablement', regions: [],
-         kw: ['hr','human resources','chro','clo','chief people','people officer','talent','workforce','future of work','upskilling','reskilling','design thinking','curiosity','critical thinking','change management','shadow ai','question to learn','employee experience','human enablement','human capital','people analytics','organizational development','uxpa'] },
-      { key: 'Thor', label: 'Flagship / C-suite', regions: [],
-         kw: ['ceo','chief executive','cio','cto','chief information','chief technology','chief ai officer','caio','cdo','chief data','coo','chief operating','cpo','chief product','chief digital','board','government compliance','davos','world economic forum','ai strategy','ai literacy'] },
-      { key: 'Verma', label: 'Regulated industries', regions: ['Asia-Pacific','Europe'],
-         kw: ['insurance','insurtech','healthcare','health tech','pharma','life sciences','medical','finance','financial services','bank','banking','capital markets','payments','wealth','fintech','regulated','compliance'] },
-      { key: 'Carlos', label: 'Latin America', regions: ['Latin America'], locked: true,
-         kw: ['latin america','latam','south america','brazil','brasil','sao paulo','mexico','cdmx','argentina','buenos aires','chile','santiago','colombia','bogota','peru','lima','medellin','monterrey'] }
+      { key: 'Jerome', label: 'Europe (enterprise)', regions: ['Europe'], locked: true,
+         kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','financial services','insurance','fintech','healthcare','telco','retail','ecommerce','media','gdpr'] },
+      { key: 'Joe', label: 'HR & people (US)', regions: [],
+         kw: ['hr','human resources','chro','clo','chief people','people officer','vp of hr','talent','workforce','future of work','upskilling','reskilling','learning','l&d','people analytics','change management','human enablement','human capital','organizational development','employee experience'] },
+      { key: 'Thor', label: 'Healthcare & tech (exec)', regions: [],
+         kw: ['healthcare','healthtech','health tech','digital health','medtech','life sciences','pharma','ceo','chief ai officer','cio','cto','cso','coo','digital transformation','agentic','ai governance','new york','san francisco','washington','las vegas','miami','london','zurich','riyadh','dubai','abu dhabi'] },
+      { key: 'Verma', label: 'Regulated (board-level)', regions: [],
+         kw: ['insurance','insurtech','finance','financial services','bank','banking','capital markets','payments','wealth','fintech','healthcare','board','chief risk','chief data','governance','regulated'] },
+      { key: 'Carlos', label: 'Americas (mid-market)', regions: ['US & Canada','Latin America'], locked: true,
+         kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] }
     ];
     var AB_PROFILE_BY_KEY = {};
     AB_PROFILES.forEach(function (p) { AB_PROFILE_BY_KEY[p.key] = p; });

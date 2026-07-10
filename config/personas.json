@@ -1,65 +1,65 @@
 {
-  "_README": "Single source of truth for ArcticBlue speaker personas. Read by the Day-Of briefing route (api/briefing.py), baked into the tracker UI by src/build.py, and intended for the event-curator prompts too so the three never drift. Keys map 1:1 to the tracker's 'Fits: X' tags and the 'attendees' field. 'mode' forks the whole brief: room = work the floor; stage = earn/own the platform.",
+  "_README": "Single source of truth for ArcticBlue speaker/targeting personas. Read by the Day-Of briefing route (api/briefing.py) and baked into the tracker UI by src/build.py (drives the persona-scored suggestions in Plan Ahead + My Lineup). 'geo' tokens are matched by geoHit(): broad-region words (US & Canada, Europe, Latin America, Asia-Pacific, Africa, MENA, global-flagship) match an event's canonical region; anything else is treated as a city/country name matched against the event's location text (accent-folded). 'mode' forks scoring + briefs: room = work the floor for buyers (geo + buyers is enough); stage = there to speak (needs a topical theme match). Default targeting rule: stay within the listed geographies unless an event is exceptionally high-quality, in which case it's a flagged exception, not the default.",
   "personas": {
     "joe": {
       "name": "Joe Lalley",
-      "role": "Co-Founder, ArcticMind",
+      "role": "Co-Founder, ArcticMind — Content / Workshops",
       "mode": "stage",
-      "geo": ["US", "Canada", "UK"],
-      "icp_industries": ["cross-industry enterprise", "HR / L&D function"],
-      "buyer_titles": ["CHRO", "Chief People Officer", "Chief Learning Officer", "Chief Talent Officer", "VP/Head of L&D", "Head of People Analytics", "Head of Change"],
-      "themes": ["AI workforce literacy & adoption", "practice-based fluency", "change management for AI", "preventing skill atrophy", "problem-first culture"],
+      "geo": ["US & Canada"],
+      "icp_industries": ["Human Resources", "Learning & Development", "People Operations", "Talent Management"],
+      "buyer_titles": ["CHRO", "Chief People Officer", "VP of HR", "Chief Learning Officer", "Head of L&D", "Human Development leaders", "Talent Management leaders", "Digital Design leads"],
+      "themes": ["AI enablement for the workforce", "learning transformation", "practice-based fluency", "workforce reskilling", "people analytics", "HR technology adoption", "organizational change management", "future of work"],
       "signature_angles": ["10/90 Rule (10% tech, 90% enablement)", "Human in the Helm", "Shadow AI -> Strategic Orchestration", "Problem-First Mindset (Question to Learn)"],
       "outcome_target": "1 speaking route opened + 2 facilitator/partner leads",
-      "flags": ["runs facilitator/partner network — partner-rich events score higher", "author: check for open CFP / speaker route day-of"]
+      "flags": ["audience-first: HR / L&D / People leaders, not technical practitioners", "primary ~85% = enterprise HR/L&D/People Ops events; secondary ~15% = enterprise AI / digital-transformation events only when an HR/CLO/CHRO-level audience is confirmed or plausible", "exclude purely technical (engineering/IT-only) events — no people angle, no fit"]
     },
     "carlos": {
       "name": "Carlos Chacon Almeida",
-      "role": "Head of Americas Sales",
+      "role": "Sales Lead, Americas",
       "mode": "room",
-      "geo": ["US", "Canada", "LatAm", "Spain"],
-      "icp_industries": ["Financial Services", "Insurance", "Healthcare", "Fintech", "Enterprise SaaS", "Retail/eCommerce", "Telco", "Media"],
-      "buyer_titles": ["CEO", "CPO", "CMO", "CDO", "CTO/CIO", "COO", "Chief AI Officer", "Chief Innovation Officer", "CRO", "VP/SVP of AI", "Head of Digital Transformation"],
-      "themes": ["enterprise AI rollout", "digital transformation", "LatAm / Spanish-market AI adoption"],
+      "geo": ["US & Canada", "Mexico City", "Monterrey", "Santo Domingo", "San Juan", "Sao Paulo", "Bogota", "Buenos Aires", "Lima", "Santiago", "Quito"],
+      "icp_industries": ["Financial Services", "Insurance", "Fintech", "Healthcare", "Enterprise SaaS", "Retail", "eCommerce", "Telco", "Media"],
+      "buyer_titles": ["CPO", "CMO", "CDO", "CTO/CIO", "COO", "Chief Strategy Officer", "Chief Innovation Officer", "CRO", "Chief Customer Officer", "VP of AI/Innovation", "Founder/CEO"],
+      "themes": ["AI-driven product development", "GTM innovation", "speed-to-market", "scaling AI beyond proof-of-concept"],
       "signature_angles": ["ArcticBlue de-risks the AI bet before a 6-7 figure contract", "Spanish-language differentiation in LatAm"],
-      "outcome_target": "3+ qualified enterprise buyer conversations; contacts captured",
-      "flags": ["prioritize Spanish-speaking attendees and rooms"]
+      "outcome_target": "3+ qualified mid-market/enterprise buyer conversations; contacts captured",
+      "flags": ["US & Canada are the densest mid-market buying environments (primary); Mexico City + the Caribbean (Santo Domingo, where Carlos is based; San Juan) are strong secondary", "broader LatAm (Sao Paulo, Bogota, Buenos Aires) = flag separately — longer cycles, stronger banking/telco/government adjacency", "fintech is the top-priority industry", "company size: 100-500 mid-market and larger"]
     },
     "jerome": {
       "name": "Jerome Wouters",
-      "role": "Head of Sales EMEA",
+      "role": "Head of Sales, EMEA",
       "mode": "room",
-      "geo": ["UK", "Switzerland", "EMEA"],
-      "icp_industries": ["Insurance", "Financial Services", "Healthcare", "Telco"],
-      "buyer_titles": ["CEO", "CIO/CTO", "Chief AI Officer", "COO", "Head of AI", "Digital Transformation leaders"],
-      "themes": ["enterprise AI rollout done safely", "AI governance & risk", "structured experimentation", "agentic workflows", "measurable ROI"],
+      "geo": ["Europe", "Zurich", "London", "Dublin", "Berlin", "Brussels", "Amsterdam", "Geneva", "Luxembourg", "Munich", "Frankfurt", "Vienna", "Stockholm", "Copenhagen", "Oslo", "Helsinki", "Madrid", "Barcelona", "Milan", "Lisbon"],
+      "icp_industries": ["Financial Services", "Insurance", "Healthcare", "Fintech", "Enterprise SaaS", "Retail", "eCommerce", "Telco", "Media"],
+      "buyer_titles": ["CPO", "CMO", "CDO", "CTO/CIO", "COO", "CSO", "Chief Strategy Officer", "Chief Innovation Officer", "CRO", "Chief Customer Officer", "VP of AI/Innovation"],
+      "themes": ["AI experimentation", "GTM transformation", "GDPR-safe AI tooling", "strategy", "innovation", "transformation", "product", "marketing", "AI governance in the European regulatory context"],
       "signature_angles": ["90% of enterprise AI fails on uncertainty — experiment, don't roadmap", "vendor feasibility testing before the big contract"],
-      "outcome_target": "3+ qualified EMEA regulated-industry conversations; contacts captured",
-      "flags": []
+      "outcome_target": "3+ qualified EMEA enterprise conversations; contacts captured",
+      "flags": ["UK, Zurich, and DACH are the densest enterprise AI buying markets — prioritize there first", "target 500+ employee enterprises", "Northern Africa leads should be flagged separately from core European deals"]
     },
     "thor": {
       "name": "Thor Ernstsson",
       "role": "CEO / Co-Founder",
       "mode": "stage",
-      "geo": ["global-flagship"],
-      "icp_industries": ["cross-industry enterprise", "boards"],
-      "buyer_titles": ["CEO", "board director", "Chief AI Officer", "CDO", "CIO/CTO", "COO", "Chief Innovation/Strategy Officer"],
-      "themes": ["frontier enterprise AI strategy", "rapid experimentation over roadmaps", "the 90% failure thesis"],
+      "geo": ["New York", "San Francisco", "Washington", "Las Vegas", "Miami", "London", "Zurich", "Riyadh", "Dubai", "Abu Dhabi", "Mexico City", "Sao Paulo"],
+      "icp_industries": ["Healthcare", "Healthtech", "Technology"],
+      "buyer_titles": ["CEO", "CIO/CTO", "CSO", "Chief AI Officer", "COO", "Digital Transformation leaders"],
+      "themes": ["enterprise AI rollout", "agentic workflows", "AI governance", "measurable AI ROI", "operating model change", "technology transformation"],
       "signature_angles": ["90%+ of enterprise AI initiatives fail on uncertainty, not tech — go/pivot/kill beats the 12-18 month roadmap"],
       "outcome_target": "1 keynote/podcast/flagship-stage intro + 2 senior peer connections",
-      "flags": ["author/keynote-tier: check for open speaker route; weight prestige introductions"]
+      "flags": ["executive/strategic level — enterprise AI adoption at scale, governance frameworks, proving ROI, not deep technical implementation", "NYC/SF/DC/Las Vegas/Miami primary US; London/Zurich + Gulf (Riyadh/Dubai/Abu Dhabi) international; Mexico City + Sao Paulo secondary LatAm", "author/keynote-tier: check for open speaker route; weight prestige introductions"]
     },
     "verma": {
       "name": "Anuraag Verma",
-      "role": "Co-Founder / Delivery",
+      "role": "Operations / Delivery",
       "mode": "stage",
-      "geo": ["NA", "APAC", "Europe", "Africa"],
-      "icp_industries": ["Insurance", "Healthcare", "Finance/Banking", "Capital Markets", "Fintech"],
-      "buyer_titles": ["board director", "CEO", "CIO", "CTO", "Chief AI Officer", "CFO", "COO", "Chief Risk Officer", "Chief Data Officer", "Head of Risk"],
-      "themes": ["de-risking AI in regulated industries", "AI governance & compliance", "board-level AI oversight", "culture of experimentation"],
+      "geo": ["New York", "San Francisco", "Washington", "Las Vegas", "Miami", "London", "Zurich", "Riyadh", "Dubai", "Abu Dhabi"],
+      "icp_industries": ["Insurance", "Finance", "Fintech", "Banking", "Capital Markets", "Healthcare"],
+      "buyer_titles": ["board director", "CEO", "CIO", "CTO", "Chief AI Officer", "CFO", "COO", "CSO", "Chief Data Officer", "Head of Digital Transformation"],
+      "themes": ["de-risking AI in regulated industries", "scaling cultures of experimentation", "AI governance & compliance", "evidence-based decision-making", "regulated-industry innovation", "board-level AI oversight", "large-scale enterprise AI transformation"],
       "signature_angles": ["regulated industries: the cost of a wrong AI bet is highest — validate before you scale"],
       "outcome_target": "1 board/C-suite speaking or advisory conversation + 2 regulated-industry leads",
-      "flags": ["board-level keynote-tier"]
+      "flags": ["board-level / C-suite audiences in regulated sectors (insurance, finance/banking, capital markets, fintech, healthcare)", "governance & transformation as a headline theme is the strongest fit signal", "same major-city list as Thor but no LatAm"]
     }
   },
   "arcticblue": {

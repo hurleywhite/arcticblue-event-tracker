@@ -6821,30 +6821,35 @@ def build():
             if (w.length >= 5 && !/complian|governan|regulat|oversight|enterprise|industr|cross|function|market/.test(w) && kws.indexOf(w) === -1) kws.push(w);
           }});
       }}
-      var geo = ((P && P.geo) || []).map(function (g) {{ return String(g).toLowerCase(); }});
+      // Accent-fold geo tokens so "Sao Paulo"/"Bogota" match the folded
+      // location blob, and city names compare cleanly.
+      var geo = ((P && P.geo) || []).map(function (g) {{ return abFold(g); }});
       // 'stage' = there to speak (needs a topical reason); 'room' = there to
       // work the floor for buyers (geo + buyers is enough on its own).
       var mode = (P && P.mode) || 'room';
-      // Region match. Broad-region tags (us/canada, europe/emea, latam, apac,
-      // africa) match the event's canonical region. But COUNTRY/CITY tags —
-      // uk, spain, switzerland — match the event's LOCATION text instead, not
-      // the whole continent: otherwise "Spain" or "UK" pulls in ALL of Europe,
-      // which is why Carlos (Americas sales) was getting more Europe picks than
-      // Latin America, and Joe (US/Canada/UK) was getting Frankfurt/Zurich.
+      // Region match. Broad-region tokens (us & canada, europe/emea, latin
+      // america, asia-pacific, africa, mena) match the event's canonical
+      // region. Anything else is a CITY or COUNTRY name, matched against the
+      // event's location text — so a persona targeting specific cities
+      // (NYC / Zurich / Sao Paulo …) only hits events actually there, not the
+      // whole continent.
       function geoHit(it) {{
         var r = String(it.region || '').toLowerCase();
-        var loc = it.text || '';   // abFold'd blob — includes city / country / location
+        // Match city/country tokens against the LOCATION fields only, not the
+        // full text blob — otherwise a US event whose blurb mentions "London"
+        // would false-match a Europe-targeting persona.
+        var loc = abFold([it.location, it.city, it.region].filter(Boolean).join(' '));
         return geo.some(function (g) {{
-          if (g === 'us' || g === 'canada' || g === 'na') return r.indexOf('us') !== -1 || r.indexOf('canada') !== -1 || r.indexOf('americas') !== -1;
-          if (g === 'emea' || g === 'europe') return r.indexOf('europe') !== -1;
-          if (g === 'latam') return r.indexOf('latin') !== -1;
-          if (g === 'apac') return r.indexOf('asia') !== -1;
+          if (g === 'us & canada' || g === 'us' || g === 'usa' || g === 'canada' || g === 'north america' || g === 'na')
+            return r.indexOf('us') !== -1 || r.indexOf('canada') !== -1 || r.indexOf('americas') !== -1;
+          if (g === 'europe' || g === 'emea') return r.indexOf('europe') !== -1;
+          if (g === 'latin america' || g === 'latam') return r.indexOf('latin') !== -1;
+          if (g === 'asia-pacific' || g === 'apac' || g === 'asia') return r.indexOf('asia') !== -1;
           if (g === 'africa') return r.indexOf('africa') !== -1;
+          if (g === 'mena' || g === 'middle east') return r.indexOf('mena') !== -1 || r.indexOf('middle east') !== -1;
           if (g === 'global-flagship') return true;
-          if (g === 'uk') return /\\b(uk|united kingdom|england|scotland|wales|london|manchester|edinburgh|glasgow|birmingham|leeds|bristol|cardiff)\\b/.test(loc);
-          if (g === 'switzerland') return /\\b(switzerland|swiss|zurich|geneva|basel|lausanne|bern|davos)\\b/.test(loc);
-          if (g === 'spain') return /\\b(spain|espana|madrid|barcelona|valencia|seville|sevilla|bilbao|malaga)\\b/.test(loc);
-          return r.indexOf(g) !== -1 || loc.indexOf(g) !== -1;
+          // City / country name — match the event's location text.
+          return g.length >= 4 && loc.indexOf(g) !== -1;
         }});
       }}
       var scored = [];
@@ -6855,20 +6860,26 @@ def build():
         if (!_inPlanWindow(it.sort)) return;                 // outside the 2–4 month planning window
         if ((it.interested || []).some(function (n) {{ return String(n).toLowerCase().split(/\\s+/)[0] === meFirst; }})) return;
         var o = it.startObj || {{}};
-        var s = 0, why = [], hi = /high/i.test(o.priority_override || o.priority || '');
-        if (P && geo.length && geoHit(it)) {{ s += 3; why.push(it.region); }}
+        var inGeo = (P && geo.length) ? geoHit(it) : false;
+        // Default targeting rule: stay within the listed geographies. A hard
+        // gate — the spec's "exceptional" out-of-geo events are rare AND meant
+        // to be flagged, and the data has no reliable flagship marker (priority
+        // is "high" on ~46% of events, too noisy to mean exceptional), so those
+        // are left to Catalog search rather than padded into the suggestions.
+        if (P && geo.length && !inGeo) return;
+        var s = 0, why = [];
+        if (inGeo) {{ s += 3; why.push(it.region); }}
         var hits = 0;
         for (var i = 0; i < kws.length && hits < 4; i++) {{
           if (it.text.indexOf(kws[i]) !== -1) {{ hits++; if (why.length < 4) why.push(kws[i]); }}
         }}
         s += hits;
         if (/buyer/i.test(o.audience_type || '')) {{ s += 2; why.push('buyer-rich'); }}
-        if (hi) s += 1;
-        // A 'stage' persona is there to SPEAK, so a topic-less pick — in-region
-        // and buyer-rich but matching none of their themes — isn't a fit (this
-        // was Joe, an HR speaker, getting London financial-services events).
-        // High-priority flagships are the exception: worth the trip regardless.
-        if (P && mode === 'stage' && hits === 0 && !hi) return;
+        if (/high/i.test(o.priority_override || o.priority || '')) s += 1;
+        // A 'stage' persona is there to SPEAK, so a topic-less pick — in-geo and
+        // buyer-rich but matching none of their themes — isn't a fit (this was
+        // Joe, an HR speaker, getting London financial-services events).
+        if (P && mode === 'stage' && hits === 0) return;
         if (s >= (P ? 5 : 4)) scored.push({{ it: it, s: s, why: why }});
       }});
       scored.sort(function (a, b) {{ return b.s - a.s || a.it.sort - b.it.sort; }});
@@ -6935,7 +6946,6 @@ def build():
             return '<div class="queue-row sug-row"><div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
-              (x.why.length ? '<p class="sug-why">Fits: ' + escapeHtml(x.why.join(' \\u00b7 ')) + '</p>' : '') +
             '</div></div>';
           }}).join('') + '</div>'
         : '';
@@ -7209,16 +7219,16 @@ def build():
     // region is in `regions`, OR any keyword hits the event's folded text blob
     // (matched as whole words). Keep keywords lowercase + punctuation-free.
     var AB_PROFILES = [
-      {{ key: 'Jerome', label: 'Europe', regions: ['Europe'], locked: true,
-         kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','uk','united kingdom','gdpr','web summit','vivatech','viva technology','dld','tnw','ai summit london'] }},
-      {{ key: 'Joe', label: 'HR & human enablement', regions: [],
-         kw: ['hr','human resources','chro','clo','chief people','people officer','talent','workforce','future of work','upskilling','reskilling','design thinking','curiosity','critical thinking','change management','shadow ai','question to learn','employee experience','human enablement','human capital','people analytics','organizational development','uxpa'] }},
-      {{ key: 'Thor', label: 'Flagship / C-suite', regions: [],
-         kw: ['ceo','chief executive','cio','cto','chief information','chief technology','chief ai officer','caio','cdo','chief data','coo','chief operating','cpo','chief product','chief digital','board','government compliance','davos','world economic forum','ai strategy','ai literacy'] }},
-      {{ key: 'Verma', label: 'Regulated industries', regions: ['Asia-Pacific','Europe'],
-         kw: ['insurance','insurtech','healthcare','health tech','pharma','life sciences','medical','finance','financial services','bank','banking','capital markets','payments','wealth','fintech','regulated','compliance'] }},
-      {{ key: 'Carlos', label: 'Latin America', regions: ['Latin America'], locked: true,
-         kw: ['latin america','latam','south america','brazil','brasil','sao paulo','mexico','cdmx','argentina','buenos aires','chile','santiago','colombia','bogota','peru','lima','medellin','monterrey'] }}
+      {{ key: 'Jerome', label: 'Europe (enterprise)', regions: ['Europe'], locked: true,
+         kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','financial services','insurance','fintech','healthcare','telco','retail','ecommerce','media','gdpr'] }},
+      {{ key: 'Joe', label: 'HR & people (US)', regions: [],
+         kw: ['hr','human resources','chro','clo','chief people','people officer','vp of hr','talent','workforce','future of work','upskilling','reskilling','learning','l&d','people analytics','change management','human enablement','human capital','organizational development','employee experience'] }},
+      {{ key: 'Thor', label: 'Healthcare & tech (exec)', regions: [],
+         kw: ['healthcare','healthtech','health tech','digital health','medtech','life sciences','pharma','ceo','chief ai officer','cio','cto','cso','coo','digital transformation','agentic','ai governance','new york','san francisco','washington','las vegas','miami','london','zurich','riyadh','dubai','abu dhabi'] }},
+      {{ key: 'Verma', label: 'Regulated (board-level)', regions: [],
+         kw: ['insurance','insurtech','finance','financial services','bank','banking','capital markets','payments','wealth','fintech','healthcare','board','chief risk','chief data','governance','regulated'] }},
+      {{ key: 'Carlos', label: 'Americas (mid-market)', regions: ['US & Canada','Latin America'], locked: true,
+         kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] }}
     ];
     var AB_PROFILE_BY_KEY = {{}};
     AB_PROFILES.forEach(function (p) {{ AB_PROFILE_BY_KEY[p.key] = p; }});
