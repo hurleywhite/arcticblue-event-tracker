@@ -583,8 +583,11 @@ def build():
     }}
     /* App title — centered in the nav bar, same line as the logo + last-updated. */
     .app-title {{
-      font-family: "Nunito Sans", var(--ab-sans);
-      font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em;
+      /* Matches the ArcticBlue logo — basic Helvetica-Bold (Thor's note). Uses
+         the system Helvetica on Mac/most platforms, Arial as the close fallback.
+         Not the rounded Nunito, which read as too casual. */
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-weight: 700; font-size: 1.5rem; letter-spacing: -0.01em;
       line-height: 1.1; color: #1fa0dc; margin: 0; white-space: nowrap;
       text-align: center;
     }}
@@ -2962,7 +2965,7 @@ def build():
       <a class="brand" href="https://arcticblue.ai/" aria-label="ArcticBlue home">
         <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
       </a>
-      <h1 class="app-title">ArcticBlue's Event Tracker</h1>
+      <h1 class="app-title">ArcticBlue Event Tracker</h1>
       <div class="nav-meta">{last_updated.upper()} <span class="who">· <span class="who-switcher" id="who-switcher"></span></span></div>
     </div>
   </nav>
