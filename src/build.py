@@ -2166,6 +2166,10 @@ def build():
     /* "Mark applied" + the × dismiss sit side by side, not stacked. */
     .q-btn-row {{ display: flex; gap: 6px; align-items: stretch; }}
     .q-btn-row .q-btn.primary {{ flex: 1; }}
+    /* Plan Ahead decision buttons: "I'm interested" + "Not for me" side by side. */
+    .queue-actions.sug-actions {{ flex-direction: row; flex-wrap: wrap; gap: 6px; align-items: center; }}
+    .q-btn.sug-skip {{ color: var(--ab-fg-3); }}
+    .q-btn.sug-skip:hover {{ border-color: #d64545; color: #d64545; }}
     /* ── My Profile view (bio, topics, past talks, files, notes) ───── */
     .profile-wrap {{ max-width: 760px; }}
     .profile-card {{
@@ -6794,6 +6798,17 @@ def build():
       items.sort(function (a, b) {{ return a.ts < b.ts ? 1 : -1; }});
       return items.slice(0, 8);
     }}
+    // Per-person "not for me" list — deciding NO on a suggestion takes it off
+    // your list for good, so Plan Ahead is a decision you can clear to zero
+    // (the yes side is "I'm interested"). Personal + local, like the "In the
+    // last week" read-state — never written to the DB, never seen by others.
+    function _sugSkipKey() {{ return 'ab.sugskip.' + (getCollabName() || '').toLowerCase(); }}
+    function _sugSkips() {{ try {{ return JSON.parse(localStorage.getItem(_sugSkipKey()) || '{{}}'); }} catch (e) {{ return {{}}; }} }}
+    function _sugSkipId(kind, key) {{ return kind + ':' + key; }}
+    function _sugSkip(kind, key) {{
+      var s = _sugSkips(); s[_sugSkipId(kind, key)] = 1;
+      try {{ localStorage.setItem(_sugSkipKey(), JSON.stringify(s)); }} catch (e) {{}}
+    }}
     // Only events 2–4 months out belong in a "plan ahead" suggestion — Thor's
     // own example ("Colombia Tech Week is a month out, too soon") is a HARD
     // exclusion, not just a lower score. No known date -> can't judge it, skip.
@@ -6852,12 +6867,14 @@ def build():
           return g.length >= 4 && loc.indexOf(g) !== -1;
         }});
       }}
+      var skips = _sugSkips();
       var scored = [];
       opsAllItems().forEach(function (it) {{
         if (it.past || it.hidden || it.queue_dismissed) return;
         if (it.stages.length) return;                       // already in the pipeline
         if (BAD.test(it.name)) return;                      // compliance-centric — skip
         if (!_inPlanWindow(it.sort)) return;                 // outside the 2–4 month planning window
+        if (skips[_sugSkipId(it.kind, it.key)]) return;      // you decided "not for me"
         if ((it.interested || []).some(function (n) {{ return String(n).toLowerCase().split(/\\s+/)[0] === meFirst; }})) return;
         var o = it.startObj || {{}};
         var inGeo = (P && geo.length) ? geoHit(it) : false;
@@ -6988,21 +7005,28 @@ def build():
       updateViewBadges();
     }}
 
-    // ── Plan Ahead: a lighter, everyone-facing take on the 2–4 month
-    // suggestions — no sign-in, no coverage-gap/conflict logic (that stays in
-    // the Angela-only Planner). Just: what fits, grouped by region, with a
-    // one-click "+ I'm interested" so Angela knows who to register.
+    // ── Plan Ahead: the everyone-facing "decide what to go to" surface —
+    // 2–4 month suggestions you clear with one call each: "I'm interested"
+    // (goes on Angela's radar to register you) or "Not for me" (off your list
+    // for good). No coverage-gap/conflict logic — that stays in Angela's
+    // Planner. Decide down to zero, then "you're all caught up".
     function renderPlanAhead() {{
       var host = document.getElementById('ops-planahead');
       if (!host) return;
       var meFirst = (getCollabName() || '').trim().toLowerCase().split(/\\s+/)[0];
       var personalized = !!((window.AB_PERSONAS || {{}})[meFirst]);
       var intro = '<p class="queue-intro myev-intro"><strong>Plan Ahead:</strong> ' +
-        (personalized ? 'Events 2&ndash;4 months out that fit your focus' : 'Events 2&ndash;4 months out worth a look') +
-        ', grouped by region. Flag one and it goes on Angela&#39;s radar to register you.</p>';
+        (personalized ? 'Events 2&ndash;4 months out that fit your focus. ' : 'Events 2&ndash;4 months out worth a look. ') +
+        'Decide which to go to &mdash; flag the ones you want (Angela registers you) and skip the rest.</p>';
       var sug = _suggestionsFor();
       if (!sug.length) {{
-        host.innerHTML = intro + '<div class="queue-empty">Nothing in the 2&ndash;4 month window fits yet &mdash; check back as new events come in.</div>';
+        // Empty because you cleared it vs. because nothing fit yet — say which.
+        var anySkipped = Object.keys(_sugSkips()).length > 0;
+        host.innerHTML = intro + '<div class="queue-empty">' +
+          (anySkipped
+            ? '&#10003; You&#39;re all caught up &mdash; you&#39;ve decided on everything in the 2&ndash;4 month window. New events will show up here as they come in.'
+            : 'Nothing in the 2&ndash;4 month window fits yet &mdash; check back as new events come in.') +
+          '</div>';
         return;
       }}
       var groups = {{}}, order = [];
@@ -7021,8 +7045,9 @@ def build():
           html += '<div class="queue-row sug-row"><div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
-            '</div><div class="queue-actions">' +
+            '</div><div class="queue-actions sug-actions">' +
               '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ I&#39;m interested</button>' +
+              '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
             '</div></div>';
         }});
         html += '</div>';
@@ -7038,6 +7063,14 @@ def build():
           if (!it) return;
           btn.setAttribute('aria-busy', 'true');
           toggleMyInterest(kind, it.key, it.interested);
+        }});
+      }});
+      host.querySelectorAll('[data-pa-skip]').forEach(function (btn) {{
+        btn.addEventListener('click', function () {{
+          _sugSkip(btn.getAttribute('data-k'), btn.getAttribute('data-key'));
+          var row = btn.closest('.queue-row');
+          if (row) row.style.display = 'none';   // instant feedback
+          renderPlanAhead();                     // re-render: counts + empty state update
         }});
       }});
     }}
