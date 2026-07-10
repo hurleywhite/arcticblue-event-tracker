@@ -227,7 +227,7 @@ TASTE PROFILE: suggest events of similar caliber and audience that are
 missing from it:
 {tracked_str}
 
-{recurring_block}Criteria
+{recurring_block}{location_block}Criteria
 - Quarters to include:  {quarters_str}
 - Event types to include: {types_str}
 - Regions to include:   {regions_str}
@@ -254,7 +254,7 @@ CRITICAL: do not invent URLs. If you don't have a verified URL for an event, set
 """
 
 
-def _build_prompt(count, types, quarters, regions, tracked, recurring=None):
+def _build_prompt(count, types, quarters, regions, tracked, recurring=None, location=''):
     def fmt(arr):
         if not arr: return 'no preference'
         return ', '.join(arr)
@@ -272,6 +272,24 @@ def _build_prompt(count, types, quarters, regions, tracked, recurring=None):
         )
     else:
         recurring_block = ''
+    # Location focus — set when the caller is trying to STACK events onto a trip
+    # already booked somewhere (e.g. a solo trip to Istanbul with nothing else
+    # nearby). Prefer events in/near that place, in the given quarter, so one
+    # trip can cover more than one event.
+    location = (location or '').strip()
+    if location:
+        location_block = (
+            f"LOCATION FOCUS (primary): the caller already has a trip booked to "
+            f"{location} in the quarter(s) below and wants MORE events to stack onto "
+            f"it. Strongly prefer events happening IN OR NEAR {location} — same city "
+            f"or metro first, then an easy day-trip / same-country, then the wider "
+            f"region — that fall within a couple of weeks of that trip. Only if you "
+            f"genuinely can't find enough near {location}, widen to the regions "
+            f"below. Ignore the tracked list's geography here; {location} is the "
+            f"target.\n\n"
+        )
+    else:
+        location_block = ''
     return SEARCH_PROMPT.format(
         count           = max(1, min(int(count or 10), 25)),
         types_str       = fmt(types),
@@ -279,6 +297,7 @@ def _build_prompt(count, types, quarters, regions, tracked, recurring=None):
         regions_str     = fmt(regions),
         tracked_str     = tracked_str,
         recurring_block = recurring_block,
+        location_block  = location_block,
     )
 
 
@@ -399,6 +418,9 @@ class handler(BaseHTTPRequestHandler):
         types    = _list(body.get('types'))
         quarters = _list(body.get('quarters'))
         regions  = _list(body.get('regions'))
+        # Optional city/country to anchor the search on — set when stacking events
+        # onto a trip already booked there (Plan Ahead "Find events near <city>").
+        location = str(body.get('location') or '').strip()[:120]
         # Events ArcticBlue attended/spoke at in the past — find their next-year
         # editions first, then fall back to the criteria above.
         recurring = _list(body.get('recurring'))
@@ -426,7 +448,7 @@ class handler(BaseHTTPRequestHandler):
         # yield near count — but cap it so the JSON reply stays within the token
         # budget (too many events => truncated, unparseable array => 0 results).
         ask = min(max(count * 3, 12), 18)
-        prompt = _build_prompt(ask, types, quarters, regions, tracked, recurring)
+        prompt = _build_prompt(ask, types, quarters, regions, tracked, recurring, location)
         engine = 'perplexity' if PPLX_API_KEY else 'dust'
         if engine == 'perplexity':
             try:

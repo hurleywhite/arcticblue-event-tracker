@@ -1541,10 +1541,9 @@
     .ops-filter-chip input { accent-color: var(--ab-blue); }
     .ops-filter-chip.has-active { background: var(--ab-bg-3); border-color: var(--ab-fg); color: var(--ab-fg); }
     .ops-shown {
-      grid-column: 1 / -1;
-      font-family: var(--ab-mono); font-size: 0.76rem;
+      font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
-      text-align: right;
+      text-align: right; white-space: nowrap;
     }
 
     /* View toggle (Grid / Calendar) */
@@ -1791,6 +1790,10 @@
     .trip-anchor-role { font-size: 0.8rem; font-weight: 600; color: var(--ab-fg-3); }
     .trip-anchor-meta { display: block; font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); margin-top: 2px; }
     .trip-prox { font-family: var(--ab-mono); font-size: 0.66rem; color: #1271a8; margin: 3px 0 0; }
+    /* Solo trip (nothing to batch) — a quiet note + one-click area search. */
+    .trip-nonear { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 4px 0 2px; }
+    .trip-nonear-note { font-size: 0.8rem; color: var(--ab-fg-3); font-style: italic; }
+    .trip-find-near { font-size: 0.78rem; padding: 5px 12px; }
     /* Angela's Batch-your-trips is grouped by person: a name header, then that
        person's trips by date. */
     .trip-person { margin: 0 0 22px; }
@@ -2379,11 +2382,24 @@
       /* When a panel scrolls into view, clear the sticky header + tab bar. */
       scroll-margin-top: 130px;
       grid-column: 1 / -1;
+      position: relative;
       padding: 24px;
       border: 1px dashed var(--ab-blue); border-radius: 10px;
       background: var(--ab-bg);
       margin-bottom: 16px;
     }
+    /* Standard top-right dismiss on every toolbar panel (add / find / paste /
+       ask / spreadsheet / calendar-sync). Also closable with Esc. */
+    .ops-panel-x {
+      position: absolute; top: 12px; right: 12px;
+      width: 30px; height: 30px; line-height: 1; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-3);
+      transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+    }
+    .ops-panel-x:hover { background: var(--ab-bg-3); color: var(--ab-fg); border-color: var(--ab-fg-3); }
+    .add-event-card h3 { padding-right: 40px; }   /* clear the × */
     .add-event-card h3 {
       font-family: var(--ab-sans); font-weight: 700; font-size: 1.05rem;
       letter-spacing: -0.01em; margin: 0 0 12px;
@@ -2591,11 +2607,11 @@
           <label class="ops-filter-chip" title="Show only events at the Submitted stage — a speaker application is in"><input type="checkbox" id="ops-f-submitted">Submitted</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
           <label class="ops-filter-chip" title="Events where an email contact (organizer POC) was found"><input type="checkbox" id="ops-f-contact">Contact found</label>
-          <span class="ops-shown" id="ops-shown"></span>
         </div>
         <p class="ops-active-filters" id="ops-active-filters" hidden></p>
         <div class="ops-results-header" id="ops-results-header">
           <button type="button" class="ops-dupe-review" id="ops-dupe-review" title="Show the auto-detected duplicate events so you can delete them (open one, then Details → Edit → Delete this event)" hidden></button>
+          <span class="ops-shown" id="ops-shown"></span>
         </div>
         <div class="ops-grid" id="ops-grid"></div>
         <div class="ops-calendar" id="ops-calendar"></div>
@@ -5571,6 +5587,11 @@
       );
 
       var shown = 0, dupSkipped = 0;
+      // "Showing N of M" reports only the LIVE set the user cares about —
+      // upcoming events that aren't hidden or archived/past (tier 0). shown
+      // (below) still counts every passing card incl. collapsed past ones, for
+      // the empty-state guard; activeShown/activeTotal drive the visible count.
+      var activeShown = 0, activeTotal = 0;
       var monthMatched = {};
       // Query the card set once per pass (it's also the count denominator) —
       // re-querying inside + again for the count walked the DOM twice/keystroke.
@@ -5691,7 +5712,8 @@
         // "hidden" group regardless of their date.
         var _tier = opsCardTier(card);
         var mkey = _tier === 1 ? 'hidden' : (_tier === 2 ? 'archive' : (card.dataset.month || 'tbd'));
-        if (on) { monthMatched[mkey] = (monthMatched[mkey] || 0) + 1; shown++; }
+        if (_tier === 0) activeTotal++;   // live universe (not hidden / past)
+        if (on) { monthMatched[mkey] = (monthMatched[mkey] || 0) + 1; shown++; if (_tier === 0) activeShown++; }
         // Did the card pass the real filters? (independent of month/archive
         // collapse) — the Map view uses this so past events still appear.
         card.dataset.passed = on ? '1' : '0';
@@ -5712,7 +5734,13 @@
         if (cnt) cnt.textContent = n + (n === 1 ? ' event' : ' events') + (collapsed ? ' · hidden' : '');
       });
       var $shown = document.getElementById('ops-shown');
-      if ($shown) $shown.textContent = 'Showing ' + shown + ' of ' + (opsCards.length - dupSkipped);
+      if ($shown) {
+        // No narrowing → just "N events"; a filter/search in play → "Showing N
+        // of M events". Counts exclude hidden + archived/past (see activeTotal).
+        $shown.textContent = (activeShown === activeTotal)
+          ? activeTotal + ' event' + (activeTotal === 1 ? '' : 's')
+          : 'Showing ' + activeShown + ' of ' + activeTotal + ' events';
+      }
       // Filtered-to-zero guard: an all-filtered grid LOOKS like "no events
       // loaded" (that was Thor's read of it). Say so explicitly + one-tap reset.
       var _emptyNote = document.getElementById('ops-empty-note');
@@ -7252,6 +7280,15 @@
       // ── Batch your trips (geographic) ─────────────────────────────────
       var clusters = _tripClusters();
       var tripHtml = '';
+      // Map an event's YYYYMMDD sort key to a "Q# YYYY" string, to seed the
+      // area search's quarter when there's nothing to batch onto a trip.
+      function _quarterOfSort(sort) {
+        var s = String(sort || '');
+        if (s.length < 6) return '';
+        var y = s.slice(0, 4), mo = parseInt(s.slice(4, 6), 10);
+        if (!/^[0-9]{4}$/.test(y) || !mo) return '';
+        return 'Q' + (Math.floor((mo - 1) / 3) + 1) + ' ' + y;
+      }
       if (clusters.length) {
         tripHtml += '<div class="queue-sec-head"><span class="queue-sec-title">&#129517; Batch your trips</span><span class="queue-sec-count">' + clusters.length + '</span></div>' +
           '<p class="queue-meta" style="margin:-4px 0 14px;">' +
@@ -7273,6 +7310,22 @@
               ' \u00b7 ' + (n.km < 25 ? 'same city' : ('~' + Math.round(n.km) + ' km away'));
             tripHtml += sugRow(n.it, '<p class="trip-prox">' + prox + '</p>');
           });
+          // Nothing else tracked near this trip. Rather than a dead end, offer a
+          // one-click AI search seeded with WHERE + WHEN — so a solo trip like
+          // GBS (Istanbul, Nov) can still turn something up. Metered → click-only.
+          if (!cl.near.length) {
+            var _city = escapeHtml(String(loc).split(',')[0].trim());
+            if (loc) {
+              tripHtml += '<div class="trip-nonear">' +
+                '<span class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then.</span>' +
+                '<button type="button" class="q-btn primary trip-find-near" data-plan-near="' + escapeHtml(loc) +
+                  '" data-plan-quarter="' + escapeHtml(_quarterOfSort(ev.sort)) + '">' +
+                  '&#128269; Find events near ' + _city + '</button>' +
+              '</div>';
+            } else {
+              tripHtml += '<p class="trip-nonear-note">Add a city to this event (Edit \u2192 Location) to find nearby events to batch.</p>';
+            }
+          }
           tripHtml += '</div>';
         }
         if (support) {
@@ -7350,6 +7403,24 @@
       host.innerHTML = html;
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {
         el.addEventListener('click', function () { opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); });
+      });
+      // "Find events near <city>" on a solo trip → jump to the Events grid and
+      // open the AI search pre-seeded with that trip's place + quarter. (The
+      // search panel injects into the grid, which is hidden on Plan Ahead, so
+      // switch views first, then scroll it into view.)
+      host.querySelectorAll('[data-plan-near]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (typeof currentView !== 'undefined' && currentView !== 'grid') setView('grid');
+          var openP = $opsGrid.querySelector(':scope > .add-event-card'); if (openP) openP.remove();
+          openSearchPanel(getCollabName(), {
+            location: btn.getAttribute('data-plan-near'),
+            quarter:  btn.getAttribute('data-plan-quarter')
+          });
+          setTimeout(function () {
+            var el = document.getElementById('search-panel');
+            if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 80);
+        });
       });
       host.querySelectorAll('[data-pa-flag]').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -10123,6 +10194,32 @@
       return { added: added, updated: updated, unchanged: unchanged };
     }
 
+    // ── Toolbar panels: universal ✕ + Esc dismiss ────────────────────
+    // Every toolbar panel (Add manually / Find new / Paste email / Ask AI /
+    // Spreadsheet / Calendar sync) is a `.add-event-card` injected at the top of
+    // the grid. Give each a standard top-right ✕, and let Esc close whichever is
+    // open — the familiar way to back out of a panel. (The event modal, when
+    // open, keeps Esc priority since it sits on top.)
+    function _mountPanelClose(panel) {
+      if (!panel || panel.querySelector('.ops-panel-x')) return;
+      var x = document.createElement('button');
+      x.type = 'button'; x.className = 'ops-panel-x';
+      x.setAttribute('aria-label', 'Close'); x.title = 'Close (Esc)';
+      x.innerHTML = '&times;';
+      x.addEventListener('click', function () { panel.remove(); });
+      panel.appendChild(x);
+    }
+    if (!window._opsPanelEscWired) {
+      window._opsPanelEscWired = true;
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var ov = document.getElementById('event-modal');
+        if (ov && !ov.hasAttribute('hidden')) return;   // modal owns Esc while open
+        var panel = $opsGrid && $opsGrid.querySelector(':scope > .add-event-card');
+        if (panel) panel.remove();
+      });
+    }
+
     function openCsvPanel(email) {
       // Toggle close if open
       var existing = document.getElementById('csv-panel');
@@ -10149,6 +10246,7 @@
         '<div id="csv-preview" style="margin-top:8px;"></div>';
 
       $opsGrid.insertBefore(panel, $opsGrid.firstChild);
+      _mountPanelClose(panel);
       panel.querySelector('#csv-cancel-btn').addEventListener('click', function () { panel.remove(); });
 
       // Export current state
@@ -10293,13 +10391,21 @@
       };
     }
 
-    function openSearchPanel(email) {
+    function openSearchPanel(email, seed) {
+      seed = seed || {};
       var existing = document.getElementById('search-panel');
-      if (existing) { existing.remove(); return; }
+      if (existing) {
+        // Plain re-click = toggle closed. A SEEDED open (e.g. from a Plan-Ahead
+        // "Find events near <city>" button) always reopens with the new seed.
+        existing.remove();
+        if (!seed.location && !seed.quarter) return;
+      }
 
       var qOpts = _currentQuarterOptions();
-      // Default: first two quarters from today
-      var qDefaults = qOpts.slice(0, 2);
+      // Seeded with a trip's quarter (if it's within our 8-quarter window) →
+      // narrow to just that quarter; otherwise default to the next two.
+      var qDefaults = (seed.quarter && qOpts.indexOf(seed.quarter) !== -1)
+        ? [seed.quarter] : qOpts.slice(0, 2);
 
       var panel = document.createElement('div');
       panel.id = 'search-panel';
@@ -10307,12 +10413,18 @@
       panel.innerHTML =
         '<h3>Find events (AI search)</h3>' +
         '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
-          'AI web search finds upcoming in-person events matching your criteria — buyer-rich audiences preferred. It first looks for next-year editions of events the team has attended, then fills in with your criteria. Added events are vetted and auto-enriched.' +
+          (seed.location
+            ? 'Searching for events in or near <strong>' + escapeHtml(seed.location) + '</strong> around that trip, so you can stack more onto one journey. Adjust the fields below and run it.'
+            : 'AI web search finds upcoming in-person events matching your criteria — buyer-rich audiences preferred. It first looks for next-year editions of events the team has attended, then fills in with your criteria. Added events are vetted and auto-enriched.') +
         '</p>' +
         '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">' +
           '<label style="display:inline-flex;align-items:center;gap:8px;font-family:var(--ab-mono);font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--ab-fg-3);">' +
             'How many:' +
             '<input type="number" id="search-count" min="1" max="25" value="10" style="width:60px;padding:6px 8px;border:1px solid var(--ab-rule-strong);border-radius:6px;font-family:var(--ab-sans);font-size:0.9rem;">' +
+          '</label>' +
+          '<label style="display:inline-flex;align-items:center;gap:8px;flex:1;min-width:200px;font-family:var(--ab-mono);font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--ab-fg-3);">' +
+            'Near:' +
+            '<input type="text" id="search-near" placeholder="City or country \u2014 optional" style="flex:1;min-width:120px;padding:6px 8px;border:1px solid var(--ab-rule-strong);border-radius:6px;font-family:var(--ab-sans);font-size:0.9rem;text-transform:none;letter-spacing:normal;">' +
           '</label>' +
         '</div>' +
         '<div class="extra-filters" style="margin-bottom:10px;">' +
@@ -10331,6 +10443,8 @@
         '<div id="search-results" style="margin-top:12px;"></div>';
 
       $opsGrid.insertBefore(panel, $opsGrid.firstChild);
+      _mountPanelClose(panel);
+      if (seed.location) panel.querySelector('#search-near').value = seed.location;
 
       var getQuarters = _multichip(panel.querySelector('#search-quarters'), qOpts,                  qDefaults);
       var getRegions  = _multichip(panel.querySelector('#search-regions'),  SEARCH_REGION_OPTIONS,  []);
@@ -10357,7 +10471,8 @@
             if (nm && (atts.length || bookedSpk) && _recurring.indexOf(nm) === -1) _recurring.push(nm);
           });
         } catch (e) {}
-        var criteria = { count: count, types: SEARCH_TYPE_OPTIONS.slice(), quarters: getQuarters(), regions: getRegions(), recurring: _recurring.slice(0, 30) };
+        var _near = (panel.querySelector('#search-near').value || '').trim();
+        var criteria = { count: count, types: SEARCH_TYPE_OPTIONS.slice(), quarters: getQuarters(), regions: getRegions(), recurring: _recurring.slice(0, 30), location: _near };
         var runBtn = panel.querySelector('#search-run-btn');
         var meta   = panel.querySelector('#search-meta');
         runBtn.disabled = true; runBtn.textContent = 'Searching\u2026';
@@ -10639,6 +10754,7 @@
           '<button type="button" class="secondary" id="ask-close">Close</button>' +
         '</div>';
       $opsGrid.insertBefore(panel, $opsGrid.firstChild);
+      _mountPanelClose(panel);
 
       var log = panel.querySelector('#ask-log');
       var input = panel.querySelector('#ask-input');
@@ -10769,6 +10885,7 @@
         '<p class="ops-meta" style="margin-top:10px;">Tip: the feed is empty until at least one event is starred ★ saved, or you add a manual event.</p>';
 
       $opsGrid.insertBefore(panel, $opsGrid.firstChild);
+      _mountPanelClose(panel);
 
       panel.querySelector('#subscribe-close-btn').addEventListener('click', function () { panel.remove(); });
       panel.querySelector('#subscribe-download-btn').addEventListener('click', function () { exportSavedAsIcs(); });
@@ -10849,6 +10966,7 @@
         }
         var form = buildAddEventForm();
         $opsGrid.insertBefore(form, $opsGrid.firstChild);
+        _mountPanelClose(form);
         attachAddEventHandlers(form, email);
         if (opts.expandPaste) {
           form.querySelector('#paste-email-section').setAttribute('open', '');
