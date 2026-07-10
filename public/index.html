@@ -1796,9 +1796,11 @@
     }
     .profile-tm-head { display: flex; align-items: center; gap: 9px; margin: 0 0 6px; }
     .profile-tm-name { font-weight: 700; font-size: 0.96rem; color: var(--ab-fg); }
+    .profile-tm-role { font-size: 0.76rem; color: var(--ab-fg-3); margin-left: auto; text-align: right; }
     .profile-tm-field { margin: 8px 0 0; }
     .profile-tm-field .k { font-family: var(--ab-mono); font-size: 0.63rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-fg-3); }
     .profile-tm-field .v { font-size: 0.86rem; color: var(--ab-fg-2); line-height: 1.5; white-space: pre-wrap; margin: 2px 0 0; }
+    .profile-tm-files { margin: 3px 0 0; display: flex; flex-direction: column; gap: 5px; }
     .profile-tm-empty { font-size: 0.82rem; color: var(--ab-mute); font-style: italic; }
     .profile-setup-note {
       border: 1px solid #f0d9a8; background: #fdf6e8; border-radius: 8px;
@@ -6612,69 +6614,131 @@
       if (!host) return;
       var meName = getCollabName();
       if (!meName) {
-        host.innerHTML = '<div class="profile-wrap"><p class="queue-intro myev-intro"><strong>My Profile.</strong> Set your name (hit &ldquo;change&rdquo; up top) to build your speaker profile &mdash; bio, topics, past talks, files, and the events you want to target.</p></div>';
+        host.innerHTML = '<div class="profile-wrap"><p class="queue-intro myev-intro"><strong>Profile.</strong> Set your name (top-right avatar &rarr; Someone else) to build your profile or see the team&#39;s.</p></div>';
         return;
       }
       var meKey = _profileKey(meName);
-      host.innerHTML = '<div class="profile-wrap"><p class="queue-intro myev-intro">Loading your profile&hellip;</p></div>';
-      sb.from('team_profiles').select('*').then(function (resp) {
-        var dbMissing = !!(resp && resp.error);
-        var rows = (resp && resp.data) || [];
+      host.innerHTML = '<div class="profile-wrap"><p class="queue-intro myev-intro">Loading profiles&hellip;</p></div>';
+      // Everyone's text (team_profiles) + everyone who has files (storage
+      // folders), in parallel, so the directory is complete. Both convert a
+      // rejection to a safe empty value so one failing doesn't blank the view.
+      Promise.all([
+        sb.from('team_profiles').select('*').then(function (r) { return r; }, function () { return { error: true, data: [] }; }),
+        sb.storage.from('profiles').list('', { limit: 200 }).then(function (r) { return r; }, function () { return { data: [] }; })
+      ]).then(function (res) {
+        var rowsResp = res[0], foldResp = res[1];
+        var dbMissing = !!(rowsResp && rowsResp.error);
+        var rows = (rowsResp && rowsResp.data) || [];
         var byKey = {};
         rows.forEach(function (r) { byKey[r.person] = r; });
-        _paintMyProfile(host, meKey, meName, byKey[meKey] || null, rows, dbMissing);
+        var folders = ((foldResp && foldResp.data) || []).map(function (f) { return f.name; })
+          .filter(function (n) { return n && n !== '.emptyFolderPlaceholder'; });
+        _paintMyProfile(host, meKey, meName, byKey, rows, folders, dbMissing);
       });
     }
-    function _paintMyProfile(host, meKey, meName, myRow, allRows, dbMissing) {
-      var disp = _profileDisplay(myRow, meKey) || meName;
-      var initial = escapeHtml((disp || '?').charAt(0).toUpperCase());
+    // One read-only person card for the directory: name + role, their written
+    // fields, and a Materials slot filled in async by _loadTeammateFiles.
+    function _directoryCardHtml(key, row, filesId) {
+      var d = _profileDisplay(row, key);
+      var role = _profileRole(key);
+      var h = '<div class="profile-teammate"><div class="profile-tm-head">' +
+        '<span class="profile-avatar">' + escapeHtml((d || '?').charAt(0).toUpperCase()) + '</span>' +
+        '<span class="profile-tm-name">' + escapeHtml(d) + '</span>' +
+        (role ? '<span class="profile-tm-role">' + escapeHtml(role) + '</span>' : '') + '</div>';
+      if (row) {
+        PROFILE_FIELDS.forEach(function (f) {
+          if (!row[f.k]) return;
+          h += '<div class="profile-tm-field"><div class="k">' + escapeHtml(f.label) + '</div><div class="v">' + escapeHtml(row[f.k]) + '</div></div>';
+        });
+      }
+      h += '<div class="profile-tm-field"><div class="k">Materials</div><div class="profile-tm-files" id="' + filesId + '"><p class="profile-file-empty">Loading&hellip;</p></div></div>';
+      return h + '</div>';
+    }
+    // Read-only file list for a teammate — download links only, no delete.
+    function _loadTeammateFiles(personKey, containerId) {
+      var $c = document.getElementById(containerId);
+      if (!$c) return;
+      sb.storage.from('profiles').list(personKey, { limit: 100, sortBy: { column: 'created_at', order: 'desc' } }).then(function (resp) {
+        var items = ((resp && resp.data) || []).filter(function (f) { return f.name && f.name !== '.emptyFolderPlaceholder'; });
+        if (!items.length) { $c.innerHTML = '<p class="profile-file-empty">&mdash;</p>'; return; }
+        $c.innerHTML = items.map(function (f) {
+          var size = (f.metadata && f.metadata.size) ? _fmtBytes(f.metadata.size) : '';
+          return '<div class="profile-file"><a class="profile-file-name" href="#" data-tmfile="' + escapeHtml(f.name) + '" data-tmkey="' + escapeHtml(personKey) + '">' + escapeHtml(f.name) + '</a>' +
+            (size ? '<span class="profile-file-size">' + size + '</span>' : '') + '</div>';
+        }).join('');
+        $c.querySelectorAll('[data-tmfile]').forEach(function (a) {
+          a.addEventListener('click', function (e) {
+            e.preventDefault();
+            sb.storage.from('profiles').createSignedUrl(a.getAttribute('data-tmkey') + '/' + a.getAttribute('data-tmfile'), 120).then(function (r) {
+              if (r && r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank'); else status('Could not open that file.', 'error');
+            });
+          });
+        });
+      });
+    }
+    function _paintMyProfile(host, meKey, meName, byKey, allRows, folders, dbMissing) {
+      var support = isSupportPerson(meName);
+      var myRow = byKey[meKey] || null;
+      // Everyone who has added anything: a profile row with text, or files.
+      var keySet = {};
+      (allRows || []).forEach(function (r) {
+        if (r.person && (r.bio || r.topics || r.past_talks || r.notes)) keySet[r.person] = 1;
+      });
+      (folders || []).forEach(function (k) { keySet[k] = 1; });
+      var dirKeys = Object.keys(keySet).filter(function (k) { return support || k !== meKey; });
+      dirKeys.sort(function (a, b) { return _profileDisplay(byKey[a], a).localeCompare(_profileDisplay(byKey[b], b)); });
+
       var html = '<div class="profile-wrap">';
       if (dbMissing) {
-        html += '<div class="profile-setup-note"><strong>One-time setup needed.</strong> The profile store isn&#39;t in the database yet, so nothing here will save. Whoever runs the tracker needs to run the <code>team_profiles</code> setup once, then reload.</div>';
+        html += '<div class="profile-setup-note"><strong>One-time setup needed.</strong> The profile store isn&#39;t in the database yet, so nothing here will save or show. Run the <code>team_profiles</code> setup once, then reload.</div>';
       }
-      var role = _profileRole(meKey);
-      html += '<div class="profile-card">' +
-        '<div class="profile-card-head">' +
-          '<span class="profile-avatar profile-avatar-lg">' + initial + '</span>' +
-          '<span class="profile-id"><span class="profile-who">' + escapeHtml(disp) + '</span>' +
-            (role ? '<span class="profile-role">' + escapeHtml(role) + '</span>' : '') + '</span>' +
-        '</div>';
-      // Materials first, upload at the very top — the fastest thing you came to do.
-      html += '<div class="profile-field profile-materials"><label>Materials <span class="hint">&middot; bios, decks, one-pagers</span></label>' +
-        '<div class="profile-upload-row"><input type="file" id="pf-file-input" aria-label="Choose a file to upload"><button type="button" class="q-btn primary" id="pf-upload">Upload file</button></div>' +
-        '<div class="profile-files" id="pf-files"><p class="profile-file-empty">Loading files&hellip;</p></div></div>';
-      // Then the written profile.
-      PROFILE_FIELDS.forEach(function (f) {
-        var val = myRow ? (myRow[f.k] || '') : '';
-        html += '<div class="profile-field"><label for="pf-' + f.k + '">' + escapeHtml(f.label) +
-          ' <span class="hint">&middot; ' + escapeHtml(f.hint) + '</span></label>' +
-          '<textarea id="pf-' + f.k + '" rows="3" placeholder="' + escapeHtml(f.ph) + '">' + escapeHtml(val) + '</textarea></div>';
-      });
-      html += '<div class="profile-actions"><button type="button" class="q-btn primary" id="pf-save">Save profile</button>' +
-        '<span class="profile-saved-note" id="pf-saved" hidden>&#10003; Saved</span></div>';
-      html += '</div>';   // end .profile-card
-      var mates = (allRows || []).filter(function (r) { return r.person !== meKey && (r.bio || r.topics || r.past_talks || r.notes); });
-      if (mates.length) {
-        mates.sort(function (a, b) { return _profileDisplay(a, a.person).localeCompare(_profileDisplay(b, b.person)); });
-        html += '<div class="queue-sec-head" style="margin-top:8px;"><span class="queue-sec-title">The rest of the team</span><span class="queue-sec-count">' + mates.length + '</span></div>' +
-          '<p class="queue-meta" style="margin:-4px 0 14px;">Read-only &mdash; where each person has spoken and what they want to target.</p>';
-        mates.forEach(function (r) {
-          var d = _profileDisplay(r, r.person);
-          html += '<div class="profile-teammate"><div class="profile-tm-head"><span class="profile-avatar">' + escapeHtml((d || '?').charAt(0).toUpperCase()) + '</span><span class="profile-tm-name">' + escapeHtml(d) + '</span></div>';
-          PROFILE_FIELDS.forEach(function (f) {
-            if (!r[f.k]) return;
-            html += '<div class="profile-tm-field"><div class="k">' + escapeHtml(f.label) + '</div><div class="v">' + escapeHtml(r[f.k]) + '</div></div>';
-          });
-          html += '</div>';
+      // Support (Angela/Hurley) coordinate — they don't speak, so they get the
+      // team directory straight away, not their own speaker card.
+      if (!support) {
+        var disp = _profileDisplay(myRow, meKey) || meName;
+        var initial = escapeHtml((disp || '?').charAt(0).toUpperCase());
+        var role = _profileRole(meKey);
+        html += '<div class="profile-card">' +
+          '<div class="profile-card-head">' +
+            '<span class="profile-avatar profile-avatar-lg">' + initial + '</span>' +
+            '<span class="profile-id"><span class="profile-who">' + escapeHtml(disp) + '</span>' +
+              (role ? '<span class="profile-role">' + escapeHtml(role) + '</span>' : '') + '</span>' +
+          '</div>';
+        html += '<div class="profile-field profile-materials"><label>Materials <span class="hint">&middot; bios, decks, one-pagers</span></label>' +
+          '<div class="profile-upload-row"><input type="file" id="pf-file-input" aria-label="Choose a file to upload"><button type="button" class="q-btn primary" id="pf-upload">Upload file</button></div>' +
+          '<div class="profile-files" id="pf-files"><p class="profile-file-empty">Loading files&hellip;</p></div></div>';
+        PROFILE_FIELDS.forEach(function (f) {
+          var val = myRow ? (myRow[f.k] || '') : '';
+          html += '<div class="profile-field"><label for="pf-' + f.k + '">' + escapeHtml(f.label) +
+            ' <span class="hint">&middot; ' + escapeHtml(f.hint) + '</span></label>' +
+            '<textarea id="pf-' + f.k + '" rows="3" placeholder="' + escapeHtml(f.ph) + '">' + escapeHtml(val) + '</textarea></div>';
         });
+        html += '<div class="profile-actions"><button type="button" class="q-btn primary" id="pf-save">Save profile</button>' +
+          '<span class="profile-saved-note" id="pf-saved" hidden>&#10003; Saved</span></div>';
+        html += '</div>';   // end .profile-card
+      }
+      // The per-person directory — everyone's profile + materials, by person.
+      var dirTitle = support ? 'Team profiles' : 'The rest of the team';
+      var dirIntro = support
+        ? 'Everyone&#39;s bio, topics, past talks, and materials &mdash; by person. Updates as each person edits their profile.'
+        : 'Read-only &mdash; where each person has spoken, what they want to target, and their materials.';
+      html += '<div class="queue-sec-head"' + (support ? '' : ' style="margin-top:8px;"') + '><span class="queue-sec-title">' + dirTitle + '</span><span class="queue-sec-count">' + dirKeys.length + '</span></div>' +
+        '<p class="queue-meta" style="margin:-4px 0 14px;">' + dirIntro + '</p>';
+      if (!dirKeys.length) {
+        html += '<div class="queue-empty">No one&#39;s added a profile yet &mdash; when someone fills in their bio, topics, or uploads a file, it shows up here by person.</div>';
+      } else {
+        dirKeys.forEach(function (k, i) { html += _directoryCardHtml(k, byKey[k] || null, 'tmfiles-' + i); });
       }
       html += '</div>';   // end .profile-wrap
       host.innerHTML = html;
-      var $save = document.getElementById('pf-save');
-      if ($save) $save.addEventListener('click', function () { _saveMyProfile(meKey, meName); });
-      var $up = document.getElementById('pf-upload');
-      if ($up) $up.addEventListener('click', function () { _uploadProfileFile(meKey); });
-      _loadProfileFiles(meKey, dbMissing);
+      if (!support) {
+        var $save = document.getElementById('pf-save');
+        if ($save) $save.addEventListener('click', function () { _saveMyProfile(meKey, meName); });
+        var $up = document.getElementById('pf-upload');
+        if ($up) $up.addEventListener('click', function () { _uploadProfileFile(meKey); });
+        _loadProfileFiles(meKey, dbMissing);
+      }
+      dirKeys.forEach(function (k, i) { _loadTeammateFiles(k, 'tmfiles-' + i); });
     }
     function _saveMyProfile(meKey, meName) {
       var row = { person: meKey, display_name: meName, updated_by: meName, updated_at: new Date().toISOString() };
@@ -10298,7 +10362,7 @@
         '<div class="who-dropdown" id="who-dropdown" hidden>' +
           '<button type="button" class="who-menu-item" id="who-myprofile-btn">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>' +
-            'My Profile</button>' +
+            (isSupportPerson(cur) ? 'Team Profiles' : 'My Profile') + '</button>' +
           (others.length
             ? '<div class="who-switch-label">Switch to</div><div class="who-switch-row">' +
               others.map(function (p) {
