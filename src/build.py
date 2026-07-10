@@ -6803,15 +6803,29 @@ def build():
           }});
       }}
       var geo = ((P && P.geo) || []).map(function (g) {{ return String(g).toLowerCase(); }});
-      function regionHit(region) {{
-        var r = String(region || '').toLowerCase();
+      // 'stage' = there to speak (needs a topical reason); 'room' = there to
+      // work the floor for buyers (geo + buyers is enough on its own).
+      var mode = (P && P.mode) || 'room';
+      // Region match. Broad-region tags (us/canada, europe/emea, latam, apac,
+      // africa) match the event's canonical region. But COUNTRY/CITY tags —
+      // uk, spain, switzerland — match the event's LOCATION text instead, not
+      // the whole continent: otherwise "Spain" or "UK" pulls in ALL of Europe,
+      // which is why Carlos (Americas sales) was getting more Europe picks than
+      // Latin America, and Joe (US/Canada/UK) was getting Frankfurt/Zurich.
+      function geoHit(it) {{
+        var r = String(it.region || '').toLowerCase();
+        var loc = it.text || '';   // abFold'd blob — includes city / country / location
         return geo.some(function (g) {{
           if (g === 'us' || g === 'canada' || g === 'na') return r.indexOf('us') !== -1 || r.indexOf('canada') !== -1 || r.indexOf('americas') !== -1;
-          if (g === 'uk' || g === 'emea' || g === 'europe' || g === 'switzerland') return r.indexOf('europe') !== -1;
-          if (g === 'latam' || g === 'spain') return r.indexOf('latin') !== -1 || r.indexOf('europe') !== -1;
+          if (g === 'emea' || g === 'europe') return r.indexOf('europe') !== -1;
+          if (g === 'latam') return r.indexOf('latin') !== -1;
           if (g === 'apac') return r.indexOf('asia') !== -1;
+          if (g === 'africa') return r.indexOf('africa') !== -1;
           if (g === 'global-flagship') return true;
-          return r.indexOf(g) !== -1;
+          if (g === 'uk') return /\\b(uk|united kingdom|england|scotland|wales|london|manchester|edinburgh|glasgow|birmingham|leeds|bristol|cardiff)\\b/.test(loc);
+          if (g === 'switzerland') return /\\b(switzerland|swiss|zurich|geneva|basel|lausanne|bern|davos)\\b/.test(loc);
+          if (g === 'spain') return /\\b(spain|espana|madrid|barcelona|valencia|seville|sevilla|bilbao|malaga)\\b/.test(loc);
+          return r.indexOf(g) !== -1 || loc.indexOf(g) !== -1;
         }});
       }}
       var scored = [];
@@ -6822,15 +6836,20 @@ def build():
         if (!_inPlanWindow(it.sort)) return;                 // outside the 2–4 month planning window
         if ((it.interested || []).some(function (n) {{ return String(n).toLowerCase().split(/\\s+/)[0] === meFirst; }})) return;
         var o = it.startObj || {{}};
-        var s = 0, why = [];
-        if (P && geo.length && regionHit(it.region)) {{ s += 3; why.push(it.region); }}
+        var s = 0, why = [], hi = /high/i.test(o.priority_override || o.priority || '');
+        if (P && geo.length && geoHit(it)) {{ s += 3; why.push(it.region); }}
         var hits = 0;
         for (var i = 0; i < kws.length && hits < 4; i++) {{
           if (it.text.indexOf(kws[i]) !== -1) {{ hits++; if (why.length < 4) why.push(kws[i]); }}
         }}
         s += hits;
         if (/buyer/i.test(o.audience_type || '')) {{ s += 2; why.push('buyer-rich'); }}
-        if (/high/i.test(o.priority_override || o.priority || '')) s += 1;
+        if (hi) s += 1;
+        // A 'stage' persona is there to SPEAK, so a topic-less pick — in-region
+        // and buyer-rich but matching none of their themes — isn't a fit (this
+        // was Joe, an HR speaker, getting London financial-services events).
+        // High-priority flagships are the exception: worth the trip regardless.
+        if (P && mode === 'stage' && hits === 0 && !hi) return;
         if (s >= (P ? 5 : 4)) scored.push({{ it: it, s: s, why: why }});
       }});
       scored.sort(function (a, b) {{ return b.s - a.s || a.it.sort - b.it.sort; }});
