@@ -1548,8 +1548,8 @@
     }
 
     /* ── Queue view (Angela's application queue) ─────────────────── */
-    .ops-myevents, .ops-planahead, .ops-queue, .ops-planner, .ops-dayof { display: none; }
-    .ops-myevents.show, .ops-planahead.show, .ops-queue.show, .ops-planner.show, .ops-dayof.show { display: block; }
+    .ops-myevents, .ops-planahead, .ops-myprofile, .ops-queue, .ops-planner, .ops-dayof { display: none; }
+    .ops-myevents.show, .ops-planahead.show, .ops-myprofile.show, .ops-queue.show, .ops-planner.show, .ops-dayof.show { display: block; }
     /* ── Day-Of tab ─────────────────────────────────────────────── */
     .vt-count--dayof { background: #f59e0b; color: #fff; }
     .dayof-intro { font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 18px; line-height: 1.5; max-width: 760px; }
@@ -1713,6 +1713,59 @@
     /* "Mark applied" + the × dismiss sit side by side, not stacked. */
     .q-btn-row { display: flex; gap: 6px; align-items: stretch; }
     .q-btn-row .q-btn.primary { flex: 1; }
+    /* ── My Profile view (bio, topics, past talks, files, notes) ───── */
+    .profile-wrap { max-width: 760px; }
+    .profile-card {
+      border: 1px solid var(--ab-rule); border-radius: 12px;
+      background: var(--ab-bg); padding: 20px 22px; margin: 0 0 24px;
+    }
+    .profile-card-head { display: flex; align-items: center; gap: 11px; }
+    .profile-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex: 0 0 auto;
+      display: grid; place-items: center; font-family: var(--ab-mono);
+      font-weight: 700; font-size: 0.92rem; color: #fff; background: var(--ab-blue);
+    }
+    .profile-who { font-family: var(--ab-sans); font-weight: 700; font-size: 1.05rem; color: var(--ab-fg); }
+    .profile-field { margin: 17px 0 0; }
+    .profile-field label {
+      display: block; font-family: var(--ab-mono); font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 5px;
+    }
+    .profile-field label .hint { text-transform: none; letter-spacing: 0; color: var(--ab-mute); font-weight: 500; }
+    .profile-field textarea {
+      width: 100%; box-sizing: border-box; resize: vertical; min-height: 62px;
+      font-family: var(--ab-sans); font-size: 0.9rem; line-height: 1.5; color: var(--ab-fg);
+      padding: 9px 12px; border: 1px solid var(--ab-rule-strong); border-radius: 8px;
+      background: var(--ab-bg-2);
+    }
+    .profile-field textarea:focus { outline: none; border-color: var(--ab-blue); background: var(--ab-bg); box-shadow: 0 0 0 3px rgba(39,115,194,0.1); }
+    .profile-actions { display: flex; align-items: center; gap: 13px; margin: 19px 0 0; }
+    .profile-saved-note { font-size: 0.78rem; color: var(--ab-green); font-weight: 600; }
+    .profile-files { margin: 8px 0 0; display: flex; flex-direction: column; gap: 7px; }
+    .profile-file {
+      display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+      border: 1px solid var(--ab-rule); border-radius: 8px; background: var(--ab-bg-2);
+    }
+    .profile-file-name { font-size: 0.86rem; color: var(--ab-fg); font-weight: 600; word-break: break-all; flex: 1; text-decoration: none; }
+    .profile-file-name:hover { color: var(--ab-blue); text-decoration: underline; }
+    .profile-file-size { font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-3); white-space: nowrap; }
+    .profile-file-empty { font-size: 0.84rem; color: var(--ab-fg-3); font-style: italic; }
+    .profile-upload-row { display: flex; align-items: center; gap: 10px; margin: 11px 0 0; flex-wrap: wrap; }
+    .profile-upload-row input[type=file] { font-size: 0.82rem; color: var(--ab-fg-2); max-width: 100%; }
+    .profile-teammate {
+      border: 1px solid var(--ab-rule); border-radius: 10px; background: var(--ab-bg);
+      padding: 14px 16px; margin: 0 0 10px;
+    }
+    .profile-tm-head { display: flex; align-items: center; gap: 9px; margin: 0 0 6px; }
+    .profile-tm-name { font-weight: 700; font-size: 0.96rem; color: var(--ab-fg); }
+    .profile-tm-field { margin: 8px 0 0; }
+    .profile-tm-field .k { font-family: var(--ab-mono); font-size: 0.63rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-fg-3); }
+    .profile-tm-field .v { font-size: 0.86rem; color: var(--ab-fg-2); line-height: 1.5; white-space: pre-wrap; margin: 2px 0 0; }
+    .profile-tm-empty { font-size: 0.82rem; color: var(--ab-mute); font-style: italic; }
+    .profile-setup-note {
+      border: 1px solid #f0d9a8; background: #fdf6e8; border-radius: 8px;
+      padding: 11px 14px; font-size: 0.83rem; color: #8a6d1f; margin: 0 0 18px; line-height: 1.5;
+    }
     .q-btn-x {
       flex: 0 0 auto; padding: 5px 10px; font-size: 1rem; line-height: 1;
       font-weight: 700; color: var(--ab-fg-3);
@@ -2285,9 +2338,10 @@
         <div class="ops-stats" id="ops-stats" hidden></div>
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
-          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Events<span class="vt-count" id="vt-myevents-count" hidden></span></button>
+          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My Lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
           <button type="button" role="tab" data-view="planahead" aria-selected="false">Plan Ahead</button>
-          <button type="button" role="tab" data-view="grid"     aria-selected="false">All Events</button>
+          <button type="button" role="tab" data-view="myprofile" aria-selected="false">My Profile</button>
+          <button type="button" role="tab" data-view="grid"     aria-selected="false">Catalog</button>
           <button type="button" role="tab" data-view="calendar" aria-selected="false">Calendar</button>
           <button type="button" role="tab" data-view="map"      aria-selected="false">Map</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
@@ -2392,6 +2446,7 @@
         </div>
         <div class="ops-myevents" id="ops-myevents"></div>
         <div class="ops-planahead" id="ops-planahead"></div>
+        <div class="ops-myprofile" id="ops-myprofile"></div>
         <div class="ops-queue" id="ops-queue"></div>
         <div class="ops-planner" id="ops-planner"></div>
         <div class="ops-dayof" id="ops-dayof"></div>
@@ -4829,13 +4884,13 @@
     function isAngelaUser() { return window.isAngelaUser(); }
     function applyFilterVisibility() {
       var show = isAngelaUser();
-      // The "My Events" tab reads "Their Events" for support (Angela/Hurley),
+      // The "My Lineup" tab reads "Team Lineup" for support (Angela/Hurley),
       // since their view is the whole team's, not their own.
       var $myTab = document.querySelector('.view-toggle [data-view="myevents"]');
       if ($myTab) {
         var _teamView = isSupportPerson(getCollabName() || '');
         var _badge = $myTab.querySelector('.vt-count');
-        $myTab.textContent = _teamView ? 'Their Events' : 'My Events';
+        $myTab.textContent = _teamView ? 'Team Lineup' : 'My Lineup';
         if (_badge) $myTab.appendChild(_badge);   // re-attach the count badge
       }
       // Sync/export (Calendar sync + Spreadsheet) is Angela-only.
@@ -6413,6 +6468,175 @@
       });
     }
 
+    // ════════════════════════════════════════════════════════════════
+    // My Profile — per-person bio, speaking topics, past talks, files,
+    // and targeting notes. Editable for whoever's signed in; the rest of
+    // the team's text shows read-only below, so we can see where each
+    // person has spoken and what they want to target (a targeting aid —
+    // no per-event reasoning lives here). Text lives in team_profiles;
+    // files live in the private 'profiles' storage bucket. Both degrade
+    // to a one-time "run setup" note if they aren't there yet.
+    // ════════════════════════════════════════════════════════════════
+    var PROFILE_FIELDS = [
+      { k: 'bio',        label: 'Bio',             hint: 'a short speaker bio',        ph: 'Two or three sentences an organizer could drop straight into an agenda.' },
+      { k: 'topics',     label: 'Speaking topics', hint: 'what you speak on',          ph: 'Talk titles, themes, signature angles — one per line.' },
+      { k: 'past_talks', label: 'Past talks',      hint: 'what & where you have spoken', ph: 'e.g. "AI adoption keynote — Web Summit Lisbon 2025". Helps us target similar events.' },
+      { k: 'notes',      label: 'Targeting notes', hint: 'events you want',            ph: 'Types of events you want to be at, specific event names, regions — anything on your mind.' }
+    ];
+    function _profileKey(name) { return (name || '').trim().toLowerCase().split(/\s+/)[0]; }
+    function _profileDisplay(row, key) {
+      if (row && row.display_name) return row.display_name;
+      var P = (window.AB_PERSONAS || {})[key];
+      if (P && P.name) return P.name;
+      return key ? key.charAt(0).toUpperCase() + key.slice(1) : '';
+    }
+    function _fmtBytes(n) {
+      n = Number(n) || 0;
+      if (n < 1024) return n + ' B';
+      if (n < 1024 * 1024) return (n / 1024).toFixed(0) + ' KB';
+      return (n / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+    function renderMyProfile() {
+      var host = document.getElementById('ops-myprofile');
+      if (!host) return;
+      var meName = getCollabName();
+      if (!meName) {
+        host.innerHTML = '<div class="profile-wrap"><p class="queue-intro myev-intro"><strong>My Profile.</strong> Set your name (hit &ldquo;change&rdquo; up top) to build your speaker profile &mdash; bio, topics, past talks, files, and the events you want to target.</p></div>';
+        return;
+      }
+      var meKey = _profileKey(meName);
+      host.innerHTML = '<div class="profile-wrap"><p class="queue-intro myev-intro">Loading your profile&hellip;</p></div>';
+      sb.from('team_profiles').select('*').then(function (resp) {
+        var dbMissing = !!(resp && resp.error);
+        var rows = (resp && resp.data) || [];
+        var byKey = {};
+        rows.forEach(function (r) { byKey[r.person] = r; });
+        _paintMyProfile(host, meKey, meName, byKey[meKey] || null, rows, dbMissing);
+      });
+    }
+    function _paintMyProfile(host, meKey, meName, myRow, allRows, dbMissing) {
+      var disp = _profileDisplay(myRow, meKey) || meName;
+      var initial = escapeHtml((disp || '?').charAt(0).toUpperCase());
+      var html = '<div class="profile-wrap">';
+      if (dbMissing) {
+        html += '<div class="profile-setup-note"><strong>One-time setup needed.</strong> The profile store isn&#39;t in the database yet, so nothing here will save. Whoever runs the tracker needs to run the <code>team_profiles</code> setup once, then reload.</div>';
+      }
+      html += '<div class="profile-card"><div class="profile-card-head">' +
+        '<span class="profile-avatar">' + initial + '</span>' +
+        '<span class="profile-who">' + escapeHtml(disp) + '</span></div>';
+      PROFILE_FIELDS.forEach(function (f) {
+        var val = myRow ? (myRow[f.k] || '') : '';
+        html += '<div class="profile-field"><label for="pf-' + f.k + '">' + escapeHtml(f.label) +
+          ' <span class="hint">&middot; ' + escapeHtml(f.hint) + '</span></label>' +
+          '<textarea id="pf-' + f.k + '" rows="3" placeholder="' + escapeHtml(f.ph) + '">' + escapeHtml(val) + '</textarea></div>';
+      });
+      html += '<div class="profile-actions"><button type="button" class="q-btn primary" id="pf-save">Save profile</button>' +
+        '<span class="profile-saved-note" id="pf-saved" hidden>&#10003; Saved</span></div>';
+      html += '<div class="profile-field" style="margin-top:20px;"><label>Files <span class="hint">&middot; bios, decks, one-pagers</span></label>' +
+        '<div class="profile-files" id="pf-files"><p class="profile-file-empty">Loading files&hellip;</p></div>' +
+        '<div class="profile-upload-row"><input type="file" id="pf-file-input" aria-label="Choose a file to upload"><button type="button" class="q-btn" id="pf-upload">Upload</button></div></div>';
+      html += '</div>';   // end .profile-card
+      var mates = (allRows || []).filter(function (r) { return r.person !== meKey && (r.bio || r.topics || r.past_talks || r.notes); });
+      if (mates.length) {
+        mates.sort(function (a, b) { return _profileDisplay(a, a.person).localeCompare(_profileDisplay(b, b.person)); });
+        html += '<div class="queue-sec-head" style="margin-top:8px;"><span class="queue-sec-title">The rest of the team</span><span class="queue-sec-count">' + mates.length + '</span></div>' +
+          '<p class="queue-meta" style="margin:-4px 0 14px;">Read-only &mdash; where each person has spoken and what they want to target.</p>';
+        mates.forEach(function (r) {
+          var d = _profileDisplay(r, r.person);
+          html += '<div class="profile-teammate"><div class="profile-tm-head"><span class="profile-avatar">' + escapeHtml((d || '?').charAt(0).toUpperCase()) + '</span><span class="profile-tm-name">' + escapeHtml(d) + '</span></div>';
+          PROFILE_FIELDS.forEach(function (f) {
+            if (!r[f.k]) return;
+            html += '<div class="profile-tm-field"><div class="k">' + escapeHtml(f.label) + '</div><div class="v">' + escapeHtml(r[f.k]) + '</div></div>';
+          });
+          html += '</div>';
+        });
+      }
+      html += '</div>';   // end .profile-wrap
+      host.innerHTML = html;
+      var $save = document.getElementById('pf-save');
+      if ($save) $save.addEventListener('click', function () { _saveMyProfile(meKey, meName); });
+      var $up = document.getElementById('pf-upload');
+      if ($up) $up.addEventListener('click', function () { _uploadProfileFile(meKey); });
+      _loadProfileFiles(meKey, dbMissing);
+    }
+    function _saveMyProfile(meKey, meName) {
+      var row = { person: meKey, display_name: meName, updated_by: meName, updated_at: new Date().toISOString() };
+      PROFILE_FIELDS.forEach(function (f) { var el = document.getElementById('pf-' + f.k); row[f.k] = el ? el.value : ''; });
+      var $save = document.getElementById('pf-save');
+      if ($save) $save.setAttribute('aria-busy', 'true');
+      sb.from('team_profiles').upsert(row, { onConflict: 'person' }).then(function (resp) {
+        if ($save) $save.removeAttribute('aria-busy');
+        if (resp && resp.error) {
+          status('Could not save your profile: ' + resp.error.message + (/team_profiles|column|relation|does not exist/i.test(resp.error.message) ? ' \u2014 the one-time team_profiles setup may still be pending.' : ''), 'error');
+          return;
+        }
+        var $ok = document.getElementById('pf-saved');
+        if ($ok) { $ok.hidden = false; setTimeout(function () { if ($ok) $ok.hidden = true; }, 2500); }
+        flashOk('Profile saved');
+      });
+    }
+    function _loadProfileFiles(meKey, setupPending) {
+      var $files = document.getElementById('pf-files');
+      if (!$files) return;
+      // A missing bucket returns an empty list (not an error), so lean on the
+      // same setup signal as the text store for the empty-state wording.
+      var emptyMsg = setupPending
+        ? 'File storage isn&#39;t set up yet &mdash; uploads work once the one-time setup is done.'
+        : 'No files yet &mdash; upload a bio or deck below.';
+      sb.storage.from('profiles').list(meKey, { limit: 100, sortBy: { column: 'created_at', order: 'desc' } }).then(function (resp) {
+        if (resp && resp.error) {
+          $files.innerHTML = '<p class="profile-file-empty">File storage isn&#39;t set up yet &mdash; the one-time <code>profiles</code> bucket setup is still pending.</p>';
+          return;
+        }
+        var items = ((resp && resp.data) || []).filter(function (f) { return f.name && f.name !== '.emptyFolderPlaceholder'; });
+        if (!items.length) { $files.innerHTML = '<p class="profile-file-empty">' + emptyMsg + '</p>'; return; }
+        $files.innerHTML = items.map(function (f) {
+          var size = (f.metadata && f.metadata.size) ? _fmtBytes(f.metadata.size) : '';
+          return '<div class="profile-file"><a class="profile-file-name" href="#" data-file="' + escapeHtml(f.name) + '">' + escapeHtml(f.name) + '</a>' +
+            (size ? '<span class="profile-file-size">' + size + '</span>' : '') +
+            '<button type="button" class="q-btn danger" data-delfile="' + escapeHtml(f.name) + '" title="Delete this file">&times;</button></div>';
+        }).join('');
+        $files.querySelectorAll('[data-file]').forEach(function (a) {
+          a.addEventListener('click', function (e) {
+            e.preventDefault();
+            var name = a.getAttribute('data-file');
+            sb.storage.from('profiles').createSignedUrl(meKey + '/' + name, 120).then(function (r) {
+              if (r && r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank');
+              else status('Could not open that file.', 'error');
+            });
+          });
+        });
+        $files.querySelectorAll('[data-delfile]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            var name = b.getAttribute('data-delfile');
+            if (!window.confirm('Delete "' + name + '"? This cannot be undone.')) return;
+            sb.storage.from('profiles').remove([meKey + '/' + name]).then(function (r) {
+              if (r && r.error) { status('Delete failed: ' + r.error.message, 'error'); return; }
+              flashOk('File deleted'); _loadProfileFiles(meKey);
+            });
+          });
+        });
+      });
+    }
+    function _uploadProfileFile(meKey) {
+      var $in = document.getElementById('pf-file-input');
+      if (!$in || !$in.files || !$in.files.length) { status('Pick a file first.', 'warn'); return; }
+      var file = $in.files[0];
+      if (file.size > 25 * 1024 * 1024) { status('That file is over 25 MB \u2014 please upload something smaller.', 'error'); return; }
+      var $up = document.getElementById('pf-upload');
+      if ($up) { $up.setAttribute('aria-busy', 'true'); $up.textContent = 'Uploading\u2026'; }
+      sb.storage.from('profiles').upload(meKey + '/' + file.name, file, { upsert: true }).then(function (resp) {
+        if ($up) { $up.removeAttribute('aria-busy'); $up.textContent = 'Upload'; }
+        if (resp && resp.error) {
+          status('Upload failed: ' + resp.error.message + (/bucket|not found/i.test(resp.error.message) ? ' \u2014 the profiles storage bucket may not be set up yet.' : ''), 'error');
+          return;
+        }
+        if ($in) $in.value = '';
+        flashOk('File uploaded');
+        _loadProfileFiles(meKey);
+      });
+    }
+
     // ── Planner: scheduling conflicts + coverage gaps by territory ──
     // ── Per-teammate target profiles ────────────────────────────────
     // Single source of truth for "which events are for whom" — drives the
@@ -7733,7 +7957,7 @@
     var VIEW_KEY = 'ab.angela.view';
     var currentView = 'grid';
 
-    var VIEW_NAMES = ['myevents', 'planahead', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
+    var VIEW_NAMES = ['myevents', 'planahead', 'myprofile', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
     function setView(name) {
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
       // The Day-Of brief now lives inside My Events — no standalone tab.
@@ -7754,11 +7978,13 @@
       var d = document.getElementById('ops-dayof');
       var me = document.getElementById('ops-myevents');
       var pa = document.getElementById('ops-planahead');
+      var pr = document.getElementById('ops-myprofile');
       if (g) g.style.display = (name === 'grid') ? '' : 'none';
       var rh = document.getElementById('ops-results-header');
       if (rh) rh.style.display = (name === 'grid') ? '' : 'none';
       if (me) me.classList.toggle('show', name === 'myevents');
       if (pa) pa.classList.toggle('show', name === 'planahead');
+      if (pr) pr.classList.toggle('show', name === 'myprofile');
       if (c) c.classList.toggle('show', name === 'calendar');
       if (m) m.classList.toggle('show', name === 'map');
       if (q) q.classList.toggle('show', name === 'queue');
@@ -7766,6 +7992,7 @@
       if (d) d.classList.toggle('show', name === 'dayof');
       if (name === 'myevents') renderMyEvents();
       if (name === 'planahead') renderPlanAhead();
+      if (name === 'myprofile') renderMyProfile();
       if (name === 'calendar') recalcCalendar();   // re-apply the live filters
       if (name === 'map') openOpsMap();
       if (name === 'queue') renderQueue();
