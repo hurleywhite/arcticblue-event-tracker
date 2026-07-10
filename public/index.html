@@ -1154,8 +1154,11 @@
 
     .ops-form { display: grid; gap: 10px; margin-top: 12px; }
     .ops-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .ops-form label { display: flex; flex-direction: column; gap: 4px; }
-    .ops-form label > .key {
+    /* .ops-fieldset is a NON-label field wrapper — used where the field holds
+       several checkboxes (each already in its own <label>), since nesting a
+       <label> inside a <label> is invalid HTML and breaks clicking on Safari. */
+    .ops-form label, .ops-form .ops-fieldset { display: flex; flex-direction: column; gap: 4px; }
+    .ops-form label > .key, .ops-form .ops-fieldset > .key {
       font-family: var(--ab-mono); font-size: 0.66rem;
       color: var(--ab-fg-3); letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -4072,6 +4075,9 @@
         speakBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Open to speak</span>';
       }
       if (att.length) attendBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Attending \u2014 ' + escapeHtml(att.join(', ')) + '</span>';
+      // The Attending STAGE is set but no attendee is named yet — still show it,
+      // so ticking "Attending" on the add form holds visibly (add who in Edit).
+      else if (stages.indexOf('Attending') !== -1 && !past) attendBit = '<span class="st-bit"><span class="st-dot st-ok"></span>Attending</span>';
       else if (!past && speakBit && stages.indexOf('Booked') === -1) attendBit = '<span class="st-bit">Open to attend</span>';
       var bits = [speakBit, attendBit].filter(Boolean);
       if (!bits.length) return '';
@@ -7757,9 +7763,9 @@
         '<label><span class="key">ArcticBlue speaker</span>' +
           '<input type="text" name="speaker" list="ab-speakers" placeholder="Thor, Joe, Jerome, Scott, Verma, Carlos, Jim…">' +
         '</label>' +
-        '<label><span class="key">Pipeline stages</span>' +
+        '<div class="ops-fieldset"><span class="key">Pipeline stages</span>' +
           stageCheckboxes([], 'status_tags') +
-        '</label>' +
+        '</div>' +
         '<label><span class="key">Why it fits</span>' +
           '<textarea name="why" placeholder="One line on why this is on the list"></textarea>' +
         '</label>' +
