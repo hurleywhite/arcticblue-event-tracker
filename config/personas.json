@@ -15,7 +15,7 @@
     },
     "carlos": {
       "name": "Carlos Chacon Almeida",
-      "role": "Sales Lead, Americas",
+      "role": "Head of Sales, LatAm",
       "mode": "room",
       "geo": ["US & Canada", "Mexico City", "Monterrey", "Santo Domingo", "San Juan", "Sao Paulo", "Bogota", "Buenos Aires", "Lima", "Santiago", "Quito"],
       "icp_industries": ["Financial Services", "Insurance", "Fintech", "Healthcare", "Enterprise SaaS", "Retail", "eCommerce", "Telco", "Media"],
@@ -51,7 +51,7 @@
     },
     "verma": {
       "name": "Anuraag Verma",
-      "role": "Operations / Delivery",
+      "role": "Co-Founder",
       "mode": "stage",
       "geo": ["New York", "San Francisco", "Washington", "Las Vegas", "Miami", "London", "Zurich", "Riyadh", "Dubai", "Abu Dhabi"],
       "icp_industries": ["Insurance", "Finance", "Fintech", "Banking", "Capital Markets", "Healthcare"],
@@ -60,6 +60,18 @@
       "signature_angles": ["regulated industries: the cost of a wrong AI bet is highest — validate before you scale"],
       "outcome_target": "1 board/C-suite speaking or advisory conversation + 2 regulated-industry leads",
       "flags": ["board-level / C-suite audiences in regulated sectors (insurance, finance/banking, capital markets, fintech, healthcare)", "governance & transformation as a headline theme is the strongest fit signal", "same major-city list as Thor but no LatAm"]
+    },
+    "jim": {
+      "name": "Jim",
+      "role": "Public Sector Lead",
+      "mode": "stage",
+      "geo": ["Washington", "US & Canada"],
+      "icp_industries": ["Government", "Federal", "Defense", "GovTech"],
+      "buyer_titles": ["CIO", "CTO", "Chief AI Officer", "Chief Data Officer", "Chief Digital Officer", "agency head", "program director", "procurement lead"],
+      "themes": ["government AI", "federal agencies", "govtech", "defense", "government modernization"],
+      "signature_angles": ["AI for the public sector: adoption at agency scale, done responsibly"],
+      "outcome_target": "2+ qualified public-sector conversations; contacts captured",
+      "flags": ["fit = anything government / public sector / federal / defense", "target Washington DC especially — the densest public-sector market — but government events elsewhere in the US count too"]
     }
   },
   "arcticblue": {

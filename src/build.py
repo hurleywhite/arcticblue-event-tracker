@@ -2200,7 +2200,22 @@ def build():
     .profile-id {{ display: flex; flex-direction: column; gap: 2px; min-width: 0; }}
     .profile-who {{ font-family: var(--ab-sans); font-weight: 700; font-size: 1.15rem; color: var(--ab-fg); }}
     .profile-role {{ font-size: 0.82rem; color: var(--ab-fg-3); }}
-    .profile-materials {{ margin-top: 18px; }}
+    /* Section headers inside the profile (Speaking materials / About you). */
+    .profile-section-head {{
+      margin: 24px 0 2px; font-family: var(--ab-sans); font-weight: 800;
+      font-size: 1.02rem; color: var(--ab-fg);
+      display: flex; align-items: baseline; gap: 9px;
+    }}
+    .profile-section-sub {{ font-size: 0.83rem; color: var(--ab-fg-3); margin: 0 0 6px; }}
+    .profile-section-opt {{ font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-mute); }}
+    /* One speaking-material slot (Headshot / Slides / Bio & one-pagers / …). */
+    .profile-material {{
+      border: 1px solid var(--ab-rule); border-radius: 9px; background: var(--ab-bg-2);
+      padding: 12px 14px; margin: 10px 0 0;
+    }}
+    .profile-material-head {{ display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; margin: 0 0 8px; }}
+    .profile-material-label {{ font-family: var(--ab-sans); font-weight: 700; font-size: 0.9rem; color: var(--ab-fg); }}
+    .profile-material .profile-file {{ background: var(--ab-bg); }}
     .profile-field {{ margin: 17px 0 0; }}
     .profile-field label {{
       display: block; font-family: var(--ab-mono); font-size: 0.68rem; font-weight: 600;
@@ -2237,7 +2252,9 @@ def build():
     .profile-tm-field {{ margin: 8px 0 0; }}
     .profile-tm-field .k {{ font-family: var(--ab-mono); font-size: 0.63rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-fg-3); }}
     .profile-tm-field .v {{ font-size: 0.86rem; color: var(--ab-fg-2); line-height: 1.5; white-space: pre-wrap; margin: 2px 0 0; }}
-    .profile-tm-files {{ margin: 3px 0 0; display: flex; flex-direction: column; gap: 5px; }}
+    .profile-tm-files {{ margin: 3px 0 0; display: flex; flex-direction: column; gap: 8px; }}
+    .tm-mat-group {{ display: flex; flex-direction: column; gap: 5px; }}
+    .tm-mat-label {{ font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-mute); }}
     .profile-tm-empty {{ font-size: 0.82rem; color: var(--ab-mute); font-style: italic; }}
     .profile-setup-note {{
       border: 1px solid #f0d9a8; background: #fdf6e8; border-radius: 8px;
@@ -7116,10 +7133,19 @@ def build():
     // to a one-time "run setup" note if they aren't there yet.
     // ════════════════════════════════════════════════════════════════
     var PROFILE_FIELDS = [
-      {{ k: 'bio',        label: 'Bio',             hint: 'a short speaker bio',        ph: 'Two or three sentences an organizer could drop straight into an agenda.' }},
-      {{ k: 'topics',     label: 'Speaking topics', hint: 'what you speak on',          ph: 'Talk titles, themes, signature angles — one per line.' }},
+      {{ k: 'bio',        label: 'Short bio',       hint: 'a couple of sentences',      ph: 'Two or three sentences an organizer could drop straight into an agenda.' }},
+      {{ k: 'topics',     label: 'Talks & topics',  hint: 'what you speak on',          ph: 'Talk titles, themes, signature angles — one per line.' }},
       {{ k: 'past_talks', label: 'Past talks',      hint: 'what & where you have spoken', ph: 'e.g. "AI adoption keynote — Web Summit Lisbon 2025". Helps us target similar events.' }},
       {{ k: 'notes',      label: 'Targeting notes', hint: 'events you want',            ph: 'Types of events you want to be at, specific event names, regions — anything on your mind.' }}
+    ];
+    // Speaking materials, organized by what an organizer actually asks for —
+    // each is its own upload slot (files live under <person>/<slot>/ in the
+    // profiles bucket). This is the point of the profile: a ready-to-send kit.
+    var PROFILE_MATERIALS = [
+      {{ k: 'headshot', label: 'Headshot',          hint: 'a professional photo organizers can use' }},
+      {{ k: 'decks',    label: 'Slides & decks',    hint: 'your talk decks — PDF / PPTX / Keynote' }},
+      {{ k: 'bios',     label: 'Bio & one-pagers',  hint: 'formal bio doc, speaker one-pager, leave-behinds' }},
+      {{ k: 'other',    label: 'Other materials',   hint: 'press, testimonials, video links saved as a file — anything else' }}
     ];
     function _profileKey(name) {{ return (name || '').trim().toLowerCase().split(/\\s+/)[0]; }}
     function _profileDisplay(row, key) {{
@@ -7180,25 +7206,39 @@ def build():
       h += '<div class="profile-tm-field"><div class="k">Materials</div><div class="profile-tm-files" id="' + filesId + '"><p class="profile-file-empty">Loading&hellip;</p></div></div>';
       return h + '</div>';
     }}
-    // Read-only file list for a teammate — download links only, no delete.
+    // Read-only materials for a teammate — grouped by slot, download only.
+    // Lists each material category (<person>/<cat>/…) and appends the slots
+    // that have files; clicks are handled by delegation so async appends work.
     function _loadTeammateFiles(personKey, containerId) {{
       var $c = document.getElementById(containerId);
       if (!$c) return;
-      sb.storage.from('profiles').list(personKey, {{ limit: 100, sortBy: {{ column: 'created_at', order: 'desc' }} }}).then(function (resp) {{
-        var items = ((resp && resp.data) || []).filter(function (f) {{ return f.name && f.name !== '.emptyFolderPlaceholder'; }});
-        if (!items.length) {{ $c.innerHTML = '<p class="profile-file-empty">&mdash;</p>'; return; }}
-        $c.innerHTML = items.map(function (f) {{
-          var size = (f.metadata && f.metadata.size) ? _fmtBytes(f.metadata.size) : '';
-          return '<div class="profile-file"><a class="profile-file-name" href="#" data-tmfile="' + escapeHtml(f.name) + '" data-tmkey="' + escapeHtml(personKey) + '">' + escapeHtml(f.name) + '</a>' +
-            (size ? '<span class="profile-file-size">' + size + '</span>' : '') + '</div>';
-        }}).join('');
-        $c.querySelectorAll('[data-tmfile]').forEach(function (a) {{
-          a.addEventListener('click', function (e) {{
-            e.preventDefault();
-            sb.storage.from('profiles').createSignedUrl(a.getAttribute('data-tmkey') + '/' + a.getAttribute('data-tmfile'), 120).then(function (r) {{
-              if (r && r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank'); else status('Could not open that file.', 'error');
-            }});
+      $c.innerHTML = '';
+      if (!$c.dataset.dlWired) {{
+        $c.dataset.dlWired = '1';
+        $c.addEventListener('click', function (e) {{
+          var a = e.target && e.target.closest ? e.target.closest('[data-tmfile]') : null;
+          if (!a) return;
+          e.preventDefault();
+          sb.storage.from('profiles').createSignedUrl(a.getAttribute('data-tmkey') + '/' + a.getAttribute('data-tmfile'), 120).then(function (r) {{
+            if (r && r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank'); else status('Could not open that file.', 'error');
           }});
+        }});
+      }}
+      var pending = PROFILE_MATERIALS.length, anyShown = false;
+      PROFILE_MATERIALS.forEach(function (m) {{
+        sb.storage.from('profiles').list(personKey + '/' + m.k, {{ limit: 50 }}).then(function (resp) {{
+          var items = ((resp && resp.data) || []).filter(function (f) {{ return f.name && f.name !== '.emptyFolderPlaceholder'; }});
+          if (items.length) {{
+            anyShown = true;
+            var h = '<div class="tm-mat-group"><div class="tm-mat-label">' + escapeHtml(m.label) + '</div>' +
+              items.map(function (f) {{
+                var size = (f.metadata && f.metadata.size) ? _fmtBytes(f.metadata.size) : '';
+                return '<div class="profile-file"><a class="profile-file-name" href="#" data-tmfile="' + escapeHtml(m.k + '/' + f.name) + '" data-tmkey="' + escapeHtml(personKey) + '">' + escapeHtml(f.name) + '</a>' +
+                  (size ? '<span class="profile-file-size">' + size + '</span>' : '') + '</div>';
+              }}).join('') + '</div>';
+            $c.insertAdjacentHTML('beforeend', h);
+          }}
+          if (--pending === 0 && !anyShown) $c.innerHTML = '<p class="profile-file-empty">&mdash;</p>';
         }});
       }});
     }}
@@ -7230,16 +7270,29 @@ def build():
             '<span class="profile-id"><span class="profile-who">' + escapeHtml(disp) + '</span>' +
               (role ? '<span class="profile-role">' + escapeHtml(role) + '</span>' : '') + '</span>' +
           '</div>';
-        html += '<div class="profile-field profile-materials"><label>Materials <span class="hint">&middot; bios, decks, one-pagers</span></label>' +
-          '<div class="profile-upload-row"><input type="file" id="pf-file-input" aria-label="Choose a file to upload"><button type="button" class="q-btn primary" id="pf-upload">Upload file</button></div>' +
-          '<div class="profile-files" id="pf-files"><p class="profile-file-empty">Loading files&hellip;</p></div></div>';
+        // ── Speaking materials — the point of the profile: a ready-to-send
+        // kit, organized by what organizers ask for. Each slot is its own
+        // upload + list.
+        html += '<div class="profile-section-head">Speaking materials</div>' +
+          '<p class="profile-section-sub">Upload the things you send organizers &mdash; kept together so anyone can grab your kit fast.</p>';
+        PROFILE_MATERIALS.forEach(function (m) {{
+          html += '<div class="profile-material"><div class="profile-material-head">' +
+              '<span class="profile-material-label">' + escapeHtml(m.label) + '</span>' +
+              '<span class="hint">' + escapeHtml(m.hint) + '</span></div>' +
+            '<div class="profile-files" id="pf-files-' + m.k + '"><p class="profile-file-empty">Loading&hellip;</p></div>' +
+            '<div class="profile-upload-row"><input type="file" id="pf-file-input-' + m.k + '" aria-label="Choose a file for ' + escapeHtml(m.label) + '">' +
+              '<button type="button" class="q-btn" data-mat-upload="' + m.k + '">Upload</button></div>' +
+          '</div>';
+        }});
+        // ── Written profile — optional, but helps targeting.
+        html += '<div class="profile-section-head">About you <span class="profile-section-opt">optional</span></div>';
         PROFILE_FIELDS.forEach(function (f) {{
           var val = myRow ? (myRow[f.k] || '') : '';
           html += '<div class="profile-field"><label for="pf-' + f.k + '">' + escapeHtml(f.label) +
             ' <span class="hint">&middot; ' + escapeHtml(f.hint) + '</span></label>' +
             '<textarea id="pf-' + f.k + '" rows="3" placeholder="' + escapeHtml(f.ph) + '">' + escapeHtml(val) + '</textarea></div>';
         }});
-        html += '<div class="profile-actions"><button type="button" class="q-btn primary" id="pf-save">Save profile</button>' +
+        html += '<div class="profile-actions"><button type="button" class="q-btn primary" id="pf-save">Save write-ups</button>' +
           '<span class="profile-saved-note" id="pf-saved" hidden>&#10003; Saved</span></div>';
         html += '</div>';   // end .profile-card
       }}
@@ -7260,9 +7313,10 @@ def build():
       if (!support) {{
         var $save = document.getElementById('pf-save');
         if ($save) $save.addEventListener('click', function () {{ _saveMyProfile(meKey, meName); }});
-        var $up = document.getElementById('pf-upload');
-        if ($up) $up.addEventListener('click', function () {{ _uploadProfileFile(meKey); }});
-        _loadProfileFiles(meKey, dbMissing);
+        host.querySelectorAll('[data-mat-upload]').forEach(function (btn) {{
+          btn.addEventListener('click', function () {{ _uploadProfileFile(meKey, btn.getAttribute('data-mat-upload')); }});
+        }});
+        PROFILE_MATERIALS.forEach(function (m) {{ _loadProfileFiles(meKey, m.k, dbMissing); }});
       }}
       dirKeys.forEach(function (k, i) {{ _loadTeammateFiles(k, 'tmfiles-' + i); }});
     }}
@@ -7282,15 +7336,17 @@ def build():
         flashOk('Profile saved');
       }});
     }}
-    function _loadProfileFiles(meKey, setupPending) {{
-      var $files = document.getElementById('pf-files');
+    // Files for one material slot (<meKey>/<cat>/…) — download + delete.
+    function _loadProfileFiles(meKey, cat, setupPending) {{
+      var $files = document.getElementById('pf-files-' + cat);
       if (!$files) return;
+      var prefix = meKey + '/' + cat;
       // A missing bucket returns an empty list (not an error), so lean on the
       // same setup signal as the text store for the empty-state wording.
       var emptyMsg = setupPending
-        ? 'File storage isn&#39;t set up yet &mdash; uploads work once the one-time setup is done.'
-        : 'No files yet &mdash; upload a bio or deck below.';
-      sb.storage.from('profiles').list(meKey, {{ limit: 100, sortBy: {{ column: 'created_at', order: 'desc' }} }}).then(function (resp) {{
+        ? 'Storage not set up yet.'
+        : 'Nothing here yet.';
+      sb.storage.from('profiles').list(prefix, {{ limit: 100, sortBy: {{ column: 'created_at', order: 'desc' }} }}).then(function (resp) {{
         if (resp && resp.error) {{
           $files.innerHTML = '<p class="profile-file-empty">File storage isn&#39;t set up yet &mdash; the one-time <code>profiles</code> bucket setup is still pending.</p>';
           return;
@@ -7306,8 +7362,7 @@ def build():
         $files.querySelectorAll('[data-file]').forEach(function (a) {{
           a.addEventListener('click', function (e) {{
             e.preventDefault();
-            var name = a.getAttribute('data-file');
-            sb.storage.from('profiles').createSignedUrl(meKey + '/' + name, 120).then(function (r) {{
+            sb.storage.from('profiles').createSignedUrl(prefix + '/' + a.getAttribute('data-file'), 120).then(function (r) {{
               if (r && r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank');
               else status('Could not open that file.', 'error');
             }});
@@ -7317,22 +7372,22 @@ def build():
           b.addEventListener('click', function () {{
             var name = b.getAttribute('data-delfile');
             if (!window.confirm('Delete "' + name + '"? This cannot be undone.')) return;
-            sb.storage.from('profiles').remove([meKey + '/' + name]).then(function (r) {{
+            sb.storage.from('profiles').remove([prefix + '/' + name]).then(function (r) {{
               if (r && r.error) {{ status('Delete failed: ' + r.error.message, 'error'); return; }}
-              flashOk('File deleted'); _loadProfileFiles(meKey);
+              flashOk('File deleted'); _loadProfileFiles(meKey, cat, false);
             }});
           }});
         }});
       }});
     }}
-    function _uploadProfileFile(meKey) {{
-      var $in = document.getElementById('pf-file-input');
+    function _uploadProfileFile(meKey, cat) {{
+      var $in = document.getElementById('pf-file-input-' + cat);
       if (!$in || !$in.files || !$in.files.length) {{ status('Pick a file first.', 'warn'); return; }}
       var file = $in.files[0];
       if (file.size > 25 * 1024 * 1024) {{ status('That file is over 25 MB \\u2014 please upload something smaller.', 'error'); return; }}
-      var $up = document.getElementById('pf-upload');
+      var $up = document.querySelector('[data-mat-upload="' + cat + '"]');
       if ($up) {{ $up.setAttribute('aria-busy', 'true'); $up.textContent = 'Uploading\\u2026'; }}
-      sb.storage.from('profiles').upload(meKey + '/' + file.name, file, {{ upsert: true }}).then(function (resp) {{
+      sb.storage.from('profiles').upload(meKey + '/' + cat + '/' + file.name, file, {{ upsert: true }}).then(function (resp) {{
         if ($up) {{ $up.removeAttribute('aria-busy'); $up.textContent = 'Upload'; }}
         if (resp && resp.error) {{
           status('Upload failed: ' + resp.error.message + (/bucket|not found/i.test(resp.error.message) ? ' \\u2014 the profiles storage bucket may not be set up yet.' : ''), 'error');
@@ -7340,7 +7395,7 @@ def build():
         }}
         if ($in) $in.value = '';
         flashOk('File uploaded');
-        _loadProfileFiles(meKey);
+        _loadProfileFiles(meKey, cat, false);
       }});
     }}
 
@@ -7361,7 +7416,9 @@ def build():
       {{ key: 'Verma', label: 'Regulated (board-level)', regions: [],
          kw: ['insurance','insurtech','finance','financial services','bank','banking','capital markets','payments','wealth','fintech','healthcare','board','chief risk','chief data','governance','regulated'] }},
       {{ key: 'Carlos', label: 'Americas (mid-market)', regions: ['US & Canada','Latin America'], locked: true,
-         kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] }}
+         kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] }},
+      {{ key: 'Jim', label: 'Government (DC)', regions: [],
+         kw: ['government','public sector','federal','defense','national security','govtech','civic','municipal','state and local','washington','washington dc','capitol','congress','white house','agency','gsa','dod','nist','fedramp','public policy'] }}
     ];
     var AB_PROFILE_BY_KEY = {{}};
     AB_PROFILES.forEach(function (p) {{ AB_PROFILE_BY_KEY[p.key] = p; }});
@@ -10860,7 +10917,7 @@ def build():
       {{ name: 'Carlos', init: 'C' }},
       {{ name: 'Hurley', init: 'H' }},
       {{ name: 'Jerome', init: 'JW' }},
-      {{ name: 'Jim',    init: 'J' }},
+      {{ name: 'Jim',    init: 'JC' }},
       {{ name: 'Joe',    init: 'JL' }},
       {{ name: 'Scott',  init: 'S' }},
       {{ name: 'Thor',   init: 'T' }},
