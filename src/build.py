@@ -6636,26 +6636,33 @@ def build():
       (_lastEvs || []).forEach(function (e) {{ byNum[e.num] = e; }});
       (_lastManual || []).forEach(function (m) {{ byMid[m.id] = m; }});
       var items = [];
-      // Teammates' edits (event_state carries updated_by/at; only OTHERS' edits).
+      // Real pipeline progress only — a teammate (never the automated
+      // Enrichment writer) advanced the event to Followed up / Meeting held /
+      // Booked. Not every edit: priority tweaks, notes, archiving etc. don't
+      // belong here — this is "here's what actually moved," not an edit log.
+      var _WN_STAGES = {{ 'Followed up': 1, 'Meeting held': 1, 'Booked': 1 }};
       (_lastStateRows || []).forEach(function (r) {{
         if (!r.updated_at || r.updated_at < cutoff) return;
         var whoF = firstNameFromEmail(r.updated_by || '') || '';
-        if (!whoF || whoF.toLowerCase() === me) return;
+        if (!whoF || whoF.toLowerCase() === me || whoF.toLowerCase() === 'enrichment') return;
+        var stg = stageTagsOf(r).filter(function (s) {{ return _WN_STAGES[s]; }});
+        if (!stg.length) return;
         var ev = byNum[r.event_num]; if (!ev) return;
         var id = 'u:c' + r.event_num + ':' + r.updated_at;
         if (dis[id]) return;
-        var stg = stageTagsOf(r);
         items.push({{ id: id, ts: r.updated_at, kind: 'catalog', key: ev.num,
-          label: whoF + ' updated ' + (ev.name || 'an event') + (stg.length ? ' \\u2014 now ' + stg.join(' \\u00b7 ') : '') }});
+          label: whoF + ' marked ' + (ev.name || 'an event') + ' as ' + stg.map(function (s) {{ return s.toLowerCase(); }}).join(' &amp; ') }});
       }});
-      // Newly added manual events.
+      // Newly added manual events — a teammate adding one by hand, never the
+      // automated Dust ingest (dust@arcticblue.ai -> "Dust"), which finds and
+      // adds events on its own and isn't news to anyone.
       (_lastManual || []).forEach(function (m) {{
         if (!m.created_at || m.created_at < cutoff) return;
         var whoF = firstNameFromEmail(m.created_by || '') || '';
-        if (whoF.toLowerCase() === me) return;
+        if (!whoF || whoF.toLowerCase() === me || whoF.toLowerCase() === 'dust') return;
         var id = 'a:m' + m.id; if (dis[id]) return;
         items.push({{ id: id, ts: m.created_at, kind: 'manual', key: m.id,
-          label: (whoF || 'Someone') + ' added ' + (m.name || 'an event') }});
+          label: whoF + ' added ' + (m.name || 'an event') }});
       }});
       // New comments since you last opened that event's chat (others' only).
       Object.keys(_chatMeta || {{}}).forEach(function (k) {{
