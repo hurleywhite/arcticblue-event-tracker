@@ -1787,6 +1787,7 @@
     .trip-anchor strong { color: var(--ab-fg); }
     .trip-anchor-name { font: inherit; font-weight: 700; color: var(--ab-fg); background: none; border: 0; padding: 0; cursor: pointer; }
     .trip-anchor-name:hover { color: #1271a8; text-decoration: underline; }
+    .trip-anchor-role { font-size: 0.8rem; font-weight: 600; color: var(--ab-fg-3); }
     .trip-anchor-meta { display: block; font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); margin-top: 2px; }
     .trip-prox { font-family: var(--ab-mono); font-size: 0.66rem; color: #1271a8; margin: 3px 0 0; }
     /* Angela's Batch-your-trips is grouped by person: a name header, then that
@@ -7050,10 +7051,12 @@
       all.forEach(function (it) {
         if (it.past || it.hidden) return;
         if (!it.sort || it.sort >= 99999999) return;
-        var g = null;
+        // geo may be null (an unmappable location like "Istanbul" before it was
+        // in the coord table) — we still LIST the trip, we just can't batch
+        // nearby events onto it.
+        var g = geoOf(it);
         owners.forEach(function (who) {
           var r = _travelRole(it, who); if (!r) return;
-          if (!g) g = geoOf(it); if (!g) return;
           anchors.push({ it: it, who: who, role: r, geo: g, startD: _sortToDate(it.sort), endD: _sortToDate(_endSortOf(it)) });
         });
       });
@@ -7062,63 +7065,66 @@
       var clusters = [], usedKeys = {};
       anchors.forEach(function (anchor) {
         if (!anchor.startD || !anchor.endD) return;
-        var ownerGov = _govOk(anchor.who);   // gov/A&D nearby only for Jim's (or support's) trips
-        // Widen the batch window with how far this trip already is from home.
-        var home = _homeOf(anchor.who);
-        var win = _tripWindow(home ? _haversineKm(home, anchor.geo) : 0);
-        var near = [], seenName = {};
-        all.forEach(function (it) {
-          if (it === anchor.it) return;
-          if (it.past || it.hidden || it.queue_dismissed) return;
-          if (it.stages.length) return;                       // already in the pipeline
-          if (BADt.test(it.name)) return;
-          if (_anyRole(it, anchor.who)) return;               // already on this person's list
-          if (!ownerGov && _isGovDef(it)) return;             // gov/A&D is Jim's lane
-          if (skips[_sugSkipId(it.kind, it.key)]) return;
-          if (usedKeys[anchor.who + '|' + it.kind + ':' + it.key]) return;  // don't repeat within this person's trips
-          var nm = abFold(it.name); if (seenName[nm]) return;  // collapse duplicate events
-          var g = geoOf(it); if (!g) return;
-          var km = _haversineKm(anchor.geo, g);
-          if (km > win.maxKm) return;
-          var cs = _sortToDate(it.sort), ce = _sortToDate(_endSortOf(it));
-          if (!cs || !ce) return;
-          var gap = Math.max(0, Math.ceil((cs - anchor.endD) / DAY_MS), Math.ceil((anchor.startD - ce) / DAY_MS));
-          if (gap > win.maxGap) return;
-          // Can't be in two different cities on the same day — only same-metro
-          // events may overlap in time. Across cities, require a day between.
-          if (km >= SAME_CITY_KM && gap === 0) return;
-          seenName[nm] = 1;
-          near.push({ it: it, gap: gap, km: km, geo: g });
-        });
-        if (near.length) {
-          // Rank what to actually surface: a trip batches a HANDFUL, not a
-          // continent. Float events that match the anchor's topic (topic
-          // overlap >= 2), then the closest, then the soonest — so a long-haul
-          // trip (Web Summit Lisbon) shows the few most relevant/closest, not
-          // every European event within range.
-          var aProf = _contentProfile(anchor.it);
-          near.forEach(function (n) { n.rel = _simScore(aProf, _contentProfile(n.it)).t; });
-          near.sort(function (a, b) {
-            var ra = a.rel >= 2 ? 0 : 1, rb = b.rel >= 2 ? 0 : 1;
-            return ra - rb || a.km - b.km || a.gap - b.gap;
+        var near = [];
+        // Only look for nearby events to batch when we know WHERE the trip is.
+        // A trip with no resolvable coords still shows — just with nothing
+        // batched onto it (so every committed trip is listed).
+        if (anchor.geo) {
+          var ownerGov = _govOk(anchor.who);   // gov/A&D nearby only for Jim's (or support's) trips
+          // Widen the batch window with how far this trip already is from home.
+          var home = _homeOf(anchor.who);
+          var win = _tripWindow(home ? _haversineKm(home, anchor.geo) : 0);
+          var seenName = {};
+          all.forEach(function (it) {
+            if (it === anchor.it) return;
+            if (it.past || it.hidden || it.queue_dismissed) return;
+            if (it.stages.length) return;                       // already in the pipeline
+            if (BADt.test(it.name)) return;
+            if (_anyRole(it, anchor.who)) return;               // already on this person's list
+            if (!ownerGov && _isGovDef(it)) return;             // gov/A&D is Jim's lane
+            if (skips[_sugSkipId(it.kind, it.key)]) return;
+            if (usedKeys[anchor.who + '|' + it.kind + ':' + it.key]) return;  // don't repeat within this person's trips
+            var nm = abFold(it.name); if (seenName[nm]) return;  // collapse duplicate events
+            var g = geoOf(it); if (!g) return;
+            var km = _haversineKm(anchor.geo, g);
+            if (km > win.maxKm) return;
+            var cs = _sortToDate(it.sort), ce = _sortToDate(_endSortOf(it));
+            if (!cs || !ce) return;
+            var gap = Math.max(0, Math.ceil((cs - anchor.endD) / DAY_MS), Math.ceil((anchor.startD - ce) / DAY_MS));
+            if (gap > win.maxGap) return;
+            // Can't be in two different cities on the same day — only same-metro
+            // events may overlap in time. Across cities, require a day between.
+            if (km >= SAME_CITY_KM && gap === 0) return;
+            seenName[nm] = 1;
+            near.push({ it: it, gap: gap, km: km, geo: g });
           });
-          // Collapse same-host/same-city near-dupes (CDAO Defense & Security /
-          // CDAO Government / CDAO Washington D.C. -> one row). Seed with the
-          // anchor's own brand so a second event from that host in the same city
-          // (you're already going) doesn't show either.
-          var seenBrand = {};
-          seenBrand[_brandKey(anchor.it, anchor.geo)] = 1;
-          near = near.filter(function (n) {
-            var bk = _brandKey(n.it, n.geo);
-            if (seenBrand[bk]) return false;
-            seenBrand[bk] = 1; return true;
-          });
-          if (!near.length) return;   // dedupe emptied it — no cluster (e.g. lone same-brand neighbour)
-          near = near.slice(0, 5);    // cap — one trip covers a few, not twenty
-          near.sort(function (a, b) { return a.it.sort - b.it.sort; });   // show the kept few chronologically
-          near.forEach(function (n) { usedKeys[anchor.who + '|' + n.it.kind + ':' + n.it.key] = 1; });
-          clusters.push({ anchor: anchor.it, who: anchor.who, support: support, role: anchor.role, near: near });
+          if (near.length) {
+            // Rank what to actually surface: a trip batches a HANDFUL, not a
+            // continent. Float events that match the anchor's topic (topic
+            // overlap >= 2), then the closest, then the soonest.
+            var aProf = _contentProfile(anchor.it);
+            near.forEach(function (n) { n.rel = _simScore(aProf, _contentProfile(n.it)).t; });
+            near.sort(function (a, b) {
+              var ra = a.rel >= 2 ? 0 : 1, rb = b.rel >= 2 ? 0 : 1;
+              return ra - rb || a.km - b.km || a.gap - b.gap;
+            });
+            // Collapse same-host/same-city near-dupes (CDAO Defense & Security /
+            // CDAO Government / CDAO Washington D.C. -> one row).
+            var seenBrand = {};
+            seenBrand[_brandKey(anchor.it, anchor.geo)] = 1;
+            near = near.filter(function (n) {
+              var bk = _brandKey(n.it, n.geo);
+              if (seenBrand[bk]) return false;
+              seenBrand[bk] = 1; return true;
+            });
+            near = near.slice(0, 5);    // cap — one trip covers a few, not twenty
+            near.sort(function (a, b) { return a.it.sort - b.it.sort; });   // show the kept few chronologically
+            near.forEach(function (n) { usedKeys[anchor.who + '|' + n.it.kind + ':' + n.it.key] = 1; });
+          }
         }
+        // Push EVERY committed trip — even a solo one with nothing nearby — so
+        // "Batch your trips" lists all of a person's attending/speaking events.
+        clusters.push({ anchor: anchor.it, who: anchor.who, support: support, role: anchor.role, near: near });
       });
       return clusters;
     }
@@ -7232,10 +7238,16 @@
           '<p class="queue-meta" style="margin:-4px 0 14px;">' +
           (support ? 'Where the team&#39;s already headed &mdash; and what else is on within a few days, same or nearby city.'
                    : 'You&#39;re already going to these &mdash; here&#39;s what else is on within a few days, in the same or a nearby city.') + '</p>';
-        // Render one anchor + its nearby events. `lead` is the "You're
-        // attending" / "Attending" phrase before the event name.
-        function renderCluster(cl, lead) {
-          tripHtml += anchorHead(lead, cl.anchor, '');
+        // Render one anchor + its nearby events. The anchor reads
+        // "GDN (attending)" / "Web Summit Lisbon (speaking)" — event name first,
+        // role in parentheses (works the same under a person header for support).
+        function renderCluster(cl) {
+          var ev = cl.anchor, loc = ev.location || ev.city || '';
+          var r = (cl.role === 'speaking at') ? 'speaking' : cl.role;
+          tripHtml += '<div class="queue-section trip-cluster"><p class="trip-anchor">' +
+            '<button class="trip-anchor-name" data-ref-kind="' + ev.kind + '" data-ref-key="' + escapeHtml(String(ev.key)) + '">' + escapeHtml(ev.name) + '</button>' +
+            ' <span class="trip-anchor-role">(' + escapeHtml(r) + ')</span>' +
+            '<span class="trip-anchor-meta">' + escapeHtml(ev.date_str || '') + (loc ? ' \u00b7 ' + escapeHtml(loc) : '') + '</span></p>';
           cl.near.forEach(function (n) {
             shownKeys[n.it.kind + ':' + n.it.key] = 1;
             var prox = (n.gap === 0 ? 'overlaps' : ('~' + n.gap + ' day' + (n.gap === 1 ? '' : 's') + ' apart')) +
@@ -7258,22 +7270,18 @@
             var list = byWho[who].slice().sort(function (a, b) { return (a.anchor.sort || 0) - (b.anchor.sort || 0); });
             tripHtml += '<div class="trip-person"><h4 class="trip-person-name">' + _whoLabel(who) +
               '<span class="trip-person-count">' + list.length + ' trip' + (list.length === 1 ? '' : 's') + '</span></h4>';
-            list.forEach(function (cl) {
-              // The person heading already names them — the row just states the role.
-              var role = cl.role.charAt(0).toUpperCase() + cl.role.slice(1);
-              renderCluster(cl, escapeHtml(role));
-            });
+            list.forEach(function (cl) { renderCluster(cl); });
             tripHtml += '</div>';
           });
         } else {
-          clusters.forEach(function (cl) { renderCluster(cl, 'You&#39;re ' + escapeHtml(cl.role)); });
+          clusters.forEach(function (cl) { renderCluster(cl); });
         }
       }
       // ── Because you're interested in X (content similarity) ───────────
       var recs = _contentRecs();
       var recHtml = '';
       if (recs.length) {
-        recHtml += '<div class="queue-sec-head"><span class="queue-sec-title">&#128161; Because you&#39;re interested</span><span class="queue-sec-count">' + recs.length + '</span></div>' +
+        recHtml += '<div class="queue-sec-head"><span class="queue-sec-title">&#128225; Event Radar</span><span class="queue-sec-count">' + recs.length + '</span></div>' +
           '<p class="queue-meta" style="margin:-4px 0 14px;">' +
           (support ? 'More like what teammates flagged &mdash; same industry, audience and topics.'
                    : 'More like the events you flagged &mdash; same industry, audience and topics.') + '</p>';
@@ -9146,6 +9154,8 @@
       ['bengaluru', 12.9716, 77.5946], ['bangalore', 12.9716, 77.5946],
       ['new delhi', 28.6139, 77.209], ['seoul', 37.5665, 126.978],
       ['shanghai', 31.2304, 121.4737], ['tel aviv', 32.0853, 34.7818],
+      ['istanbul', 41.0082, 28.9784], ['jersey city', 40.7178, -74.0431],
+      ['doha', 25.2854, 51.531], ['santo domingo', 18.4861, -69.9312],
       ['london', 51.5074, -0.1278]
     ];
     // Strip accents so "São Paulo" / "Bogotá" match "sao paulo" / "bogota".
