@@ -544,10 +544,13 @@
     .modal-quickbar .qa {
       display: inline-flex; align-items: center; min-height: 34px;
       font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
-      padding: 0 14px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+      padding: 0 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
-      color: var(--ab-fg-2); text-decoration: underline; text-underline-offset: 2px; transition: all 0.12s;
+      color: var(--ab-fg-2); transition: all 0.12s;
     }
+    /* Status pills sit on one line; scroll horizontally rather than wrap if a
+       narrow modal can't fit them all. */
+    .qa-row--status { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding-bottom: 2px; }
     .modal-quickbar .qa:hover { border-color: var(--ab-fg-3); color: var(--ab-fg); }
     .modal-quickbar .qa.on {
       background: #166534; color: #fff; border-color: #166534;
@@ -2917,14 +2920,14 @@
     var bStage = [];
     bStage.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
     bStage.push('<button type="button" class="qa' + (has('Followed up') ? ' on' : '') + '" data-qa="followed-up">' + (has('Followed up') ? '✓ Followed up' : 'Followed up') + '</button>');
-    bStage.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Speaking Booked') + '</button>');
-    bStage.push('<button type="button" class="qa qa-neg' + (has('Rejected') ? ' on' : '') + '" data-qa="rejected" title="Rejected to speak — the organizer passed. Angela can flag it so the team can opt to just attend.">' + (has('Rejected') ? '✓ Rejected' : 'Rejected to speak') + '</button>');
+    bStage.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Booked') + '</button>');
+    bStage.push('<button type="button" class="qa qa-neg' + (has('Rejected') ? ' on' : '') + '" data-qa="rejected" title="Rejected to speak — the organizer passed. Angela can flag it so the team can opt to just attend.">' + (has('Rejected') ? '✓ Rejected' : 'Rejected') + '</button>');
     // "Attending" is PER-PERSON: it reflects whether the signed-in person is in
     // the attendees list (Thor sees it off when only Jerome attends). Clicking it
     // adds/removes YOU. Angela assigns anyone via the edit-form Attending bubbles.
     var _meKey = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '').trim().split(/\s+/)[0].toLowerCase();
     var _iAmAttending = !!(_meKey && (rec.attendees || []).some(function (a) { return String(a).toLowerCase() === _meKey; }));
-    bStage.push('<button type="button" class="qa' + (_iAmAttending ? ' on' : '') + '" data-qa="attending" title="Attending is per-person — this marks whether YOU are going">' + (_iAmAttending ? '✓ Attending' : "+ I'm attending") + '</button>');
+    bStage.push('<button type="button" class="qa' + (_iAmAttending ? ' on' : '') + '" data-qa="attending" title="Attending is per-person — this marks whether YOU are going">' + (_iAmAttending ? '✓ Attending' : 'Attending') + '</button>');
     // Should Attend is Angela's triage tool — only she sees/sets it here. For
     // everyone else, marking Interested funnels into her Should-Attend list.
     if (window.isAngelaUser && window.isAngelaUser()) {
@@ -2943,7 +2946,7 @@
     var summary = formatInterested(rec.interested);
     var intRow =
       '<span class="qa-row-label">Interested:</span>' +
-      '<button type="button" class="qa' + (iAmIn ? ' on' : '') + '" data-qa="interested">' + (iAmIn ? '✓ Interested' : "+ I'm interested") + '</button>' +
+      '<button type="button" class="qa' + (iAmIn ? ' on' : '') + '" data-qa="interested">' + (iAmIn ? '✓ Interested' : "I'm interested") + '</button>' +
       (summary
         ? '<span class="qa-int-summary">' + summary + '</span>'
         : '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>');
@@ -2954,7 +2957,7 @@
     var hideRow = '<span class="qa-row-label">Hide:</span>' +
         '<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unarchive' : 'Archive') + '</button>';
     return '<div class="modal-quickbar">' +
-           '<div class="qa-row" style="align-items:center;"><span class="qa-row-label">Status:</span>' + bStage.join('') + '</div>' +
+           '<div class="qa-row qa-row--status" style="align-items:center;"><span class="qa-row-label">Status:</span>' + bStage.join('') + '</div>' +
            '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div>' +
            (hideRow ? '<div class="qa-row" style="margin-top:6px;align-items:center;">' + hideRow + '</div>' : '') +
            '</div>';
@@ -4341,7 +4344,7 @@
       } else if (stages.indexOf('Rejected') !== -1) {
         // Rejected to speak — a terminal "no" that wins over a pending Submitted.
         // Still shows "Open to attend" below, so the team can opt to just attend.
-        bits.push({ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected to speak' + (speaker ? ' \u2014 ' + escapeHtml(speaker) : '') + '</span>' });
+        bits.push({ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + (speaker ? ' \u2014 ' + escapeHtml(speaker) : '') + '</span>' });
       } else if (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) {
         bits.push({ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \u2014 ' + escapeHtml(speaker) : '') + (closed ? ' (CFP closed)' : '') + '</span>' });
       } else if (closed) {
@@ -7475,7 +7478,7 @@
             '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \u00b7 ' + escapeHtml(loc) : '') + '</p>' +
             (extraHtml || '') +
           '</div><div class="queue-actions sug-actions">' +
-            '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ I&#39;m interested</button>' +
+            '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">I&#39;m interested</button>' +
             '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
           '</div></div>';
       }
@@ -7815,7 +7818,7 @@
         // kit, organized by what organizers ask for. Each slot is its own
         // upload + list.
         html += '<div class="profile-section-head">Speaking materials</div>' +
-          '<p class="profile-section-sub">Upload the things you send organizers &mdash; kept together so anyone can grab your kit fast.</p>';
+          '<p class="profile-section-sub">Help Angela organize your speaking materials.</p>';
         PROFILE_MATERIALS.forEach(function (m) {
           html += '<div class="profile-material"><div class="profile-material-head">' +
               '<span class="profile-material-label">' + escapeHtml(m.label) + '</span>' +
