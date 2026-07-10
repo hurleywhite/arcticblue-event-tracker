@@ -4236,9 +4236,10 @@
         bits.push({ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \u2014 ' + escapeHtml(speaker) : '') + (closed ? ' (CFP closed)' : '') + '</span>' });
       } else if (closed) {
         bits.push({ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>' });
-      } else if (!past && d && !_isJunkVal(d)) {
-        bits.push({ p: 3, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Open to speak</span>' });
       }
+      // NOTE: no "Open to speak" bit — every event that fits is implicitly open
+      // to speak, so labelling it added noise (Hurley). The status line now only
+      // shows a committed/pending/closed speak state.
       var hasSpeakBit = bits.length > 0;
       if (att.length) {
         bits.push({ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending \u2014 ' + escapeHtml(att.join(', ')) + '</span>' });
@@ -6491,6 +6492,24 @@
       var byNum = {}, byMid = {};
       (_lastEvs || []).forEach(function (e) { byNum[e.num] = e; });
       (_lastManual || []).forEach(function (m) { byMid[m.id] = m; });
+      // Only surface updates for events ON YOUR RADAR — ones you're interested
+      // in / attending / booked or pending (as speaker) for — otherwise this
+      // fills with noise. Support (Angela/Hurley) coordinate for everyone, so
+      // they see all of it. Build the radar key-set once.
+      var _wnSupport = isSupportPerson(getCollabName() || '');
+      var _radar = null;
+      if (!_wnSupport && me) {
+        _radar = {};
+        opsAllItems().forEach(function (it) {
+          var _sp = abFold(it.speaker || '').split(/[,;/&]| and |\bplus\b/).some(function (s) { return s.trim().split(/\s+/)[0] === me; });
+          var _pend = _sp && (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1);
+          var _on = _pend
+            || (it.interested || []).some(function (n) { return abFold(n).split(/\s+/)[0] === me; })
+            || (it.attendees || []).some(function (a) { return abFold(a).split(/\s+/)[0] === me; });
+          if (_on) _radar[it.kind + ':' + it.key] = 1;
+        });
+      }
+      function _onRadar(kind, key) { return !_radar || !!_radar[kind + ':' + key]; }
       var items = [];
       // Real pipeline progress only — a teammate (never the automated
       // Enrichment writer) advanced the event to Followed up / Meeting held /
@@ -6530,6 +6549,7 @@
         items.push({ id: 'c:' + k, ts: meta.latest, kind: kind, key: key, chatKey: k,
           label: fresh.length + ' new comment' + (fresh.length > 1 ? 's' : '') + ' on ' + (rec.name || 'an event') });
       });
+      items = items.filter(function (w) { return _onRadar(w.kind, w.key); });   // radar-only
       items.sort(function (a, b) { return a.ts < b.ts ? 1 : -1; });
       return items.slice(0, 8);
     }
@@ -6880,9 +6900,13 @@
     }
     function _contentProfile(it) {
       var o = it.startObj || {};
+      // What it's about (name + focus/topics + type/industry) and WHO it's for
+      // (audience roles + who's spoken/attended there). Name is included so a
+      // series/brand a person keeps showing up for (CDAO, Money20/20, Gartner …)
+      // scores as familiar; past speakers signal the room's calibre.
       return {
-        topics: _simTokens([o.focus_areas, o.about, o.type, o.industry].filter(Boolean).join(' ')),
-        roles:  _simTokens(o.typical_attendees)
+        topics: _simTokens([it.name, o.focus_areas, o.about, o.type, o.industry].filter(Boolean).join(' ')),
+        roles:  _simTokens([o.typical_attendees, o.past_speakers].filter(Boolean).join(' '))
       };
     }
     function _overlapN(a, b) { var n = 0; for (var k in a) { if (b[k]) n++; } return n; }
@@ -6900,6 +6924,10 @@
     // their history) and events they've flagged INTERESTED in (weight 1). We
     // accumulate the industry/topic + role tokens across all of them, so a
     // candidate that looks like what they keep showing up for scores high.
+    // Cached, tokenized My-Profile text per person ({ first: {topics, roles} }).
+    // Populated by _loadProfileTaste() from team_profiles; folded into taste so
+    // suggestions get MORE tailored the more someone writes in their profile.
+    var _profileTasteCache = null;
     function _tasteProfile(who) {
       var topics = {}, roles = {}, n = 0;
       if (!who) return { topics: topics, roles: roles, has: false };
@@ -6914,6 +6942,14 @@
         for (var t in p.topics) { topics[t] = (topics[t] || 0) + w; }
         for (var r in p.roles)  { roles[r]  = (roles[r]  || 0) + w; }
       });
+      // Their own words (bio / speaking topics / past talks / targeting notes)
+      // are the most explicit preference signal — weight highest.
+      var pt = _profileTasteCache && _profileTasteCache[who];
+      if (pt) {
+        for (var pt2 in pt.topics) { topics[pt2] = (topics[pt2] || 0) + 3; }
+        for (var pr in pt.roles)  { roles[pr]  = (roles[pr]  || 0) + 3; }
+        if (Object.keys(pt.topics).length || Object.keys(pt.roles).length) n++;
+      }
       return { topics: topics, roles: roles, has: n > 0 };
     }
     // How much a candidate resembles the person's taste (accumulated weights).
@@ -6923,6 +6959,25 @@
       for (t in p.topics) { if (taste.topics[t]) s += taste.topics[t] * 2; }
       for (t in p.roles)  { if (taste.roles[t])  s += taste.roles[t]; }
       return s;
+    }
+    // Pull each teammate's My-Profile text (bio / speaking topics / past talks /
+    // targeting notes) and tokenize it into the taste cache, so the more someone
+    // fills in their profile, the more tailored their suggestions become. Runs
+    // best-effort (no team_profiles table yet -> stays empty); re-render after.
+    function _loadProfileTaste(cb) {
+      if (typeof sb === 'undefined' || !sb || !sb.from) { if (cb) cb(); return; }
+      sb.from('team_profiles').select('*').then(function (r) {
+        var cache = {};
+        ((r && r.data) || []).forEach(function (row) {
+          var who = abFold(String(row.person || row.display_name || '')).split(/\s+/)[0];
+          if (!who) return;
+          var blob = [row.bio, row.topics, row.past_talks, row.notes].filter(Boolean).join(' ');
+          if (!blob.trim()) return;
+          cache[who] = { topics: _simTokens(blob), roles: _simTokens([row.topics, row.past_talks].filter(Boolean).join(' ')) };
+        });
+        _profileTasteCache = cache;
+        if (cb) cb();
+      }, function () { _profileTasteCache = _profileTasteCache || {}; if (cb) cb(); });
     }
     // ── Home bases — trip batching is smarter about time + distance ──────
     // Each teammate's home city. The farther an anchor event is from home, the
@@ -7489,6 +7544,9 @@
         var $ok = document.getElementById('pf-saved');
         if ($ok) { $ok.hidden = false; setTimeout(function () { if ($ok) $ok.hidden = true; }, 2500); }
         flashOk('Profile saved');
+        // Refresh the taste cache so the new profile text personalizes
+        // suggestions right away (not just on next load).
+        _loadProfileTaste();
       });
     }
     // Files for one material slot (<meKey>/<cat>/…) — download + delete.
@@ -8121,6 +8179,15 @@
         else if (currentView === 'queue') renderQueue();
         else if (currentView === 'planner') renderPlanner();
         updateViewBadges();
+        // Fold everyone's My-Profile text into the taste cache once (bio /
+        // topics / past talks / notes make suggestions more tailored), then
+        // refresh the suggestion surfaces so they reflect it.
+        if (_profileTasteCache === null) {
+          _loadProfileTaste(function () {
+            if (currentView === 'myevents') renderMyEvents();
+            else if (currentView === 'planahead') renderPlanAhead();
+          });
+        }
         // And the map, when it's the active view (realtime echo / saves).
         if (currentView === 'map' && _opsMapLayer) renderOpsMap();
         // Put the reader back where they were (captured at the top): re-open
