@@ -8151,6 +8151,13 @@ def build():
       input.addEventListener('input', function () {{ input.removeAttribute('data-start-iso'); input.removeAttribute('data-end-iso'); }});
       pop.addEventListener('mousedown', function (e) {{ e.preventDefault(); }});  // don't steal focus / blur-close the field
       pop.addEventListener('click', function (e) {{
+        // Keep the click inside the popup: render() below replaces the popup's
+        // innerHTML, which detaches the element you clicked (the ‹ / › arrow, a
+        // day cell). Without this, the click bubbles to the document
+        // "outside-click closes" handler, which then sees a now-detached target
+        // that's no longer inside .date-pick and closes the calendar — so the
+        // month arrows (and mid-range day picks) appeared to "close the picker".
+        e.stopPropagation();
         var nav = e.target.closest('[data-nav]');
         if (nav) {{ viewM += parseInt(nav.getAttribute('data-nav'), 10); if (viewM < 0) {{ viewM = 11; viewY--; }} else if (viewM > 11) {{ viewM = 0; viewY++; }} render(); return; }}
         if (e.target.closest('.dc-clear')) {{ sel = {{ start: null, end: null }}; input.value = ''; input.removeAttribute('data-start-iso'); input.removeAttribute('data-end-iso'); render(); return; }}
