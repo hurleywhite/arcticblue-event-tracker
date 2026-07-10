@@ -7579,6 +7579,13 @@ def build():
     // (nothing deleted; a re-render re-evaluates from fresh data).
     function dedupeOpsCards() {{
       if (!$opsGrid) return 0;
+      // Reviewing / revealing possible duplicates is Angela's job — for everyone
+      // else duplicates stay collapsed, no matter what (covers switching away
+      // from Angela's name mid-session with the reveal still on).
+      if (!(window.isAngelaUser && window.isAngelaUser())) {{
+        _reviewDupes = false;
+        document.body.classList.remove('review-dupes');
+      }}
       var groups = {{}};
       Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {{
         c.dataset.dupHidden = '';
@@ -7653,7 +7660,9 @@ def build():
             if (_reviewDupes) window.scrollTo({{ top: 0, behavior: 'smooth' }});
           }});
         }}
-        _revBtn.hidden = hidden === 0;
+        // Angela-only: only she can review/delete duplicates, so only she sees
+        // the toggle. Everyone else just gets the clean, deduped grid.
+        _revBtn.hidden = (hidden === 0) || !(window.isAngelaUser && window.isAngelaUser());
         _revBtn.textContent = _reviewDupes
           ? '\\u2715 Done \\u00b7 hide duplicates again'
           : ('Review ' + hidden + ' possible duplicate' + (hidden === 1 ? '' : 's'));
