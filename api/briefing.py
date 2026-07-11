@@ -225,8 +225,42 @@ def _today():
     return date.today().isoformat()
 
 
+# Structural backstop for the ICP filter — catches the obvious non-buyers the
+# model still slips into the targets even after the prompt says to exclude them:
+# the event's OWN organizers/staff, government officials, and investors, when
+# those aren't in the persona's ICP. (Technology vendors can't be caught by
+# title alone — the prompt owns that.)
+_GOV_RE = re.compile(r'\b(mayor|minister|secretary of|under[- ]?secretary|governor|councill?or|senator|member of parliament|\bmp\b|deputy minister|state secretary|head of state|commissioner)\b', re.I)
+_VC_RE = re.compile(r'\b(managing partner|general partner|founding partner|venture partner|\bvc\b|venture capital|private equity|partner,? [a-z ]*(capital|ventures|partners))\b', re.I)
+
+
+def _icp_has(persona, *needles):
+    blob = ' '.join(persona.get('icp_industries') or []).lower()
+    return any(n in blob for n in needles)
+
+
+def _off_icp_person(p, persona, event_name=''):
+    if not isinstance(p, dict):
+        return True
+    role = (str(p.get('role') or '') + ' ' + str(p.get('title') or '')).lower()
+    org_f = re.sub(r'[^a-z0-9]', '', str(p.get('org') or '').lower())
+    ev_f = re.sub(r'[^a-z0-9]', '', str(event_name or '').lower())
+    # The person's org IS the event brand → they're the organizer/staff, not a buyer.
+    if org_f and len(org_f) >= 5 and ev_f and (org_f in ev_f or ev_f in org_f):
+        return True
+    # Government officials, unless the persona actually sells to the public sector.
+    if _GOV_RE.search(role) and not _icp_has(persona, 'public', 'government', 'govtech', 'defense', 'defence'):
+        return True
+    # Investors / VCs, unless investing is in the persona's ICP.
+    if _VC_RE.search(role) and not _icp_has(persona, 'invest', 'venture', 'capital', 'private equity'):
+        return True
+    return False
+
+
 def build_messages(event, persona, topic, mode, roster_ctx='', news_ctx=''):
     ab = load_personas()['arcticblue']
+    _bt = ', '.join(persona.get('buyer_titles') or []) or '(none specified)'
+    _inds = ', '.join(persona.get('icp_industries') or []) or '(none specified)'
     sys = (
         "You are ArcticBlue's Day-Of event-briefing engine. You write a sharp, "
         "phone-scannable brief for ONE ArcticBlue person attending ONE event "
@@ -265,21 +299,39 @@ def build_messages(event, persona, topic, mode, roster_ctx='', news_ctx=''):
         "route / CFP is open + its link). topic_news = 2-3 of the most recent "
         "items relevant to the speaker_topic, each with a REAL url FROM the news "
         "findings.\n"
-        "TARGETS = the actionable core, held to the SAME bar as a pre-event "
-        "outreach list: real, named, agenda/web-confirmed people who are SENIOR "
-        "BUDGET OWNERS in the persona's ICP (buyer_titles at icp_industries "
-        "end-user enterprises) — the people worth crossing the room for. HARD "
-        "EXCLUDE vendors/sellers (anyone whose employer sells AI/software/cloud/"
-        "consulting), ICs, and juniors — they are peers, not buyers. Prefer "
-        "non-obvious confirmed attendees / sponsors / program leads over the "
-        "headline keynote everyone already chases. For each: name, org, role, "
-        "why (tie to THIS person's ICP + what they would actually buy), and "
-        "where to find them (their session / booth / track, from the findings). "
+        "TARGETS (people_to_find) = the actionable core, and it is BUYERS ONLY, "
+        "tailored to THIS person. A valid target is a real, named, agenda/web-"
+        "confirmed person who BOTH (a) holds one of THIS persona's buyer titles ["
+        + _bt + "], AND (b) works AT AN END-USER enterprise in [" + _inds + "] "
+        "that BUYS / DEPLOYS AI internally — NOT a company that SELLS AI / "
+        "software / hardware / cloud / consulting / a media or ad platform.\n"
+        "SELF-CHECK every candidate BEFORE listing them: name WHICH buyer title "
+        "they hold AND WHICH ICP industry their EMPLOYER operates in as an "
+        "end-user. If you can't, DROP them. If you'd ever describe someone as "
+        "'not an end-customer' / 'not really an ICP buyer' / 'a peer, not a "
+        "buyer' — OMIT them entirely; never include a person with a caveat that "
+        "they don't fit.\n"
+        "HARD EXCLUDE, no matter how famous or senior or on-agenda: (1) this "
+        "event's OWN organizers / founders / staff; (2) government officials "
+        "(mayor, minister, secretary, MP, councillor) UNLESS this persona's ICP "
+        "industries include public sector / government; (3) investors / VCs / "
+        "managing / general partners UNLESS investing is in the ICP; (4) "
+        "technology VENDORS and platform / model-lab / AI-startup / dev-tool / "
+        "chip / cloud / ad-platform executives (e.g. Qualcomm, Meta, Google, "
+        "Microsoft, AWS, Salesforce, Accenture, and AI startups) — they are "
+        "sellers / peers, not buyers; (5) the headline keynote names everyone "
+        "already chases. Prefer NON-OBVIOUS confirmed ICP buyers over marquee "
+        "names.\n"
+        "The persona's 'flagship-stage intro' / 'peer connection' ambitions do "
+        "NOT belong in people_to_find — put any stage/keynote-access play in "
+        "speaking_route_open. people_to_find stays buyers-only.\n"
+        "For each: name, org, role, why (state WHICH buyer title + WHICH ICP "
+        "industry they map to, and what they'd actually buy from ArcticBlue), "
+        "and where to find them (their session / track, from the findings). "
         "confidence:'confirmed' ONLY when the findings or web search verify they "
-        "are at THIS event; else 'estimated'. NEVER pad with generic title "
-        "categories — 2 real budget-owners beat 5 role-type guesses. Only if the "
-        "findings AND search truly yield no roster: return an empty "
-        "people_to_find and say so honestly in unconfirmed.\n"
+        "are at THIS event; else 'estimated'. QUALITY OVER QUANTITY — 2 real ICP "
+        "buyers beat 5 padded names; an EMPTY people_to_find (explained honestly "
+        "in unconfirmed) is BETTER than off-ICP names.\n"
         "LOGISTICS_WIN must be concrete + actionable, grounded in the agenda when "
         "the findings have it. time = the single most important time block to "
         "protect (a key session/keynote with its time from the agenda, or "
@@ -489,6 +541,12 @@ def normalize_brief(brief, event, persona, mode, activity):
         t = {}
     if not isinstance(t.get('people_to_find'), list):
         t['people_to_find'] = []
+    # Structural backstop: drop the organizer/gov/investor leaks the model still
+    # includes despite the ICP-only instruction (e.g. Web Summit's own CEO, the
+    # host-city Mayor). Vendors are left to the prompt.
+    _evn = str(event.get('name') or '')
+    t['people_to_find'] = [p for p in t['people_to_find']
+                           if isinstance(p, dict) and not _off_icp_person(p, persona, _evn)]
     t.setdefault('outcome_target', persona.get('outcome_target'))
     if mode != 'stage':
         t['speaking_route_open'] = t.get('speaking_route_open') or None
@@ -655,17 +713,27 @@ def build_targets_messages(event, persona, extra_context=''):
         "EMPTY people list and explain in `note` — never pad with guesses. The "
         "ONLY metrics a draft may cite are these whitelisted proof points: "
         + '; '.join(ab['proof_points']) + ". Never invent metrics or quotes.\n"
-        "WHO TO PICK: senior BUYERS with BUDGET AUTHORITY who work AT an end-user "
-        "enterprise in " + inds + " — i.e. they buy/own AI at an insurer, bank, "
-        "FSI, healthcare or telco. Titles like " + titles + ". HARD EXCLUDE "
-        "technology VENDORS and sellers — anyone whose employer SELLS AI / "
-        "software / cloud / consulting (e.g. Oracle, IBM/Apptio, Microsoft, AWS, "
-        "Google, Salesforce, Accenture, any AI platform or startup), EVEN IF "
-        "they're speaking — they are peers/competitors, not buyers. Also exclude "
-        "operators, ICs, engineers, and junior/mid managers. QUALITY OVER "
-        "QUANTITY: return ONLY genuine ICP buyers — 2 real buyers beats 4 padded "
-        "with vendors; an empty list is better than off-ICP names. Prefer people "
-        "on the published agenda (speakers / panelists / fireside guests).\n"
+        "WHO TO PICK: senior BUYERS with BUDGET AUTHORITY who work AT an END-USER "
+        "enterprise in " + inds + " — i.e. they own/buy AI inside a company that "
+        "USES AI, not one that sells it. Titles like " + titles + ".\n"
+        "SELF-CHECK each candidate: name WHICH of those titles they hold AND "
+        "WHICH of those industries their EMPLOYER operates in as an end-user. If "
+        "you can't, DROP them — never include someone with a caveat that they "
+        "aren't really the buyer.\n"
+        "HARD EXCLUDE, no matter how senior or on-agenda: (1) technology VENDORS "
+        "/ sellers — anyone whose employer SELLS AI / software / hardware / cloud "
+        "/ consulting / a media or ad platform (Oracle, IBM, Microsoft, AWS, "
+        "Google, Salesforce, Accenture, Qualcomm, Meta, any model lab, AI "
+        "platform or startup), EVEN IF speaking — peers/competitors, not buyers; "
+        "(2) this event's OWN organizers / founders / staff; (3) government "
+        "officials (mayor, minister, secretary, MP, councillor) UNLESS this "
+        "persona's industries include public sector; (4) investors / VCs / "
+        "managing or general partners UNLESS investing is in the persona's "
+        "industries; (5) operators, ICs, engineers, junior/mid managers. QUALITY "
+        "OVER QUANTITY: return ONLY genuine ICP buyers — 2 real buyers beats 4 "
+        "padded with vendors/organizers; an empty list is better than off-ICP "
+        "names. Prefer people on the published agenda (speakers / panelists / "
+        "fireside guests).\n"
         "BE CONCISE — these are skimmed on a phone between sessions. Every field "
         "is tight: no preamble, no filler, no restating the obvious.\n"
         "FOR EACH PERSON (max " + str(TARGETS_MAX) + "): name; title; org; "
@@ -931,6 +999,9 @@ def normalize_targets(data, event, persona):
         fl = fit.lower()
         if ('not icp' in fl or 'not a buyer' in fl or 'not an icp' in fl
                 or 'vendor' in fl or 'seller' in fl):
+            continue
+        # Structural backstop: organizer/staff, government, investors off-ICP.
+        if _off_icp_person(p, persona, str(event.get('name') or '')):
             continue
         org = (p.get('org') or '').strip()
         sig = p.get('recent_signal') if isinstance(p.get('recent_signal'), dict) else {}
