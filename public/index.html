@@ -1040,12 +1040,15 @@
     .chat-fwd-item:hover { background: var(--ab-bg-3); color: var(--ab-blue); }
     .chat-body { margin: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
     /* 👍/👎 tallies under a message. */
-    .chat-reacts { display: flex; gap: 6px; margin-top: 6px; }
+    .chat-reacts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .chat-react {
-      font-size: 0.72rem; font-family: var(--ab-mono); color: var(--ab-fg-2);
-      background: var(--ab-bg-3); border: 1px solid var(--ab-rule); border-radius: 999px; padding: 1px 8px;
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.9rem; color: var(--ab-fg-2);
+      background: var(--ab-bg-3); border: 1px solid var(--ab-rule); border-radius: 999px; padding: 2px 9px;
     }
-    .chat-react.is-mine { border-color: var(--ab-blue); color: var(--ab-blue); }
+    /* Who reacted, shown next to the emoji. */
+    .chat-react-who { font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 600; }
+    .chat-react.is-mine { border-color: var(--ab-blue); color: var(--ab-blue); background: rgba(31,160,220,0.10); }
     .chat-form { display: flex; gap: 8px; }
     .chat-input { flex: 1; padding: 9px 12px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font: inherit; font-size: 0.9rem; }
     .chat-send { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ab-blue); background: var(--ab-blue); color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -11699,13 +11702,20 @@
       });
       return out;
     }
+    // Show WHO reacted, not just a count — first names inline (capped, +N).
+    function _reactWho(list) {
+      var f = list.map(function (n) { return String(n).split(/\s+/)[0]; });
+      if (f.length <= 3) return f.join(', ');
+      return f.slice(0, 2).join(', ') + ' +' + (f.length - 2);
+    }
     function _chatReactLine(rx, me) {
       rx = _normReactions(rx);
       var out = [];
       Object.keys(rx).forEach(function (em) {
         var list = rx[em] || []; if (!list.length) return;
         var mine = me && list.some(function (n) { return String(n).toLowerCase() === me; });
-        out.push('<span class="chat-react' + (mine ? ' is-mine' : '') + '" title="' + escapeHtml(list.join(', ')) + '">' + em + ' ' + list.length + '</span>');
+        out.push('<span class="chat-react' + (mine ? ' is-mine' : '') + '" title="' + escapeHtml(list.join(', ')) + '">' +
+          em + ' <span class="chat-react-who">' + escapeHtml(_reactWho(list)) + '</span></span>');
       });
       return out.length ? '<div class="chat-reacts">' + out.join(' ') + '</div>' : '';
     }
@@ -11718,11 +11728,19 @@
       var cur = (rx[emoji] || []).filter(function (n) { return String(n).toLowerCase() !== lc; });
       if (!had) cur.push(who);
       if (cur.length) rx[emoji] = cur; else delete rx[emoji];
-      sb.from('event_chat').update({ reactions: rx }).eq('id', m.id).then(function (resp) {
+      m.reactions = rx;   // optimistic — so a quick re-toggle sees the new state
+      sb.from('event_chat').update({ reactions: rx }).eq('id', m.id).select('id, reactions').then(function (resp) {
         if (resp.error) {
           status(/column|reactions/i.test(resp.error.message || '')
-            ? 'Reactions need a one-time Supabase migration (scripts/2026-07-10_chat_reactions.sql) before they save.'
+            ? 'Reactions need the one-time migration (scripts/2026-07-10_chat_reactions.sql) in Supabase.'
             : 'Reaction not saved: ' + resp.error.message, 'error');
+          return;
+        }
+        // RLS with no UPDATE policy returns success but 0 rows — detect that and
+        // tell the user exactly what to run (the updated chat_reactions.sql adds
+        // the UPDATE policy).
+        if (!resp.data || !resp.data.length) {
+          status('Reactions couldn\u2019t save \u2014 event_chat needs an UPDATE policy. Re-run the updated scripts/2026-07-10_chat_reactions.sql in Supabase.', 'error');
           return;
         }
         _reloadOpenChat();
