@@ -3516,6 +3516,10 @@
   function closeModal() {
     overlay.setAttribute('hidden', '');
     document.body.style.overflow = '';
+    // Chat forward / ⋯ menus are portaled onto <body>, so they don't die with
+    // the modal on their own — an Esc-close leaves no click to fire their
+    // click-away. Sweep them up here so none linger over the page.
+    document.querySelectorAll('.chat-fwd-menu, .chat-more-menu').forEach(function (x) { x.remove(); });
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
   window.openEventModal = openEventModal;
@@ -11753,6 +11757,9 @@
     // is never clipped by the list's overflow scroll nor covered by the message
     // below it (that was why only the last message's menu was reachable).
     function _positionChatMenu(menu, btn) {
+      // Only ever one chat popover at a time — sweep any other open one (incl.
+      // the other type) so forward + ⋯ can't both hang open.
+      document.querySelectorAll('.chat-fwd-menu, .chat-more-menu').forEach(function (x) { x.remove(); });
       document.body.appendChild(menu);
       var r = btn.getBoundingClientRect();
       menu.style.position = 'fixed';
@@ -11762,6 +11769,11 @@
       var top = r.bottom + 4;
       if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);  // flip up near bottom
       menu.style.top = top + 'px';
+      // A fixed menu can't follow the button, so close it on scroll/resize
+      // instead of letting it float detached. Self-removing listeners.
+      var _dismiss = function () { menu.remove(); window.removeEventListener('scroll', _dismiss, true); window.removeEventListener('resize', _dismiss); };
+      window.addEventListener('scroll', _dismiss, true);
+      window.addEventListener('resize', _dismiss);
     }
     function _chatForward(m, btn) {
       var open = document.querySelector('.chat-fwd-menu'); if (open) open.remove();
@@ -11832,6 +11844,10 @@
       });
     }
     function _paintChatList(list, msgs) {
+      // Drop any portaled forward/⋯ menu before we repaint — a realtime push or
+      // a fresh send would otherwise leave one floating, detached from its (now
+      // re-rendered) message.
+      document.querySelectorAll('.chat-fwd-menu, .chat-more-menu').forEach(function (x) { x.remove(); });
       list.innerHTML = '';
       if (!msgs.length) { list.innerHTML = '<p class="chat-empty">No messages yet — start the conversation.</p>'; return; }
       var me = (getCollabName() || '').trim().toLowerCase();
