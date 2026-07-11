@@ -1815,6 +1815,10 @@
       background: #1271a8; color: #fff; font-family: var(--ab-sans); font-weight: 700; font-size: 0.8rem;
     }
     .wn-avatar--sm { width: 26px; height: 26px; font-size: 0.7rem; background: var(--ab-fg-3); }
+    /* Little chat-bubble badge on a comment card's avatar — signals "chat". */
+    .wn-avatar-wrap { position: relative; flex: 0 0 auto; display: inline-flex; }
+    .wn-chat-badge { position: absolute; right: -3px; bottom: -3px; width: 16px; height: 16px; border-radius: 50%; background: #1271a8; color: #fff; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--ab-bg); }
+    .wn-chat-badge svg { width: 9px; height: 9px; }
     .wn-comment-main { min-width: 0; flex: 1 1 auto; }
     .wn-comment-head { font-size: 0.9rem; color: var(--ab-fg-2); }
     .wn-comment-head strong { color: var(--ab-fg); font-weight: 650; }
@@ -1965,7 +1969,11 @@
       padding: 14px 16px; margin: 0 0 10px;
     }
     .profile-tm-head { display: flex; align-items: center; gap: 9px; margin: 0 0 6px; }
-    .profile-tm-name { font-weight: 700; font-size: 0.96rem; color: var(--ab-fg); }
+    .profile-tm-name { font-weight: 700; font-size: 0.96rem; color: var(--ab-fg); text-decoration: none; }
+    a.profile-tm-name:hover { color: var(--ab-blue); text-decoration: underline; }
+    /* Full LinkedIn URL, right under the name — copy/paste-ready for Angela. */
+    .profile-tm-linkedin { display: block; font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-blue); word-break: break-all; margin: -2px 0 8px; text-decoration: none; }
+    .profile-tm-linkedin:hover { text-decoration: underline; }
     .profile-tm-role { font-size: 0.76rem; color: var(--ab-fg-3); margin-left: auto; text-align: right; }
     .profile-tm-field { margin: 8px 0 0; }
     .profile-tm-field .k { font-family: var(--ab-mono); font-size: 0.63rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-fg-3); }
@@ -3633,6 +3641,8 @@
     // Last-fetched data, cached by renderOps() so the Queue + Planner views can
     // render from the SAME set the grid just built (no extra fetch).
     var _lastEvs = [], _lastStateMap = {}, _lastStateRows = [], _lastManual = [];
+    // Recent profile-material uploads (support only) → "In the last week" alerts.
+    var _recentUploads = null, _recentUploadsLoading = false;
     // Roster used by the Planner's coverage-gap "Flag for X" action. (The modal
     // closure has its own AB_ROSTER; this closure needs its own copy.)
     var OPS_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
@@ -6739,8 +6749,25 @@
           eventName: (rec.name || 'an event'), count: fresh.length,
           label: (mentioned ? 'You were mentioned \u2014 ' : (fresh.length + ' new comment' + (fresh.length > 1 ? 's' : '') + ' on ')) + (rec.name || 'an event') });
       });
-      // Radar-only — EXCEPT comments that mention you, which always show.
-      items = items.filter(function (w) { return w.mention || _onRadar(w.kind, w.key); });
+      // Profile-material uploads (support only) — "Thor uploaded a headshot".
+      // A routine, per-person update that opens My Profile (not an event).
+      if (_wnSupport && _recentUploads && _recentUploads.length) {
+        _recentUploads.forEach(function (u) {
+          if (!u.at || u.at < cutoff) return;
+          var whoF = String(u.who || '').charAt(0).toUpperCase() + String(u.who || '').slice(1);
+          if (whoF.toLowerCase() === me) return;
+          var id = 'f:' + u.who + ':' + u.cat + ':' + u.name;
+          if (dis[id]) return;
+          var isLink = /\.weblink$/i.test(u.name);
+          var verb = isLink ? 'added a link to' : 'uploaded';
+          items.push({ id: id, ts: u.at, type: 'update', who: whoF, profile: true,
+            detail: verb + ' ' + u.catLabel + (isLink ? '' : ' \u2014 ' + u.name),
+            label: whoF + ' ' + verb + ' ' + u.catLabel });
+        });
+      }
+      // Radar-only — EXCEPT comments that mention you + profile uploads, which
+      // always show (for support).
+      items = items.filter(function (w) { return w.mention || w.profile || _onRadar(w.kind, w.key); });
       items.sort(function (a, b) { return a.ts < b.ts ? 1 : -1; });
       return items.slice(0, 8);
     }
@@ -6925,6 +6952,11 @@
       // month groups). _myEventsPastOpen remembers if the reader expanded them.
       // "In the last week" — teammates' updates + new comments; check one off
       // (or click into it) and it comes down, like Slack read-state.
+      // Support: load recent profile uploads once, then re-render to fold them in.
+      if (b.support && _recentUploads === null && !_recentUploadsLoading) {
+        _recentUploadsLoading = true;
+        _loadRecentUploads(function () { _recentUploadsLoading = false; if (currentView === 'myevents') renderMyEvents(); });
+      }
       _wnLast = _whatsNewItems();
       var wnHtml = '';
       if (_wnLast.length) {
@@ -6941,7 +6973,8 @@
             ? '<strong>' + escapeHtml(w.author || 'Someone') + '</strong> mentioned you on <strong>' + escapeHtml(w.eventName || 'an event') + '</strong>'
             : '<strong>' + escapeHtml(w.author || 'Someone') + '</strong> commented on <strong>' + escapeHtml(w.eventName || 'an event') + '</strong>';
           return '<div class="wn-comment' + (w.mention ? ' is-mention' : '') + '" role="button" tabindex="0" data-wn-open="' + o.i + '">' +
-              '<span class="wn-avatar">' + escapeHtml(_wnInitials(w.author)) + '</span>' +
+              '<span class="wn-avatar-wrap"><span class="wn-avatar">' + escapeHtml(_wnInitials(w.author)) + '</span>' +
+                '<span class="wn-chat-badge" title="Chat comment" aria-label="chat comment"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg></span></span>' +
               '<div class="wn-comment-main">' +
                 '<div class="wn-comment-head">' + head + '<span class="wn-time">' + escapeHtml(_relTime(w.ts)) + '</span></div>' +
                 '<div class="wn-comment-quote">' + quote + '</div>' +
@@ -7012,6 +7045,8 @@
           var w = _wnLast[parseInt(el.getAttribute('data-wn-open'), 10)];
           if (!w) return;
           _wnDismiss(w);
+          // A profile-upload update opens My Profile (it isn't tied to an event).
+          if (w.profile) { setView('myprofile'); return; }
           opsOpenRef(w.kind, String(w.key));
           renderMyEvents();
         };
@@ -7280,6 +7315,33 @@
         _profileTasteCache = cache;
         if (cb) cb();
       }, function () { _profileTasteCache = _profileTasteCache || {}; if (cb) cb(); });
+    }
+    // Recent profile-material uploads (last 7 days), for Angela's "In the last
+    // week" — so she sees when someone adds a bio / deck / headshot / link.
+    // Support-only + loaded once per session (storage has no recursive list, so
+    // this is persons x material-slots; kept off the hot render path).
+    function _loadRecentUploads(cb) {
+      if (typeof sb === 'undefined' || !sb || !sb.storage || !isSupportPerson(getCollabName() || '')) { _recentUploads = []; if (cb) cb(); return; }
+      var cutoff = new Date(Date.now() - 7 * 86400000).toISOString();
+      sb.storage.from('profiles').list('', { limit: 200 }).then(function (r) {
+        var persons = (((r && r.data) || []).map(function (f) { return f.name; })
+          .filter(function (n) { return n && n !== '.emptyFolderPlaceholder'; }));
+        var out = [], pending = persons.length * PROFILE_MATERIALS.length;
+        if (!pending) { _recentUploads = []; if (cb) cb(); return; }
+        function _done() { if (--pending === 0) { _recentUploads = out; if (cb) cb(); } }
+        persons.forEach(function (pk) {
+          PROFILE_MATERIALS.forEach(function (m) {
+            sb.storage.from('profiles').list(pk + '/' + m.k, { limit: 50 }).then(function (rr) {
+              (((rr && rr.data) || [])).forEach(function (f) {
+                if (!f.name || f.name === '.emptyFolderPlaceholder') return;
+                var at = f.created_at || (f.metadata && f.metadata.lastModified) || '';
+                if (at && at >= cutoff) out.push({ who: pk, cat: m.k, catLabel: m.label, name: f.name, at: at });
+              });
+              _done();
+            }, _done);
+          });
+        });
+      }, function () { _recentUploads = []; if (cb) cb(); });
     }
     // ── Home bases — trip batching is smarter about time + distance ──────
     // Each teammate's home city. The farther an anchor event is from home, the
@@ -7841,13 +7903,29 @@
     }
     // One read-only person card for the directory: name + role, their written
     // fields, and a Materials slot filled in async by _loadTeammateFiles.
+    // Each teammate's LinkedIn — the name links to it, and the full URL shows
+    // right below (so Angela can copy/paste it into an organizer email).
+    var PROFILE_LINKEDIN = {
+      thor:   'https://www.linkedin.com/in/thorernstsson/',
+      verma:  'https://www.linkedin.com/in/anuraagsverma/',
+      carlos: 'https://www.linkedin.com/in/carlos-l-chacon-almeida/?locale=en',
+      jerome: 'https://www.linkedin.com/in/jeromewouters/',
+      joe:    'https://www.linkedin.com/in/joelalley/',
+      scott:  'https://www.linkedin.com/in/slpollack/',
+      jim:    'https://www.linkedin.com/in/jimchungprofile/'
+    };
     function _directoryCardHtml(key, row, filesId) {
       var d = _profileDisplay(row, key);
       var role = _profileRole(key);
+      var li = PROFILE_LINKEDIN[String(key).toLowerCase()] || '';
+      var nameEl = li
+        ? '<a class="profile-tm-name" href="' + escapeHtml(li) + '" target="_blank" rel="noopener" title="Open ' + escapeHtml(d) + ' on LinkedIn">' + escapeHtml(d) + '</a>'
+        : '<span class="profile-tm-name">' + escapeHtml(d) + '</span>';
       var h = '<div class="profile-teammate"><div class="profile-tm-head">' +
         '<span class="profile-avatar">' + escapeHtml((d || '?').charAt(0).toUpperCase()) + '</span>' +
-        '<span class="profile-tm-name">' + escapeHtml(d) + '</span>' +
-        (role ? '<span class="profile-tm-role">' + escapeHtml(role) + '</span>' : '') + '</div>';
+        nameEl +
+        (role ? '<span class="profile-tm-role">' + escapeHtml(role) + '</span>' : '') + '</div>' +
+        (li ? '<a class="profile-tm-linkedin" href="' + escapeHtml(li) + '" target="_blank" rel="noopener">' + escapeHtml(li) + '</a>' : '');
       if (row) {
         PROFILE_FIELDS.forEach(function (f) {
           if (!row[f.k]) return;
