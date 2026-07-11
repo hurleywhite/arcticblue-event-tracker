@@ -41,7 +41,8 @@
    "source": "arcticscout",
    "pricing": "Full conference pass: $2,095 early bird (Jan 13–Mar 31), $2,295 regular (Apr 1–May 31), $2,495 on-site (Jun 1–4); public sector rate: $1,295; group pricing available for 5+, 10+, 30+, and 100+",
    "meeting_formats": "attendee app for networking; 1:1 meetings not verified; curated roundtables not verified",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Sridhar Ramaswamy, CEO, Snowflake; Daniela Amodei, President, Anthropic; Benoit Dageville, Co-Founder, Snowflake; Christian Kleinerman, EVP of Product, Snowflake; Caitlin Halferty, Thomson Reuters; Patrick Duroseau, Under Armour; Jung Suh, Samsung"
   },
   {
    "num": 17,
@@ -423,7 +424,8 @@
    "audience_type": "Mixed",
    "typical_attendees": "Startups, enterprise leaders, investors, policymakers, and technology teams",
    "attendee_count": "1,400 exhibitors (2025 edition)",
-   "speaking_route": "Apply to speak: https://event.gitexeurope.com/speaker-interest-2026"
+   "speaking_route": "Apply to speak: https://event.gitexeurope.com/speaker-interest-2026",
+   "pay_to_play": "No"
   },
   {
    "num": 52,
@@ -2063,7 +2065,13 @@
    "external_id": "43e8c921-5294-4b66-90ff-f0bc31d36c79",
    "source": "arcticscout",
    "start_date": "2026-04-14",
-   "end_date": "2026-04-14"
+   "end_date": "2026-04-14",
+   "pricing": "Free (invite-only)",
+   "pay_to_play": "No",
+   "past_speakers": "Chief AI Officer, Major Tech Firm; VP of AI, Global Enterprise; Founder, AI Startup",
+   "meeting_formats": "Invite-only closed-door sessions",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "125+"
   },
   {
    "num": 98,
@@ -7233,7 +7241,10 @@
    "pay_to_play": null,
    "city": "London",
    "country": "UK",
-   "external_id": "replit-213"
+   "external_id": "replit-213",
+   "venue": "1 America Square",
+   "meeting_formats": "Networking sessions with industry experts",
+   "audience_type": "Mixed"
   },
   {
    "num": 284,
