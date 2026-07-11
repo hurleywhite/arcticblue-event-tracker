@@ -1461,20 +1461,18 @@ def build():
     /* Divider between reactions and the actions. */
     .chat-act-sep {{ width: 1px; align-self: stretch; margin: 3px 3px; background: var(--ab-rule); }}
     .chat-more {{ font-size: 1.2rem; letter-spacing: 1px; }}
-    /* ⋯ "More" reveals a big ✕ delete (hidden until then). */
-    .chat-act-del {{ display: none; color: var(--ab-red); font-size: 1.25rem; font-weight: 700; }}
-    .chat-actions.reveal-del .chat-act-del {{ display: inline-flex; }}
-    .chat-actions.reveal-del .chat-more {{ background: var(--ab-bg-3); }}
-    .chat-act-del:hover {{ background: rgba(185,28,28,0.1); }}
-    /* Forward-to-teammate popover. */
-    .chat-fwd-menu {{
+    /* Forward-to-teammate + ⋯ "More" (delete) popovers. */
+    .chat-fwd-menu, .chat-more-menu {{
       position: absolute; top: 20px; right: 8px; z-index: 5; min-width: 150px;
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); border-radius: 10px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.14); padding: 5px; display: flex; flex-direction: column;
     }}
     .chat-fwd-head {{ font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); padding: 4px 8px 5px; }}
-    .chat-fwd-item {{ text-align: left; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.86rem; color: var(--ab-fg); padding: 6px 8px; border-radius: 6px; }}
+    .chat-fwd-item, .chat-more-item {{ text-align: left; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.86rem; color: var(--ab-fg); padding: 7px 9px; border-radius: 6px; }}
     .chat-fwd-item:hover {{ background: var(--ab-bg-3); color: var(--ab-blue); }}
+    .chat-more-del {{ color: var(--ab-red); font-weight: 600; }}
+    .chat-more-del:hover {{ background: rgba(185,28,28,0.1); }}
+    .chat-more-tag {{ font-size: 0.66rem; color: var(--ab-fg-3); font-weight: 400; }}
     .chat-body {{ margin: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }}
     /* 👍/👎 tallies under a message. */
     .chat-reacts {{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }}
@@ -12304,6 +12302,26 @@ def build():
       }});
       setTimeout(function () {{ document.addEventListener('click', function _c(ev) {{ if (!menu.contains(ev.target)) {{ menu.remove(); document.removeEventListener('click', _c); }} }}); }}, 0);
     }}
+    // ⋯ "More" overflow → a small menu whose main item is Delete, so the delete
+    // is clearly visible instead of hidden. isMod = deleting someone else's
+    // message (support moderation).
+    function _chatMore(m, btn, isMod) {{
+      var open = document.querySelector('.chat-more-menu'); if (open) {{ open.remove(); return; }}
+      var menu = document.createElement('div'); menu.className = 'chat-more-menu';
+      menu.innerHTML = '<button type="button" class="chat-more-item chat-more-del" data-mdel="1">\\u2715 Delete message' +
+        (isMod ? ' <span class="chat-more-tag">(moderate)</span>' : '') + '</button>';
+      btn.closest('.chat-msg').appendChild(menu);
+      menu.querySelector('[data-mdel]').addEventListener('click', function (e) {{
+        e.stopPropagation();
+        menu.remove();
+        if (!window.confirm('Delete this message? This cannot be undone.')) return;
+        sb.from('event_chat').delete().eq('id', m.id).then(function (resp) {{
+          if (resp.error) {{ status('Delete failed: ' + resp.error.message, 'error'); return; }}
+          flashOk('Message deleted'); _reloadOpenChat(); loadChatCounts();
+        }});
+      }});
+      setTimeout(function () {{ document.addEventListener('click', function _c(ev) {{ if (!menu.contains(ev.target)) {{ menu.remove(); document.removeEventListener('click', _c); }} }}); }}, 0);
+    }}
     // "Add to notes" — append the message to the event's Notes (fresh-read the
     // current value so we never clobber a concurrent edit), via opsWrite.
     function _chatToNotes(m) {{
@@ -12334,8 +12352,8 @@ def build():
         var div = document.createElement('div'); div.className = 'chat-msg';
         div.dataset.msgId = m.id;
         // Slack-style hover toolbar: emoji reactions (👍 👎 first, then more) ·
-        // forward-to-a-teammate · add-to-notes · a ⋯ overflow that reveals a
-        // big ✕ delete (own message, or any for support).
+        // forward-to-a-teammate · add-to-notes · a ⋯ overflow that opens a menu
+        // with "Delete message" (own message, or any for support).
         var reactBtns = CHAT_EMOJIS.map(function (em) {{
           return '<button type="button" class="chat-act chat-react-btn" data-react="' + em + '" title="React ' + em + '" aria-label="React">' + em + '</button>';
         }}).join('');
@@ -12345,8 +12363,7 @@ def build():
           '<button type="button" class="chat-act" data-act="forward" title="Forward to a teammate" aria-label="Forward">\\u27a1\\ufe0f</button>' +
           '<button type="button" class="chat-act" data-act="note" title="Add to event notes" aria-label="Add to notes">\\ud83d\\udcdd</button>' +
           (canDel
-            ? '<button type="button" class="chat-act chat-more" data-act="more" title="More" aria-label="More">\\u22ef</button>' +
-              '<button type="button" class="chat-act chat-act-del" data-act="del" title="' + (mine ? 'Delete your message' : 'Delete this message') + '" aria-label="Delete message">\\u2715</button>'
+            ? '<button type="button" class="chat-act chat-more" data-act="more" data-canmod="' + (mine ? '0' : '1') + '" title="More actions" aria-label="More">\\u22ef</button>'
             : '') +
           '</div>';
         div.innerHTML = actions +
@@ -12362,14 +12379,7 @@ def build():
             var act = btn.getAttribute('data-act');
             if (act === 'note') return _chatToNotes(m);
             if (act === 'forward') return _chatForward(m, btn);
-            if (act === 'more') {{ var bar = btn.closest('.chat-actions'); if (bar) bar.classList.toggle('reveal-del'); return; }}
-            if (act === 'del') {{
-              if (!window.confirm('Delete this message? This cannot be undone.')) return;
-              sb.from('event_chat').delete().eq('id', m.id).then(function (resp) {{
-                if (resp.error) {{ status('Delete failed: ' + resp.error.message, 'error'); return; }}
-                _reloadOpenChat(); loadChatCounts();
-              }});
-            }}
+            if (act === 'more') return _chatMore(m, btn, btn.getAttribute('data-canmod') === '1');
           }});
         }});
         list.appendChild(div);
