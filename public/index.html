@@ -1894,6 +1894,16 @@
     .trip-nonear { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 4px 0 2px; }
     .trip-nonear-note { font-size: 0.8rem; color: var(--ab-fg-3); font-style: italic; }
     .trip-find-near { font-size: 0.78rem; padding: 5px 12px; }
+    /* Proactive "found for you near <city>" inline results (auto area search). */
+    .trip-auto { margin: 4px 0 2px; }
+    .trip-auto-head { font-size: 0.74rem; font-family: var(--ab-mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ab-fg-3); margin: 2px 0 4px; }
+    .trip-auto-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 10px; border: 1px solid var(--ab-rule); border-radius: 8px; margin-top: 6px; background: var(--ab-bg); }
+    .trip-auto-info { min-width: 0; }
+    .trip-auto-name { display: block; font-weight: 650; font-size: 0.9rem; color: var(--ab-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trip-auto-name a { color: var(--ab-blue); text-decoration: none; }
+    .trip-auto-meta { display: block; font-size: 0.78rem; color: var(--ab-fg-2); }
+    .trip-auto-add { flex: none; font-size: 0.78rem; padding: 5px 12px; }
+    .trip-auto-dup { flex: none; font-size: 0.72rem; color: var(--ab-fg-3); font-style: italic; }
     /* Angela's Batch-your-trips is grouped by person: a name header, then that
        person's trips by date. */
     .trip-person { margin: 0 0 22px; }
@@ -6838,6 +6848,102 @@
       var s = _planAreaEmpties(); s[kind + ':' + key] = 1;
       try { localStorage.setItem(_planAreaEmptyKey(), JSON.stringify(s)); } catch (e) {}
     }
+    // Proactive solo-trip discovery. Instead of a "Find events near <city>"
+    // button, Plan Ahead auto-runs ONE metered area search per solo trip and
+    // caches the outcome (found events OR empty) for 10 days — so it never
+    // re-spends credits on every render. The result (≤5 events) renders inline.
+    function _planAutoKey() { return 'ab.planauto.' + (getCollabName() || '').toLowerCase(); }
+    function _planAutos() { try { return JSON.parse(localStorage.getItem(_planAutoKey()) || '{}'); } catch (e) { return {}; } }
+    function _planAutoGet(kind, key) {
+      var a = _planAutos()[kind + ':' + key];
+      if (!a || typeof a.ts !== 'number') return null;
+      if (Date.now() - a.ts > 10 * 86400000) return null;   // 10-day TTL — refresh at most a few times a month
+      return a;
+    }
+    function _planAutoSet(kind, key, events) {
+      var a = _planAutos(); a[kind + ':' + key] = { ts: Date.now(), events: (events || []).slice(0, 5) };
+      try { localStorage.setItem(_planAutoKey(), JSON.stringify(a)); } catch (e) {}
+    }
+    var _planAutoInFlight = {};
+    function _autoNearCriteria(o) {
+      var qOpts = _currentQuarterOptions();
+      var quarters = (o.quarter && qOpts.indexOf(o.quarter) !== -1) ? [o.quarter] : qOpts.slice(0, 2);
+      var recurring = [];
+      try {
+        Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card[data-past="1"]'), function (c) {
+          var nm = c._modalRec && c._modalRec.name;
+          var atts = (c.dataset.attendeeNames || '').split('|').filter(Boolean);
+          var stg = (c.dataset.statusTags || '').split('|');
+          var bookedSpk = stg.indexOf('Booked') !== -1 && (c.dataset.speaker || '');
+          if (nm && (atts.length || bookedSpk) && recurring.indexOf(nm) === -1) recurring.push(nm);
+        });
+      } catch (e) {}
+      return { count: 5, types: SEARCH_TYPE_OPTIONS.slice(), quarters: quarters, regions: [],
+        recurring: recurring.slice(0, 30), location: o.loc, date_from: o.dateFrom || '', date_to: o.dateTo || '', exclude: o.exclude || '' };
+    }
+    function _autoNodes(kind, key) { return document.querySelectorAll('.trip-auto[data-auto-kind="' + kind + '"][data-auto-key="' + key + '"]'); }
+    function _autoNote(kind, key, html) { Array.prototype.forEach.call(_autoNodes(kind, key), function (c) { c.innerHTML = html; }); }
+    // Render ≤5 found events (or a brief empty note) into every live container
+    // for this anchor — re-queried so a mid-flight re-render can't strand it.
+    function _fillAuto(kind, key, city) {
+      var entry = _planAutoGet(kind, key);
+      var events = (entry && entry.events) ? entry.events.slice(0, 5) : [];
+      if (!events.length) { _autoNote(kind, key, '<p class="trip-nonear-note">No other events found near ' + city + ' around then.</p>'); return; }
+      var rows = events.map(function (ev, i) {
+        var link = ev.url ? ' <a href="' + escapeHtml(ev.url) + '" target="_blank" rel="noopener">\u2197</a>' : '';
+        var dup = isDuplicateName(ev.name, null, ev);
+        return '<div class="trip-auto-row"><div class="trip-auto-info">' +
+            '<span class="trip-auto-name">' + escapeHtml(ev.name || '(unnamed)') + link + '</span>' +
+            '<span class="trip-auto-meta">' + escapeHtml(ev.date_str || '') + (ev.location ? ' \u00b7 ' + escapeHtml(ev.location) : '') + '</span>' +
+          '</div>' +
+          (dup ? '<span class="trip-auto-dup">In tracker</span>'
+               : '<button type="button" class="q-btn primary trip-auto-add" data-auto-idx="' + i + '">Add</button>') +
+        '</div>';
+      }).join('');
+      Array.prototype.forEach.call(_autoNodes(kind, key), function (c) {
+        c._autoEvents = events;
+        c.innerHTML = '<p class="trip-auto-head">Also happening near ' + city + '</p>' + rows;
+        c.querySelectorAll('.trip-auto-add').forEach(function (btn) {
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var idx = parseInt(btn.getAttribute('data-auto-idx'), 10);
+            var ev = (c._autoEvents || [])[idx]; if (!ev) return;
+            btn.disabled = true; btn.textContent = 'Adding\u2026';
+            _insertFoundEvent(ev, getCollabName()).then(function (r) {
+              if (r && r.ok) { btn.textContent = 'Added \u2713'; btn.classList.remove('primary'); flashOk('Added "' + (ev.name || '') + '"'); loadKnownNames(); }
+              else { btn.disabled = false; btn.textContent = (r && r.reason === 'duplicate') ? 'In tracker' : 'Add'; }
+            });
+          });
+        });
+      });
+    }
+    function _runAutoNear(o) {
+      var kind = o.anchorKind, key = o.anchorKey, id = kind + ':' + key;
+      var city = escapeHtml(String(o.loc || '').split(',')[0].trim());
+      if (!getCollabName() || !o.loc) return;
+      if (_planAutoGet(kind, key)) { _fillAuto(kind, key, city); return; }        // cached (found or empty)
+      if (_planAreaEmpty(kind, key)) { _planAutoSet(kind, key, []); _fillAuto(kind, key, city); return; }  // honor earlier empty — no re-spend
+      if (_planAutoInFlight[id]) return;
+      _planAutoInFlight[id] = 1;
+      _autoNote(kind, key, '<p class="trip-nonear-note">\ud83d\udd0d Looking for events near ' + city + '\u2026</p>');
+      sb.auth.getSession().then(function (r) {
+        var token = r && r.data && r.data.session && r.data.session.access_token;
+        var h = { 'Content-Type': 'application/json' }; if (token) h['Authorization'] = 'Bearer ' + token;
+        fetch('/api/search', { method: 'POST', headers: h, body: JSON.stringify(_autoNearCriteria(o)) })
+          .then(function (res) { return res.json().then(function (j) { return [res.status, j]; }); })
+          .then(function (pair) {
+            delete _planAutoInFlight[id];
+            if (pair[0] !== 200) { _autoNote(kind, key, '<p class="trip-nonear-note">Couldn\u2019t check for nearby events just now.</p>'); return; }
+            var evs = ((pair[1] && pair[1].events) || []).slice(0, 5);
+            _planAutoSet(kind, key, evs);              // caches [] too (empty state, TTL'd)
+            if (!evs.length) _planAreaEmptyMark(kind, key);
+            _fillAuto(kind, key, city);
+          }).catch(function () {
+            delete _planAutoInFlight[id];
+            _autoNote(kind, key, '<p class="trip-nonear-note">Couldn\u2019t check for nearby events just now.</p>');
+          });
+      });
+    }
     // Only events 2–4 months out belong in a "plan ahead" suggestion — Thor's
     // own example ("Colombia Tech Week is a month out, too soon") is a HARD
     // exclusion, not just a lower score. No known date -> can't judge it, skip.
@@ -7673,33 +7779,28 @@
               ' \u00b7 ' + (n.km < 25 ? 'same city' : ('~' + Math.round(n.km) + ' km away'));
             tripHtml += sugRow(n.it, '<p class="trip-prox">' + prox + '</p>');
           });
-          // Nothing else tracked near this trip. Rather than a dead end, offer a
-          // one-click AI search seeded with WHERE + WHEN — so a solo trip like
-          // GBS (Istanbul, Nov) can still turn something up. Metered → click-only.
+          // Nothing else tracked near this trip. Rather than a dead end, we
+          // PROACTIVELY hunt for nearby events (≤5) via a one-time, cached AI
+          // area search — no click needed. The .trip-auto placeholder is filled
+          // by _runAutoNear after render (see the wiring below).
           if (!cl.near.length) {
             var _city = escapeHtml(String(loc).split(',')[0].trim());
             if (ev.is_private) {
               // Private / invite-only anchor (GBS, GDN): no public web footprint,
-              // so an AI area search is a dead end — never offer it, not even once.
+              // so an AI area search is a dead end — never run it.
               if (loc) tripHtml += '<p class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then.</p>';
-            } else if (loc && _planAreaEmpty(ev.kind, ev.key)) {
-              // Already ran the area search for this trip and it found nothing —
-              // don't re-offer the metered dead-end button.
-              tripHtml += '<p class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then, and an AI search turned up no more.</p>';
             } else if (loc) {
               var _pStart = ev.start_date || _isoFromSort(ev.sort);
               var _pEnd = ev.end_date || ev.start_date || _isoFromSort(_endSortOf(ev));
-              tripHtml += '<div class="trip-nonear">' +
-                '<button type="button" class="q-btn primary trip-find-near" data-plan-near="' + escapeHtml(loc) +
-                  '" data-plan-quarter="' + escapeHtml(_quarterOfSort(ev.sort)) +
-                  '" data-plan-start="' + escapeHtml(_pStart) +
-                  '" data-plan-end="' + escapeHtml(_pEnd) +
-                  '" data-plan-anchor-kind="' + escapeHtml(String(ev.kind)) +
-                  '" data-plan-anchor-key="' + escapeHtml(String(ev.key)) +
-                  '" data-plan-exclude="' + escapeHtml(ev.name || '') + '">' +
-                  '&#128269; Find events near ' + _city + '</button>' +
-                '<span class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then.</span>' +
-              '</div>';
+              tripHtml += '<div class="trip-auto"' +
+                ' data-auto-kind="' + escapeHtml(String(ev.kind)) + '"' +
+                ' data-auto-key="' + escapeHtml(String(ev.key)) + '"' +
+                ' data-auto-near="' + escapeHtml(loc) + '"' +
+                ' data-auto-quarter="' + escapeHtml(_quarterOfSort(ev.sort)) + '"' +
+                ' data-auto-start="' + escapeHtml(_pStart) + '"' +
+                ' data-auto-end="' + escapeHtml(_pEnd) + '"' +
+                ' data-auto-exclude="' + escapeHtml(ev.name || '') + '">' +
+                '<p class="trip-nonear-note">\u2026</p></div>';
             } else {
               tripHtml += '<p class="trip-nonear-note">Add a city to this event (Edit \u2192 Location) to find nearby events to batch.</p>';
             }
@@ -7782,27 +7883,18 @@
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {
         el.addEventListener('click', function () { opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); });
       });
-      // "Find events near <city>" on a solo trip → jump to the Events grid and
-      // open the AI search pre-seeded with that trip's place + quarter. (The
-      // search panel injects into the grid, which is hidden on Plan Ahead, so
-      // switch views first, then scroll it into view.)
-      host.querySelectorAll('[data-plan-near]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          if (typeof currentView !== 'undefined' && currentView !== 'grid') setView('grid');
-          var openP = $opsGrid.querySelector(':scope > .add-event-card'); if (openP) openP.remove();
-          openSearchPanel(getCollabName(), {
-            location:   btn.getAttribute('data-plan-near'),
-            quarter:    btn.getAttribute('data-plan-quarter'),
-            dateFrom:   btn.getAttribute('data-plan-start'),
-            dateTo:     btn.getAttribute('data-plan-end'),
-            exclude:    btn.getAttribute('data-plan-exclude'),
-            anchorKind: btn.getAttribute('data-plan-anchor-kind'),
-            anchorKey:  btn.getAttribute('data-plan-anchor-key')
-          });
-          setTimeout(function () {
-            var el = document.getElementById('search-panel');
-            if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 80);
+      // Solo trips with nothing tracked nearby: proactively fill each with up to
+      // 5 AI-found events (one metered search per trip, cached 10 days — never
+      // re-fired on a plain re-render). No click needed.
+      host.querySelectorAll('.trip-auto').forEach(function (c) {
+        _runAutoNear({
+          anchorKind: c.getAttribute('data-auto-kind'),
+          anchorKey:  c.getAttribute('data-auto-key'),
+          loc:        c.getAttribute('data-auto-near'),
+          quarter:    c.getAttribute('data-auto-quarter'),
+          dateFrom:   c.getAttribute('data-auto-start'),
+          dateTo:     c.getAttribute('data-auto-end'),
+          exclude:    c.getAttribute('data-auto-exclude')
         });
       });
       host.querySelectorAll('[data-pa-flag]').forEach(function (btn) {
@@ -11020,6 +11112,40 @@
       });
     }
 
+    // Insert one AI-found event into manual_events. Shared by the search panel's
+    // "Add to events" and Plan Ahead's inline proactive results.
+    function _insertFoundEvent(ev, email) {
+      if (!ev || !ev.name) return Promise.resolve({ ok: false, reason: 'missing name' });
+      if (isDuplicateName(ev.name, null, ev)) return Promise.resolve({ ok: false, reason: 'duplicate' });
+      var dates = ev.date_str ? deriveDatesFromText(ev.date_str) : {};
+      var row = {
+        name:       ev.name.trim(),
+        date_str:   ev.date_str || 'Date TBD',
+        start_date: dates.start_date || null,
+        end_date:   dates.end_date   || null,
+        location:   ev.location || null,
+        region:     ev.region   || null,
+        type:       ev.type     || null,
+        priority:   ev.priority || null,
+        why:        ev.why      || null,
+        url:        ev.url      || null,
+        // Attending signals, when the search results carry them. The agent
+        // says "audience"; the column is audience_type.
+        pricing:         ev.pricing || null,
+        audience_type:   ev.audience_type || ev.audience || null,
+        past_speakers:   ev.past_speakers || ev.speakers || null,
+        meeting_formats: ev.meeting_formats || ev.guaranteed_meetings || null,
+        created_by: email
+      };
+      return sbWriteRetry(row, function (p) { return sb.from('manual_events').insert(p).select(); }).then(function (resp) {
+        if (resp.error) {
+          if (resp.error.code === '23505') return { ok: false, reason: 'duplicate' };
+          return { ok: false, reason: resp.error.message };
+        }
+        return { ok: true, row: resp.data && resp.data[0] };
+      });
+    }
+
     function renderSearchResults(panel, data, email) {
       var events = (data.events || []);
       var $r = panel.querySelector('#search-results');
@@ -11088,37 +11214,7 @@
         }
       });
 
-      function insertOne(ev) {
-        if (!ev || !ev.name) return Promise.resolve({ ok: false, reason: 'missing name' });
-        if (isDuplicateName(ev.name, null, ev)) return Promise.resolve({ ok: false, reason: 'duplicate' });
-        var dates = ev.date_str ? deriveDatesFromText(ev.date_str) : {};
-        var row = {
-          name:       ev.name.trim(),
-          date_str:   ev.date_str || 'Date TBD',
-          start_date: dates.start_date || null,
-          end_date:   dates.end_date   || null,
-          location:   ev.location || null,
-          region:     ev.region   || null,
-          type:       ev.type     || null,
-          priority:   ev.priority || null,
-          why:        ev.why      || null,
-          url:        ev.url      || null,
-          // Attending signals, when the search results carry them. The agent
-          // says "audience"; the column is audience_type.
-          pricing:         ev.pricing || null,
-          audience_type:   ev.audience_type || ev.audience || null,
-          past_speakers:   ev.past_speakers || ev.speakers || null,
-          meeting_formats: ev.meeting_formats || ev.guaranteed_meetings || null,
-          created_by: email
-        };
-        return sbWriteRetry(row, function (p) { return sb.from('manual_events').insert(p).select(); }).then(function (resp) {
-          if (resp.error) {
-            if (resp.error.code === '23505') return { ok: false, reason: 'duplicate' };
-            return { ok: false, reason: resp.error.message };
-          }
-          return { ok: true, row: resp.data && resp.data[0] };
-        });
-      }
+      function insertOne(ev) { return _insertFoundEvent(ev, email); }
 
       $r.querySelectorAll('.search-add').forEach(function (btn) {
         btn.addEventListener('click', function () {
