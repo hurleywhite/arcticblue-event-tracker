@@ -6865,6 +6865,7 @@
       try { localStorage.setItem(_planAutoKey(), JSON.stringify(a)); } catch (e) {}
     }
     var _planAutoInFlight = {};
+    var _autoBudget = 0;   // new metered searches still allowed this render (reset per render)
     function _autoNearCriteria(o) {
       var qOpts = _currentQuarterOptions();
       var quarters = (o.quarter && qOpts.indexOf(o.quarter) !== -1) ? [o.quarter] : qOpts.slice(0, 2);
@@ -6924,12 +6925,17 @@
       if (_planAutoGet(kind, key)) { _fillAuto(kind, key, city); return; }        // cached (found or empty)
       if (_planAreaEmpty(kind, key)) { _planAutoSet(kind, key, []); _fillAuto(kind, key, city); return; }  // honor earlier empty — no re-spend
       if (_planAutoInFlight[id]) return;
+      // Credit guard: cap NEW searches per render. Over-cap trips just show the
+      // plain note; cached trips don't spend budget, so the next render covers
+      // the rest — a big team still gets there, a few per render.
+      if (_autoBudget <= 0) { _autoNote(kind, key, '<p class="trip-nonear-note">Nothing else tracked near ' + city + ' around then.</p>'); return; }
+      _autoBudget--;
       _planAutoInFlight[id] = 1;
       _autoNote(kind, key, '<p class="trip-nonear-note">\ud83d\udd0d Looking for events near ' + city + '\u2026</p>');
       sb.auth.getSession().then(function (r) {
         var token = r && r.data && r.data.session && r.data.session.access_token;
         var h = { 'Content-Type': 'application/json' }; if (token) h['Authorization'] = 'Bearer ' + token;
-        fetch('/api/search', { method: 'POST', headers: h, body: JSON.stringify(_autoNearCriteria(o)) })
+        return fetch('/api/search', { method: 'POST', headers: h, body: JSON.stringify(_autoNearCriteria(o)) })
           .then(function (res) { return res.json().then(function (j) { return [res.status, j]; }); })
           .then(function (pair) {
             delete _planAutoInFlight[id];
@@ -6938,10 +6944,10 @@
             _planAutoSet(kind, key, evs);              // caches [] too (empty state, TTL'd)
             if (!evs.length) _planAreaEmptyMark(kind, key);
             _fillAuto(kind, key, city);
-          }).catch(function () {
-            delete _planAutoInFlight[id];
-            _autoNote(kind, key, '<p class="trip-nonear-note">Couldn\u2019t check for nearby events just now.</p>');
           });
+      }).catch(function () {   // covers a getSession reject too, so in-flight never leaks
+        delete _planAutoInFlight[id];
+        _autoNote(kind, key, '<p class="trip-nonear-note">Couldn\u2019t check for nearby events just now.</p>');
       });
     }
     // Only events 2–4 months out belong in a "plan ahead" suggestion — Thor's
@@ -7885,7 +7891,9 @@
       });
       // Solo trips with nothing tracked nearby: proactively fill each with up to
       // 5 AI-found events (one metered search per trip, cached 10 days — never
-      // re-fired on a plain re-render). No click needed.
+      // re-fired on a plain re-render). No click needed. Cap NEW searches per
+      // render (cached ones are free) so a big team can't burst the AI budget.
+      _autoBudget = 5;
       host.querySelectorAll('.trip-auto').forEach(function (c) {
         _runAutoNear({
           anchorKind: c.getAttribute('data-auto-kind'),
