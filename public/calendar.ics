@@ -26,6 +26,16 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-432@arcticblue-event-tracker
+DTSTAMP:20260710T000000Z
+DTSTART;VALUE=DATE:20261007
+DTEND;VALUE=DATE:20261009
+SUMMARY:Data Innovation Summit 2026
+LOCATION:Amsterdam\, Netherlands
+DESCRIPTION:The most influential data and AI event in the Nordic region\, with a strong focus on enterprise analytics and MLOps adoption.\nPriority: High\nAdded by: Thor
+URL:https://www.datainnovationsummit.com
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-430@arcticblue-event-tracker
 DTSTAMP:20260710T000000Z
 DTSTART;VALUE=DATE:20261103

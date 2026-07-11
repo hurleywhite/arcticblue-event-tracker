@@ -1024,11 +1024,13 @@
     /* Divider between reactions and the actions. */
     .chat-act-sep { width: 1px; align-self: stretch; margin: 3px 3px; background: var(--ab-rule); }
     .chat-more { font-size: 1.2rem; letter-spacing: 1px; }
-    /* Forward-to-teammate + ⋯ "More" (delete) popovers. */
+    /* Forward-to-teammate + ⋯ "More" (delete) popovers — fixed-positioned (a
+       portal) so they're never clipped by the chat scroll area or covered by the
+       message below. Coordinates are set inline from the button's position. */
     .chat-fwd-menu, .chat-more-menu {
-      position: absolute; top: 20px; right: 8px; z-index: 5; min-width: 150px;
+      position: fixed; z-index: 2000; min-width: 150px;   /* above .modal-overlay (1200) */
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); border-radius: 10px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.14); padding: 5px; display: flex; flex-direction: column;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.18); padding: 5px; display: flex; flex-direction: column;
     }
     .chat-fwd-head { font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); padding: 4px 8px 5px; }
     .chat-fwd-item, .chat-more-item { text-align: left; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.86rem; color: var(--ab-fg); padding: 7px 9px; border-radius: 6px; }
@@ -11746,6 +11748,21 @@
     }
     // Forward a message to a teammate: pick a name, and it posts "↪ @Name — <msg>"
     // into this event's chat, which pings them via the "In the last week" mention.
+    // Position a chat popover (forward / more) as a fixed "portal" anchored to
+    // its trigger button. Appended to <body> — NOT inside the .chat-list — so it
+    // is never clipped by the list's overflow scroll nor covered by the message
+    // below it (that was why only the last message's menu was reachable).
+    function _positionChatMenu(menu, btn) {
+      document.body.appendChild(menu);
+      var r = btn.getBoundingClientRect();
+      menu.style.position = 'fixed';
+      menu.style.left = 'auto';
+      menu.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+      var mh = menu.offsetHeight || 44;              // now measurable (in DOM)
+      var top = r.bottom + 4;
+      if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);  // flip up near bottom
+      menu.style.top = top + 'px';
+    }
     function _chatForward(m, btn) {
       var open = document.querySelector('.chat-fwd-menu'); if (open) open.remove();
       var P = window.AB_PERSONAS || {};
@@ -11758,7 +11775,8 @@
       var menu = document.createElement('div'); menu.className = 'chat-fwd-menu';
       menu.innerHTML = '<div class="chat-fwd-head">Forward to</div>' +
         list.map(function (n) { return '<button type="button" class="chat-fwd-item" data-fwd="' + escapeHtml(n) + '">' + escapeHtml(n) + '</button>'; }).join('');
-      btn.closest('.chat-msg').appendChild(menu);
+      _positionChatMenu(menu, btn);
+      function _close() { menu.remove(); }
       menu.querySelectorAll('[data-fwd]').forEach(function (b) {
         b.addEventListener('click', function (e) {
           e.stopPropagation();
@@ -11767,34 +11785,36 @@
           var panel = document.getElementById('event-chat-panel'); if (!panel || !panel.dataset.col) return;
           var row = { author: who, body: '\u21aa @' + to + ' \u2014 ' + String(m.body || '') };
           row[panel.dataset.col] = panel.dataset.keyval;
-          menu.remove();
+          _close();
           sb.from('event_chat').insert(row).then(function (resp) {
             if (resp.error) { status('Forward failed: ' + resp.error.message, 'error'); return; }
             flashOk('Forwarded to ' + to); _reloadOpenChat(); loadChatCounts();
           });
         });
       });
-      setTimeout(function () { document.addEventListener('click', function _c(ev) { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', _c); } }); }, 0);
+      setTimeout(function () { document.addEventListener('click', function _c(ev) { if (!menu.contains(ev.target)) { _close(); document.removeEventListener('click', _c); } }); }, 0);
     }
     // ⋯ "More" overflow → a small menu whose main item is Delete, so the delete
     // is clearly visible instead of hidden. isMod = deleting someone else's
     // message (support moderation).
     function _chatMore(m, btn, isMod) {
-      var open = document.querySelector('.chat-more-menu'); if (open) { open.remove(); return; }
+      var open = document.querySelector('.chat-more-menu');
+      if (open) { open.remove(); return; }
       var menu = document.createElement('div'); menu.className = 'chat-more-menu';
       menu.innerHTML = '<button type="button" class="chat-more-item chat-more-del" data-mdel="1">\u2715 Delete message' +
         (isMod ? ' <span class="chat-more-tag">(moderate)</span>' : '') + '</button>';
-      btn.closest('.chat-msg').appendChild(menu);
+      _positionChatMenu(menu, btn);
+      function _close() { menu.remove(); }
       menu.querySelector('[data-mdel]').addEventListener('click', function (e) {
         e.stopPropagation();
-        menu.remove();
+        _close();
         if (!window.confirm('Delete this message? This cannot be undone.')) return;
         sb.from('event_chat').delete().eq('id', m.id).then(function (resp) {
           if (resp.error) { status('Delete failed: ' + resp.error.message, 'error'); return; }
           flashOk('Message deleted'); _reloadOpenChat(); loadChatCounts();
         });
       });
-      setTimeout(function () { document.addEventListener('click', function _c(ev) { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', _c); } }); }, 0);
+      setTimeout(function () { document.addEventListener('click', function _c(ev) { if (!menu.contains(ev.target)) { _close(); document.removeEventListener('click', _c); } }); }, 0);
     }
     // "Add to notes" — append the message to the event's Notes (fresh-read the
     // current value so we never clobber a concurrent edit), via opsWrite.
