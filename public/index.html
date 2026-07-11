@@ -1890,10 +1890,8 @@
     .trip-anchor-role { font-size: 0.8rem; font-weight: 600; color: var(--ab-fg-3); }
     .trip-anchor-meta { display: block; font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); margin-top: 2px; }
     .trip-prox { font-family: var(--ab-mono); font-size: 0.66rem; color: #1271a8; margin: 3px 0 0; }
-    /* Solo trip (nothing to batch) — a quiet note + one-click area search. */
-    .trip-nonear { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 4px 0 2px; }
+    /* Solo trip (nothing tracked to batch) — a quiet note while we auto-scan. */
     .trip-nonear-note { font-size: 0.8rem; color: var(--ab-fg-3); font-style: italic; }
-    .trip-find-near { font-size: 0.78rem; padding: 5px 12px; }
     /* Proactive "found for you near <city>" inline results (auto area search). */
     .trip-auto { margin: 4px 0 2px; }
     .trip-auto-head { font-size: 0.74rem; font-family: var(--ab-mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ab-fg-3); margin: 2px 0 4px; }
@@ -7069,7 +7067,7 @@
       if (!host) return;
       var b = myEventsBuckets();
       if (!b.named) {
-        host.innerHTML = '<p class="queue-intro myev-intro"><strong>My Events.</strong> Set your name (hit &ldquo;change&rdquo; up top) to see the events you&#39;re booked to speak at or attending.</p>';
+        host.innerHTML = '<p class="queue-intro myev-intro"><strong>My Lineup.</strong> Set your name (top-right avatar &rarr; Someone else) to see the events you&#39;re booked to speak at or attending.</p>';
         return;
       }
       function rowHtml(it) {
@@ -7712,8 +7710,8 @@
       var meName = getCollabName() || '';
       var support = isSupportPerson(meName);
       var intro = '<p class="queue-intro myev-intro"><strong>Plan Ahead:</strong> ' +
-        (support ? 'What the team is committed to, plus events worth a look. '
-                 : (personalized ? 'Events that fit your focus, and more like the ones you want. ' : 'Events worth a look. ')) +
+        (support ? 'Events around where the team&#39;s already headed, plus others worth a look. '
+                 : (personalized ? 'Events around the trips you&#39;re already taking, plus more like the ones you flag. ' : 'Events worth a look. ')) +
         'Flag the ones to go to (Angela registers you) and skip the rest.</p>';
       // Person label helpers — trips + interest recs go team-wide for support.
       // Label by the identifier the team actually uses (the persona key: Thor,
