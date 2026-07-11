@@ -1843,9 +1843,6 @@
     .queue-actions.sug-actions { flex-direction: row; flex-wrap: wrap; gap: 6px; align-items: center; }
     .q-btn.sug-skip { color: var(--ab-fg-3); }
     .q-btn.sug-skip:hover { border-color: #d64545; color: #d64545; }
-    /* ✕ to drop a single "Suggested for you" row (My Lineup). */
-    .q-btn.sug-hide-x { color: var(--ab-fg-3); border-color: transparent; font-size: 1rem; line-height: 1; padding: 2px 9px; }
-    .q-btn.sug-hide-x:hover { color: var(--ab-red); border-color: var(--ab-rule-strong); }
     /* "Batch your trips" — a cluster of nearby-in-time events under an anchor. */
     .trip-cluster { position: relative; border-left: 3px solid #1fa0dc; padding-left: 12px; margin: 0 0 20px; }
     /* ✕ to hide a whole trip cluster / radar group from Plan Ahead (hover-reveal). */
@@ -6982,7 +6979,10 @@
             return '<div class="queue-row sug-row"><div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \u00b7 ' + loc : '') + '</p>' +
-            '</div><div class="queue-actions"><button type="button" class="q-btn sug-hide-x" data-sug-hide-kind="' + it.kind + '" data-sug-hide-key="' + escapeHtml(String(it.key)) + '" title="Hide this suggestion" aria-label="Hide suggestion">&times;</button></div></div>';
+            '</div><div class="queue-actions sug-actions">' +
+              '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">I&#39;m interested</button>' +
+              '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
+            '</div></div>';
           }).join('') + '</div>'
         : '';
       host.innerHTML = intro + wnHtml +
@@ -7052,10 +7052,24 @@
         _sugHead.addEventListener('click', _toggleSug);
         _sugHead.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _toggleSug(); } });
       }
-      host.querySelectorAll('[data-sug-hide-kind]').forEach(function (btn) {
+      // "Suggested for you" rows now carry the same "I'm interested / Not for me"
+      // actions as Plan Ahead (data-pa-flag / data-pa-skip).
+      host.querySelectorAll('.sug-section [data-pa-flag]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
-          _sugSkip(btn.getAttribute('data-sug-hide-kind'), btn.getAttribute('data-sug-hide-key'));
+          var kind = btn.getAttribute('data-k'), key = btn.getAttribute('data-key');
+          var it = opsAllItems().filter(function (x) { return x.kind === kind && String(x.key) === key; })[0];
+          if (!it) return;
+          btn.setAttribute('aria-busy', 'true');
+          toggleMyInterest(kind, it.key, it.interested, it.startObj && it.startObj.attend_verdict);
+          // toggleMyInterest -> opsWrite -> renderOps re-renders My Lineup.
+        });
+      });
+      host.querySelectorAll('.sug-section [data-pa-skip]').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          _sugSkip(btn.getAttribute('data-k'), btn.getAttribute('data-key'));
+          var row = btn.closest('.queue-row'); if (row) row.style.display = 'none';   // instant feedback
           renderMyEvents();
         });
       });
