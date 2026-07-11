@@ -43,6 +43,7 @@ DTEND;VALUE=DATE:20261106
 SUMMARY:GBS (YPO Event)
 LOCATION:Istanbul\, Turkey
 DESCRIPTION:Priority: Medium\nAdded by: Thor
+URL:https://www.ypo.org/gbs/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-429@arcticblue-event-tracker
@@ -52,6 +53,7 @@ DTEND;VALUE=DATE:20260924
 SUMMARY:GDN
 LOCATION:Washington\, D.C.
 DESCRIPTION:Priority: Medium\nAdded by: Thor
+URL:https://www.gdn.int/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-427@arcticblue-event-tracker

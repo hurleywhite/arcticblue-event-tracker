@@ -6652,6 +6652,7 @@ def build():
         queue_dismissed: !!((st && st.queue_dismissed) || base.queue_dismissed),
         past: isPastEvent(base),
         hidden: !!(st && st.hidden),
+        is_private: !!((st && st.is_private) || base.is_private),   // catalog: on state; manual: on the row
         sort: meta.sort,
         startObj: base,
         start_date: base.start_date || (st && st.start_date) || '',
@@ -8203,7 +8204,11 @@ def build():
           // GBS (Istanbul, Nov) can still turn something up. Metered → click-only.
           if (!cl.near.length) {{
             var _city = escapeHtml(String(loc).split(',')[0].trim());
-            if (loc && _planAreaEmpty(ev.kind, ev.key)) {{
+            if (ev.is_private) {{
+              // Private / invite-only anchor (GBS, GDN): no public web footprint,
+              // so an AI area search is a dead end — never offer it, not even once.
+              if (loc) tripHtml += '<p class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then.</p>';
+            }} else if (loc && _planAreaEmpty(ev.kind, ev.key)) {{
               // Already ran the area search for this trip and it found nothing —
               // don't re-offer the metered dead-end button.
               tripHtml += '<p class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then, and an AI search turned up no more.</p>';
