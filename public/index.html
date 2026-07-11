@@ -553,7 +553,9 @@
     }
     /* Status pills sit on one line; scroll horizontally rather than wrap if a
        narrow modal can't fit them all. */
-    .qa-row--status { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding-bottom: 2px; }
+    /* Status pills fit one line when they can; Angela's extra "Should Attend"
+       simply wraps to the next line rather than being cut off / scrolling. */
+    .qa-row--status { flex-wrap: wrap; gap: 6px; }
     .modal-quickbar .qa:hover { border-color: var(--ab-fg-3); color: var(--ab-fg); }
     .modal-quickbar .qa.on {
       background: #166534; color: #fff; border-color: #166534;
@@ -1010,11 +1012,13 @@
     }
     .chat-msg:hover .chat-actions, .chat-msg:focus-within .chat-actions { opacity: 1; pointer-events: auto; }
     .chat-act {
-      border: 0; background: none; cursor: pointer; font-size: 0.85rem; line-height: 1;
-      padding: 4px 6px; border-radius: 6px; color: var(--ab-fg-2);
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 26px; height: 26px; padding: 0 4px;
+      border: 0; background: none; cursor: pointer; font-size: 0.95rem; line-height: 1;
+      border-radius: 6px; color: var(--ab-fg-2); overflow: visible;
     }
     .chat-act:hover { background: var(--ab-bg-3); }
-    .chat-act-del { color: var(--ab-fg-3); font-size: 1.05rem; }
+    .chat-act-del { color: var(--ab-fg-3); font-size: 1.1rem; }
     .chat-act-del:hover { color: var(--ab-red); background: var(--ab-bg-3); }
     .chat-body { margin: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
     /* 👍/👎 tallies under a message. */
@@ -1963,7 +1967,8 @@
     .profile-upload-row input[type=file] { font-size: 0.82rem; color: var(--ab-fg-2); max-width: 100%; }
     /* Paste a Google Drive / Doc link instead of (or as well as) uploading. */
     .profile-link-row { display: flex; align-items: center; gap: 10px; margin: 7px 0 0; flex-wrap: wrap; }
-    .profile-link-row input { flex: 1; min-width: 180px; font-size: 0.84rem; padding: 7px 10px; border: 1px solid var(--ab-rule-strong); border-radius: 6px; font-family: inherit; }
+    .profile-link-row input { flex: 1; min-width: 160px; font-size: 0.84rem; padding: 7px 10px; border: 1px solid var(--ab-rule-strong); border-radius: 6px; font-family: inherit; }
+    .profile-link-row input.pf-link-title { flex: 0 1 150px; min-width: 110px; }
     .profile-teammate {
       border: 1px solid var(--ab-rule); border-radius: 10px; background: var(--ab-bg);
       padding: 14px 16px; margin: 0 0 10px;
@@ -7817,11 +7822,16 @@
     // ── Profile materials: preview (not download) + a download icon + links ──
     var PROFILE_DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>';
     // Links (Google Drive/Doc etc.) are stored as tiny ".weblink" marker files
-    // whose NAME is the URL, base64url-encoded (so listing needs no extra fetch).
+    // whose NAME is a base64url of {t:title, u:url} (so listing needs no extra
+    // fetch). Legacy markers hold just the raw URL.
     function _b64urlEnc(s) { try { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); } catch (e) { return ''; } }
     function _b64urlDec(s) { try { s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); } catch (e) { return ''; } }
     function _isWeblink(name) { return /\.weblink$/i.test(name || ''); }
-    function _weblinkUrl(name) { return _b64urlDec(String(name).replace(/\.weblink$/i, '')); }
+    function _weblinkInfo(name) {
+      var dec = _b64urlDec(String(name).replace(/\.weblink$/i, ''));
+      try { var o = JSON.parse(dec); if (o && o.u) return { url: String(o.u), title: String(o.t || '') }; } catch (e) {}
+      return { url: dec, title: '' };   // legacy: the name was the raw URL
+    }
     function _isOfficeDoc(name) { return /\.(docx?|pptx?|xlsx?)$/i.test(name || ''); }
     // PREVIEW a stored file in the right viewer — never a forced download. Office
     // docs render via Microsoft's online viewer; PDFs / images / text open
@@ -7851,9 +7861,12 @@
         ? '<button type="button" class="profile-file-del" data-delpath="' + escapeHtml(fullPath) + '" data-delname="' + escapeHtml(name) + '" aria-label="Delete ' + escapeHtml(name) + '" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
         : '';
       if (_isWeblink(name)) {
-        var url = _weblinkUrl(name);
-        var isG = /docs\.google|drive\.google/i.test(url);
-        var lbl = isG ? 'Google Doc / Drive link' : (function () { try { return new URL(url).host.replace(/^www\./, ''); } catch (e) { return 'Link'; } })();
+        var info = _weblinkInfo(name);
+        var url = info.url;
+        var lbl = info.title || (function () {
+          if (/docs\.google|drive\.google/i.test(url)) return 'Google Doc';
+          try { return new URL(url).host.replace(/^www\./, ''); } catch (e) { return 'Link'; }
+        })();
         return '<div class="profile-file profile-file--link">' +
           '<a class="profile-file-name" href="' + escapeHtml(url) + '" target="_blank" rel="noopener" title="' + escapeHtml(url) + '">\ud83d\udd17 ' + escapeHtml(lbl) + ' \u2197</a>' + del + '</div>';
       }
@@ -7914,7 +7927,7 @@
       scott:  'https://www.linkedin.com/in/slpollack/',
       jim:    'https://www.linkedin.com/in/jimchungprofile/'
     };
-    function _directoryCardHtml(key, row, filesId) {
+    function _directoryCardHtml(key, row, filesId, canEdit) {
       var d = _profileDisplay(row, key);
       var role = _profileRole(key);
       var li = PROFILE_LINKEDIN[String(key).toLowerCase()] || '';
@@ -7932,7 +7945,14 @@
           h += '<div class="profile-tm-field"><div class="k">' + escapeHtml(f.label) + '</div><div class="v">' + escapeHtml(row[f.k]) + '</div></div>';
         });
       }
-      h += '<div class="profile-tm-field"><div class="k">Materials</div><div class="profile-tm-files" id="' + filesId + '"><p class="profile-file-empty">Loading&hellip;</p></div></div>';
+      // Angela (canEdit) gets the SAME editable per-slot UI she has on her own —
+      // upload / add-link / delete for this teammate. Everyone else is read-only.
+      if (canEdit) {
+        h += '<div class="profile-tm-field"><div class="k">Materials</div>' +
+          PROFILE_MATERIALS.map(function (m) { return _materialSlotHtml(key, m); }).join('') + '</div>';
+      } else {
+        h += '<div class="profile-tm-field"><div class="k">Materials</div><div class="profile-tm-files" id="' + filesId + '"><p class="profile-file-empty">Loading&hellip;</p></div></div>';
+      }
       return h + '</div>';
     }
     // Read-only materials for a teammate — grouped by slot, download only.
@@ -7993,17 +8013,7 @@
         // upload + list.
         html += '<div class="profile-section-head">Speaking materials</div>' +
           '<p class="profile-section-sub">Help Angela organize your speaking materials.</p>';
-        PROFILE_MATERIALS.forEach(function (m) {
-          html += '<div class="profile-material"><div class="profile-material-head">' +
-              '<span class="profile-material-label">' + escapeHtml(m.label) + '</span>' +
-              '<span class="hint">' + escapeHtml(m.hint) + '</span></div>' +
-            '<div class="profile-files" id="pf-files-' + m.k + '"><p class="profile-file-empty">Loading&hellip;</p></div>' +
-            '<div class="profile-upload-row"><input type="file" id="pf-file-input-' + m.k + '" aria-label="Choose a file for ' + escapeHtml(m.label) + '">' +
-              '<button type="button" class="q-btn" data-mat-upload="' + m.k + '">Upload</button></div>' +
-            '<div class="profile-link-row"><input type="url" id="pf-link-input-' + m.k + '" placeholder="\u2026 or paste a Google Drive / Doc link" aria-label="Paste a link for ' + escapeHtml(m.label) + '">' +
-              '<button type="button" class="q-btn" data-mat-link="' + m.k + '">Add link</button></div>' +
-          '</div>';
-        });
+        PROFILE_MATERIALS.forEach(function (m) { html += _materialSlotHtml(meKey, m); });
         // ── Written profile — optional, but helps targeting.
         html += '<div class="profile-section-head">About you <span class="profile-section-opt">optional</span></div>';
         PROFILE_FIELDS.forEach(function (f) {
@@ -8026,22 +8036,29 @@
       if (!dirKeys.length) {
         html += '<div class="queue-empty">No one&#39;s added a profile yet &mdash; when someone fills in their bio, topics, or uploads a file, it shows up here by person.</div>';
       } else {
-        dirKeys.forEach(function (k, i) { html += _directoryCardHtml(k, byKey[k] || null, 'tmfiles-' + i); });
+        dirKeys.forEach(function (k, i) { html += _directoryCardHtml(k, byKey[k] || null, 'tmfiles-' + i, support); });
       }
       html += '</div>';   // end .profile-wrap
       host.innerHTML = html;
+      // Upload / Add-link buttons carry "<key>|<cat>" — one wiring covers the own
+      // card AND (for Angela) every editable teammate slot in the directory.
+      host.querySelectorAll('[data-mat-upload]').forEach(function (btn) {
+        btn.addEventListener('click', function () { var p = btn.getAttribute('data-mat-upload').split('|'); _uploadProfileFile(p[0], p[1]); });
+      });
+      host.querySelectorAll('[data-mat-link]').forEach(function (btn) {
+        btn.addEventListener('click', function () { var p = btn.getAttribute('data-mat-link').split('|'); _addProfileLink(p[0], p[1]); });
+      });
       if (!support) {
         var $save = document.getElementById('pf-save');
         if ($save) $save.addEventListener('click', function () { _saveMyProfile(meKey, meName); });
-        host.querySelectorAll('[data-mat-upload]').forEach(function (btn) {
-          btn.addEventListener('click', function () { _uploadProfileFile(meKey, btn.getAttribute('data-mat-upload')); });
-        });
-        host.querySelectorAll('[data-mat-link]').forEach(function (btn) {
-          btn.addEventListener('click', function () { _addProfileLink(meKey, btn.getAttribute('data-mat-link')); });
-        });
         PROFILE_MATERIALS.forEach(function (m) { _loadProfileFiles(meKey, m.k, dbMissing); });
       }
-      dirKeys.forEach(function (k, i) { _loadTeammateFiles(k, 'tmfiles-' + i); });
+      // Directory materials: Angela (support) gets editable slots (load each);
+      // everyone else gets the read-only grouped list.
+      dirKeys.forEach(function (k, i) {
+        if (support) { PROFILE_MATERIALS.forEach(function (m) { _loadProfileFiles(k, m.k, dbMissing); }); }
+        else { _loadTeammateFiles(k, 'tmfiles-' + i); }
+      });
     }
     function _saveMyProfile(meKey, meName) {
       var row = { person: meKey, display_name: meName, updated_by: meName, updated_at: new Date().toISOString() };
@@ -8062,9 +8079,25 @@
         _loadProfileTaste();
       });
     }
+    // One editable material slot for a person (their own card, or any person in
+    // Angela's team directory). Element ids are keyed by <person>-<slot> so
+    // several people's slots can coexist. Includes an optional link TITLE.
+    function _materialSlotHtml(key, m) {
+      var sid = key + '-' + m.k;
+      return '<div class="profile-material"><div class="profile-material-head">' +
+          '<span class="profile-material-label">' + escapeHtml(m.label) + '</span>' +
+          '<span class="hint">' + escapeHtml(m.hint) + '</span></div>' +
+        '<div class="profile-files" id="pf-files-' + sid + '"><p class="profile-file-empty">Loading&hellip;</p></div>' +
+        '<div class="profile-upload-row"><input type="file" id="pf-file-input-' + sid + '" aria-label="Choose a file for ' + escapeHtml(m.label) + '">' +
+          '<button type="button" class="q-btn" data-mat-upload="' + escapeHtml(key + '|' + m.k) + '">Upload</button></div>' +
+        '<div class="profile-link-row"><input type="text" id="pf-link-title-' + sid + '" class="pf-link-title" placeholder="Doc title (optional)" aria-label="Title for the ' + escapeHtml(m.label) + ' link">' +
+          '<input type="url" id="pf-link-input-' + sid + '" placeholder="paste a Google Drive / Doc link" aria-label="Paste a link for ' + escapeHtml(m.label) + '">' +
+          '<button type="button" class="q-btn" data-mat-link="' + escapeHtml(key + '|' + m.k) + '">Add link</button></div>' +
+      '</div>';
+    }
     // Files for one material slot (<meKey>/<cat>/…) — download + delete.
     function _loadProfileFiles(meKey, cat, setupPending) {
-      var $files = document.getElementById('pf-files-' + cat);
+      var $files = document.getElementById('pf-files-' + meKey + '-' + cat);
       if (!$files) return;
       var prefix = meKey + '/' + cat;
       // A missing bucket returns an empty list (not an error), so lean on the
@@ -8093,33 +8126,38 @@
       });
     }
     // Save a Google Drive / Doc (or any) link into a material slot, stored as a
-    // ".weblink" marker file (URL in the name, base64url-encoded).
+    // ".weblink" marker file: base64url of {t:title, u:url} (or just the URL
+    // when no title is given). Title shows as the link's label.
     function _addProfileLink(meKey, cat) {
-      var $in = document.getElementById('pf-link-input-' + cat);
+      var sid = meKey + '-' + cat;
+      var $in = document.getElementById('pf-link-input-' + sid);
+      var $title = document.getElementById('pf-link-title-' + sid);
       var url = (($in && $in.value) || '').trim();
+      var title = (($title && $title.value) || '').trim().slice(0, 200);
       if (!/^https?:\/\//i.test(url)) { status('Paste a full link starting with http:// or https://', 'warn'); return; }
       if (url.length > 600) { status('That link is too long to save.', 'error'); return; }
-      var enc = _b64urlEnc(url);
-      if (!enc) { status('Could not save that link.', 'error'); return; }
-      var $btn = document.querySelector('[data-mat-link="' + cat + '"]');
+      var payload = title ? JSON.stringify({ t: title, u: url }) : url;
+      var enc = _b64urlEnc(payload);
+      if (!enc || enc.length > 700) { status('Could not save that link (too long).', 'error'); return; }
+      var $btn = document.querySelector('[data-mat-link="' + meKey + '|' + cat + '"]');
       if ($btn) { $btn.setAttribute('aria-busy', 'true'); $btn.textContent = 'Adding\u2026'; }
       sb.storage.from('profiles').upload(meKey + '/' + cat + '/' + enc + '.weblink',
-          new Blob([url], { type: 'text/plain' }), { upsert: true, contentType: 'text/plain' }).then(function (resp) {
+          new Blob([payload], { type: 'text/plain' }), { upsert: true, contentType: 'text/plain' }).then(function (resp) {
         if ($btn) { $btn.removeAttribute('aria-busy'); $btn.textContent = 'Add link'; }
         if (resp && resp.error) {
           status('Could not add the link: ' + resp.error.message + (/bucket|not found/i.test(resp.error.message) ? ' \u2014 the profiles storage bucket may not be set up yet.' : ''), 'error');
           return;
         }
-        if ($in) $in.value = '';
+        if ($in) $in.value = ''; if ($title) $title.value = '';
         flashOk('Link added'); _loadProfileFiles(meKey, cat, false);
       });
     }
     function _uploadProfileFile(meKey, cat) {
-      var $in = document.getElementById('pf-file-input-' + cat);
+      var $in = document.getElementById('pf-file-input-' + meKey + '-' + cat);
       if (!$in || !$in.files || !$in.files.length) { status('Pick a file first.', 'warn'); return; }
       var file = $in.files[0];
       if (file.size > 25 * 1024 * 1024) { status('That file is over 25 MB \u2014 please upload something smaller.', 'error'); return; }
-      var $up = document.querySelector('[data-mat-upload="' + cat + '"]');
+      var $up = document.querySelector('[data-mat-upload="' + meKey + '|' + cat + '"]');
       if ($up) { $up.setAttribute('aria-busy', 'true'); $up.textContent = 'Uploading\u2026'; }
       sb.storage.from('profiles').upload(meKey + '/' + cat + '/' + file.name, file, { upsert: true }).then(function (resp) {
         if ($up) { $up.removeAttribute('aria-busy'); $up.textContent = 'Upload'; }
@@ -11676,18 +11714,23 @@
       list.innerHTML = '';
       if (!msgs.length) { list.innerHTML = '<p class="chat-empty">No messages yet — start the conversation.</p>'; return; }
       var me = (getCollabName() || '').trim().toLowerCase();
+      // Support (Angela / Hurley) can moderate — delete ANY message, not just
+      // their own; everyone else can delete only what they wrote.
+      var _canModerate = isSupportPerson(getCollabName() || '');
       msgs.forEach(function (m) {
         var when = '';
         try { when = new Date(m.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) {}
         var mine = me && String(m.author || '').trim().toLowerCase() === me;
+        var canDel = mine || _canModerate;
         var div = document.createElement('div'); div.className = 'chat-msg';
         div.dataset.msgId = m.id;
-        // Slack-style hover toolbar: add-to-notes · 👍 · 👎 · (delete, own only).
+        // Slack-style hover toolbar: add-to-notes · 👍 · 👎 · delete (own, or any
+        // for support).
         var actions = '<div class="chat-actions">' +
           '<button type="button" class="chat-act" data-act="note" title="Add to event notes" aria-label="Add to notes">\ud83d\udcdd</button>' +
           '<button type="button" class="chat-act" data-act="up" title="Thumbs up" aria-label="Thumbs up">\ud83d\udc4d</button>' +
           '<button type="button" class="chat-act" data-act="down" title="Thumbs down" aria-label="Thumbs down">\ud83d\udc4e</button>' +
-          (mine ? '<button type="button" class="chat-act chat-act-del" data-act="del" title="Delete your message" aria-label="Delete message">\u00d7</button>' : '') +
+          (canDel ? '<button type="button" class="chat-act chat-act-del" data-act="del" title="' + (mine ? 'Delete your message' : 'Delete this message') + '" aria-label="Delete message">\u00d7</button>' : '') +
           '</div>';
         div.innerHTML = actions +
           '<div class="chat-meta"><span class="chat-who">' + escapeHtml(String(m.author || '')) +
