@@ -7350,6 +7350,19 @@ def build():
       var s = _planHides(); s[kind + ':' + key] = 1;
       try {{ localStorage.setItem(_planHideKey(), JSON.stringify(s)); }} catch (e) {{}}
     }}
+    // A solo trip's one-click "Find events near <city>" AI search can come back
+    // empty — nothing else is on near that place & time (e.g. GBS / YPO). Once
+    // it does, remember that per-anchor so we stop offering the (metered) button:
+    // it's a dead end, and real nearby events, if any appear, surface as tracked
+    // rows anyway. Local + personal, like the other read-state.
+    function _planAreaEmptyKey() {{ return 'ab.planempty.' + (getCollabName() || '').toLowerCase(); }}
+    function _planAreaEmpties() {{ try {{ return JSON.parse(localStorage.getItem(_planAreaEmptyKey()) || '{{}}'); }} catch (e) {{ return {{}}; }} }}
+    function _planAreaEmpty(kind, key) {{ return !!_planAreaEmpties()[kind + ':' + key]; }}
+    function _planAreaEmptyMark(kind, key) {{
+      if (!kind || key == null || key === '') return;
+      var s = _planAreaEmpties(); s[kind + ':' + key] = 1;
+      try {{ localStorage.setItem(_planAreaEmptyKey(), JSON.stringify(s)); }} catch (e) {{}}
+    }}
     // Only events 2–4 months out belong in a "plan ahead" suggestion — Thor's
     // own example ("Colombia Tech Week is a month out, too soon") is a HARD
     // exclusion, not just a lower score. No known date -> can't judge it, skip.
@@ -8190,7 +8203,11 @@ def build():
           // GBS (Istanbul, Nov) can still turn something up. Metered → click-only.
           if (!cl.near.length) {{
             var _city = escapeHtml(String(loc).split(',')[0].trim());
-            if (loc) {{
+            if (loc && _planAreaEmpty(ev.kind, ev.key)) {{
+              // Already ran the area search for this trip and it found nothing —
+              // don't re-offer the metered dead-end button.
+              tripHtml += '<p class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then, and an AI search turned up no more.</p>';
+            }} else if (loc) {{
               var _pStart = ev.start_date || _isoFromSort(ev.sort);
               var _pEnd = ev.end_date || ev.start_date || _isoFromSort(_endSortOf(ev));
               tripHtml += '<div class="trip-nonear">' +
@@ -8198,6 +8215,8 @@ def build():
                   '" data-plan-quarter="' + escapeHtml(_quarterOfSort(ev.sort)) +
                   '" data-plan-start="' + escapeHtml(_pStart) +
                   '" data-plan-end="' + escapeHtml(_pEnd) +
+                  '" data-plan-anchor-kind="' + escapeHtml(String(ev.kind)) +
+                  '" data-plan-anchor-key="' + escapeHtml(String(ev.key)) +
                   '" data-plan-exclude="' + escapeHtml(ev.name || '') + '">' +
                   '&#128269; Find events near ' + _city + '</button>' +
                 '<span class="trip-nonear-note">Nothing else tracked near ' + _city + ' around then.</span>' +
@@ -8293,11 +8312,13 @@ def build():
           if (typeof currentView !== 'undefined' && currentView !== 'grid') setView('grid');
           var openP = $opsGrid.querySelector(':scope > .add-event-card'); if (openP) openP.remove();
           openSearchPanel(getCollabName(), {{
-            location: btn.getAttribute('data-plan-near'),
-            quarter:  btn.getAttribute('data-plan-quarter'),
-            dateFrom: btn.getAttribute('data-plan-start'),
-            dateTo:   btn.getAttribute('data-plan-end'),
-            exclude:  btn.getAttribute('data-plan-exclude')
+            location:   btn.getAttribute('data-plan-near'),
+            quarter:    btn.getAttribute('data-plan-quarter'),
+            dateFrom:   btn.getAttribute('data-plan-start'),
+            dateTo:     btn.getAttribute('data-plan-end'),
+            exclude:    btn.getAttribute('data-plan-exclude'),
+            anchorKind: btn.getAttribute('data-plan-anchor-kind'),
+            anchorKey:  btn.getAttribute('data-plan-anchor-key')
           }});
           setTimeout(function () {{
             var el = document.getElementById('search-panel');
@@ -11508,6 +11529,9 @@ def build():
             if (data.off_target_filtered) _filts.push(data.off_target_filtered + ' off-target');
             meta.textContent = 'Found ' + (data.events || []).length + ' new events in ' + dur + 's' +
               (_filts.length ? ' (' + _filts.join(' + ') + ' filtered out)' : '') + '.';
+            // Seeded solo-trip search that found nothing to add → remember this
+            // anchor is a dead end, so Plan Ahead stops offering the button.
+            if (seed.anchorKey && (data.events || []).length === 0) _planAreaEmptyMark(seed.anchorKind, seed.anchorKey);
             renderSearchResults(panel, data, email);
           }}).catch(function (err) {{
             runBtn.disabled = false; runBtn.textContent = 'Find more';
