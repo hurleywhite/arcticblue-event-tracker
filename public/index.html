@@ -996,7 +996,7 @@
        (border-bottom) — no second border here, or you get a doubled-up gap. */
     .event-chat { margin-top: 4px; margin-bottom: 20px; }
     .chat-h { font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 10px; }
-    .chat-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; margin: 0 0 12px; }
+    .chat-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; margin: 0 0 12px; padding-top: 16px; }
     .chat-empty { font-size: 0.85rem; color: var(--ab-fg-3); font-style: italic; margin: 0; }
     .chat-msg { position: relative; background: var(--ab-bg-2); border: 1px solid var(--ab-rule); border-radius: 8px; padding: 8px 10px; }
     .chat-meta { display: flex; gap: 8px; align-items: baseline; margin-bottom: 3px; }
@@ -1005,21 +1005,39 @@
     /* Slack-style hover toolbar: add-to-notes · 👍 · 👎 · delete (own only).
        Floats top-right of the message, revealed on hover / keyboard focus. */
     .chat-actions {
-      position: absolute; top: -10px; right: 8px; display: flex; gap: 2px;
-      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); border-radius: 8px;
-      padding: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      position: absolute; top: -14px; right: 8px; display: flex; align-items: center; gap: 1px;
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); border-radius: 10px;
+      padding: 3px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.10);
       opacity: 0; pointer-events: none; transition: opacity 110ms ease;
     }
     .chat-msg:hover .chat-actions, .chat-msg:focus-within .chat-actions { opacity: 1; pointer-events: auto; }
     .chat-act {
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 26px; height: 26px; padding: 0 4px;
-      border: 0; background: none; cursor: pointer; font-size: 0.95rem; line-height: 1;
-      border-radius: 6px; color: var(--ab-fg-2); overflow: visible;
+      min-width: 30px; height: 30px; padding: 0 4px;
+      border: 0; background: none; cursor: pointer; font-size: 1.05rem; line-height: 1;
+      border-radius: 7px; color: var(--ab-fg-2); overflow: visible;
     }
     .chat-act:hover { background: var(--ab-bg-3); }
-    .chat-act-del { color: var(--ab-fg-3); font-size: 1.1rem; }
-    .chat-act-del:hover { color: var(--ab-red); background: var(--ab-bg-3); }
+    /* Reaction emojis are the primary affordance — render them bigger. */
+    .chat-react-btn { font-size: 1.28rem; }
+    .chat-react-btn:hover { transform: scale(1.12); }
+    /* Divider between reactions and the actions. */
+    .chat-act-sep { width: 1px; align-self: stretch; margin: 3px 3px; background: var(--ab-rule); }
+    .chat-more { font-size: 1.2rem; letter-spacing: 1px; }
+    /* ⋯ "More" reveals a big ✕ delete (hidden until then). */
+    .chat-act-del { display: none; color: var(--ab-red); font-size: 1.25rem; font-weight: 700; }
+    .chat-actions.reveal-del .chat-act-del { display: inline-flex; }
+    .chat-actions.reveal-del .chat-more { background: var(--ab-bg-3); }
+    .chat-act-del:hover { background: rgba(185,28,28,0.1); }
+    /* Forward-to-teammate popover. */
+    .chat-fwd-menu {
+      position: absolute; top: 20px; right: 8px; z-index: 5; min-width: 150px;
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.14); padding: 5px; display: flex; flex-direction: column;
+    }
+    .chat-fwd-head { font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); padding: 4px 8px 5px; }
+    .chat-fwd-item { text-align: left; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.86rem; color: var(--ab-fg); padding: 6px 8px; border-radius: 6px; }
+    .chat-fwd-item:hover { background: var(--ab-bg-3); color: var(--ab-blue); }
     .chat-body { margin: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
     /* 👍/👎 tallies under a message. */
     .chat-reacts { display: flex; gap: 6px; margin-top: 6px; }
@@ -11667,25 +11685,40 @@
     }
     // A message's 👍/👎 tallies (stored in event_chat.reactions jsonb —
     // {up:[names], down:[names]}; absent until the migration runs → no line).
+    // Quick-reaction palette (thumbs first, then a wider range) — Slack-style.
+    var CHAT_EMOJIS = ['\ud83d\udc4d', '\ud83d\udc4e', '\u2764\ufe0f', '\ud83c\udf89', '\u2705', '\ud83d\udc40', '\ud83d\ude4c'];
+    // Normalize a reactions blob to {emoji: [names]}, folding the legacy
+    // up/down shape into 👍/👎 so old reactions still render.
+    function _normReactions(rx) {
+      if (!rx || typeof rx !== 'object') return {};
+      var out = {};
+      Object.keys(rx).forEach(function (k) {
+        var em = k === 'up' ? '\ud83d\udc4d' : (k === 'down' ? '\ud83d\udc4e' : k);
+        if (!Array.isArray(rx[k])) return;
+        out[em] = (out[em] || []).concat(rx[k]);
+      });
+      return out;
+    }
     function _chatReactLine(rx, me) {
-      if (!rx || typeof rx !== 'object') return '';
-      var up = (rx.up || []), down = (rx.down || []);
-      function mine(list) { return me && list.some(function (n) { return String(n).toLowerCase() === me; }); }
+      rx = _normReactions(rx);
       var out = [];
-      if (up.length)   out.push('<span class="chat-react' + (mine(up) ? ' is-mine' : '') + '" title="' + escapeHtml(up.join(', ')) + '">\ud83d\udc4d ' + up.length + '</span>');
-      if (down.length) out.push('<span class="chat-react' + (mine(down) ? ' is-mine' : '') + '" title="' + escapeHtml(down.join(', ')) + '">\ud83d\udc4e ' + down.length + '</span>');
+      Object.keys(rx).forEach(function (em) {
+        var list = rx[em] || []; if (!list.length) return;
+        var mine = me && list.some(function (n) { return String(n).toLowerCase() === me; });
+        out.push('<span class="chat-react' + (mine ? ' is-mine' : '') + '" title="' + escapeHtml(list.join(', ')) + '">' + em + ' ' + list.length + '</span>');
+      });
       return out.length ? '<div class="chat-reacts">' + out.join(' ') + '</div>' : '';
     }
-    // Toggle my 👍/👎 on a message (exclusive — thumbs-up clears my thumbs-down).
-    function _chatReact(m, dir) {
+    // Toggle my reaction with any emoji from the palette.
+    function _chatReact(m, emoji) {
       var who = (getCollabName() || '').trim(); if (!who) { ensureCollabName(); return; }
       var lc = who.toLowerCase();
-      var rx = (m.reactions && typeof m.reactions === 'object') ? m.reactions : {};
-      var up   = (rx.up   || []).filter(function (n) { return String(n).toLowerCase() !== lc; });
-      var down = (rx.down || []).filter(function (n) { return String(n).toLowerCase() !== lc; });
-      var had = (rx[dir] || []).some(function (n) { return String(n).toLowerCase() === lc; });
-      if (!had) { (dir === 'up' ? up : down).push(who); }   // not set → add; already set → stays removed (toggle off)
-      sb.from('event_chat').update({ reactions: { up: up, down: down } }).eq('id', m.id).then(function (resp) {
+      var rx = _normReactions(m.reactions);
+      var had = (rx[emoji] || []).some(function (n) { return String(n).toLowerCase() === lc; });
+      var cur = (rx[emoji] || []).filter(function (n) { return String(n).toLowerCase() !== lc; });
+      if (!had) cur.push(who);
+      if (cur.length) rx[emoji] = cur; else delete rx[emoji];
+      sb.from('event_chat').update({ reactions: rx }).eq('id', m.id).then(function (resp) {
         if (resp.error) {
           status(/column|reactions/i.test(resp.error.message || '')
             ? 'Reactions need a one-time Supabase migration (scripts/2026-07-10_chat_reactions.sql) before they save.'
@@ -11694,6 +11727,38 @@
         }
         _reloadOpenChat();
       });
+    }
+    // Forward a message to a teammate: pick a name, and it posts "↪ @Name — <msg>"
+    // into this event's chat, which pings them via the "In the last week" mention.
+    function _chatForward(m, btn) {
+      var open = document.querySelector('.chat-fwd-menu'); if (open) open.remove();
+      var P = window.AB_PERSONAS || {};
+      var seen = {}, list = [];
+      Object.keys(P).forEach(function (k) {
+        var n = (P[k] && P[k].name) ? String(P[k].name).split(/\s+/)[0] : k;
+        var lc = n.toLowerCase(); if (seen[lc]) return; seen[lc] = 1; list.push(n);
+      });
+      if (!list.length) return;
+      var menu = document.createElement('div'); menu.className = 'chat-fwd-menu';
+      menu.innerHTML = '<div class="chat-fwd-head">Forward to</div>' +
+        list.map(function (n) { return '<button type="button" class="chat-fwd-item" data-fwd="' + escapeHtml(n) + '">' + escapeHtml(n) + '</button>'; }).join('');
+      btn.closest('.chat-msg').appendChild(menu);
+      menu.querySelectorAll('[data-fwd]').forEach(function (b) {
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var to = b.getAttribute('data-fwd');
+          var who = (window.opsCurrentUser ? window.opsCurrentUser(true) : getCollabName()) || ''; if (!who) return;
+          var panel = document.getElementById('event-chat-panel'); if (!panel || !panel.dataset.col) return;
+          var row = { author: who, body: '\u21aa @' + to + ' \u2014 ' + String(m.body || '') };
+          row[panel.dataset.col] = panel.dataset.keyval;
+          menu.remove();
+          sb.from('event_chat').insert(row).then(function (resp) {
+            if (resp.error) { status('Forward failed: ' + resp.error.message, 'error'); return; }
+            flashOk('Forwarded to ' + to); _reloadOpenChat(); loadChatCounts();
+          });
+        });
+      });
+      setTimeout(function () { document.addEventListener('click', function _c(ev) { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', _c); } }); }, 0);
     }
     // "Add to notes" — append the message to the event's Notes (fresh-read the
     // current value so we never clobber a concurrent edit), via opsWrite.
@@ -11724,13 +11789,21 @@
         var canDel = mine || _canModerate;
         var div = document.createElement('div'); div.className = 'chat-msg';
         div.dataset.msgId = m.id;
-        // Slack-style hover toolbar: add-to-notes · 👍 · 👎 · delete (own, or any
-        // for support).
+        // Slack-style hover toolbar: emoji reactions (👍 👎 first, then more) ·
+        // forward-to-a-teammate · add-to-notes · a ⋯ overflow that reveals a
+        // big ✕ delete (own message, or any for support).
+        var reactBtns = CHAT_EMOJIS.map(function (em) {
+          return '<button type="button" class="chat-act chat-react-btn" data-react="' + em + '" title="React ' + em + '" aria-label="React">' + em + '</button>';
+        }).join('');
         var actions = '<div class="chat-actions">' +
+          reactBtns +
+          '<span class="chat-act-sep" aria-hidden="true"></span>' +
+          '<button type="button" class="chat-act" data-act="forward" title="Forward to a teammate" aria-label="Forward">\u27a1\ufe0f</button>' +
           '<button type="button" class="chat-act" data-act="note" title="Add to event notes" aria-label="Add to notes">\ud83d\udcdd</button>' +
-          '<button type="button" class="chat-act" data-act="up" title="Thumbs up" aria-label="Thumbs up">\ud83d\udc4d</button>' +
-          '<button type="button" class="chat-act" data-act="down" title="Thumbs down" aria-label="Thumbs down">\ud83d\udc4e</button>' +
-          (canDel ? '<button type="button" class="chat-act chat-act-del" data-act="del" title="' + (mine ? 'Delete your message' : 'Delete this message') + '" aria-label="Delete message">\u00d7</button>' : '') +
+          (canDel
+            ? '<button type="button" class="chat-act chat-more" data-act="more" title="More" aria-label="More">\u22ef</button>' +
+              '<button type="button" class="chat-act chat-act-del" data-act="del" title="' + (mine ? 'Delete your message' : 'Delete this message') + '" aria-label="Delete message">\u2715</button>'
+            : '') +
           '</div>';
         div.innerHTML = actions +
           '<div class="chat-meta"><span class="chat-who">' + escapeHtml(String(m.author || '')) +
@@ -11740,10 +11813,12 @@
         div.querySelectorAll('.chat-act').forEach(function (btn) {
           btn.addEventListener('click', function (e) {
             e.stopPropagation();
+            var react = btn.getAttribute('data-react');
+            if (react) return _chatReact(m, react);
             var act = btn.getAttribute('data-act');
             if (act === 'note') return _chatToNotes(m);
-            if (act === 'up')   return _chatReact(m, 'up');
-            if (act === 'down') return _chatReact(m, 'down');
+            if (act === 'forward') return _chatForward(m, btn);
+            if (act === 'more') { var bar = btn.closest('.chat-actions'); if (bar) bar.classList.toggle('reveal-del'); return; }
             if (act === 'del') {
               if (!window.confirm('Delete this message? This cannot be undone.')) return;
               sb.from('event_chat').delete().eq('id', m.id).then(function (resp) {
