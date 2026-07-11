@@ -2368,8 +2368,20 @@ def build():
     }}
     .profile-file-name {{ font-size: 0.86rem; color: var(--ab-fg); font-weight: 600; word-break: break-all; flex: 1; text-decoration: none; }}
     .profile-file-name:hover {{ color: var(--ab-blue); text-decoration: underline; }}
+    /* The file name is now a PREVIEW button (opens a viewer, never downloads). */
+    .profile-file-name.profile-file-open {{ background: none; border: 0; padding: 0; font-family: inherit; text-align: left; cursor: pointer; }}
+    .profile-file--link .profile-file-name {{ color: var(--ab-blue); }}
     .profile-file-size {{ font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-3); white-space: nowrap; }}
     .profile-file-empty {{ font-size: 0.84rem; color: var(--ab-fg-3); font-style: italic; }}
+    /* Download icon — the ONLY thing that downloads a file now. */
+    .profile-file-dl {{
+      display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+      width: 30px; height: 30px; border-radius: 6px; cursor: pointer;
+      color: var(--ab-fg-3); background: var(--ab-bg); border: 1px solid var(--ab-rule);
+      transition: color 120ms ease, border-color 120ms ease;
+    }}
+    .profile-file-dl svg {{ width: 15px; height: 15px; }}
+    .profile-file-dl:hover {{ color: var(--ab-blue); border-color: var(--ab-blue); }}
     /* Delete-a-file button — clearly a delete: trash icon + label, reddens on hover. */
     .profile-file-del {{
       display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto; white-space: nowrap;
@@ -2382,6 +2394,9 @@ def build():
     .profile-file-del:hover {{ color: #b91c1c; border-color: #e5a5a5; background: #fdf3f3; }}
     .profile-upload-row {{ display: flex; align-items: center; gap: 10px; margin: 11px 0 0; flex-wrap: wrap; }}
     .profile-upload-row input[type=file] {{ font-size: 0.82rem; color: var(--ab-fg-2); max-width: 100%; }}
+    /* Paste a Google Drive / Doc link instead of (or as well as) uploading. */
+    .profile-link-row {{ display: flex; align-items: center; gap: 10px; margin: 7px 0 0; flex-wrap: wrap; }}
+    .profile-link-row input {{ flex: 1; min-width: 180px; font-size: 0.84rem; padding: 7px 10px; border: 1px solid var(--ab-rule-strong); border-radius: 6px; font-family: inherit; }}
     .profile-teammate {{
       border: 1px solid var(--ab-rule); border-radius: 10px; background: var(--ab-bg);
       padding: 14px 16px; margin: 0 0 10px;
@@ -8263,6 +8278,66 @@ def build():
       if (n < 1024 * 1024) return (n / 1024).toFixed(0) + ' KB';
       return (n / (1024 * 1024)).toFixed(1) + ' MB';
     }}
+    // ── Profile materials: preview (not download) + a download icon + links ──
+    var PROFILE_DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>';
+    // Links (Google Drive/Doc etc.) are stored as tiny ".weblink" marker files
+    // whose NAME is the URL, base64url-encoded (so listing needs no extra fetch).
+    function _b64urlEnc(s) {{ try {{ return btoa(unescape(encodeURIComponent(s))).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, ''); }} catch (e) {{ return ''; }} }}
+    function _b64urlDec(s) {{ try {{ s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }} catch (e) {{ return ''; }} }}
+    function _isWeblink(name) {{ return /\\.weblink$/i.test(name || ''); }}
+    function _weblinkUrl(name) {{ return _b64urlDec(String(name).replace(/\\.weblink$/i, '')); }}
+    function _isOfficeDoc(name) {{ return /\\.(docx?|pptx?|xlsx?)$/i.test(name || ''); }}
+    // PREVIEW a stored file in the right viewer — never a forced download. Office
+    // docs render via Microsoft's online viewer; PDFs / images / text open
+    // directly (the browser previews those). This is the fix for "clicking it
+    // just downloads the .docx".
+    function _profilePreview(fullPath, name) {{
+      sb.storage.from('profiles').createSignedUrl(fullPath, 600).then(function (r) {{
+        var url = r && r.data && r.data.signedUrl;
+        if (!url) {{ status('Could not open that file.', 'error'); return; }}
+        var dest = _isOfficeDoc(name)
+          ? ('https://view.officeapps.live.com/op/view.aspx?src=' + encodeURIComponent(url))
+          : url;
+        window.open(dest, '_blank', 'noopener');
+      }});
+    }}
+    // DOWNLOAD on demand (Content-Disposition: attachment) — behind its own icon.
+    function _profileDownload(fullPath, name) {{
+      sb.storage.from('profiles').createSignedUrl(fullPath, 120, {{ download: name || true }}).then(function (r) {{
+        var url = r && r.data && r.data.signedUrl;
+        if (url) window.open(url, '_blank', 'noopener'); else status('Could not download that file.', 'error');
+      }});
+    }}
+    // One row for a file OR a link: name = preview, a download icon, and an
+    // optional delete (own profile only). Links open directly (that IS a preview).
+    function _matFileRowHtml(fullPath, name, size, canDelete) {{
+      var del = canDelete
+        ? '<button type="button" class="profile-file-del" data-delpath="' + escapeHtml(fullPath) + '" data-delname="' + escapeHtml(name) + '" aria-label="Delete ' + escapeHtml(name) + '" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
+        : '';
+      if (_isWeblink(name)) {{
+        var url = _weblinkUrl(name);
+        var isG = /docs\\.google|drive\\.google/i.test(url);
+        var lbl = isG ? 'Google Doc / Drive link' : (function () {{ try {{ return new URL(url).host.replace(/^www\\./, ''); }} catch (e) {{ return 'Link'; }} }})();
+        return '<div class="profile-file profile-file--link">' +
+          '<a class="profile-file-name" href="' + escapeHtml(url) + '" target="_blank" rel="noopener" title="' + escapeHtml(url) + '">\\ud83d\\udd17 ' + escapeHtml(lbl) + ' \\u2197</a>' + del + '</div>';
+      }}
+      return '<div class="profile-file">' +
+        '<button type="button" class="profile-file-name profile-file-open" data-openpath="' + escapeHtml(fullPath) + '" data-openname="' + escapeHtml(name) + '" title="Preview ' + escapeHtml(name) + '">' + escapeHtml(name) + '</button>' +
+        (size ? '<span class="profile-file-size">' + escapeHtml(size) + '</span>' : '') +
+        '<button type="button" class="profile-file-dl" data-dlpath="' + escapeHtml(fullPath) + '" data-dlname="' + escapeHtml(name) + '" aria-label="Download ' + escapeHtml(name) + '" title="Download">' + PROFILE_DL_ICON + '</button>' +
+        del + '</div>';
+    }}
+    // Delegated preview / download / delete for a file container (added once).
+    function _wireProfileFileContainer($c, onDelete) {{
+      if (!$c || $c.dataset.fcWired) return;
+      $c.dataset.fcWired = '1';
+      $c.addEventListener('click', function (e) {{
+        var t = e.target; if (!t || !t.closest) return;
+        var op = t.closest('[data-openpath]'); if (op) {{ e.preventDefault(); _profilePreview(op.getAttribute('data-openpath'), op.getAttribute('data-openname')); return; }}
+        var dl = t.closest('[data-dlpath]'); if (dl) {{ e.preventDefault(); _profileDownload(dl.getAttribute('data-dlpath'), dl.getAttribute('data-dlname')); return; }}
+        var de = t.closest('[data-delpath]'); if (de && onDelete) {{ e.preventDefault(); onDelete(de.getAttribute('data-delpath'), de.getAttribute('data-delname')); return; }}
+      }});
+    }}
     function renderMyProfile() {{
       var host = document.getElementById('ops-myprofile');
       if (!host) return;
@@ -8315,17 +8390,7 @@ def build():
       var $c = document.getElementById(containerId);
       if (!$c) return;
       $c.innerHTML = '';
-      if (!$c.dataset.dlWired) {{
-        $c.dataset.dlWired = '1';
-        $c.addEventListener('click', function (e) {{
-          var a = e.target && e.target.closest ? e.target.closest('[data-tmfile]') : null;
-          if (!a) return;
-          e.preventDefault();
-          sb.storage.from('profiles').createSignedUrl(a.getAttribute('data-tmkey') + '/' + a.getAttribute('data-tmfile'), 120).then(function (r) {{
-            if (r && r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank'); else status('Could not open that file.', 'error');
-          }});
-        }});
-      }}
+      _wireProfileFileContainer($c, null);   // preview + download, no delete (read-only)
       var pending = PROFILE_MATERIALS.length, anyShown = false;
       PROFILE_MATERIALS.forEach(function (m) {{
         sb.storage.from('profiles').list(personKey + '/' + m.k, {{ limit: 50 }}).then(function (resp) {{
@@ -8335,8 +8400,7 @@ def build():
             var h = '<div class="tm-mat-group"><div class="tm-mat-label">' + escapeHtml(m.label) + '</div>' +
               items.map(function (f) {{
                 var size = (f.metadata && f.metadata.size) ? _fmtBytes(f.metadata.size) : '';
-                return '<div class="profile-file"><a class="profile-file-name" href="#" data-tmfile="' + escapeHtml(m.k + '/' + f.name) + '" data-tmkey="' + escapeHtml(personKey) + '">' + escapeHtml(f.name) + '</a>' +
-                  (size ? '<span class="profile-file-size">' + size + '</span>' : '') + '</div>';
+                return _matFileRowHtml(personKey + '/' + m.k + '/' + f.name, f.name, size, false);
               }}).join('') + '</div>';
             $c.insertAdjacentHTML('beforeend', h);
           }}
@@ -8384,6 +8448,8 @@ def build():
             '<div class="profile-files" id="pf-files-' + m.k + '"><p class="profile-file-empty">Loading&hellip;</p></div>' +
             '<div class="profile-upload-row"><input type="file" id="pf-file-input-' + m.k + '" aria-label="Choose a file for ' + escapeHtml(m.label) + '">' +
               '<button type="button" class="q-btn" data-mat-upload="' + m.k + '">Upload</button></div>' +
+            '<div class="profile-link-row"><input type="url" id="pf-link-input-' + m.k + '" placeholder="\\u2026 or paste a Google Drive / Doc link" aria-label="Paste a link for ' + escapeHtml(m.label) + '">' +
+              '<button type="button" class="q-btn" data-mat-link="' + m.k + '">Add link</button></div>' +
           '</div>';
         }});
         // ── Written profile — optional, but helps targeting.
@@ -8417,6 +8483,9 @@ def build():
         if ($save) $save.addEventListener('click', function () {{ _saveMyProfile(meKey, meName); }});
         host.querySelectorAll('[data-mat-upload]').forEach(function (btn) {{
           btn.addEventListener('click', function () {{ _uploadProfileFile(meKey, btn.getAttribute('data-mat-upload')); }});
+        }});
+        host.querySelectorAll('[data-mat-link]').forEach(function (btn) {{
+          btn.addEventListener('click', function () {{ _addProfileLink(meKey, btn.getAttribute('data-mat-link')); }});
         }});
         PROFILE_MATERIALS.forEach(function (m) {{ _loadProfileFiles(meKey, m.k, dbMissing); }});
       }}
@@ -8460,31 +8529,37 @@ def build():
         if (!items.length) {{ $files.innerHTML = '<p class="profile-file-empty">' + emptyMsg + '</p>'; return; }}
         $files.innerHTML = items.map(function (f) {{
           var size = (f.metadata && f.metadata.size) ? _fmtBytes(f.metadata.size) : '';
-          return '<div class="profile-file"><a class="profile-file-name" href="#" data-file="' + escapeHtml(f.name) + '">' + escapeHtml(f.name) + '</a>' +
-            (size ? '<span class="profile-file-size">' + size + '</span>' : '') +
-            '<button type="button" class="profile-file-del" data-delfile="' + escapeHtml(f.name) + '" aria-label="Delete ' + escapeHtml(f.name) + '" title="Delete this file">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>' +
-              '<span>Delete</span></button></div>';
+          return _matFileRowHtml(prefix + '/' + f.name, f.name, size, true);
         }}).join('');
-        $files.querySelectorAll('[data-file]').forEach(function (a) {{
-          a.addEventListener('click', function (e) {{
-            e.preventDefault();
-            sb.storage.from('profiles').createSignedUrl(prefix + '/' + a.getAttribute('data-file'), 120).then(function (r) {{
-              if (r && r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank');
-              else status('Could not open that file.', 'error');
-            }});
+        _wireProfileFileContainer($files, function (fullPath, name) {{
+          if (!window.confirm('Delete "' + name + '"? This cannot be undone.')) return;
+          sb.storage.from('profiles').remove([fullPath]).then(function (r) {{
+            if (r && r.error) {{ status('Delete failed: ' + r.error.message, 'error'); return; }}
+            flashOk('Deleted'); _loadProfileFiles(meKey, cat, false);
           }});
         }});
-        $files.querySelectorAll('[data-delfile]').forEach(function (b) {{
-          b.addEventListener('click', function () {{
-            var name = b.getAttribute('data-delfile');
-            if (!window.confirm('Delete "' + name + '"? This cannot be undone.')) return;
-            sb.storage.from('profiles').remove([prefix + '/' + name]).then(function (r) {{
-              if (r && r.error) {{ status('Delete failed: ' + r.error.message, 'error'); return; }}
-              flashOk('File deleted'); _loadProfileFiles(meKey, cat, false);
-            }});
-          }});
-        }});
+      }});
+    }}
+    // Save a Google Drive / Doc (or any) link into a material slot, stored as a
+    // ".weblink" marker file (URL in the name, base64url-encoded).
+    function _addProfileLink(meKey, cat) {{
+      var $in = document.getElementById('pf-link-input-' + cat);
+      var url = (($in && $in.value) || '').trim();
+      if (!/^https?:\\/\\//i.test(url)) {{ status('Paste a full link starting with http:// or https://', 'warn'); return; }}
+      if (url.length > 600) {{ status('That link is too long to save.', 'error'); return; }}
+      var enc = _b64urlEnc(url);
+      if (!enc) {{ status('Could not save that link.', 'error'); return; }}
+      var $btn = document.querySelector('[data-mat-link="' + cat + '"]');
+      if ($btn) {{ $btn.setAttribute('aria-busy', 'true'); $btn.textContent = 'Adding\\u2026'; }}
+      sb.storage.from('profiles').upload(meKey + '/' + cat + '/' + enc + '.weblink',
+          new Blob([url], {{ type: 'text/plain' }}), {{ upsert: true, contentType: 'text/plain' }}).then(function (resp) {{
+        if ($btn) {{ $btn.removeAttribute('aria-busy'); $btn.textContent = 'Add link'; }}
+        if (resp && resp.error) {{
+          status('Could not add the link: ' + resp.error.message + (/bucket|not found/i.test(resp.error.message) ? ' \\u2014 the profiles storage bucket may not be set up yet.' : ''), 'error');
+          return;
+        }}
+        if ($in) $in.value = '';
+        flashOk('Link added'); _loadProfileFiles(meKey, cat, false);
       }});
     }}
     function _uploadProfileFile(meKey, cat) {{
