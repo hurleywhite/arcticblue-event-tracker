@@ -425,7 +425,8 @@
    "typical_attendees": "Startups, enterprise leaders, investors, policymakers, and technology teams",
    "attendee_count": "1,400 exhibitors (2025 edition)",
    "speaking_route": "Apply to speak: https://event.gitexeurope.com/speaker-interest-2026",
-   "pay_to_play": "No"
+   "pay_to_play": "No",
+   "deadline": "Matchmaking booking opened May 18, 2026"
   },
   {
    "num": 52,
@@ -2450,7 +2451,10 @@
    "external_id": "5285594e-ad07-43d4-8128-192ad2809142",
    "source": "arcticscout",
    "start_date": "2026-05-14",
-   "end_date": "2026-05-14"
+   "end_date": "2026-05-14",
+   "pricing": "Register with VIP discount code 'MKT' for discount; exact ticket price not listed in search results",
+   "meeting_formats": "Keynotes, strategy sprints, fireside chats, innovation sessions",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 111,
@@ -6980,7 +6984,14 @@
    "notes": "Can apply for below events in one application:\n- UNLEASH America\n- UNLEASH World\n- ONGOING: Editorial - News, Opinion, Interview, Insight, Feature, and/or Case Studies",
    "focus_areas": "Future of Work; HR technology & digital enablement; People & talent strategy; Learning & Development; Talent acquisition & recruitment; People analytics & HRIS; DEIB & wellbeing; AI in HR",
    "seed": false,
-   "urgent": false
+   "urgent": false,
+   "venue": "Paris Convention Centre",
+   "pricing": "General Admission: €5,995 (limited tickets offered with €5,995 savings for eligible attendees); Day One (Summits & Salons, hosted Expeditions, Executive Dinners): Not included with General Admission, premium curated experience",
+   "pay_to_play": "Yes",
+   "past_speakers": "HR, Business, Technology and AI leaders shaping work redesign; global mainstage keynoters and expert-led session hosts from startups and established WorkTech providers",
+   "meeting_formats": "Official networking, product discovery marketplace, startup showcases, analyst insight sessions, and hosted Expeditions inside leading employers (Day One)",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "7,000+"
   },
   {
    "num": 274,
@@ -7561,7 +7572,10 @@
    "pay_to_play": "Yes",
    "city": "New York",
    "country": "USA",
-   "external_id": "replit-223"
+   "external_id": "replit-223",
+   "venue": "New York, USA",
+   "meeting_formats": "Registration & Networking Breakfast, peer-driven content and discussions",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 296,
