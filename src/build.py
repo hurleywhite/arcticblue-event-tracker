@@ -9015,6 +9015,10 @@ def build():
       // Australia is VERMA'S territory only — no one else fits an AU event, even
       // when the industry keywords match (an AU healthcare event ≠ Thor's).
       if (p.key !== 'Verma' && /\\b(australia|australian|sydney|melbourne|brisbane|perth|canberra|adelaide)\\b/.test(String(blob || ''))) return false;
+      // HR / CHRO / people events are JOE'S audience only — keep them off everyone
+      // else's fit (a CHRO summit whose attendees span industries was matching
+      // Thor on a stray "healthcare"). Matched on the strong HR event signals.
+      if (p.key !== 'Joe' && /\\bchro\\b|shrm|chief (human resources|people)|people officer|\\bhr (summit|conference|forum|assembly|exchange|congress|leaders)\\b/.test(String(blob || ''))) return false;
       var regionOk = !!(region && p.regions.indexOf(region) !== -1);
       // Region-locked people (Jerome = Europe, Carlos = Latin America) fit ONLY
       // their own region — a loose keyword (a city named in a blurb, or 'web
