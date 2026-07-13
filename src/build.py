@@ -4734,7 +4734,7 @@ def build():
       var lbl = angela ? 'Flag Should Attend' : 'I\\'m interested';
       var ttl = angela ? 'Star = Should Attend \\u2014 flags this event for the team'
                        : 'Star = I\\'m interested (adds you to the interested list + Angela\\'s queue)';
-      return '<button class="saved-star' + (on ? ' is-on' : '') + '" data-star type="button"' +
+      return '<button class="saved-star ops-hover' + (on ? ' is-on' : '') + '" data-star type="button"' +
         ' aria-label="' + lbl + '" title="' + ttl + '">' +
         (on ? '\\u2605' : '\\u2606') + '</button>';
     }}
@@ -5098,7 +5098,7 @@ def build():
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (st.hidden
               ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
+              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
             decBadge + saBadge +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
@@ -5291,7 +5291,7 @@ def build():
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (mev.hidden
               ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
+              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
