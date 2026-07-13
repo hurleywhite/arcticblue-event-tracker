@@ -26,6 +26,156 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-447@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20261116
+DTEND;VALUE=DATE:20261118
+SUMMARY:Gartner IT Infrastructure\, Operations & Cloud Strategies Conference 2026 – London
+LOCATION:London\, UK
+DESCRIPTION:Gartner’s premier EMEA event for IT infrastructure and operations leaders — 2\,000+ senior I&O leaders covering agentic AI\, hybrid cloud\, and AI-driven operations\; strong fit for ArcticBlue’s enterprise AI architecture narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.gartner.com/en/conferences/emea/infrastructure-operations-cloud-uk
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-446@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20260917
+DTEND;VALUE=DATE:20260918
+SUMMARY:CDM Media CDO/CAIO Ireland Summit 2026
+LOCATION:Dublin\, Ireland
+DESCRIPTION:CDM Media’s dedicated Chief Data Officer and Chief AI Officer summit in Dublin — reaches European CDO/CAIO community\; directly aligned with ArcticBlue’s core buyer persona.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.cdmmedia.com/cdo
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-445@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20260917
+DTEND;VALUE=DATE:20260918
+SUMMARY:CDM Media CIO/CISO Ireland Summit 2026
+LOCATION:Dublin\, Ireland
+DESCRIPTION:CDM Media’s joint CIO & CISO executive summit in Dublin covering enterprise AI\, cloud and security — reaches Irish and European multinational enterprise decision-makers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://events.cdmmedia.com/event/3a5f270f-b461-45db-a607-a70633857de8/summary
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-444@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20261014
+DTEND;VALUE=DATE:20261015
+SUMMARY:Evanta UK & Ireland CIO Community Executive Summit – Autumn 2026
+LOCATION:Convene at 155 Bishopsgate\, London\, UK
+DESCRIPTION:Gartner Evanta’s exclusive peer-only CIO summit for UK and Ireland enterprise technology leaders in London — concentrated buyer audience for ArcticBlue’s European enterprise AI positioning.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/cio/uk/uk-ireland-cio-executive-summit-8503
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-443@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20261117
+DTEND;VALUE=DATE:20261118
+SUMMARY:Evanta Southern California CIO Community Executive Summit 2026
+LOCATION:The Waterfront Beach Resort\, Huntington Beach\, CA
+DESCRIPTION:Gartner Evanta peer-driven CIO summit for Southern California enterprise leaders — access to LA/Orange County enterprise technology CIOs.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/cio/southern-california/southern-california-cio-executive-summit-9358
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-442@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20261119
+DTEND;VALUE=DATE:20261120
+SUMMARY:CDM Media CIO Toronto Summit 2026
+LOCATION:Toronto\, Canada
+DESCRIPTION:CDM Media’s one-day peer CIO summit in Toronto focused on AI\, automation\, and future of work — sponsor-accessible format reaching Canadian enterprise CIO buyers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://events.cdmmedia.com/event/290fb9a5-cd43-4479-ab25-036af17428d4/agenda
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-441@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20261104
+DTEND;VALUE=DATE:20261105
+SUMMARY:Evanta Phoenix CIO Community Executive Summit 2026
+LOCATION:Renaissance Phoenix Downtown Hotel\, Phoenix\, AZ
+DESCRIPTION:Gartner Evanta peer-driven CIO summit for Arizona enterprise leaders covering AI operating model and enterprise innovation.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/cio/phoenix/phoenix-cio-executive-summit-8421
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-440@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20261029
+DTEND;VALUE=DATE:20261030
+SUMMARY:Evanta Vancouver BC CIO Community Executive Summit 2026
+LOCATION:Vancouver Marriott Pinnacle Downtown\, Vancouver\, BC\, Canada
+DESCRIPTION:Gartner’s Evanta peer-only CIO summit for Western Canada enterprise leaders — access to BC/Western Canada tech-sector CIOs for ArcticBlue’s Canadian market expansion.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/cio/vancouver-bc/vancouver-bc-cio-executive-summit-8426
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-439@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20260915
+DTEND;VALUE=DATE:20260916
+SUMMARY:CDM Media CIO Houston Summit 2026
+LOCATION:Houston\, TX
+DESCRIPTION:CDM Media’s one-day peer-only CIO summit in Houston focused on proving AI value and multi-cloud strategy — direct access to energy sector and healthcare CIOs in one of the largest enterprise markets in the US.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://events.cdmmedia.com/event/feab0229-a85f-4996-88c2-e8b3120736a6/summary
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-438@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20261028
+DTEND;VALUE=DATE:20261029
+SUMMARY:Evanta Philadelphia CIO Community Executive Summit 2026
+LOCATION:Philadelphia Marriott Downtown\, Philadelphia\, PA
+DESCRIPTION:Gartner’s Evanta brand peer-only CIO summit focused on AI operating model adoption — access to Mid-Atlantic enterprise CIOs in a vetted\, sponsor-accessible format for ArcticBlue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/cio/philadelphia/philadelphia-cio-executive-summit-8414
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-437@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20261124
+DTEND;VALUE=DATE:20261125
+SUMMARY:10DX Summit South Africa 2026
+LOCATION:Johannesburg\, South Africa
+DESCRIPTION:South Africa's premier intelligent banking event — by-invitation-only with 75+ banking and FI executives examining AI in production\, open rails\, and model governance under FATF and SARB regulation — ideal for ArcticBlue's Africa regulated-industry expansion.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.10dxsummit.com/events/sa
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-436@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20260929
+DTEND;VALUE=DATE:20260930
+SUMMARY:Datos Insights Insurance Leaders Summit at ITC 2026
+LOCATION:Las Vegas\, USA
+DESCRIPTION:Co-located with ITC Vegas\, this Datos Insights forum gathers 125+ insurance technology executives (CIOs\, CTOs\, CAIOs) for intimate peer roundtables on AI governance and intelligent insurance — ideal speaking platform for Verma's regulated-industry AI expertise.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://events.datos-insights.com/ilfitc26/overview
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-435@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20260826
+DTEND;VALUE=DATE:20260827
+SUMMARY:FSI & AI Singapore Summit 2026
+LOCATION:Singapore
+DESCRIPTION:Premier one-day summit for CDOs\, CAIOs\, CIOs\, and CTOs in banking\, insurance\, and fintech in Singapore — direct earned speaking route via daniel@cdotrends.com\, perfect audience for ArcticBlue's regulated-industry AI governance thesis.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.cdotrends.com/event/fsi-&-ai-singapore-summit/2026/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-434@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20261001
+DTEND;VALUE=DATE:20261002
+SUMMARY:AI+X Summit Zurich 2026
+LOCATION:Zurich\, Switzerland
+DESCRIPTION:Zurich AI Festival flagship event with 2000+ attendees and a dedicated AI in Financial Services track — strong Zurich market presence opportunity for ArcticBlue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.plusx.ai/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-433@arcticblue-event-tracker
+DTSTAMP:20260713T000000Z
+DTSTART;VALUE=DATE:20260909
+DTEND;VALUE=DATE:20260910
+SUMMARY:Confare CIOSUMMIT Zürich 2026
+LOCATION:Zurich\, Switzerland
+DESCRIPTION:Premier CIO summit for the DACH region at its 15th edition — ideal for Jerome's Zurich priority market\, with CIOs from Swiss banking\, insurance and telco in the room.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://confare.at/en/ciosummit/zurich/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-432@arcticblue-event-tracker
 DTSTAMP:20260713T000000Z
 DTSTART;VALUE=DATE:20261007

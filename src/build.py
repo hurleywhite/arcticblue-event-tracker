@@ -2305,6 +2305,8 @@ def build():
     /* "Mark applied" + the × dismiss sit side by side, not stacked. */
     .q-btn-row {{ display: flex; gap: 6px; align-items: stretch; }}
     .q-btn-row .q-btn.primary {{ flex: 1; }}
+    /* Plan Ahead embedded at the bottom of My Lineup — a clear divider above it. */
+    .ops-planahead-embed {{ margin-top: 20px; padding-top: 8px; border-top: 1px solid var(--ab-rule); }}
     /* Plan Ahead decision buttons: "I'm interested" + "Not for me" side by side. */
     .queue-actions.sug-actions {{ flex-direction: row; flex-wrap: wrap; gap: 6px; align-items: center; }}
     .q-btn.sug-skip {{ color: var(--ab-fg-3); }}
@@ -3163,7 +3165,6 @@ def build():
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
-          <button type="button" role="tab" data-view="planahead" aria-selected="false">Plan ahead</button>
           <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Catalog</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
@@ -3284,7 +3285,6 @@ def build():
           </div>
         </div>
         <div class="ops-myevents" id="ops-myevents"></div>
-        <div class="ops-planahead" id="ops-planahead"></div>
         <div class="ops-myprofile" id="ops-myprofile"></div>
         <div class="ops-queue" id="ops-queue"></div>
         <div class="ops-planner" id="ops-planner"></div>
@@ -7689,34 +7689,14 @@ def build():
         wnHtml = '<div class="queue-section wn-section"><div class="queue-sec-head"><span class="queue-sec-title">In the last week</span><span class="queue-sec-count">' + _wnLast.length + '</span></div>' +
           _cardsHtml + _groupsHtml + '</div>';
       }}
-      // Bottom: only-the-best picks for whoever is signed in.
-      var _sug = _suggestionsFor().slice(0, 10);
-      var _sugTitle = ((window.AB_PERSONAS || {{}})[(b.me || '').trim().toLowerCase().split(/\\s+/)[0]]) ? 'Suggested for you' : 'Top suggestions for the team';
-      // "Suggested for you" is collapsible (click the header to hide the whole
-      // block — remembered per person), and each row has a ✕ to drop just that
-      // one (a "not for me" shared with Plan Ahead's skip).
-      var _sugHide = false;
-      try {{ _sugHide = localStorage.getItem('ab.sugcollapse.' + (b.me || '').toLowerCase()) === '1'; }} catch (e) {{}}
-      var sugHtml = _sug.length
-        ? '<div class="queue-section sug-section collapsible' + (_sugHide ? ' collapsed' : '') + '">' +
-          '<div class="queue-sec-head" role="button" tabindex="0" title="Click to hide / show these suggestions"><span class="qsec-caret" aria-hidden="true">&#9662;</span>' +
-          '<span class="queue-sec-title">' + _sugTitle + '</span><span class="queue-sec-count">' + _sug.length + '</span></div>' +
-          _sug.map(function (x) {{
-            var it = x.it;
-            var loc = [it.location].filter(Boolean).join(' \\u00b7 ');
-            return '<div class="queue-row sug-row"><div class="queue-main">' +
-              '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
-              '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + loc : '') + '</p>' +
-            '</div><div class="queue-actions sug-actions">' +
-              '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">I&#39;m interested</button>' +
-              '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
-            '</div></div>';
-          }}).join('') + '</div>'
-        : '';
+      // Plan Ahead now lives at the BOTTOM of My Lineup (below Past events),
+      // replacing the old "Suggested for you" — it's a better version of the
+      // same idea (trips + interest recs + monthly picks). renderPlanAhead()
+      // fills the embed below; its own intro is the divider between the two.
       host.innerHTML = intro + wnHtml +
         section(upTitle, b.upcoming, 'Nothing upcoming yet.') +
         (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen) : '') +
-        sugHtml;
+        '<div id="ops-planahead" class="ops-planahead-embed"></div>';
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
       }});
@@ -7770,39 +7750,10 @@ def build():
         _pastHead.addEventListener('click', _togglePast);
         _pastHead.addEventListener('keydown', function (e) {{ if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); _togglePast(); }} }});
       }}
-      // "Suggested for you" — header click collapses/expands the whole block
-      // (remembered per person); each row's ✕ drops just that suggestion.
-      var _sugHead = host.querySelector('.sug-section .queue-sec-head');
-      if (_sugHead) {{
-        var _toggleSug = function () {{
-          var sec = _sugHead.closest('.sug-section');
-          var nowCollapsed = sec.classList.toggle('collapsed');
-          try {{ localStorage.setItem('ab.sugcollapse.' + (b.me || '').toLowerCase(), nowCollapsed ? '1' : '0'); }} catch (e) {{}}
-        }};
-        _sugHead.addEventListener('click', _toggleSug);
-        _sugHead.addEventListener('keydown', function (e) {{ if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); _toggleSug(); }} }});
-      }}
-      // "Suggested for you" rows now carry the same "I'm interested / Not for me"
-      // actions as Plan Ahead (data-pa-flag / data-pa-skip).
-      host.querySelectorAll('.sug-section [data-pa-flag]').forEach(function (btn) {{
-        btn.addEventListener('click', function (e) {{
-          e.stopPropagation();
-          var kind = btn.getAttribute('data-k'), key = btn.getAttribute('data-key');
-          var it = opsAllItems().filter(function (x) {{ return x.kind === kind && String(x.key) === key; }})[0];
-          if (!it) return;
-          btn.setAttribute('aria-busy', 'true');
-          toggleMyInterest(kind, it.key, it.interested, it.startObj && it.startObj.attend_verdict);
-          // toggleMyInterest -> opsWrite -> renderOps re-renders My Lineup.
-        }});
-      }});
-      host.querySelectorAll('.sug-section [data-pa-skip]').forEach(function (btn) {{
-        btn.addEventListener('click', function (e) {{
-          e.stopPropagation();
-          _sugSkip(btn.getAttribute('data-k'), btn.getAttribute('data-key'));
-          var row = btn.closest('.queue-row'); if (row) row.style.display = 'none';   // instant feedback
-          renderMyEvents();
-        }});
-      }});
+      // Plan Ahead is embedded at the bottom (below Past events). Render it into
+      // the #ops-planahead embed — it wires its own trips / radar / suggestion
+      // rows (I'm interested / Not for me), and its intro is the section divider.
+      renderPlanAhead();
       updateViewBadges();
     }}
 
@@ -9407,7 +9358,6 @@ def build():
         // the tab-count badges (so flagging / conflicts update live).
         _lastEvs = evs; _lastStateMap = stateMap; _lastStateRows = stateRows; _lastManual = manualRows;
         if (currentView === 'myevents') renderMyEvents();
-        else if (currentView === 'planahead') renderPlanAhead();
         else if (currentView === 'queue') renderQueue();
         else if (currentView === 'planner') renderPlanner();
         updateViewBadges();
@@ -9417,7 +9367,6 @@ def build():
         if (_profileTasteCache === null) {{
           _loadProfileTaste(function () {{
             if (currentView === 'myevents') renderMyEvents();
-            else if (currentView === 'planahead') renderPlanAhead();
           }});
         }}
         // And the map, when it's the active view (realtime echo / saves).
@@ -10193,7 +10142,7 @@ def build():
     // so returning to it lands you back where you were.
     var _lastEventsSub = 'grid';
 
-    var VIEW_NAMES = ['myevents', 'planahead', 'myprofile', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];
+    var VIEW_NAMES = ['myevents', 'myprofile', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];   // 'planahead' merged into 'myevents'
     function setView(name) {{
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
       // The Day-Of brief now lives inside My Events — no standalone tab.
@@ -10245,13 +10194,11 @@ def build():
       var p = document.getElementById('ops-planner');
       var d = document.getElementById('ops-dayof');
       var me = document.getElementById('ops-myevents');
-      var pa = document.getElementById('ops-planahead');
       var pr = document.getElementById('ops-myprofile');
       if (g) g.style.display = (name === 'grid') ? '' : 'none';
       var rh = document.getElementById('ops-results-header');
       if (rh) rh.style.display = (name === 'grid') ? '' : 'none';
       if (me) me.classList.toggle('show', name === 'myevents');
-      if (pa) pa.classList.toggle('show', name === 'planahead');
       if (pr) pr.classList.toggle('show', name === 'myprofile');
       if (c) c.classList.toggle('show', name === 'calendar');
       if (m) m.classList.toggle('show', name === 'map');
@@ -10259,7 +10206,6 @@ def build():
       if (p) p.classList.toggle('show', name === 'planner');
       if (d) d.classList.toggle('show', name === 'dayof');
       if (name === 'myevents') renderMyEvents();
-      if (name === 'planahead') renderPlanAhead();
       if (name === 'myprofile') renderMyProfile();
       if (name === 'calendar') recalcCalendar();   // re-apply the live filters
       if (name === 'map') openOpsMap();
