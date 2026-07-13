@@ -2773,7 +2773,6 @@
           </div>
           <label class="ops-filter-chip" title="Show only events at the Submitted stage — a speaker application is in"><input type="checkbox" id="ops-f-submitted">Submitted</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
-          <label class="ops-filter-chip" title="Only events where we have a contact — an organizer email / POC to reach out to"><input type="checkbox" id="ops-f-contact">Contacts</label>
         </div>
         <p class="ops-active-filters" id="ops-active-filters" hidden></p>
         <div class="ops-results-header" id="ops-results-header">
@@ -5301,7 +5300,7 @@
     // "Filters · N active" — otherwise an active filter would be invisible).
     function countActiveOpsFilters() {
       var n = 0;
-      ['ops-f-submitted', 'ops-f-recent', 'ops-f-contact'].forEach(function (id) { var e = document.getElementById(id); if (e && e.checked) n++; });
+      ['ops-f-submitted', 'ops-f-recent'].forEach(function (id) { var e = document.getElementById(id); if (e && e.checked) n++; });
       ['filter-price', 'filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {
         var box = document.getElementById(id);
         if (box && box.querySelector('.filter-dd-btn.has-active')) n++;
@@ -5739,7 +5738,6 @@
       var $urgent  = document.getElementById('ops-f-urgent');
       var $submitted = document.getElementById('ops-f-submitted');
       var $meet    = document.getElementById('ops-f-meetings');
-      var $contact = document.getElementById('ops-f-contact');
       var $past    = document.getElementById('ops-f-past');
       var $hidden  = document.getElementById('ops-f-hidden');
       var $recent  = document.getElementById('ops-f-recent');
@@ -5758,7 +5756,6 @@
       var fUrgent  = !!($urgent && $urgent.checked);
       var fSubmitted = !!($submitted && $submitted.checked);
       var fMeet    = !!($meet && $meet.checked);
-      var fContact = !!($contact && $contact.checked);
       // Ticket price + Fits are now MULTI-select bubble dropdowns — OR the chips.
       var activePrices = Array.prototype.map.call(document.querySelectorAll('#filter-price .extra-chip.is-on'), function (b) { return b.dataset.value; });
       var activeFits   = Array.prototype.map.call(document.querySelectorAll('#filter-fits .extra-chip.is-on'), function (b) { return b.dataset.value; });
@@ -5766,7 +5763,7 @@
       var showHidden = !!($hidden && $hidden.checked);
       var fRecent    = !!($recent && $recent.checked);
       // Toggle has-active classes for chip styling
-      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-submitted',$submitted],['ops-f-meetings',$meet],['ops-f-contact',$contact],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {
+      [['ops-f-saved',$saved],['ops-f-urgent',$urgent],['ops-f-submitted',$submitted],['ops-f-meetings',$meet],['ops-f-past',$past],['ops-f-hidden',$hidden],['ops-f-recent',$recent]].forEach(function (pair) {
         var inp = pair[1]; if (!inp) return;
         var lbl = inp.closest('.ops-filter-chip');
         if (lbl) lbl.classList.toggle('has-active', inp.checked);
@@ -5852,7 +5849,6 @@
           var _sak = shouldAttendKind(card.dataset.attend);
           if (activeShould.indexOf(_sak) === -1) on = false;
         }
-        if (fContact && card.dataset.contactFound !== '1') on = false;
         if (activePrices.length) {
           var pn = card.dataset.price === '' || card.dataset.price == null ? null : parseFloat(card.dataset.price);
           var _priceHit = activePrices.some(function (band) {
@@ -5895,6 +5891,7 @@
             if (!_attHit) on = false;
           }
           if (opsStatFilter === 'buyer'   && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
+          if (opsStatFilter === 'contacts' && card.dataset.contactFound !== '1') on = false;
           if (opsStatFilter === 'interested' && card.dataset.interested !== '1') on = false;
           if (opsStatFilter === 'myfits') {
             // Fits my profile OR I flagged interested (interest = a fit). Mirrors
@@ -6012,7 +6009,7 @@
       // Debounce only the free-text search (fires on every keystroke); selects
       // and checkboxes change discretely, so apply those immediately.
       var debouncedApply = debounce(applyFilters, 130);
-      ['ops-search','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-contact','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
+      ['ops-search','ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
         var el = document.getElementById(id); if (!el) return;
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
@@ -6027,7 +6024,7 @@
       ['ops-search'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.value = '';
       });
-      ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-past','ops-f-hidden','ops-f-recent','ops-f-contact'].forEach(function (id) {
+      ['ops-f-saved','ops-f-urgent','ops-f-submitted','ops-f-meetings','ops-f-past','ops-f-hidden','ops-f-recent'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.checked = false;
       });
       Array.prototype.forEach.call(
@@ -6051,7 +6048,7 @@
       var evByNum = {};
       (evs || []).forEach(function (e) { evByNum[e.num] = e; });
       var saved = 0, urgent = 0, inPipeline = 0, booked = 0, attending = 0;
-      var buyerRich = 0, interestedCount = 0, myInterested = 0;
+      var buyerRich = 0, interestedCount = 0, myInterested = 0, contacts = 0;
       var me = (getCollabName() || 'Team').toLowerCase();
       var meFirst = me.split(/\s+/)[0];   // attendees are stored as lowercase first names
       var _support = isSupportPerson(getCollabName() || '');   // Angela/Hurley -> team-wide
@@ -6093,6 +6090,9 @@
         if (((ev.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         var st = stByNum[ev.num] || {};
         if (!isPastEvent(ev) && (st.urgent || isDeadlineUrgent(ev.deadline))) urgent++;
+        // Contacts = an organizer email / POC we can reach out to (same test the
+        // card's ✉ badge + the Contacts chip filter use). Upcoming only.
+        if (!isPastEvent(ev) && hasEmailContact(st, ev)) contacts++;
       });
       // Manual events carry their own stage tags + deadlines — fold them in.
       (manualRows || []).forEach(function (m) {
@@ -6105,6 +6105,7 @@
         if (m.interested && m.interested.length) interestedCount++;
         if (_isMine(m.interested)) myInterested++;
         if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
+        if (!isPastEvent(m) && hasEmailContact(m)) contacts++;
       });
       // "My fits" = events matching the signed-in person's target profile, OR
       // ones they flagged "I'm interested" (interest counts as a fit). Support
@@ -6140,7 +6141,11 @@
         tile('all', total, 'All') +
         tile('pipeline', inPipeline, 'Pending') +
         tile('booked', booked, 'Booked') +
-        tile('attending', attending, _support ? 'Team Attending' : 'Attending');
+        tile('attending', attending, _support ? 'Team Attending' : 'Attending') +
+        // "Contacts" = events where we have an organizer email / POC. It's an
+        // outreach tool, so — like the ✉ badge and the old drawer filter — it's
+        // Angela-only, sitting right after Attending in the segmented row.
+        ((window.isAngelaUser && window.isAngelaUser()) ? tile('contacts', contacts, 'Contacts') : '');
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {
         t.addEventListener('click', function () {
@@ -7159,8 +7164,9 @@
         var statusHtml = it.statusHtml || '';
         // The Day-Of brief lives here (no separate tab) — on upcoming rows. A
         // private / invite-only event (no online footprint) can't be briefed,
-        // so no brief button (see `briefable`).
-        var brief = (it._past || !it.briefable) ? '' :
+        // so no brief button (see `briefable`). Briefs are Angela's tool — only
+        // her view shows the button (everyone else's lineup rows have no brief).
+        var brief = (it._past || !it.briefable || !(window.isAngelaUser && window.isAngelaUser())) ? '' :
           (it.briefReady ? '<span class="dayof-ready">&#10003; brief ready</span>' : '') +
           '<button type="button" class="q-btn primary" data-brief-kind="' + it.kind + '" data-brief-key="' + escapeHtml(String(it.key)) + '">Open brief &rarr;</button>';
         // The whole row opens the event details on click (like the grid cards) —
