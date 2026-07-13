@@ -2421,6 +2421,15 @@ def build():
     }}
     .profile-file-dl svg {{ width: 15px; height: 15px; }}
     .profile-file-dl:hover {{ color: var(--ab-blue); border-color: var(--ab-blue); }}
+    /* Rename-a-link (pencil) — same icon-button shape as download. */
+    .profile-file-ren {{
+      display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+      width: 30px; height: 30px; border-radius: 6px; cursor: pointer;
+      color: var(--ab-fg-3); background: var(--ab-bg); border: 1px solid var(--ab-rule);
+      transition: color 120ms ease, border-color 120ms ease;
+    }}
+    .profile-file-ren svg {{ width: 14px; height: 14px; }}
+    .profile-file-ren:hover {{ color: var(--ab-blue); border-color: var(--ab-blue); }}
     /* Delete-a-file button — clearly a delete: trash icon + label, reddens on hover. */
     .profile-file-del {{
       display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto; white-space: nowrap;
@@ -8540,8 +8549,12 @@ def build():
           if (/docs\\.google|drive\\.google/i.test(url)) return 'Google Doc';
           try {{ return new URL(url).host.replace(/^www\\./, ''); }} catch (e) {{ return 'Link'; }}
         }})();
+        // Rename the link's title after the fact (own profile only).
+        var ren = canDelete
+          ? '<button type="button" class="profile-file-ren" data-renpath="' + escapeHtml(fullPath) + '" data-renurl="' + escapeHtml(url) + '" data-rentitle="' + escapeHtml(info.title) + '" aria-label="Rename link" title="Rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
+          : '';
         return '<div class="profile-file profile-file--link">' +
-          '<a class="profile-file-name" href="' + escapeHtml(url) + '" target="_blank" rel="noopener" title="' + escapeHtml(url) + '">\\ud83d\\udd17 ' + escapeHtml(lbl) + ' \\u2197</a>' + del + '</div>';
+          '<a class="profile-file-name" href="' + escapeHtml(url) + '" target="_blank" rel="noopener" title="' + escapeHtml(url) + '">\\ud83d\\udd17 ' + escapeHtml(lbl) + ' \\u2197</a>' + ren + del + '</div>';
       }}
       return '<div class="profile-file">' +
         '<button type="button" class="profile-file-name profile-file-open" data-openpath="' + escapeHtml(fullPath) + '" data-openname="' + escapeHtml(name) + '" title="Preview ' + escapeHtml(name) + '">' + escapeHtml(name) + '</button>' +
@@ -8549,14 +8562,15 @@ def build():
         '<button type="button" class="profile-file-dl" data-dlpath="' + escapeHtml(fullPath) + '" data-dlname="' + escapeHtml(name) + '" aria-label="Download ' + escapeHtml(name) + '" title="Download">' + PROFILE_DL_ICON + '</button>' +
         del + '</div>';
     }}
-    // Delegated preview / download / delete for a file container (added once).
-    function _wireProfileFileContainer($c, onDelete) {{
+    // Delegated preview / download / rename / delete for a file container (added once).
+    function _wireProfileFileContainer($c, onDelete, onRename) {{
       if (!$c || $c.dataset.fcWired) return;
       $c.dataset.fcWired = '1';
       $c.addEventListener('click', function (e) {{
         var t = e.target; if (!t || !t.closest) return;
         var op = t.closest('[data-openpath]'); if (op) {{ e.preventDefault(); _profilePreview(op.getAttribute('data-openpath'), op.getAttribute('data-openname')); return; }}
         var dl = t.closest('[data-dlpath]'); if (dl) {{ e.preventDefault(); _profileDownload(dl.getAttribute('data-dlpath'), dl.getAttribute('data-dlname')); return; }}
+        var re = t.closest('[data-renpath]'); if (re && onRename) {{ e.preventDefault(); onRename(re.getAttribute('data-renpath'), re.getAttribute('data-renurl'), re.getAttribute('data-rentitle')); return; }}
         var de = t.closest('[data-delpath]'); if (de && onDelete) {{ e.preventDefault(); onDelete(de.getAttribute('data-delpath'), de.getAttribute('data-delname')); return; }}
       }});
     }}
@@ -8794,6 +8808,21 @@ def build():
           sb.storage.from('profiles').remove([fullPath]).then(function (r) {{
             if (r && r.error) {{ status('Delete failed: ' + r.error.message, 'error'); return; }}
             flashOk('Deleted'); _loadProfileFiles(meKey, cat, false);
+          }});
+        }}, function (fullPath, url, curTitle) {{
+          // Rename a linked doc's title: re-encode {{t,u}} and MOVE the marker file
+          // to the new name (its name is the source of truth; content is unused).
+          var raw = window.prompt('Rename this link:', curTitle || '');
+          if (raw === null) return;                       // cancelled
+          var nt = raw.trim().slice(0, 200);
+          var payload = nt ? JSON.stringify({{ t: nt, u: url }}) : url;
+          var enc = _b64urlEnc(payload);
+          if (!enc || enc.length > 700) {{ status('Could not rename (too long).', 'error'); return; }}
+          var newPath = fullPath.replace(/\\/[^\\/]*$/, '/' + enc + '.weblink');
+          if (newPath === fullPath) return;               // no change
+          sb.storage.from('profiles').move(fullPath, newPath).then(function (r) {{
+            if (r && r.error) {{ status('Rename failed: ' + r.error.message, 'error'); return; }}
+            flashOk('Renamed'); _loadProfileFiles(meKey, cat, false);
           }});
         }});
       }});
