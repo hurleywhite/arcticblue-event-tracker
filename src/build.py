@@ -959,6 +959,7 @@ def build():
     }}
     .modal-field .v {{ font-size: 0.92rem; color: var(--ab-fg); line-height: 1.55; white-space: pre-wrap; }}
     .modal-field .v a {{ color: var(--ab-blue); }}
+    .modal-fresh {{ font-style: italic; color: var(--ab-fg-3); font-size: 0.82rem; margin: 14px 0 0; }}
     .modal-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }}
     .modal-actions {{
       margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--ab-rule);
@@ -3948,6 +3949,19 @@ def build():
         var patch = {{}}; patch[field] = out;
         if (field === 'priority_override') rec.priority = out;
         else rec[field] = out;
+        // Editing a manual event's Date must ALSO update the structured
+        // start_date / end_date — the card, calendar and iCal read those (they
+        // win over the free-text date_str). Without this the text changed but
+        // the card kept the old (mis-scraped) date. Manual-only: catalog events
+        // have no date columns in event_state.
+        if (field === 'date_str' && rec._table === 'manual_events') {{
+          var _dd = {{}};
+          try {{ _dd = (window.opsDeriveDates && out) ? (window.opsDeriveDates(out) || {{}}) : {{}}; }} catch (e) {{ _dd = {{}}; }}
+          patch.start_date = _dd.start_date || null;
+          patch.end_date   = _dd.end_date || _dd.start_date || null;
+          rec.start_date = patch.start_date;
+          rec.end_date   = patch.end_date;
+        }}
         window.opsWrite(rec._table, rec._key, patch);
       }});
     }});
@@ -4089,6 +4103,10 @@ def build():
       v += field('Notes', rec.notes);
     }}
 
+    // "Updated Nd ago" now lives here (italic, at the bottom of the detail),
+    // not on the card face (Hurley 2026-07-13).
+    var _mFresh = (window.opsFreshText ? window.opsFreshText(rec.updated_at) : '');
+    if (_mFresh) v += '<p class="modal-fresh">' + esc(_mFresh) + '</p>';
     html += '<div class="modal-view">' + (v || '<p class="modal-nolink">No extra detail on file for this event yet.</p>') + '</div>';
     var editForm = editFormHtml(rec);
     if (editForm) html += '<div class="modal-editform" hidden>' + editForm + '</div>';
@@ -4687,6 +4705,18 @@ def build():
       return '<span class="ops-fresh ' + (stale ? 'is-stale' : 'is-fresh') +
         '" title="Last updated ' + escapeHtml(formatStamp(iso)) + '">' + text + '</span>';
     }}
+    // Plain-text "Updated Nd ago" for the Details pop-up (the card face no longer
+    // shows it — Hurley moved it into the detail, in italics). Exposed for the
+    // modal, which lives in a separate closure.
+    function _freshText(iso) {{
+      if (!iso) return '';
+      var t = new Date(iso).getTime();
+      if (isNaN(t)) return '';
+      var days = Math.max(0, Math.floor((Date.now() - t) / 86400000));
+      var ago = days === 0 ? 'today' : (days === 1 ? '1 day ago' : days + ' days ago');
+      return 'Updated ' + ago;
+    }}
+    window.opsFreshText = _freshText;
 
     // True if a row was created within the last 7 days (covers hand-added AND
     // Dust-ingested manual events — both stamp created_at on insert).
@@ -5235,7 +5265,6 @@ def build():
         '</div>' +
         '<p class="event-meta">' + (_cdate ? '<span class="em-date">' + _cdate + '</span>' : '') + ((_cdate && _cloc) ? ' \\u00b7 ' : '') + (_cloc || '') + '</p>' +
         cardStatusLine(ev, st) +
-        (freshnessTag(st && st.updated_at) ? '<p class="ops-fresh-line">' + freshnessTag(st.updated_at) + '</p>' : '') +
         _cFootHtml;
       // (metaLine intentionally unused now — "Last edit" detail lived inside the
       // old inline editor, which has moved to the Details pop-up.)
@@ -5265,6 +5294,7 @@ def build():
         if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
         if (st.decision) rec.decision = st.decision;
         if (st.is_private != null) rec.is_private = !!st.is_private;
+        if (st.updated_at) rec.updated_at = st.updated_at;   // drives the modal "Updated …" line
         rec.stage_tags = opsStages;
       }}
       rec.saved  = !!(st && st.saved);
@@ -5430,7 +5460,6 @@ def build():
         '</div>' +
         '<p class="event-meta">' + (_mdate ? '<span class="em-date">' + _mdate + '</span>' : '') + ((_mdate && _mloc) ? ' \\u00b7 ' : '') + (_mloc || '') + '</p>' +
         tagsHtml +
-        (freshnessTag(mev.updated_at) ? '<p class="ops-fresh-line">' + freshnessTag(mev.updated_at) + '</p>' : '') +
         _mFootHtml;
       // Stash a modal record on the node for the delegated "Details" handler.
       var mrec = {{}};
@@ -10229,7 +10258,8 @@ def build():
               var report = applyExtractToForm(form, f, {{ overwrite: false }});
               var dur = Math.round((Date.now() - t0) / 1000);
               var note = 'Filled ' + report.filled + ' of ' + report.total + ' fields in ' + dur + 's' +
-                (report.skipped ? ' (' + report.skipped + ' skipped — already had values).' : '.');
+                (report.skipped ? ' (' + report.skipped + ' skipped — already had values).' : '.') +
+                ' \\u26a0\\ufe0f Double-check the date & location — scrapers often read them wrong; you can fix the date any time in Details \\u2192 Edit.';
               if (data.degraded) {{
                 note += ' (AI structuring was unavailable — used the scraped page with basic extraction, so please double-check the fields.)';
               }}
@@ -12597,6 +12627,9 @@ def build():
     // card's full edit form.
     var _STAGE_ORDER = ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Rejected', 'Attending'];
     window.opsStageOrder = _STAGE_ORDER;
+    // Bridge so the modal's Edit form (separate closure) can re-derive the
+    // structured start/end dates when a manual event's date TEXT is edited.
+    window.opsDeriveDates = deriveDatesFromText;
     window.opsWrite = function (table, key, patch) {{
       var who = getCollabName() || 'Team';
       var run;
