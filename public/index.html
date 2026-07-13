@@ -1039,6 +1039,7 @@
     .chat-more-del:hover { background: rgba(185,28,28,0.1); }
     .chat-more-tag { font-size: 0.66rem; color: var(--ab-fg-3); font-weight: 400; }
     .chat-body { margin: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+    .chat-mention { color: var(--ab-blue); font-weight: 600; }   /* @teammate — pings them via "In the last week" */
     /* 👍/👎 tallies under a message. */
     .chat-reacts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .chat-react {
@@ -6810,7 +6811,7 @@
         // A comment that names/@mentions YOU always surfaces — even if the event
         // isn't otherwise on your radar (this is how a teammate flags you in).
         var mentioned = !!me && fresh.some(function (x) {
-          try { return new RegExp('(^|[^a-z0-9])@?' + me + '([^a-z0-9]|$)', 'i').test(String(x.body || '')); } catch (e) { return false; }
+          try { return new RegExp('(^|[^a-z0-9])@' + me + '([^a-z0-9]|$)', 'i').test(String(x.body || '')); } catch (e) { return false; }   // require the @ (Hurley)
         });
         // Latest fresh comment drives the card's author + quote.
         var latestMsg = fresh.reduce(function (a, b) { return (a && a.at > b.at) ? a : b; }, null);
@@ -11956,6 +11957,17 @@
         if (window.opsWrite) window.opsWrite(table, key, { notes: next });   // flashes "Saved" + re-renders
       });
     }
+    // Highlight @<teammate> mentions in a chat body. Runs on ALREADY-escaped
+    // text (names are alphanumeric, so injecting a <span> is safe). A mention
+    // reaches the person via _whatsNewItems, which flags "@<their name>" comments
+    // as "You were mentioned" in their "In the last week".
+    function _mentionHtml(escaped) {
+      var P = window.AB_PERSONAS || {};
+      return String(escaped).replace(/@([a-z][a-z0-9]{1,20})/gi, function (full, name) {
+        var lc = name.toLowerCase();
+        return (P[lc] || lc === 'angela' || lc === 'hurley') ? '<span class="chat-mention">@' + name + '</span>' : full;
+      });
+    }
     function _paintChatList(list, msgs) {
       // Drop any portaled forward/⋯ menu before we repaint — a realtime push or
       // a fresh send would otherwise leave one floating, detached from its (now
@@ -11975,15 +11987,15 @@
         var div = document.createElement('div'); div.className = 'chat-msg';
         div.dataset.msgId = m.id;
         // Slack-style hover toolbar: emoji reactions (👍 👎 first, then more) ·
-        // forward-to-a-teammate · add-to-notes · a ⋯ overflow that opens a menu
-        // with "Delete message" (own message, or any for support).
+        // add-to-notes · a ⋯ overflow that opens a menu with "Delete message"
+        // (own message, or any for support). To loop a teammate in, @mention them
+        // in the message (e.g. "@verma") — it surfaces in their "In the last week".
         var reactBtns = CHAT_EMOJIS.map(function (em) {
           return '<button type="button" class="chat-act chat-react-btn" data-react="' + em + '" title="React ' + em + '" aria-label="React">' + em + '</button>';
         }).join('');
         var actions = '<div class="chat-actions">' +
           reactBtns +
           '<span class="chat-act-sep" aria-hidden="true"></span>' +
-          '<button type="button" class="chat-act" data-act="forward" title="Forward to a teammate" aria-label="Forward">\u27a1\ufe0f</button>' +
           '<button type="button" class="chat-act" data-act="note" title="Add to event notes" aria-label="Add to notes">\ud83d\udcdd</button>' +
           (canDel
             ? '<button type="button" class="chat-act chat-more" data-act="more" data-canmod="' + (mine ? '0' : '1') + '" title="More actions" aria-label="More">\u22ef</button>'
@@ -11992,7 +12004,7 @@
         div.innerHTML = actions +
           '<div class="chat-meta"><span class="chat-who">' + escapeHtml(String(m.author || '')) +
           '</span> <span class="chat-when">' + escapeHtml(when) + '</span></div>' +
-          '<p class="chat-body">' + escapeHtml(String(m.body || '')) + '</p>' +
+          '<p class="chat-body">' + _mentionHtml(escapeHtml(String(m.body || ''))) + '</p>' +
           _chatReactLine(m.reactions, me);
         div.querySelectorAll('.chat-act').forEach(function (btn) {
           btn.addEventListener('click', function (e) {
@@ -12001,7 +12013,6 @@
             if (react) return _chatReact(m, react);
             var act = btn.getAttribute('data-act');
             if (act === 'note') return _chatToNotes(m);
-            if (act === 'forward') return _chatForward(m, btn);
             if (act === 'more') return _chatMore(m, btn, btn.getAttribute('data-canmod') === '1');
           });
         });
