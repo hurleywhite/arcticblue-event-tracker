@@ -2236,6 +2236,13 @@ def build():
     }}
     .queue-name:hover {{ color: #1fa0dc; text-decoration: underline; }}
     .queue-meta {{ font-size: 0.8rem; color: var(--ab-fg-3); margin: 3px 0 0; }}
+    /* "Reach out" asks — a warm to-do tint so they read as an action assigned
+       to you, sitting at the top of My Lineup. */
+    .outreach-row {{ border-color: #f5d9a8; background: #fffaf0; }}
+    .outreach-row:hover {{ border-color: #e0a038; }}
+    .outreach-ask {{ font-size: 0.82rem; font-weight: 600; color: #92500a; margin: 6px 0 0; }}
+    .outreach-ask .outreach-ico {{ font-style: normal; }}
+    .outreach-note {{ font-size: 0.82rem; color: var(--ab-fg-2); margin: 4px 0 0; font-style: italic; }}
     .queue-chips {{ display: flex; flex-wrap: wrap; gap: 5px 10px; margin: 7px 0 0; align-items: center; }}
     /* Groups a person chip with their role pill so name+role read as one unit. */
     .q-role-chip {{ display: inline-flex; align-items: center; gap: 4px; }}
@@ -3757,6 +3764,19 @@ def build():
     h += ef('ArcticBlue speaker', '<div class="me-ints">' + spChips + '</div>');
     if (!priv) h += ef('Speaker topic — drives the day-of news pull', inp('speaker_topic', rec.speaker_topic, 'e.g. AI workforce enablement'));
     h += ef('Attending — surfaces a Day-Of brief', '<div class="me-ints">' + attChips + '</div>');
+    // "Ask a teammate to reach out" — Angela assigns whoever has the personal
+    // connection to the event; it surfaces at the top of that person's My
+    // Lineup. Angela-only (it's her coordination tool). Stored like attendees
+    // (lowercased first names) in outreach_assignees, with an optional note.
+    if (window.isAngelaUser && window.isAngelaUser()) {{
+      var _outr = (rec.outreach_assignees || []).map(function (x) {{ return String(x).toLowerCase(); }});
+      var outrChips = AB_ROSTER.map(function (n) {{
+        var on = _outr.indexOf(n.toLowerCase()) !== -1;
+        return '<label class="me-int' + (on ? ' on' : '') + '"><input type="checkbox" data-outreach="' + esc(n.toLowerCase()) + '"' + (on ? ' checked' : '') + '>' + esc(n) + '</label>';
+      }}).join('');
+      h += ef('Ask a teammate to reach out — they may have a connection', '<div class="me-ints">' + outrChips + '</div>');
+      h += ef('Who to reach / why them (optional)', inp('outreach_note', rec.outreach_note, 'e.g. you know their Head of Events'));
+    }}
     h += ef((isCat ? 'Website / link' : 'Website'), inp('url', rec.url, 'https://'));
     if (!priv) h += ef('Apply to speak link — powers the card button', inp('apply_url', rec.apply_url, 'https:// CFP or application page'));
     h += ef('Interested (joins Angela\\'s apply queue)', '<div class="me-ints">' + intChips + '</div>');
@@ -3887,6 +3907,17 @@ def build():
         if (sOrder.length) tags = sOrder.filter(function (s) {{ return tags.indexOf(s) !== -1; }});
         rec.stage_tags = tags;
         window.opsWrite(rec._table, rec._key, {{ attendees: list, status_tags: tags }});
+      }});
+    }});
+    // "Ask a teammate to reach out" bubbles — collect the checked first names
+    // (roster/DOM order) into outreach_assignees. No stage side-effects.
+    box.querySelectorAll('[data-outreach]').forEach(function (cb) {{
+      cb.addEventListener('change', function () {{
+        var list = [];
+        box.querySelectorAll('[data-outreach]').forEach(function (b) {{ if (b.checked) list.push(b.dataset.outreach); }});
+        rec.outreach_assignees = list;
+        var lbl = cb.closest('.me-int'); if (lbl) lbl.classList.toggle('on', cb.checked);
+        window.opsWrite(rec._table, rec._key, {{ outreach_assignees: list }});
       }});
     }});
     box.querySelectorAll('[data-edit]').forEach(function (el) {{
@@ -5212,6 +5243,8 @@ def build():
         }});
         if (st.interested && st.interested.length) rec.interested = st.interested;
         if (st.attendees && st.attendees.length) rec.attendees = st.attendees;
+        if (st.outreach_assignees && st.outreach_assignees.length) rec.outreach_assignees = st.outreach_assignees;
+        if (st.outreach_note) rec.outreach_note = st.outreach_note;
         if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
         if (st.decision) rec.decision = st.decision;
         if (st.is_private != null) rec.is_private = !!st.is_private;
@@ -6760,6 +6793,7 @@ def build():
     function opsItem(kind, base, st) {{
       var stages = stageTagsOf(st || base);
       var interested = (st && st.interested) || base.interested || [];
+      var outr = (st && st.outreach_assignees) || base.outreach_assignees || [];
       var meta = opsMonthMeta(base.start_date || (st && st.start_date), base.date_str);
       var blob = [base.name, base.about, base.focus_areas, base.typical_attendees,
                   base.location, base.region, base.city, base.country, base.type,
@@ -6786,6 +6820,8 @@ def build():
         start_date: base.start_date || (st && st.start_date) || '',
         end_date: base.end_date || (st && st.end_date) || base.start_date || '',
         attendees: ((st && st.attendees) || base.attendees || []).slice ? ((st && st.attendees) || base.attendees || []).slice() : [],
+        outreach_assignees: (outr && outr.slice) ? outr.slice() : [],
+        outreach_note: (st && st.outreach_note) || base.outreach_note || '',
         speaker_topic: (st && st.speaker_topic) || base.speaker_topic || '',
         briefing_json: (st && st.briefing_json) || base.briefing_json || null,
         briefing_generated_at: (st && st.briefing_generated_at) || base.briefing_generated_at || null,
@@ -7708,6 +7744,30 @@ def build():
       return scored;   // callers slice to their own depth (My Events widget vs. the full Plan Ahead page)
     }}
     var _wnLast = [];
+    // Display name from a lowercased first-name key ("thor" -> "Thor"). Kept in
+    // the ops closure (AB_ROSTER lives in the modal closure), so just capitalize.
+    function _outreachName(k) {{
+      k = String(k || '').toLowerCase();
+      return k ? k.charAt(0).toUpperCase() + k.slice(1) : k;
+    }}
+    // Events where the signed-in person was asked to reach out (they may have a
+    // connection). Support (Angela/Hurley) see every outstanding ask, team-wide.
+    function _outreachItems() {{
+      var me = getCollabName() || '';
+      if (!me) return [];
+      var meFirst = abFold(me).split(/\\s+/)[0];
+      var support = isSupportPerson(me);
+      var out = [];
+      opsAllItems().forEach(function (it) {{
+        if (it.past || it.hidden) return;
+        var asg = (it.outreach_assignees || []).map(function (n) {{ return abFold(n).split(/\\s+/)[0]; }}).filter(Boolean);
+        if (!asg.length) return;
+        if (!support && asg.indexOf(meFirst) === -1) return;
+        out.push({{ kind: it.kind, key: it.key, name: it.name, date_str: it.date_str, location: it.location, note: it.outreach_note || '', assignees: asg, sort: it.sort }});
+      }});
+      out.sort(function (a, b) {{ return a.sort - b.sort; }});
+      return out;
+    }}
     function renderMyEvents() {{
       var host = document.getElementById('ops-myevents');
       if (!host) return;
@@ -7757,6 +7817,28 @@ def build():
       if (b.support && _recentUploads === null && !_recentUploadsLoading) {{
         _recentUploadsLoading = true;
         _loadRecentUploads(function () {{ _recentUploadsLoading = false; if (currentView === 'myevents') renderMyEvents(); }});
+      }}
+      // "Reach out" — events Angela asked this person to make contact for. Sits
+      // at the very TOP of My Lineup (it's a to-do assigned to them). Support see
+      // every outstanding ask across the team.
+      var _outreach = _outreachItems();
+      var outHtml = '';
+      if (_outreach.length) {{
+        var outRows = _outreach.map(function (o) {{
+          var loc = [o.location].filter(Boolean).join(' &middot; ');
+          var ask = b.support
+            ? 'You asked ' + o.assignees.map(function (a) {{ return '<strong>' + escapeHtml(_outreachName(a)) + '</strong>'; }}).join(' &amp; ') + ' to reach out'
+            : '<strong>Angela</strong> asked you to reach out &mdash; you may have a connection';
+          var noteHtml = o.note ? '<p class="outreach-note">&ldquo;' + escapeHtml(o.note) + '&rdquo;</p>' : '';
+          return '<div class="queue-row queue-row-open outreach-row" role="button" tabindex="0" data-ref-kind="' + o.kind + '" data-ref-key="' + escapeHtml(String(o.key)) + '"><div class="queue-main">' +
+              '<span class="queue-name">' + escapeHtml(o.name) + '</span>' +
+              '<p class="queue-meta">' + escapeHtml(o.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
+              '<p class="outreach-ask"><span class="outreach-ico" aria-hidden="true">&#129309;</span> ' + ask + '</p>' + noteHtml +
+            '</div></div>';
+        }}).join('');
+        outHtml = '<div class="queue-section outreach-section"><div class="queue-sec-head">' +
+          '<span class="queue-sec-title">' + (b.support ? 'Outreach asks' : 'Reach out') + '</span>' +
+          '<span class="queue-sec-count">' + _outreach.length + '</span></div>' + outRows + '</div>';
       }}
       _wnLast = _whatsNewItems();
       var wnHtml = '';
@@ -7814,7 +7896,7 @@ def build():
       // replacing the old "Suggested for you" — it's a better version of the
       // same idea (trips + interest recs + monthly picks). renderPlanAhead()
       // fills the embed below; its own intro is the divider between the two.
-      host.innerHTML = intro + wnHtml +
+      host.innerHTML = intro + outHtml + wnHtml +
         section(upTitle, b.upcoming, 'Nothing upcoming yet.') +
         (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen) : '') +
         '<div id="ops-planahead" class="ops-planahead-embed"></div>';
