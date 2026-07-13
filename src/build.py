@@ -4196,8 +4196,9 @@ def build():
     // A truthy value means that month's cards are hidden via the dropdown / header.
     var opsCollapsedMonths = {{ hidden: true, archive: true }};
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
-    // | 'buyer' | 'interested') — click a top stat to show only those events.
+    // | 'buyer' | 'interested' | 'myfits') — click a top stat to show only those events.
     var opsStatFilter = '';
+    var _userPickedStat = false;   // once the reader clicks any status chip, stop auto-defaulting to "My fits"
     // When true, the auto-detected duplicate cards are REVEALED (marked
     // "DUPLICATE") instead of hidden, so they can be opened + deleted in-app.
     var _reviewDupes = false;
@@ -6229,6 +6230,7 @@ def build():
       // Per-account "Attending" filter (support = team-wide). Precomputed once.
       var _attMe = (getCollabName() || 'Team').toLowerCase().split(/\\s+/)[0];
       var _attSupport = isSupportPerson(getCollabName() || '');
+      var _myFitPf = AB_PROFILE_BY_LCKEY[_attMe] || null;   // for the "My fits" chip (keys are capitalized)
       var fSaved   = !!($saved && $saved.checked);
       var fUrgent  = !!($urgent && $urgent.checked);
       var fSubmitted = !!($submitted && $submitted.checked);
@@ -6371,6 +6373,12 @@ def build():
           }}
           if (opsStatFilter === 'buyer'   && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
           if (opsStatFilter === 'interested' && card.dataset.interested !== '1') on = false;
+          if (opsStatFilter === 'myfits') {{
+            // Fits my profile OR I flagged interested (interest = a fit). Mirrors
+            // the count in renderStats and the Fits-dropdown rule.
+            var _mfInt = (card.dataset.interestedNames || '').split('|').filter(Boolean).some(function (n) {{ return abFold(n).split(/\\s+/)[0] === _attMe; }});
+            if (!(_mfInt || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region)))) on = false;
+          }}
         }}
         if (activeStages.length > 0) {{
           var cardStages = (card.dataset.statusTags || '').split('|').filter(Boolean);
@@ -6503,7 +6511,7 @@ def build():
         document.querySelectorAll('#filter-pipeline .extra-chip.is-on, #filter-region .extra-chip.is-on, #filter-months .extra-chip.is-on, #filter-should .extra-chip.is-on, .status-filters .status-chip.is-on, #filter-price .extra-chip.is-on, #filter-fits .extra-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
         function (c) {{ c.classList.remove('is-on'); }}
       );
-      opsStatFilter = '';
+      opsStatFilter = ''; _userPickedStat = true;   // "clear all" = show All; don't re-default to My fits
       var $stats = document.getElementById('ops-stats');
       if ($stats) Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (x) {{ x.classList.toggle('is-on', x.dataset.stat === 'all'); }});
       applyFilters();
@@ -6524,6 +6532,10 @@ def build():
       var me = (getCollabName() || 'Team').toLowerCase();
       var meFirst = me.split(/\\s+/)[0];   // attendees are stored as lowercase first names
       var _support = isSupportPerson(getCollabName() || '');   // Angela/Hurley -> team-wide
+      // A persona lands on "My fits"; support (no profile) stays on All. Applied
+      // on every (re)render until the reader clicks a status chip — robust to the
+      // load-order of profiles vs. the first stats render.
+      if (!_userPickedStat && !opsStatFilter && AB_PROFILE_BY_LCKEY[meFirst]) opsStatFilter = 'myfits';
       function _isMine(list) {{ return (list || []).some(function (n) {{ return String(n).toLowerCase() === me; }}); }}
       // "Attending" is PER-ACCOUNT: events where the signed-in person is an
       // assigned attendee — the attendee list is the source of truth (not the
@@ -6571,6 +6583,26 @@ def build():
         if (_isMine(m.interested)) myInterested++;
         if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
       }});
+      // "My fits" = events matching the signed-in person's target profile, OR
+      // ones they flagged "I'm interested" (interest counts as a fit). Support
+      // has no profile, so for them it's just their interested events. Upcoming
+      // only, like the other chips. Kept in lock-step with the applyFilters test.
+      var _myPf = AB_PROFILE_BY_LCKEY[meFirst] || null, myFits = 0;
+      function _fitBlob(o, st2) {{
+        var aud = (st2 && st2.audience_type && String(st2.audience_type).trim()) ? st2.audience_type : o.audience_type;
+        return abFold([o.name, o.about, o.focus_areas, o.typical_attendees, o.location, o.city, o.country, o.type, o.past_speakers, aud].join(' '));
+      }}
+      function _mineInterest(list) {{ return (list || []).some(function (n) {{ return abFold(n).split(/\\s+/)[0] === meFirst; }}); }}
+      (evs || []).forEach(function (ev) {{
+        if (isPastEvent(ev)) return;
+        var st2 = stByNum[ev.num] || {{}};
+        var _int = (st2.interested && st2.interested.length) ? st2.interested : (ev.interested || []);
+        if (_mineInterest(_int) || (_myPf && profileFits(_myPf, _fitBlob(ev, st2), canonicalRegion(ev)))) myFits++;
+      }});
+      (manualRows || []).forEach(function (m) {{
+        if (isPastEvent(m)) return;
+        if (_mineInterest(m.interested) || (_myPf && profileFits(_myPf, _fitBlob(m, m), canonicalRegion(m)))) myFits++;
+      }});
       // A cut-and-dry segmented status filter (data-stat). 'All' clears the
       // status filter; the rest are one-click chips. Other filters (region,
       // months, pipeline stages, …) live behind the filter icon beside search.
@@ -6581,6 +6613,7 @@ def build():
           (key !== 'all' ? '<span class="seg-num">' + num + '</span>' : '') + '</button>';
       }}
       $stats.innerHTML =
+        tile('myfits', myFits, 'My fits') +
         tile('all', total, 'All') +
         tile('pipeline', inPipeline, 'Pending') +
         tile('booked', booked, 'Booked') +
@@ -6589,6 +6622,7 @@ def build():
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {{
         t.addEventListener('click', function () {{
           var k = t.dataset.stat;
+          _userPickedStat = true;   // reader chose — stop auto-defaulting to My fits
           opsStatFilter = (k === 'all' || opsStatFilter === k) ? '' : k;
           // Jump to the Grid so the filtered events are actually visible — unless
           // the reader is on the Calendar or Map, which mirror the same filters
@@ -8820,6 +8854,10 @@ def build():
     ];
     var AB_PROFILE_BY_KEY = {{}};
     AB_PROFILES.forEach(function (p) {{ AB_PROFILE_BY_KEY[p.key] = p; }});
+    // Profile keys are capitalized ("Thor"); the signed-in first name is folded
+    // lowercase ("thor"). Case-insensitive lookup for the "My fits" chip.
+    var AB_PROFILE_BY_LCKEY = {{}};
+    AB_PROFILES.forEach(function (p) {{ AB_PROFILE_BY_LCKEY[String(p.key).toLowerCase()] = p; }});
     // True if an event (canonical region + folded text blob) fits a profile.
     function profileFits(p, blob, region) {{
       if (!p) return false;
