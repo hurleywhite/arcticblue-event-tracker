@@ -1961,6 +1961,33 @@
       background: var(--ab-bg-2);
     }
     .profile-field textarea:focus { outline: none; border-color: var(--ab-blue); background: var(--ab-bg); box-shadow: 0 0 0 3px rgba(39,115,194,0.1); }
+    /* About-you: saved bio (hover-pencil) + list editors (add/edit/delete). */
+    .pf-field { margin: 18px 0 0; }
+    .pf-fieldhead { font-family: var(--ab-mono); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 6px; }
+    .pf-fieldhead .hint { text-transform: none; letter-spacing: 0; color: var(--ab-mute); font-weight: 500; }
+    .pf-input { width: 100%; box-sizing: border-box; font-family: var(--ab-sans); font-size: 0.9rem; line-height: 1.5; color: var(--ab-fg); padding: 8px 11px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; background: var(--ab-bg); }
+    .pf-input:focus { outline: none; border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.1); }
+    textarea.pf-input { resize: vertical; min-height: 70px; }
+    .pf-edit-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .pf-saved { position: relative; border: 1px solid var(--ab-rule); border-radius: 8px; padding: 12px 42px 12px 14px; background: var(--ab-bg); }
+    .pf-saved-text { font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+    .pf-edit { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--ab-rule); border-radius: 6px; background: var(--ab-bg); color: var(--ab-fg-3); cursor: pointer; opacity: 0; transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease; }
+    .pf-saved:hover .pf-edit, .pf-edit:focus-visible { opacity: 1; }
+    .pf-edit:hover { color: var(--ab-blue); border-color: var(--ab-blue); }
+    .pf-edit svg { width: 14px; height: 14px; }
+    .pf-add-btn { font-size: 0.86rem; color: var(--ab-blue); background: none; border: 1px dashed var(--ab-rule-strong); border-radius: 8px; padding: 9px 12px; width: 100%; text-align: left; cursor: pointer; }
+    .pf-add-btn:hover { border-color: var(--ab-blue); background: var(--ab-bg-3); }
+    .pf-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--ab-rule); border-radius: 8px; background: var(--ab-bg); margin-top: 6px; }
+    .pf-item-text { flex: 1; min-width: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+    .pf-item-btn { flex: 0 0 auto; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--ab-rule); border-radius: 6px; background: var(--ab-bg); color: var(--ab-fg-3); cursor: pointer; opacity: 0; transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease; }
+    .pf-item:hover .pf-item-btn, .pf-item-btn:focus-visible { opacity: 1; }
+    .pf-item-btn:hover { color: var(--ab-blue); border-color: var(--ab-blue); }
+    .pf-item-btn.pf-del:hover { color: var(--ab-red); border-color: var(--ab-red); }
+    .pf-item-btn svg { width: 13px; height: 13px; }
+    .pf-item--edit .pf-input { flex: 1; }
+    .pf-additem { display: flex; gap: 8px; margin-top: 7px; }
+    .pf-additem .pf-input { flex: 1; }
+    .pf-additem .pf-add { flex: 0 0 auto; }
     .profile-actions { display: flex; align-items: center; gap: 13px; margin: 19px 0 0; }
     .profile-saved-note { font-size: 0.78rem; color: var(--ab-green); font-weight: 600; }
     .profile-files { margin: 8px 0 0; display: flex; flex-direction: column; gap: 7px; }
@@ -8175,16 +8202,13 @@
         html += '<div class="profile-section-head">Speaking materials</div>' +
           '<p class="profile-section-sub">Help Angela organize your speaking materials.</p>';
         PROFILE_MATERIALS.forEach(function (m) { html += _materialSlotHtml(meKey, m); });
-        // ── Written profile — optional, but helps targeting.
-        html += '<div class="profile-section-head">About you <span class="profile-section-opt">optional</span></div>';
-        PROFILE_FIELDS.forEach(function (f) {
-          var val = myRow ? (myRow[f.k] || '') : '';
-          html += '<div class="profile-field"><label for="pf-' + f.k + '">' + escapeHtml(f.label) +
-            ' <span class="hint">&middot; ' + escapeHtml(f.hint) + '</span></label>' +
-            '<textarea id="pf-' + f.k + '" rows="3" placeholder="' + escapeHtml(f.ph) + '">' + escapeHtml(val) + '</textarea></div>';
-        });
-        html += '<div class="profile-actions"><button type="button" class="q-btn primary" id="pf-save">Save write-ups</button>' +
-          '<span class="profile-saved-note" id="pf-saved" hidden>&#10003; Saved</span></div>';
+        // ── Written profile — bio (saved field + hover-edit) and notes/topics
+        // (add/edit/delete lists). Each saves immediately; filled by _pfRenderAbout.
+        _pfWho = { key: meKey, name: meName };
+        _pfMy = { bio: (myRow && myRow.bio) || '', notes: (myRow && myRow.notes) || '', topics: (myRow && myRow.topics) || '' };
+        _pfEdit = { field: null, index: -1 };
+        html += '<div class="profile-section-head">About you <span class="profile-section-opt">optional \u00b7 saves as you go</span></div>';
+        html += '<div id="pf-about"></div>';
         html += '</div>';   // end .profile-card
       }
       // The per-person directory — everyone's profile + materials, by person.
@@ -8210,8 +8234,8 @@
         btn.addEventListener('click', function () { var p = btn.getAttribute('data-mat-link').split('|'); _addProfileLink(p[0], p[1]); });
       });
       if (!support) {
-        var $save = document.getElementById('pf-save');
-        if ($save) $save.addEventListener('click', function () { _saveMyProfile(meKey, meName); });
+        var $about = document.getElementById('pf-about');
+        if ($about) { _pfWireAbout($about); _pfRenderAbout(); }
         PROFILE_MATERIALS.forEach(function (m) { _loadProfileFiles(meKey, m.k, dbMissing); });
       }
       // Directory materials: Angela (support) gets editable slots (load each);
@@ -8238,6 +8262,91 @@
         // Refresh the taste cache so the new profile text personalizes
         // suggestions right away (not just on next load).
         _loadProfileTaste();
+      });
+    }
+    // ── About-you (own profile): a saved bio with a hover-pencil to edit, and
+    // Targeting notes / Talks & topics as add/edit/delete LISTS. Lists are stored
+    // newline-joined in the same team_profiles text columns (no schema change).
+    // Every action saves immediately (full-row upsert, so nothing else is lost).
+    var PF_PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+    var PF_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+    var _pfMy = { bio: '', notes: '', topics: '' };
+    var _pfEdit = { field: null, index: -1 };
+    var _pfWho = { key: '', name: '' };
+    function _pfLines(key) { return String(_pfMy[key] || '').split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean); }
+    function _pfPersist() {
+      var patch = { person: _pfWho.key, display_name: _pfWho.name, updated_by: _pfWho.name, updated_at: new Date().toISOString(),
+        bio: _pfMy.bio || '', notes: _pfMy.notes || '', topics: _pfMy.topics || '' };
+      sb.from('team_profiles').upsert(patch, { onConflict: 'person' }).then(function (resp) {
+        if (resp && resp.error) { status('Could not save: ' + resp.error.message + (/team_profiles|column|relation|does not exist/i.test(resp.error.message) ? ' \u2014 the one-time team_profiles setup may still be pending.' : ''), 'error'); return; }
+        flashOk('Saved'); _loadProfileTaste();
+      });
+    }
+    function _pfBioHtml() {
+      var head = '<div class="pf-fieldhead">Short bio <span class="hint">\u00b7 a couple of sentences</span></div>';
+      var v = _pfMy.bio || '';
+      if (_pfEdit.field === 'bio') {
+        return '<div class="pf-field">' + head +
+          '<textarea class="pf-input" id="pf-bio-input" rows="5" data-pf-focus placeholder="Two or three sentences an organizer could drop straight into an agenda.">' + escapeHtml(v) + '</textarea>' +
+          '<div class="pf-edit-actions"><button type="button" class="q-btn primary" data-pf="bio-save">Save</button><button type="button" class="q-btn" data-pf="bio-cancel">Cancel</button></div></div>';
+      }
+      if (!v) return '<div class="pf-field">' + head + '<button type="button" class="pf-add-btn" data-pf="bio-edit">+ Add a short bio</button></div>';
+      return '<div class="pf-field">' + head + '<div class="pf-saved"><div class="pf-saved-text">' + escapeHtml(v) + '</div>' +
+        '<button type="button" class="pf-edit" data-pf="bio-edit" title="Edit bio" aria-label="Edit bio">' + PF_PENCIL + '</button></div></div>';
+    }
+    function _pfListHtml(key, label, hint, addPh) {
+      var lines = _pfLines(key);
+      var head = '<div class="pf-fieldhead">' + escapeHtml(label) + ' <span class="hint">\u00b7 ' + escapeHtml(hint) + '</span></div>';
+      var rows = lines.map(function (line, i) {
+        if (_pfEdit.field === key && _pfEdit.index === i) {
+          return '<div class="pf-item pf-item--edit"><input class="pf-input" data-pf-focus data-key="' + key + '" data-i="' + i + '" value="' + escapeHtml(line) + '">' +
+            '<button type="button" class="q-btn primary" data-pf="list-save" data-key="' + key + '" data-i="' + i + '">Save</button>' +
+            '<button type="button" class="q-btn" data-pf="list-cancel">Cancel</button></div>';
+        }
+        return '<div class="pf-item"><span class="pf-item-text">' + escapeHtml(line) + '</span>' +
+          '<button type="button" class="pf-item-btn" data-pf="list-edit" data-key="' + key + '" data-i="' + i + '" title="Edit" aria-label="Edit">' + PF_PENCIL + '</button>' +
+          '<button type="button" class="pf-item-btn pf-del" data-pf="list-del" data-key="' + key + '" data-i="' + i + '" title="Delete" aria-label="Delete">' + PF_TRASH + '</button></div>';
+      }).join('');
+      var add = '<div class="pf-additem"><input class="pf-input" id="pf-add-' + key + '" data-addkey="' + key + '" placeholder="' + escapeHtml(addPh) + '">' +
+        '<button type="button" class="q-btn pf-add" data-pf="list-add" data-key="' + key + '">Add</button></div>';
+      return '<div class="pf-field">' + head + rows + add + '</div>';
+    }
+    function _pfRenderAbout() {
+      var host = document.getElementById('pf-about'); if (!host) return;
+      host.innerHTML = _pfBioHtml() +
+        _pfListHtml('notes', 'Targeting notes', 'events you want', 'Add a note \u2014 an event, region, or type you want') +
+        _pfListHtml('topics', 'Talks & topics', 'what you speak on', 'Add a talk title, theme, or signature angle');
+      var f = host.querySelector('[data-pf-focus]');
+      if (f) { f.focus(); try { f.selectionStart = f.selectionEnd = f.value.length; } catch (e) {} }
+    }
+    function _pfCommitEdit(key, i, val) {
+      var lines = _pfLines(key); val = (val || '').trim();
+      if (val) lines[i] = val; else lines.splice(i, 1);
+      _pfMy[key] = lines.join('\n'); _pfEdit = { field: null, index: -1 }; _pfPersist(); _pfRenderAbout();
+    }
+    function _pfCommitAdd(key, val) {
+      val = (val || '').trim(); if (!val) return;
+      var lines = _pfLines(key); lines.push(val); _pfMy[key] = lines.join('\n'); _pfPersist(); _pfRenderAbout();
+      var ai = document.getElementById('pf-add-' + key); if (ai) ai.focus();   // ready to add another
+    }
+    function _pfWireAbout(host) {
+      if (!host || host.dataset.pfWired) return; host.dataset.pfWired = '1';
+      host.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-pf]') : null; if (!b) return;
+        var act = b.getAttribute('data-pf'), key = b.getAttribute('data-key'), i = parseInt(b.getAttribute('data-i'), 10);
+        if (act === 'bio-edit') { _pfEdit = { field: 'bio', index: -1 }; _pfRenderAbout(); }
+        else if (act === 'bio-cancel' || act === 'list-cancel') { _pfEdit = { field: null, index: -1 }; _pfRenderAbout(); }
+        else if (act === 'bio-save') { var el = document.getElementById('pf-bio-input'); _pfMy.bio = el ? el.value.trim() : ''; _pfEdit = { field: null, index: -1 }; _pfPersist(); _pfRenderAbout(); }
+        else if (act === 'list-edit') { _pfEdit = { field: key, index: i }; _pfRenderAbout(); }
+        else if (act === 'list-save') { var inp = host.querySelector('.pf-item--edit .pf-input[data-key="' + key + '"][data-i="' + i + '"]'); _pfCommitEdit(key, i, inp ? inp.value : ''); }
+        else if (act === 'list-del') { var ls = _pfLines(key); ls.splice(i, 1); _pfMy[key] = ls.join('\n'); _pfPersist(); _pfRenderAbout(); }
+        else if (act === 'list-add') { var ai = document.getElementById('pf-add-' + key); _pfCommitAdd(key, ai ? ai.value : ''); }
+      });
+      host.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' || e.shiftKey) return;
+        var t = e.target; if (!t || !t.hasAttribute) return;
+        if (t.hasAttribute('data-addkey')) { e.preventDefault(); _pfCommitAdd(t.getAttribute('data-addkey'), t.value); return; }
+        if (t.classList && t.classList.contains('pf-input') && t.hasAttribute('data-i')) { e.preventDefault(); _pfCommitEdit(t.getAttribute('data-key'), parseInt(t.getAttribute('data-i'), 10), t.value); return; }
       });
     }
     // One editable material slot for a person (their own card, or any person in
