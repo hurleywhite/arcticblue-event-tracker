@@ -794,6 +794,7 @@ def build():
     .st-wait {{ background: #0ea5e9; }}
     .st-no   {{ background: #b91c1c; }}
     .st-sep  {{ color: var(--ab-fg-3); font-weight: 400; }}
+    .st-sub-date {{ color: var(--ab-fg-3); font-weight: 500; }}
     /* Whisper-quiet data-freshness cue from updated_at. Deliberately faint —
        it's a background reassurance / nudge, not a headline. */
     .ops-fresh-line {{ margin: -4px 0 10px; }}
@@ -3742,6 +3743,16 @@ def build():
     // Field order (Thor's ask): pipeline stage, notes, ArcticBlue speaker
     // (bubbles), speaker topic, attending, then website link.
     h += ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
+    // "Submitted on" — Angela records the date the application went out. Only
+    // shown in her view, and only while the Submitted stage is on (the stage
+    // toggle reveals/hides it). The generic data-edit wiring persists it.
+    if (window.isAngelaUser && window.isAngelaUser()) {{
+      var _subVal = (String(rec.submitted_at || '').match(/^\\d{{4}}-\\d{{2}}-\\d{{2}}/) || [''])[0];
+      var _subOn = stages.indexOf('Submitted') !== -1;
+      h += '<label class="modal-field me-submitted-field"' + (_subOn ? '' : ' style="display:none"') + '>' +
+           '<span class="k">Submitted on</span>' +
+           '<input class="me-input" type="date" data-edit="submitted_at" value="' + esc(_subVal) + '"></label>';
+    }}
     h += ef('Notes', ta('notes', rec.notes, 3));
     h += ef('ArcticBlue speaker', '<div class="me-ints">' + spChips + '</div>');
     if (!priv) h += ef('Speaker topic — drives the day-of news pull', inp('speaker_topic', rec.speaker_topic, 'e.g. AI workforce enablement'));
@@ -3818,6 +3829,11 @@ def build():
         rec.stage_tags = tags;
         btn.classList.toggle('on');
         window.opsWrite(rec._table, rec._key, {{ status_tags: tags }});
+        // The "Submitted on" date field rides with the Submitted stage.
+        if (s === 'Submitted') {{
+          var _sf = box.querySelector('.me-submitted-field');
+          if (_sf) _sf.style.display = (tags.indexOf('Submitted') !== -1) ? '' : 'none';
+        }}
       }});
     }});
     box.querySelectorAll('[data-interested]').forEach(function (cb) {{
@@ -4957,6 +4973,18 @@ def build():
       return /\\bnot\\s+\\S+\\s+(announced|confirmed|released|published)\\b|\\b(announced?|drop|dropping|release[ds]?)\\s+soon\\b|\\bexpected\\s+(soon|shortly|later)\\b|\\bto be (announced|confirmed|determined)\\b/i.test(s);
     }}
     window.isStaleDeadline = isStaleDeadline;
+    // Format a stored submission date (YYYY-MM-DD) as "Jul 2" (drops the year
+    // when it's the current year, like the card dates). Parsed by hand so an
+    // ISO date never shifts a day across the local timezone.
+    function _fmtSubmittedDate(v) {{
+      var s = String(v || '').trim();
+      var m = /^(\\d{{4}})-(\\d{{2}})-(\\d{{2}})/.exec(s);
+      if (!m) return s;
+      var y = +m[1], mo = +m[2], da = +m[3];
+      if (mo < 1 || mo > 12) return s;
+      var lbl = OPS_MONTH_NAMES[mo - 1].slice(0, 3) + ' ' + da;
+      return lbl + (y === new Date().getFullYear() ? '' : ', ' + y);
+    }}
     // ONE derived status line per card — computed from the data, never
     // hand-edited. Speaking-first (this is primarily a speaking tracker).
     // Examples:
@@ -4984,7 +5012,11 @@ def build():
         // Rejected to speak — a terminal "no" that wins over a pending Submitted.
         bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + '</span>' }});
       }} else if (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) {{
-        bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + (closed ? ' (CFP closed)' : '') + '</span>' }});
+        // Angela records WHEN the application went out (event_state/manual
+        // .submitted_at) — surface it on her status line only.
+        var _subDate = (window.isAngelaUser && window.isAngelaUser() && st.submitted_at)
+          ? '<span class="st-sub-date"> \\u00b7 submitted ' + escapeHtml(_fmtSubmittedDate(st.submitted_at)) + '</span>' : '';
+        bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + _subDate + (closed ? ' (CFP closed)' : '') + '</span>' }});
       }} else if (closed) {{
         bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>' }});
       }}
