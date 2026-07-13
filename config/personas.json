@@ -42,24 +42,24 @@
       "role": "CEO / Co-Founder",
       "mode": "stage",
       "geo": ["New York", "San Francisco", "Washington", "Las Vegas", "Miami", "London", "Zurich", "Riyadh", "Dubai", "Abu Dhabi", "Mexico City", "Sao Paulo"],
-      "icp_industries": ["Healthcare", "Healthtech", "Technology"],
-      "buyer_titles": ["CEO", "CIO/CTO", "CSO", "Chief AI Officer", "COO", "Digital Transformation leaders"],
+      "icp_industries": ["Healthcare", "Healthtech", "Digital Health", "Life Sciences", "Medtech"],
+      "buyer_titles": ["CEO", "CIO/CTO", "CSO", "Chief AI Officer", "COO", "Chief Medical Officer", "Chief Digital Health Officer"],
       "themes": ["enterprise AI rollout", "agentic workflows", "AI governance", "measurable AI ROI", "operating model change", "technology transformation"],
       "signature_angles": ["90%+ of enterprise AI initiatives fail on uncertainty, not tech — go/pivot/kill beats the 12-18 month roadmap"],
       "outcome_target": "1 keynote/podcast/flagship-stage intro + 2 senior peer connections",
-      "flags": ["executive/strategic level — enterprise AI adoption at scale, governance frameworks, proving ROI, not deep technical implementation", "NYC/SF/DC/Las Vegas/Miami primary US; London/Zurich + Gulf (Riyadh/Dubai/Abu Dhabi) international; Mexico City + Sao Paulo secondary LatAm", "author/keynote-tier: check for open speaker route; weight prestige introductions"]
+      "flags": ["INDUSTRY = healthcare / healthtech / digital health / life sciences (Thor is the healthcare lead; insurance & regulated finance belong to Verma)", "executive/strategic level — enterprise AI adoption at scale, governance frameworks, proving ROI, not deep technical implementation", "NYC/SF/DC/Las Vegas/Miami primary US; London/Zurich + Gulf (Riyadh/Dubai/Abu Dhabi) international; Mexico City + Sao Paulo secondary LatAm", "author/keynote-tier: check for open speaker route; weight prestige introductions"]
     },
     "verma": {
       "name": "Anuraag Verma",
       "role": "Co-Founder",
       "mode": "stage",
-      "geo": ["New York", "San Francisco", "Washington", "Las Vegas", "Miami", "London", "Zurich", "Riyadh", "Dubai", "Abu Dhabi"],
-      "icp_industries": ["Insurance", "Finance", "Fintech", "Banking", "Capital Markets", "Healthcare"],
+      "geo": ["New York", "San Francisco", "Washington", "Las Vegas", "Miami", "London", "Zurich", "Riyadh", "Dubai", "Abu Dhabi", "Sydney", "Melbourne", "Brisbane", "Perth", "Australia"],
+      "icp_industries": ["Insurance", "Finance", "Fintech", "Banking", "Capital Markets"],
       "buyer_titles": ["board director", "CEO", "CIO", "CTO", "Chief AI Officer", "CFO", "COO", "CSO", "Chief Data Officer", "Head of Digital Transformation"],
       "themes": ["de-risking AI in regulated industries", "scaling cultures of experimentation", "AI governance & compliance", "evidence-based decision-making", "regulated-industry innovation", "board-level AI oversight", "large-scale enterprise AI transformation"],
       "signature_angles": ["regulated industries: the cost of a wrong AI bet is highest — validate before you scale"],
       "outcome_target": "1 board/C-suite speaking or advisory conversation + 2 regulated-industry leads",
-      "flags": ["board-level / C-suite audiences in regulated sectors (insurance, finance/banking, capital markets, fintech, healthcare)", "governance & transformation as a headline theme is the strongest fit signal", "same major-city list as Thor but no LatAm"]
+      "flags": ["board-level / C-suite audiences in regulated sectors (insurance is the lead — finance/banking, capital markets, fintech); healthcare belongs to Thor, not Verma", "governance & transformation as a headline theme is the strongest fit signal", "ANYTHING in Australia (Sydney/Melbourne/Brisbane/Perth) is Verma's", "same major-city list as Thor plus Australia, but no LatAm"]
     },
     "jim": {
       "name": "Jim",

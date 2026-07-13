@@ -1316,7 +1316,7 @@ def build():
     /* Ops grid — one full-width card per line (was a multi-column tile grid) so
        every card is the same width and its internal labels land in the exact
        same spot, card after card, instead of shifting with each column's size. */
-    .ops-grid {{ display: grid; grid-template-columns: 1fr; gap: 14px; }}
+    .ops-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; align-items: start; }}
     .ops-empty {{ grid-column: 1 / -1; text-align: center; padding: 56px 24px; color: var(--ab-fg-2); }}
     .ops-empty-title {{ font-size: 1.05rem; font-weight: 600; color: var(--ab-fg); margin: 0 0 6px; }}
     .ops-empty-sub {{ font-size: 0.9rem; margin: 0 0 16px; }}
@@ -4909,11 +4909,11 @@ def build():
     }}
     window.isStaleDeadline = isStaleDeadline;
     // ONE derived status line per card — computed from the data, never
-    // hand-edited (Thor: "closed for speaking, open for attending" must show
-    // without anyone editing it in). Examples:
+    // hand-edited. Speaking-first (this is primarily a speaking tracker).
+    // Examples:
     //   Booked — Thor speaking
-    //   Submitted to speak (CFP closed) · Open to attend
-    //   Closed to speak · Open to attend
+    //   Submitted to speak (CFP closed)
+    //   Closed to speak
     //   Attending — Jerome
     // Shows NOTHING when we know nothing — no invented status, no filler.
     function cardStatusLine(ev, st) {{
@@ -4933,25 +4933,24 @@ def build():
         bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>' }});
       }} else if (stages.indexOf('Rejected') !== -1) {{
         // Rejected to speak — a terminal "no" that wins over a pending Submitted.
-        // Still shows "Open to attend" below, so the team can opt to just attend.
         bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + '</span>' }});
       }} else if (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) {{
         bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + (closed ? ' (CFP closed)' : '') + '</span>' }});
       }} else if (closed) {{
         bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>' }});
       }}
-      // NOTE: no "Open to speak" bit — every event that fits is implicitly open
-      // to speak, so labelling it added noise (Hurley). The status line now only
-      // shows a committed/pending/closed speak state.
-      var hasSpeakBit = bits.length > 0;
+      // NOTE: no "Open to speak" / "Open to attend" bits. This is primarily a
+      // SPEAKING tracker: every fitting event is implicitly open to speak, and
+      // "open to attend" added noise (Hurley — people rarely attend a paid event
+      // they can't speak at, and attending is something you just book yourself).
+      // The status line only shows a committed/pending/closed speak state + who's
+      // actually attending.
       if (att.length) {{
         bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending \\u2014 ' + escapeHtml(att.join(', ')) + '</span>' }});
       // The Attending STAGE is set but no attendee is named yet — still show it,
       // so ticking "Attending" on the add form holds visibly (add who in Edit).
       }} else if (stages.indexOf('Attending') !== -1 && !past) {{
         bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending</span>' }});
-      }} else if (!past && hasSpeakBit && stages.indexOf('Booked') === -1) {{
-        bits.push({{ p: 3, h: '<span class="st-bit">Open to attend</span>' }});
       }}
       if (!bits.length) return '';
       bits.sort(function (a, b) {{ return a.p - b.p; }});   // committed presence leads (stable within a tier)
@@ -8843,10 +8842,10 @@ def build():
          kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','financial services','insurance','fintech','healthcare','telco','retail','ecommerce','media','gdpr'] }},
       {{ key: 'Joe', label: 'HR & people (US)', regions: [],
          kw: ['hr','human resources','chro','clo','chief people','people officer','vp of hr','talent','workforce','future of work','upskilling','reskilling','learning','l&d','people analytics','change management','human enablement','human capital','organizational development','employee experience'] }},
-      {{ key: 'Thor', label: 'Healthcare & tech (exec)', regions: [],
-         kw: ['healthcare','healthtech','health tech','digital health','medtech','life sciences','pharma','ceo','chief ai officer','cio','cto','cso','coo','digital transformation','agentic','ai governance','new york','san francisco','washington','las vegas','miami','london','zurich','riyadh','dubai','abu dhabi'] }},
-      {{ key: 'Verma', label: 'Regulated (board-level)', regions: [],
-         kw: ['insurance','insurtech','finance','financial services','bank','banking','capital markets','payments','wealth','fintech','healthcare','board','chief risk','chief data','governance','regulated'] }},
+      {{ key: 'Thor', label: 'Healthcare (exec)', regions: [],
+         kw: ['healthcare','healthtech','health tech','digital health','medtech','med tech','life sciences','pharma','pharmaceutical','biotech','medical','clinical','hospital','health system','healthcare ai','patient care','telehealth','payer','provider'] }},
+      {{ key: 'Verma', label: 'Insurance & regulated (board-level)', regions: [],
+         kw: ['insurance','insurtech','life insurance','reinsurance','finance','financial services','bank','banking','capital markets','payments','wealth','asset management','fintech','board','chief risk','chief data','regulated','compliance','australia','australian','sydney','melbourne','brisbane','perth','canberra','adelaide'] }},
       {{ key: 'Carlos', label: 'Americas (mid-market)', regions: ['US & Canada','Latin America'], locked: true,
          kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] }},
       {{ key: 'Jim', label: 'Government (DC)', regions: [],
