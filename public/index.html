@@ -1058,12 +1058,11 @@
        the empty space at the end — same row on every card, so everything
        lands in the same spot instead of shifting card to card. */
     .ops-card-head {
-      display: flex; align-items: flex-start; flex-wrap: wrap;
-      column-gap: 14px; row-gap: 6px; margin-bottom: 10px;
+      display: flex; align-items: flex-start; flex-wrap: nowrap;
+      column-gap: 10px; margin-bottom: 2px;
     }
-    .ops-card-head .event-name { flex: 0 1 auto; min-width: 60px; margin: 0; }   /* no flex-grow — sizes to its own text so date·place sits right next to it */
-    .ops-card-head .event-meta { flex: 0 0 auto; margin: 0; white-space: nowrap; }
-    .ops-card-head .ops-chips { flex: 0 0 auto; margin-left: auto; }
+    .ops-card-head .event-name { flex: 1 1 auto; min-width: 60px; margin: 0; }   /* grows so the star/hide/chat cluster pins to the top-right */
+    .ops-card-head .ops-chips { flex: 0 0 auto; margin-left: auto; align-self: flex-start; }   /* top-right cluster */
     .ops-card .event-date {
       font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
@@ -4209,7 +4208,7 @@
       var lbl = angela ? 'Flag Should Attend' : 'I\'m interested';
       var ttl = angela ? 'Star = Should Attend \u2014 flags this event for the team'
                        : 'Star = I\'m interested (adds you to the interested list + Angela\'s queue)';
-      return '<button class="saved-star ops-hover' + (on ? ' is-on' : '') + '" data-star type="button"' +
+      return '<button class="saved-star' + (on ? ' is-on' : '') + '" data-star type="button"' +
         ' aria-label="' + lbl + '" title="' + ttl + '">' +
         (on ? '\u2605' : '\u2606') + '</button>';
     }
@@ -4567,18 +4566,18 @@
               ? '<a class="event-name-link" href="' + escapeHtml(_cardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
               : escapeHtml(ev.name)) +
           '</h3>' +
-          '<p class="event-meta">' + (_cdate ? '<span class="em-date">' + _cdate + '</span>' : '') + ((_cdate && _cloc) ? ' \u00b7 ' : '') + (_cloc || '') + '</p>' +
+          // Top-right cluster (shown on every card): star · hide · chat.
           '<div class="ops-chips">' +
             starButtonHtml(st.interested, st.attend_verdict) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            // Archived → static label; otherwise a hover-only "hide" icon to archive it.
             (st.hidden
               ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
+              : '<button class="ops-archive-x" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
             decBadge + saBadge +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
         '</div>' +
+        '<p class="event-meta">' + (_cdate ? '<span class="em-date">' + _cdate + '</span>' : '') + ((_cdate && _cloc) ? ' \u00b7 ' : '') + (_cloc || '') + '</p>' +
         cardStatusLine(ev, st) +
         (freshnessTag(st && st.updated_at) ? '<p class="ops-fresh-line">' + freshnessTag(st.updated_at) + '</p>' : '') +
         _cFootHtml;
@@ -4760,18 +4759,18 @@
               ? '<a class="event-name-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
               : escapeHtml(mev.name || '')) +
           '</h3>' +
-          '<p class="event-meta">' + (_mdate ? '<span class="em-date">' + _mdate + '</span>' : '') + ((_mdate && _mloc) ? ' \u00b7 ' : '') + (_mloc || '') + '</p>' +
+          // Top-right cluster (shown on every card): star · hide · chat.
           '<div class="ops-chips">' +
             starButtonHtml(mev.interested, mev.attend_verdict) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            // Archived → static label; otherwise a hover-only "hide" icon to archive it.
             (mev.hidden
               ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
+              : '<button class="ops-archive-x" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
         '</div>' +
+        '<p class="event-meta">' + (_mdate ? '<span class="em-date">' + _mdate + '</span>' : '') + ((_mdate && _mloc) ? ' \u00b7 ' : '') + (_mloc || '') + '</p>' +
         tagsHtml +
         (freshnessTag(mev.updated_at) ? '<p class="ops-fresh-line">' + freshnessTag(mev.updated_at) + '</p>' : '') +
         _mFootHtml;
