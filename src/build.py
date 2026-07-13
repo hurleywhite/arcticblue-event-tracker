@@ -2433,6 +2433,8 @@ def build():
     .profile-file-del:hover {{ color: #b91c1c; border-color: #e5a5a5; background: #fdf3f3; }}
     .profile-upload-row {{ display: flex; align-items: center; gap: 10px; margin: 11px 0 0; flex-wrap: wrap; }}
     .profile-upload-row input[type=file] {{ font-size: 0.82rem; color: var(--ab-fg-2); max-width: 100%; }}
+    /* Push "Upload" to the right edge so it sits right above/aligned with "Add link". */
+    .profile-upload-row .q-btn {{ margin-left: auto; }}
     /* Paste a Google Drive / Doc link instead of (or as well as) uploading. */
     .profile-link-row {{ display: flex; align-items: center; gap: 10px; margin: 7px 0 0; flex-wrap: wrap; }}
     .profile-link-row input {{ flex: 1; min-width: 160px; font-size: 0.84rem; padding: 7px 10px; border: 1px solid var(--ab-rule-strong); border-radius: 6px; font-family: inherit; }}
