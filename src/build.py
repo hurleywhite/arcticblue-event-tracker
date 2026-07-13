@@ -3203,7 +3203,7 @@ def build():
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
-          <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Catalog</button>
+          <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Events</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
         </div>
@@ -3244,7 +3244,7 @@ def build():
         </div>
         </div>
         <div class="ops-topfilters" id="ops-topfilters">
-          <div class="events-subnav" id="events-subnav" role="tablist" aria-label="Catalog view" hidden>
+          <div class="events-subnav" id="events-subnav" role="tablist" aria-label="Events view" hidden>
             <button type="button" role="tab" class="subnav-btn" data-view="grid" aria-selected="false" aria-label="List view" title="List view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></button>
             <button type="button" role="tab" class="subnav-btn" data-view="calendar" aria-selected="false" aria-label="Calendar view" title="Calendar view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg></button>
             <button type="button" role="tab" class="subnav-btn" data-view="map" aria-selected="false" aria-label="Map view" title="Map view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></button>
@@ -3299,7 +3299,7 @@ def build():
           </div>
           <label class="ops-filter-chip" title="Show only events at the Submitted stage — a speaker application is in"><input type="checkbox" id="ops-f-submitted">Submitted</label>
           <label class="ops-filter-chip" title="Show only events added in the last 7 days (incl. AI-discovered) — the new batch to triage"><input type="checkbox" id="ops-f-recent">Recently added</label>
-          <label class="ops-filter-chip" title="Events where an email contact (organizer POC) was found"><input type="checkbox" id="ops-f-contact">Contact found</label>
+          <label class="ops-filter-chip" title="Only events where we have a contact — an organizer email / POC to reach out to"><input type="checkbox" id="ops-f-contact">Contacts</label>
         </div>
         <p class="ops-active-filters" id="ops-active-filters" hidden></p>
         <div class="ops-results-header" id="ops-results-header">
