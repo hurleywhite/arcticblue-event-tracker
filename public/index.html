@@ -7936,19 +7936,19 @@
     // to a one-time "run setup" note if they aren't there yet.
     // ════════════════════════════════════════════════════════════════
     var PROFILE_FIELDS = [
+      { k: 'notes',      label: 'Targeting notes', hint: 'events you want',            ph: 'Types of events you want to be at, specific event names, regions — anything on your mind.' },
       { k: 'bio',        label: 'Short bio',       hint: 'a couple of sentences',      ph: 'Two or three sentences an organizer could drop straight into an agenda.' },
-      { k: 'topics',     label: 'Talks & topics',  hint: 'what you speak on',          ph: 'Talk titles, themes, signature angles — one per line.' },
-      { k: 'past_talks', label: 'Past talks',      hint: 'what & where you have spoken', ph: 'e.g. "AI adoption keynote — Web Summit Lisbon 2025". Helps us target similar events.' },
-      { k: 'notes',      label: 'Targeting notes', hint: 'events you want',            ph: 'Types of events you want to be at, specific event names, regions — anything on your mind.' }
+      { k: 'topics',     label: 'Talks & topics',  hint: 'what you speak on',          ph: 'Talk titles, themes, signature angles — one per line.' }
     ];
     // Speaking materials, organized by what an organizer actually asks for —
     // each is its own upload slot (files live under <person>/<slot>/ in the
     // profiles bucket). This is the point of the profile: a ready-to-send kit.
     var PROFILE_MATERIALS = [
-      { k: 'headshot', label: 'Headshot',          hint: 'a professional photo organizers can use' },
-      { k: 'decks',    label: 'Slides & decks',    hint: 'your talk decks — PDF / PPTX / Keynote' },
-      { k: 'bios',     label: 'Bio & one-pagers',  hint: 'formal bio doc, speaker one-pager, leave-behinds' },
-      { k: 'other',    label: 'Other materials',   hint: 'press, testimonials, video links saved as a file — anything else' }
+      { k: 'bios',            label: 'Bio & one-pagers',  hint: 'formal bio doc, speaker one-pager, leave-behinds' },
+      { k: 'speaking_topics', label: 'Speaking Topics',   hint: 'your talk topics / abstracts one-sheet organizers can pick from' },
+      { k: 'decks',           label: 'Slides & decks',    hint: 'your talk decks — PDF / PPTX / Keynote' },
+      { k: 'other',           label: 'Other materials',   hint: 'press, testimonials, video links saved as a file — anything else' },
+      { k: 'headshot',        label: 'Headshot',          hint: 'a professional photo organizers can use' }
     ];
     function _profileKey(name) { return (name || '').trim().toLowerCase().split(/\s+/)[0]; }
     function _profileDisplay(row, key) {
@@ -8174,7 +8174,7 @@
       // The per-person directory — everyone's profile + materials, by person.
       var dirTitle = support ? 'Team profiles' : 'The rest of the team';
       var dirIntro = support
-        ? 'Everyone&#39;s bio, topics, past talks, and materials &mdash; by person. Updates as each person edits their profile.'
+        ? 'Everyone&#39;s bio, topics, targeting notes, and materials &mdash; by person. Updates as each person edits their profile.'
         : 'Read-only &mdash; where each person has spoken, what they want to target, and their materials.';
       html += '<div class="queue-sec-head"' + (support ? '' : ' style="margin-top:8px;"') + '><span class="queue-sec-title">' + dirTitle + '</span><span class="queue-sec-count">' + dirKeys.length + '</span></div>' +
         '<p class="queue-meta" style="margin:-4px 0 14px;">' + dirIntro + '</p>';
@@ -8346,6 +8346,9 @@
     // True if an event (canonical region + folded text blob) fits a profile.
     function profileFits(p, blob, region) {
       if (!p) return false;
+      // Australia is VERMA'S territory only — no one else fits an AU event, even
+      // when the industry keywords match (an AU healthcare event ≠ Thor's).
+      if (p.key !== 'Verma' && /\b(australia|australian|sydney|melbourne|brisbane|perth|canberra|adelaide)\b/.test(String(blob || ''))) return false;
       var regionOk = !!(region && p.regions.indexOf(region) !== -1);
       // Region-locked people (Jerome = Europe, Carlos = Latin America) fit ONLY
       // their own region — a loose keyword (a city named in a blurb, or 'web
