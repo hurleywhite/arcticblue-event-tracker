@@ -3582,8 +3582,10 @@ def build():
     // ONLY in this pop-up (the card face just shows an "Archived" label), so the
     // control is here for BOTH catalog and manual events. Manual events also keep
     // their separate "Delete this event" button in the edit form.
+    var _qbMan = rec._table === 'manual_events';
+    var _qbHiddenMe = (window.opsIsHiddenForMe ? window.opsIsHiddenForMe(_qbMan, rec._key, rec.hidden === true) : !!rec.hidden);
     var hideRow = '<span class="qa-row-label">Hide:</span>' +
-        '<button type="button" class="qa' + (rec.hidden ? ' on' : '') + '" data-qa="hidden">' + (rec.hidden ? 'Unarchive' : 'Archive') + '</button>';
+        '<button type="button" class="qa' + (_qbHiddenMe ? ' on' : '') + '" data-qa="hidden" title="Archiving hides this from YOUR view only — teammates still see it">' + (_qbHiddenMe ? 'Unarchive' : 'Archive') + '</button>';
     return '<div class="modal-quickbar">' +
            '<div class="qa-row qa-row--status" style="align-items:center;"><span class="qa-row-label">Status:</span>' + bStage.join('') + '</div>' +
            '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div>' +
@@ -3609,7 +3611,17 @@ def build():
       var qa = btn.dataset.qa;
       var patch = {{}};
       if (qa === 'saved') {{ rec.saved = !rec.saved; patch.saved = rec.saved; }}
-      else if (qa === 'hidden') {{ rec.hidden = !rec.hidden; patch.hidden = rec.hidden; }}
+      else if (qa === 'hidden') {{
+        // Archive is PERSONAL (localStorage per signed-in name) — hides this from
+        // MY view only. No DB write unless we're clearing a legacy team-wide hide.
+        var _isMan = rec._table === 'manual_events';
+        var _wasHidden = (window.opsIsHiddenForMe ? window.opsIsHiddenForMe(_isMan, rec._key, rec.hidden === true) : !!rec.hidden);
+        var _makeArch = !_wasHidden;
+        if (window.opsSetArchivedMine) window.opsSetArchivedMine(_isMan, rec._key, _makeArch);
+        // Unarchiving a legacy team-wide hide also clears that shared flag (it
+        // comes back for everyone) — there's no per-person record to remove.
+        if (!_makeArch && rec.hidden === true) {{ rec.hidden = false; patch.hidden = false; }}
+      }}
       else if (qa === 'interested') {{
         var me = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || '';
         if (!me) return;  // no name entered — nothing to toggle
@@ -3674,9 +3686,13 @@ def build():
       // scroll position so quick edits don't jump the reader.
       var scEl = overlay.querySelector('.modal-scroll');
       var sc = scEl ? scEl.scrollTop : 0;
-      window.opsWrite(rec._table, rec._key, patch);
+      // A personal archive toggle writes no DB patch — skip the empty upsert.
+      if (Object.keys(patch).length) window.opsWrite(rec._table, rec._key, patch);
       openEventModal(rec);
       if (scEl) scEl.scrollTop = sc;
+      // Archive lives in localStorage (no realtime echo), so re-render the grid
+      // ourselves to move the card into / out of the per-person Hidden section.
+      if (qa === 'hidden' && window.opsRefresh) window.opsRefresh();
     }});
   }}
 
@@ -4657,7 +4673,7 @@ def build():
     }}
 
     // A whisper-quiet freshness cue from the row's existing updated_at (no
-    // schema change): recently touched reads "verified 3d ago"; long-untouched
+    // schema change): recently touched reads "Updated 3d ago"; long-untouched
     // reads "stale · 45d untouched". Nothing shows for events never edited (no
     // timestamp to stand behind). 30 days is the line between the two.
     function freshnessTag(iso) {{
@@ -4667,7 +4683,7 @@ def build():
       var days = Math.max(0, Math.floor((Date.now() - t) / 86400000));
       var stale = days > 30;
       var ago = days === 0 ? 'today' : (days === 1 ? '1d ago' : days + 'd ago');
-      var text = stale ? ('stale \\u00b7 ' + days + 'd untouched') : ('verified ' + ago);
+      var text = stale ? ('stale \\u00b7 ' + days + 'd untouched') : ('Updated ' + ago);
       return '<span class="ops-fresh ' + (stale ? 'is-stale' : 'is-fresh') +
         '" title="Last updated ' + escapeHtml(formatStamp(iso)) + '">' + text + '</span>';
     }}
@@ -5159,7 +5175,8 @@ def build():
       // Angela's Should-Attend now shows as the SAME blue outline (like an
       // interested card), replacing the old "★ Should Attend" badge.
       if (window.isAngelaUser && window.isAngelaUser() && shouldAttendKind(st.attend_verdict) === 'human') card.classList.add('is-sa');
-      if (st.hidden) card.classList.add('is-hidden');
+      var _catHiddenMe = _isHiddenForMe(false, ev.num, st.hidden === true);
+      if (_catHiddenMe) card.classList.add('is-hidden');
       // Urgent = manually flagged OR an apply/CFP deadline that's closing soon.
       // (The event merely being upcoming does NOT make it urgent.)
       var _soon = isDeadlineSoon(ev.deadline) && !_opsPast;
@@ -5209,9 +5226,9 @@ def build():
           '<div class="ops-chips">' +
             starButtonHtml(st.interested, st.attend_verdict) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            (st.hidden
-              ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
+            (_catHiddenMe
+              ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
+              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — hide this from your view only" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
             decBadge + saBadge +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
@@ -5404,9 +5421,9 @@ def build():
           '<div class="ops-chips">' +
             starButtonHtml(mev.interested, mev.attend_verdict) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            (mev.hidden
-              ? '<span class="ops-archived-tag" title="Archived — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-field="hidden" data-on="0" type="button" title="Archive — set this event aside" aria-label="Archive event">' + OPS_HIDE_ICON + '</button>') +
+            (_isHiddenForMe(true, mev.id, mev.hidden === true)
+              ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
+              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — hide this from your view only" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
@@ -5425,7 +5442,7 @@ def build():
       mrec.region = canonicalRegion(mev);
       card._modalRec = mrec;
 
-      if (mev.hidden) card.classList.add('is-hidden');
+      if (_isHiddenForMe(true, mev.id, mev.hidden === true)) card.classList.add('is-hidden');
       if (mev.saved)  card.classList.add('is-saved');
       if (meInInterested(mev.interested)) card.classList.add('is-mine');   // I starred it → blue outline
       // Angela's Should-Attend shows as the same blue outline (was the badge).
@@ -5460,10 +5477,19 @@ def build():
             mev[field] = nextOn;
             if (field === 'saved') {{ btn.textContent = nextOn ? '★' : '☆'; card.classList.toggle('is-saved', nextOn); }}
             else if (field === 'urgent') {{ card.classList.toggle('is-urgent', nextOn); }}
-            else if (field === 'hidden') {{ card.classList.toggle('is-hidden', nextOn); regroupOpsByMonth(); applyFilters(); }}
             flashOk();
           }});
         }});
+      }});
+      // Archive (hover ×) — personal, localStorage only (hides from MY grid).
+      var _manArch = card.querySelector('[data-archive]');
+      if (_manArch) _manArch.addEventListener('click', function () {{
+        _archSetMine(true, mev.id, true);
+        card.classList.add('is-hidden');
+        _manArch.outerHTML = '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>';
+        regroupOpsByMonth();
+        applyFilters();
+        flashOk();
       }});
       return card;
     }}
@@ -5643,15 +5669,22 @@ def build():
               card.classList.toggle('is-saved', nextOn);
             }} else if (field === 'urgent') {{
               card.classList.toggle('is-urgent', nextOn);
-            }} else if (field === 'hidden') {{
-              card.classList.toggle('is-hidden', nextOn);
-              // Move the card into / out of the collapsible "Hidden" section.
-              regroupOpsByMonth();
-              applyFilters();
             }}
             flashOk();
           }});
         }});
+      }});
+      // Archive (the hover × on the card face) — hides the event from MY view
+      // only (localStorage, per signed-in name). No DB write, no effect on
+      // teammates. Un-archive is done from the Details pop-up.
+      var _catArch = card.querySelector('[data-archive]');
+      if (_catArch) _catArch.addEventListener('click', function () {{
+        _archSetMine(false, num, true);
+        card.classList.add('is-hidden');
+        _catArch.outerHTML = '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>';
+        regroupOpsByMonth();
+        applyFilters();
+        flashOk();
       }});
 
       // Text inputs (status, speaker) — save on blur if changed
@@ -6790,6 +6823,42 @@ def build():
     }}
 
     // Normalise a catalog or manual row into the one shape the new views share.
+    // ── Per-person ARCHIVE (hide from MY view only) ──────────────────
+    // Archiving is now personal: it lives in localStorage keyed by the signed-in
+    // name (like the dismiss / skip / hide-suggestion state), so hiding an event
+    // takes it off MY grid without touching anyone else's. A legacy team-wide
+    // event_state.hidden === true is still honored as a shared hide until someone
+    // unarchives it (which clears that global flag). No DB column, no migration.
+    function _archStoreKey() {{ return 'ab.arch.' + (getCollabName() || '').toLowerCase(); }}
+    // Memoized so a full render's thousands of _isHiddenForMe() calls don't each
+    // hit localStorage. Invalidated on save + whenever the signed-in name changes.
+    var _archCache = null, _archCacheKey = null;
+    function _archList() {{
+      var k = _archStoreKey();
+      if (_archCache && _archCacheKey === k) return _archCache;
+      try {{ _archCache = JSON.parse(localStorage.getItem(k) || '[]'); }} catch (e) {{ _archCache = []; }}
+      _archCacheKey = k;
+      return _archCache;
+    }}
+    function _archSave(list) {{
+      _archCacheKey = _archStoreKey(); _archCache = list;
+      try {{ localStorage.setItem(_archCacheKey, JSON.stringify(list)); }} catch (e) {{}}
+    }}
+    function _archId(isManual, key) {{ return (isManual ? 'm' : 'e') + key; }}
+    function _isHiddenForMe(isManual, key, legacyHidden) {{
+      if (legacyHidden === true) return true;   // legacy team-wide archive
+      return _archList().indexOf(_archId(isManual, key)) !== -1;
+    }}
+    function _archSetMine(isManual, key, on) {{
+      var list = _archList(), id = _archId(isManual, key), i = list.indexOf(id);
+      if (on && i === -1) list.push(id);
+      else if (!on && i !== -1) list.splice(i, 1);
+      _archSave(list);
+    }}
+    // Bridge for the modal closure (quick-actions).
+    window.opsIsHiddenForMe = _isHiddenForMe;
+    window.opsSetArchivedMine = _archSetMine;
+
     function opsItem(kind, base, st) {{
       var stages = stageTagsOf(st || base);
       var interested = (st && st.interested) || base.interested || [];
@@ -6813,7 +6882,7 @@ def build():
         deadline: (st && st.deadline) || base.deadline || '',
         queue_dismissed: !!((st && st.queue_dismissed) || base.queue_dismissed),
         past: isPastEvent(base),
-        hidden: !!(st && st.hidden),
+        hidden: _isHiddenForMe(kind === 'manual', kind === 'manual' ? base.id : base.num, (st && st.hidden === true) || (base && base.hidden === true)),
         is_private: !!((st && st.is_private) || base.is_private),   // catalog: on state; manual: on the row
         sort: meta.sort,
         startObj: base,
