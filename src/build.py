@@ -3512,10 +3512,25 @@ def build():
     if (v.indexOf('not') === 0 || v.indexOf('no') === 0) return 'attend-no';
     return 'p-medium';
   }}
+  // Turn URLs + bare emails inside ALREADY-ESCAPED text into clickable links.
+  // One combined pass so an email inside a URL can't double-wrap. Lets a pasted
+  // link in a detail field (Speaking route, Contact info, …) be clickable, not
+  // just plain text (Angela's ask). Trailing sentence punctuation stays outside
+  // the link.
+  function _linkifyEsc(escaped) {{
+    return String(escaped).replace(/(https?:\\/\\/[^\\s<]+)|([A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{{2,}})/g, function (m, url, email) {{
+      if (url) {{
+        var tail = '', t = url.match(/[).,;:!?]+$/);
+        if (t) {{ tail = t[0]; url = url.slice(0, -tail.length); }}
+        return '<a href="' + url + '" target="_blank" rel="noopener">' + url + '</a>' + tail;
+      }}
+      return '<a href="mailto:' + email + '">' + email + '</a>';
+    }});
+  }}
   function field(label, val, html) {{
     if (val == null || String(val).trim() === '') return '';
     return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' +
-           '<span class="v">' + (html ? val : esc(val)) + '</span></div>';
+           '<span class="v">' + (html ? val : _linkifyEsc(esc(val))) + '</span></div>';
   }}
 
   // ── Editable modal: one-tap quick actions ──────────────────────────
