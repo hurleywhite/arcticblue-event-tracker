@@ -377,11 +377,11 @@
        full-width block). */
     .ops-card-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: auto; }
     .ops-card-foot .ops-meta { margin: 0; }
-    /* Apply always sits flush right — same spot on every card, whether or not
-       a deadline/contact note is present to its left. */
-    .ops-card-foot .ops-apply-btn { margin-left: auto; }
+    /* Apply spans the FULL card width on its own row (Hurley — only Angela sees
+       the button), below any deadline/contact note. */
+    .ops-card-foot .ops-apply-btn { flex: 0 0 100%; width: 100%; margin-left: 0; }
     .ops-apply-btn {
-      display: inline-flex; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       box-sizing: border-box; text-align: center;
       font-family: var(--ab-mono); font-size: 0.7rem;
       letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
