@@ -6263,19 +6263,22 @@
           '" data-stat="' + key + '" aria-pressed="' + (sel ? 'true' : 'false') + '">' + label +
           (key !== 'all' ? '<span class="seg-num">' + num + '</span>' : '') + '</button>';
       }
-      $stats.innerHTML =
+      var _isAngelaView = !!(window.isAngelaUser && window.isAngelaUser());
+      var _coreTiles =
         tile('all', total, 'All') +
         tile('pipeline', inPipeline, 'Pending') +
         tile('booked', booked, 'Booked') +
-        tile('attending', attending, _support ? 'Team Attending' : 'Attending') +
-        // "Contacts" = events where we have an organizer email / POC. It's an
-        // outreach tool, so — like the ✉ badge and the old drawer filter — it's
-        // Angela-only, sitting after Attending in the segmented row.
-        ((window.isAngelaUser && window.isAngelaUser()) ? tile('contacts', contacts, 'Contacts') : '') +
-        // "My fits" sits LAST (Hurley) — "All" leads the row and is the default
-        // (support has no profile so they already land on All; personas still
-        // default to My fits, now positioned at the end).
-        tile('myfits', myFits, 'My fits');
+        tile('attending', attending, _support ? 'Team Attending' : 'Attending');
+      var _myfitsTile = tile('myfits', myFits, 'My fits');
+      // "Contacts" = events where we have an organizer email / POC — Angela-only
+      // (like the ✉ badge), sits after Attending.
+      var _contactsTile = _isAngelaView ? tile('contacts', contacts, 'Contacts') : '';
+      // Angela rarely attends herself, so her row leads with "All" and pushes
+      // "My fits" to the END (after Contacts). Everyone else is targeting their
+      // own fits, so "My fits" sits FIRST — to the left of "All" (Hurley).
+      $stats.innerHTML = _isAngelaView
+        ? (_coreTiles + _contactsTile + _myfitsTile)
+        : (_myfitsTile + _coreTiles);
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {
         t.addEventListener('click', function () {
