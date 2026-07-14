@@ -6790,15 +6790,18 @@ def build():
           (key !== 'all' ? '<span class="seg-num">' + num + '</span>' : '') + '</button>';
       }}
       $stats.innerHTML =
-        tile('myfits', myFits, 'My fits') +
         tile('all', total, 'All') +
         tile('pipeline', inPipeline, 'Pending') +
         tile('booked', booked, 'Booked') +
         tile('attending', attending, _support ? 'Team Attending' : 'Attending') +
         // "Contacts" = events where we have an organizer email / POC. It's an
         // outreach tool, so — like the ✉ badge and the old drawer filter — it's
-        // Angela-only, sitting right after Attending in the segmented row.
-        ((window.isAngelaUser && window.isAngelaUser()) ? tile('contacts', contacts, 'Contacts') : '');
+        // Angela-only, sitting after Attending in the segmented row.
+        ((window.isAngelaUser && window.isAngelaUser()) ? tile('contacts', contacts, 'Contacts') : '') +
+        // "My fits" sits LAST (Hurley) — "All" leads the row and is the default
+        // (support has no profile so they already land on All; personas still
+        // default to My fits, now positioned at the end).
+        tile('myfits', myFits, 'My fits');
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {{
         t.addEventListener('click', function () {{
