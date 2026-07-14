@@ -7662,7 +7662,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/losangeles",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-losangeles",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 298,
@@ -7684,7 +7685,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/boston",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-boston",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 299,
@@ -7706,7 +7708,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/washington",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-washington",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 300,
@@ -7728,7 +7731,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/austin",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-austin",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 301,
@@ -7750,7 +7754,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/healthcareboston",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-healthcareboston",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 302,
@@ -7772,7 +7777,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/caiosiliconvalley",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-caiosiliconvalley",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 303,
@@ -7794,7 +7800,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/agenticaisiliconvalley",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-agenticaisiliconvalley",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 304,
@@ -7816,7 +7823,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/siliconvalley",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-siliconvalley",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 305,
@@ -7838,7 +7846,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/cisosiliconvalley",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-cisosiliconvalley",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 306,
@@ -7860,7 +7869,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/dubai",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-dubai",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 307,
@@ -7882,7 +7892,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/newyork",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-newyork",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 308,
@@ -7904,7 +7915,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/caionewyork",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-caionewyork",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 309,
@@ -7926,7 +7938,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/agenticainewyork",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-agenticainewyork",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   },
   {
    "num": 310,
@@ -7948,7 +7961,8 @@
    "url": "https://world.aiacceleratorinstitute.com/location/cisonewyork",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-cisonewyork",
-   "seed": false
+   "seed": false,
+   "contact_info": "albert@pmmalliance.com"
   }
  ]
 }
