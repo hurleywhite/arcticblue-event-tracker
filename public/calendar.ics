@@ -26,6 +26,146 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-462@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261201
+DTEND;VALUE=DATE:20261202
+SUMMARY:Evanta Seattle CIO Community Executive Summit 2026
+LOCATION:Seattle\, WA\, USA
+DESCRIPTION:Evanta’s Pacific Northwest CIO community summit — reaches Seattle-area CIOs from Amazon\, Microsoft\, Boeing\, and tech enterprises\; ideal for ArcticBlue to engage with enterprise AI decision-makers in the world’s densest cloud/AI talent concentration.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.evanta.com/cio/seattle
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-461@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261201
+DTEND;VALUE=DATE:20261203
+SUMMARY:Reuters NEXT New York 2026
+LOCATION:New York\, NY\, USA
+DESCRIPTION:Reuters’ flagship annual leadership summit (95% C-level & VP) bringing together Fortune 500 CEOs\, CIOs\, and investors on AI\, geopolitics\, and business transformation — premier year-end Halo stage in New York with outsized reach and credibility for ArcticBlue.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://events.reutersevents.com/next/newyork/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-460@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261118
+DTEND;VALUE=DATE:20261119
+SUMMARY:IDC FutureTech Summit Spain 2026
+LOCATION:Madrid\, Spain
+DESCRIPTION:IDC’s ‘Scaling AI Across Cloud and Enterprise Platforms’ summit for Spanish CTOs and IT architects — positioned on enterprise AI deployment challenges\; ArcticBlue’s EMEA expansion play.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://event.idc.com/event/futuretech-summit_en/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-459@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261015
+DTEND;VALUE=DATE:20261016
+SUMMARY:IDC AI and Autonomy Forum 2026 Japan
+LOCATION:Tokyo\, Japan
+DESCRIPTION:IDC's dedicated agentic AI and enterprise autonomy forum in Tokyo — addresses Japan's enterprise AI evolution with senior business and technology executives\; relevant for ArcticBlue's APAC narrative on enterprise AI deployment.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://event.idc.com/event/idc-ai-and-autonomy-forum/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-458@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261015
+DTEND;VALUE=DATE:20261016
+SUMMARY:IDC CIO Summit Portugal 2026
+LOCATION:Lisbon\, Portugal
+DESCRIPTION:IDC's 'Rise of Agentic Systems' CIO summit in Lisbon — the theme directly maps to ArcticBlue's core proposition\; reaches Portugal and Iberian enterprise CIOs navigating agentic AI deployment decisions.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://event.idc.com/event/cio-summit-portugal/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-457@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261008
+DTEND;VALUE=DATE:20261009
+SUMMARY:IDC AI & Data Summit Italy 2026
+LOCATION:Milan\, Italy
+DESCRIPTION:IDC's premier Italian enterprise AI summit addressing AI strategy\, data governance\, and EU AI Act compliance — reaches Italian CIOs and CDOs making enterprise AI decisions\; part of IDC's broader European AI summit series relevant to ArcticBlue's EMEA expansion.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://event.idc.com/event/ai-data-summit-italy/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-456@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261007
+DTEND;VALUE=DATE:20261009
+SUMMARY:IT Revolution Enterprise AI Summit — Charlotte 2026
+LOCATION:Charlotte\, NC\, USA
+DESCRIPTION:Gene Kim's flagship enterprise AI practitioner summit (100/100 NPS) — 50-100 CTO/VP Eng leaders from John Deere\, Vanguard\, Target\, Microsoft\, Disney\; experience-report format and open speaker application make it an ideal earned stage for ArcticBlue's agentic AI in production narrative.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://events.itrevolution.com/2026-charlotte/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-455@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20260914
+DTEND;VALUE=DATE:20260918
+SUMMARY:Shared Services & Outsourcing Week 2026
+LOCATION:San Diego\, CA\, USA
+DESCRIPTION:Largest annual GBS/shared services conference in North America — 2026 theme explicitly covers AI agent scaling across workflows and measurable ROI\, attended by VP/SVP GBS\, Finance Shared Services\, and Operations leaders from major multinationals\; ideal venue for ArcticBlue's agentic AI in ops narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.ssonetwork.com/events-shared-services-week-autumn
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-454@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20260908
+DTEND;VALUE=DATE:20260910
+SUMMARY:AI in Financial Services Conference 2026
+LOCATION:155 Bishopsgate\, London\, UK
+DESCRIPTION:350+ senior leaders from Europe's top financial institutions (Commerzbank\, Goldman Sachs\, Citi\, Deutsche Bank\, Mosaic Insurance) — directly in ArcticBlue's FSI/insurance ICP with agentic AI\, responsible AI\, and novel risk management on the agenda.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://aiinfinancesummit.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-453@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261006
+DTEND;VALUE=DATE:20261008
+SUMMARY:Agentic AI North America 2026
+LOCATION:Loudoun County / Reston\, VA\, USA
+DESCRIPTION:The Global Agentic AI Summit brings together enterprise CAIOs and AI practitioners from telecom\, healthcare\, fintech\, and defense — precisely Carlos's buyer profile — in an intimate two-venue format with KPMG and Dataiku as sponsors.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://gotoagentic.ai/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-452@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20260819
+DTEND;VALUE=DATE:20260820
+SUMMARY:ALIGN AI Executive Summit SF
+LOCATION:San Francisco\, CA\, USA
+DESCRIPTION:Bay Area edition of Data Science Connect's invite-only executive AI series — draws CAIOs\, CDOs\, and AI directors from tech-forward enterprises with a free earned route for qualified speakers from 5K+ employee companies.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://datasciconnect.com/events/align-ai-executive-summit-san-francisco/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-451@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261110
+DTEND;VALUE=DATE:20261112
+SUMMARY:Learning Futures LA\, Executive Knowledge Exchange
+LOCATION:Los Angeles\, CA
+DESCRIPTION:iVentiv CLO executive forum in LA—gives Joe facilitated access to Global Heads of L&D from West Coast and national enterprises in an intimate\, peer-led setting ideal for relationship-building with ArcticBlue's ICP.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://iventiv.com/events/learning-futures/learning-futures-la-executive-knowledge-exchange-2026
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-450@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20261020
+DTEND;VALUE=DATE:20261022
+SUMMARY:Learning Futures New York\, Executive Knowledge Exchange
+LOCATION:New York\, NY
+DESCRIPTION:Exclusive CLO-level executive forum hosted at Moody's NYC HQ—chaired by Microsoft's GM of Global Learning—with confirmed facilitators from Experian\, S&P Global\, Citizens Bank\, Marsh\, and Regions Financial\; Joe's NYC base makes this a no-travel earned opportunity.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://iventiv.com/events/learning-futures/learning-futures-new-york-executive-knowledge-exchange-8
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-449@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20260818
+DTEND;VALUE=DATE:20260820
+SUMMARY:Learning Futures San Francisco\, Executive Knowledge Exchange
+LOCATION:San Francisco\, CA
+DESCRIPTION:Small-group (max 40) CLO and Global Head of L&D executive forum hosted at a Fortune 500 headquarters—ideal for Joe to position AI-enabled learning thought leadership directly with enterprise L&D decision-makers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://iventiv.com/events/learning-futures/learning-futures-san-francisco-executive-knowledge-exchange-3
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-448@arcticblue-event-tracker
 DTSTAMP:20260714T000000Z
 DTSTART;VALUE=DATE:20261112
@@ -196,6 +336,15 @@ DESCRIPTION:The most influential data and AI event in the Nordic region\, with a
 URL:https://www.datainnovationsummit.com
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-431@arcticblue-event-tracker
+DTSTAMP:20260714T000000Z
+DTSTART;VALUE=DATE:20270412
+DTEND;VALUE=DATE:20270415
+SUMMARY:Transform Conference
+DESCRIPTION:Joe added - would have a good audience. Has a contact there.\nPriority: Medium\nAdded by: Angela
+URL:https://transform.us/conference/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-430@arcticblue-event-tracker
 DTSTAMP:20260714T000000Z
 DTSTART;VALUE=DATE:20261103
@@ -213,6 +362,7 @@ DTEND;VALUE=DATE:20260924
 SUMMARY:GDN
 LOCATION:Washington\, D.C.
 DESCRIPTION:Priority: Medium\nAdded by: Thor
+URL:https://www.gdn.int/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-427@arcticblue-event-tracker
