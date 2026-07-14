@@ -712,7 +712,8 @@
    "contact_info": "datasciconnect.com",
    "focus_areas": "Enterprise AI deployment and production scaling; AI governance, risk, and compliance frameworks; Agentic AI for business operations; Measuring AI ROI and business impact; Enterprise data infrastructure for AI readiness",
    "pay_to_play": "Yes",
-   "past_speakers": "Senior Data Leader, Fortune 500; AI Strategy Director, Global Tech Firm; Head of Enterprise AI, Financial Services"
+   "past_speakers": "Senior Data Leader, Fortune 500; AI Strategy Director, Global Tech Firm; Head of Enterprise AI, Financial Services",
+   "attendee_count": "1,000+"
   },
   {
    "num": 88,
@@ -2376,7 +2377,9 @@
    "external_id": "f13925e3-c1a6-4d43-9737-9e311a0a21f1",
    "source": "arcticscout",
    "start_date": "2026-05-11",
-   "end_date": "2026-05-13"
+   "end_date": "2026-05-13",
+   "past_speakers": "CDAOs, heads of AI, and data and analytics leaders from global enterprises",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 108,
@@ -2802,7 +2805,10 @@
    "external_id": "2da6263d-ac15-413e-88f6-6bac155b1450",
    "source": "arcticscout",
    "start_date": "2026-06-25",
-   "end_date": "2026-06-25"
+   "end_date": "2026-06-25",
+   "pricing": "$2,499 for all-access pass (skip application); Free for qualified attendees only (directors+ at non-vendor orgs with 5,000+ employees)",
+   "meeting_formats": "Executive roundtables, curated panels, structured networking opportunities",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 123,
@@ -6820,7 +6826,13 @@
    "focus_areas": "CDO/CAIO priorities for Texas and South-Central US enterprises; Enterprise AI strategy and data-driven transformation; AI governance and responsible enterprise data use; Agentic AI for analytics and operations; Data foundations and AI readiness for enterprise deployment",
    "seed": false,
    "urgent": false,
-   "external_id": "442eebc3-0eaa-4351-a2fb-74633a7115f4"
+   "external_id": "442eebc3-0eaa-4351-a2fb-74633a7115f4",
+   "venue": "The Highland Dallas",
+   "pricing": "Free for senior-level data & analytics professionals at end-user companies; solution providers and consultancies do not qualify for a free pass",
+   "past_speakers": "CDO, CAO, CIO, Directors, and Managers across industries",
+   "meeting_formats": "Interactive panels, case studies, and networking sessions",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "0-300 Delegates"
   },
   {
    "num": 267,
@@ -7399,10 +7411,16 @@
    "typical_attendees": "EU and global Heads of State, European Commission executives, CEOs, CIOs, enterprise AI leaders, policymakers; 1,000+ invitation-only delegates",
    "speaking_route": "Delegate attendance by invitation only; exhibitor interest form: internationalaisummit.ie/#register",
    "contact_info": "internationalaisummit.ie",
-   "pay_to_play": null,
+   "pay_to_play": "No",
    "city": "Dublin",
    "country": "Ireland",
-   "external_id": "replit-218"
+   "external_id": "replit-218",
+   "venue": "Royal Dublin Society (RDS)",
+   "pricing": "Delegate attendance is by invitation only",
+   "past_speakers": "Senior figures from government, industry and research (first confirmed speakers announced on website, further announcements to follow)[4]",
+   "meeting_formats": "High-level platform for discussion, collaboration and strategic dialogue[2]",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "1,000+"
   },
   {
    "num": 289,
