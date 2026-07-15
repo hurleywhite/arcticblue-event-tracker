@@ -3771,11 +3771,14 @@ def build():
     var curPri = isCat ? (rec.priority_override || rec.priority || '') : (rec.priority || '');
     var priv = rec.is_private === true;
     var h = '';
-    if (!isCat) {{
-      h += ef('Event name', inp('name', rec.name));
-      h += ef('Date', inp('date_str', rec.date_str, 'e.g. Sept 14–16, 2026'));
-      h += ef('Location', inp('location', rec.location));
-    }}
+    // Name / Date / Location are editable on EVERY card now. Manual events store
+    // them directly; catalog events store them as event_state overrides (needs
+    // scripts/2026-07-14_event_state_identity.sql — until it runs, saving these
+    // three on a catalog event fails, but manual events + every other field on a
+    // catalog event keep working).
+    h += ef('Event name', inp('name', rec.name));
+    h += ef('Date', inp('date_str', rec.date_str, 'e.g. Sept 14–16, 2026'));
+    h += ef('Location', inp('location', rec.location));
     // Private / invite-only events don't need the public-conference metadata —
     // just POC, link, notes & chat. Toggling this hides the rest.
     h += ef('Private event', '<label class="me-toggle"><input type="checkbox" data-private' + (priv ? ' checked' : '') + '> Private / invite-only &mdash; hide the public-event fields, keep just POC, link, notes &amp; chat</label>');
@@ -3964,12 +3967,11 @@ def build():
         var patch = {{}}; patch[field] = out;
         if (field === 'priority_override') rec.priority = out;
         else rec[field] = out;
-        // Editing a manual event's Date must ALSO update the structured
-        // start_date / end_date — the card, calendar and iCal read those (they
-        // win over the free-text date_str). Without this the text changed but
-        // the card kept the old (mis-scraped) date. Manual-only: catalog events
-        // have no date columns in event_state.
-        if (field === 'date_str' && rec._table === 'manual_events') {{
+        // Editing the Date must ALSO update the structured start_date / end_date
+        // — the card, calendar and iCal read those (they win over the free-text
+        // date_str). Applies to BOTH manual events and catalog events (whose
+        // event_state now carries date_str/start_date/end_date overrides).
+        if (field === 'date_str') {{
           var _dd = {{}};
           try {{ _dd = (window.opsDeriveDates && out) ? (window.opsDeriveDates(out) || {{}}) : {{}}; }} catch (e) {{ _dd = {{}}; }}
           patch.start_date = _dd.start_date || null;
@@ -9759,6 +9761,23 @@ def build():
         // inflate counts or surface as false scheduling conflicts.
         var allEvs = (data.events || []).filter(function (e) {{ return !_deletedNums[e.num]; }});
         var evs = allEvs.filter(function (e) {{ return e.status !== 'archived'; }});
+        // Catalog events are now fully editable: event_state can override the
+        // identity fields (name / date_str / start_date / end_date / location).
+        // Apply the override in place BEFORE anything renders, so the edited value
+        // wins over the catalog value everywhere downstream — grid card, Details,
+        // calendar, map, search + suggestions all read these merged events. A
+        // no-op until the 2026-07-14_event_state_identity migration adds the
+        // columns (the fields just come back undefined).
+        allEvs.forEach(function (e) {{
+          var st = stateMap[e.num]; if (!st) return;
+          if (st.name != null && String(st.name).trim() !== '') e.name = st.name;
+          // Clear the parsed city/country so shortLocation() shows the edited
+          // location text (it prefers city+country over the raw location).
+          if (st.location != null && String(st.location).trim() !== '') {{ e.location = st.location; e.city = ''; e.country = ''; }}
+          if (st.date_str != null && String(st.date_str).trim() !== '') e.date_str = st.date_str;
+          if (st.start_date) e.start_date = st.start_date;
+          if (st.end_date) e.end_date = st.end_date;
+        }});
         // Trailing-year strip for display — the year is redundant with the date.
         allEvs.forEach(function (e) {{ if (e && e.name) e.name = stripTrailingYear(e.name); }});
         manualRows.forEach(function (m) {{ if (m && m.name) m.name = stripTrailingYear(m.name); }});
