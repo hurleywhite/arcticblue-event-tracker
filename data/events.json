@@ -75,7 +75,8 @@
    "past_speakers": "Peter Steinberger (Clawfather), Creator of OpenClaw; Technical Leaders, Microsoft; Enterprise Developers, Microsoft",
    "meeting_formats": "Curated evening gathering at GitHub HQ (OpenClaw: After Hours); Post-Build add-on experience with live demos and interactive sessions (Beyond Build: AI Developer Day)",
    "audience_type": "Buyer-rich",
-   "attendee_count": "5,000"
+   "attendee_count": "5,000",
+   "deadline": "Application required for in-person attendance due to limited space (deadline not explicitly published)"
   },
   {
    "num": 18,
@@ -1139,7 +1140,11 @@
    "speaking_route": "Sponsor/partner inquiry: evanta.com (community partner/sponsor inquiry form)",
    "contact_info": "evanta.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Global CIO AI strategy and technology investment; Agentic AI and enterprise operating model transformation; AI governance and enterprise technology risk management; CIO leadership and organizational transformation; Digital transformation at global enterprise scale"
+   "focus_areas": "Global CIO AI strategy and technology investment; Agentic AI and enterprise operating model transformation; AI governance and enterprise technology risk management; CIO leadership and organizational transformation; Digital transformation at global enterprise scale",
+   "venue": "Waldorf Astoria Monarch Beach Resort & Club",
+   "meeting_formats": "Exclusive three-day summit for exchanging ideas and validating strategies",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "Exclusive (exact count not published)"
   },
   {
    "num": 90,
@@ -5303,7 +5308,10 @@
    "external_id": "54d15e77-9ac6-4217-8f5d-5201afeecbd8",
    "source": "arcticscout",
    "start_date": "2026-05-13",
-   "end_date": "2026-05-14"
+   "end_date": "2026-05-14",
+   "past_speakers": "Ukrainian Ambassador to the UK; former UK Defence Ministers; Generals and Admirals; current members of the House of Commons and House of Lords; leading academics and experts on Middle-East Geopolitics",
+   "meeting_formats": "panels on key global and regional geopolitical dynamics",
+   "audience_type": "Mixed"
   },
   {
    "num": 211,
@@ -6115,7 +6123,12 @@
    "external_id": "618ee7f4-157d-493d-91aa-352419abf18e",
    "source": "arcticscout",
    "start_date": "2026-09-15",
-   "end_date": "2026-09-16"
+   "end_date": "2026-09-16",
+   "pricing": "Not explicitly stated",
+   "past_speakers": "Not explicitly stated",
+   "meeting_formats": "Keynote sessions, practical breakouts, partner showcases, and networking opportunities",
+   "audience_type": "Mixed",
+   "attendee_count": "Not explicitly stated"
   },
   {
    "num": 241,
