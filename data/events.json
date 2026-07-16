@@ -665,7 +665,12 @@
    "priority_full": "Medium",
    "why": "End-of-window West Coast AIAI GenAI Summit; builds LA presence for ArcticBlue ahead of Q4; same requesttospeak access model as other AIAI events.",
    "url": "https://world.aiacceleratorinstitute.com/location/losangeles/",
-   "status": "upcoming"
+   "status": "upcoming",
+   "venue": "Conrad Los Angeles",
+   "pay_to_play": "Yes",
+   "meeting_formats": "Co-located tracks (Generative & Agentic AI) with one pass unlocking both",
+   "audience_type": "Mixed",
+   "typical_attendees": "AI builders, execs, and engineers shipping production-ready AI systems"
   },
   {
    "num": 34,
@@ -2841,7 +2846,10 @@
    "external_id": "1ff316fb-9a01-46a5-b7cd-6f9a1d7fc134",
    "source": "arcticscout",
    "start_date": "2026-07-21",
-   "end_date": "2026-07-23"
+   "end_date": "2026-07-23",
+   "pricing": "Onsite registration available with a special discount for the 20th anniversary (contact team@cdoiq.org for code); Virtual registration: 80% off with code Virtual80% [7]",
+   "past_speakers": "Senior leaders in data, analytics, and AI from around the world; CDOs, senior data leaders, and AI practitioners [7][8]",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 124,
@@ -4984,7 +4992,13 @@
    "external_id": "3d4b09c4-3802-4c09-998e-03220b627c1c",
    "source": "arcticscout",
    "start_date": "2026-05-20",
-   "end_date": "2026-05-22"
+   "end_date": "2026-05-22",
+   "pricing": "Free visitor pass for ATxEnterprise (20–22 May 2026); ATxSummit is invitation-only with no public ticket price listed",
+   "past_speakers": "President Tharman Shanmugaratnam, Singapore; Global AI leaders from over 50 countries (ATxSummit 2026); C-level executives from telecom, AI, and enterprise networking sectors (ATxEnterprise 2026)",
+   "meeting_formats": "Extensive exhibition marketplace, curated roundtables, and business networking sessions; no guaranteed hosted 1:1 meetings or attendee app for pre-booking explicitly confirmed",
+   "audience_type": "Mixed",
+   "attendee_count": "25,000+",
+   "deadline": "Registration open as of January 2026; no specific call-for-speakers deadline published"
   },
   {
    "num": 199,
@@ -5506,7 +5520,12 @@
    "external_id": "d39d6c15-fb3b-42f5-875c-11ca9c012582",
    "source": "arcticscout",
    "start_date": "2026-04-27",
-   "end_date": "2026-04-29"
+   "end_date": "2026-04-29",
+   "pricing": "Online registration closed; ticket price not publicly listed for 2026",
+   "past_speakers": "Mary Ellen Coe, Diana Haussling, Alexis Ohanian (Reddit co-founder); Charlamagne Tha God, Manuel 'Manolo' Arroyo (EVP, The Coca-Cola Company), Carolyn Everson, Greg Hahn",
+   "meeting_formats": "Curated partner meetings, curated meetups",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "5,400+"
   },
   {
    "num": 218,
@@ -7763,12 +7782,15 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "Healthcare AI practitioners, builders, data/cloud leaders, and executives driving AI implementation",
    "url": "https://world.aiacceleratorinstitute.com/location/healthcareboston",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-healthcareboston",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "Convene One Boston Place",
+   "meeting_formats": "Official networking session (9:00–10:00 a.m.) with dedicated community meetups (e.g., BOSHUG) during the summit",
+   "audience_type": "Mixed"
   },
   {
    "num": 302,
@@ -7786,12 +7808,14 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "Silicon Valley leadership and AI executives",
    "url": "https://world.aiacceleratorinstitute.com/location/caiosiliconvalley",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-caiosiliconvalley",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "Doubletree by Hilton Hotel",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 303,
