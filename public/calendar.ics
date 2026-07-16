@@ -26,6 +26,86 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-483@arcticblue-event-tracker
+DTSTAMP:20260716T000000Z
+DTSTART;VALUE=DATE:20261005
+DTEND;VALUE=DATE:20261010
+SUMMARY:World Summit: AI Week (Part of World Summit Amsterdam)
+LOCATION:Amsterdam\, Netherlands
+DESCRIPTION:Priority: Medium\nAdded by: Angela
+URL:https://worldaiweek.ai/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-482@arcticblue-event-tracker
+DTSTAMP:20260716T000000Z
+DTSTART;VALUE=DATE:20271127
+DTEND;VALUE=DATE:20271128
+SUMMARY:DISx FTDS: Riyadh
+LOCATION:Riyadh\, Saudi
+DESCRIPTION:Priority: Medium\nAdded by: Angela
+URL:https://datainnovationsummit.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-481@arcticblue-event-tracker
+DTSTAMP:20260716T000000Z
+DTSTART;VALUE=DATE:20260915
+DTEND;VALUE=DATE:20260916
+SUMMARY:DISx FTDS: Dubai
+LOCATION:Dubai\, UAE
+DESCRIPTION:Priority: Medium\nAdded by: Angela
+URL:https://datainnovationsummit.com/disx/15-september-dubai/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-479@arcticblue-event-tracker
+DTSTAMP:20260716T000000Z
+DTSTART;VALUE=DATE:20260917
+DTEND;VALUE=DATE:20260918
+SUMMARY:Data Innovation Summit: ANZ (Sydney)
+LOCATION:Sydney\, Australia
+DESCRIPTION:Priority: Medium\nAdded by: Angela
+URL:https://anz.datainnovationsummit.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-477@arcticblue-event-tracker
+DTSTAMP:20260716T000000Z
+DTSTART;VALUE=DATE:20261014
+DTEND;VALUE=DATE:20261016
+SUMMARY:Data Innovation Summit: MEA Region
+LOCATION:Dubai\, UAE
+DESCRIPTION:Priority: Medium\nAdded by: Angela
+URL:https://datainnovationsummit.com/region/mea/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-476@arcticblue-event-tracker
+DTSTAMP:20260716T000000Z
+DTSTART;VALUE=DATE:20261105
+DTEND;VALUE=DATE:20261107
+SUMMARY:World AI Regulation Summit 2026
+LOCATION:London\, UK
+DESCRIPTION:London’s only senior-level convening of global AI regulators\, legislators and compliance leaders under Chatham House Rule — EU AI Act enforcement sessions and agentic AI liability tracks create brand visibility for ArcticBlue’s AI governance consulting narrative at the highest policy level.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://worldairegulation.org/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-475@arcticblue-event-tracker
+DTSTAMP:20260716T000000Z
+DTSTART;VALUE=DATE:20261201
+DTEND;VALUE=DATE:20261202
+SUMMARY:AIAI London 2026 — 3 Co-located Summits
+LOCATION:InterContinental London The O2\, London\, UK
+DESCRIPTION:Three co-located AIAI summits (GenAI + Agentic AI + CAIO) at InterContinental The O2 — largest AIAI European event of 2026\; same open speaker application as Berlin (already tracked)\; year-end EMEA AI leadership stage.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://world.aiacceleratorinstitute.com/location/agenticailondon
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-474@arcticblue-event-tracker
+DTSTAMP:20260716T000000Z
+DTSTART;VALUE=DATE:20261014
+DTEND;VALUE=DATE:20261016
+SUMMARY:DTX London 2026
+LOCATION:London\, UK
+DESCRIPTION:Enterprise digital transformation expo with confirmed attendees from AXA\, HSBC\, Barclays\, BT\, NHS\, and Sky — covers AI\, data\, cloud and transformation strategy for CIOs\, CDOs and enterprise tech leaders across regulated industries.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.dtxevents.io/london
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-473@arcticblue-event-tracker
 DTSTAMP:20260716T000000Z
 DTSTART;VALUE=DATE:20260930
@@ -248,8 +328,8 @@ END:VEVENT
 BEGIN:VEVENT
 UID:manual-448@arcticblue-event-tracker
 DTSTAMP:20260716T000000Z
-DTSTART;VALUE=DATE:20261112
-DTEND;VALUE=DATE:20261114
+DTSTART;VALUE=DATE:20261111
+DTEND;VALUE=DATE:20261113
 SUMMARY:Global AI Show Abu Dhabi
 LOCATION:Abu Dhabi\, UAE
 DESCRIPTION:Priority: Medium\nAdded by: Thor
@@ -408,12 +488,12 @@ END:VEVENT
 BEGIN:VEVENT
 UID:manual-432@arcticblue-event-tracker
 DTSTAMP:20260716T000000Z
-DTSTART;VALUE=DATE:20261007
-DTEND;VALUE=DATE:20261009
-SUMMARY:Data Innovation Summit 2026
-LOCATION:Amsterdam\, Netherlands
+DTSTART;VALUE=DATE:20270518
+DTEND;VALUE=DATE:20270521
+SUMMARY:Data Innovation Summit: Nordics
+LOCATION:Stockholm
 DESCRIPTION:The most influential data and AI event in the Nordic region\, with a strong focus on enterprise analytics and MLOps adoption.\nPriority: High\nAdded by: Thor
-URL:https://www.datainnovationsummit.com
+URL:https://datainnovationsummit.com/region/nordics/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-431@arcticblue-event-tracker
@@ -442,6 +522,7 @@ DTEND;VALUE=DATE:20260924
 SUMMARY:GDN
 LOCATION:Washington\, D.C.
 DESCRIPTION:Priority: Medium\nAdded by: Thor
+URL:https://www.gdn.int/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-427@arcticblue-event-tracker

@@ -8,7 +8,7 @@
   "today": 0,
   "upcoming": 102,
   "archived": 1,
-  "total": 289
+  "total": 286
  },
  "events": [
   {
@@ -7562,34 +7562,6 @@
    "attendee_count": "1,500+"
   },
   {
-   "num": 293,
-   "name": "Security & Risk Forum",
-   "date_str": "November 9–10, 2026",
-   "start_date": "2026-11-09",
-   "end_date": "2026-11-10",
-   "location": "Washington, DC",
-   "region": "Other US",
-   "type": "Enterprise; Tech; Compliance; AI; Security",
-   "priority": "Medium",
-   "priority_full": "Medium",
-   "url": "https://www.forrester.com/event/security-risk/?utm_source=chatgpt.com",
-   "status": "upcoming",
-   "source": "replit-reconcile",
-   "external_id": "30f59656-aa6f-4f1a-83f6-30c9470b8588",
-   "city": "Washington, DC",
-   "country": "United States",
-   "about": "The Forrester Security & Risk Forum is a two-day event for security, risk, and privacy leaders to gain practical guidance, frameworks, and peer-driven insights to turn strategy into execution. Attendees engage with Forrester analysts, case studies, and vendors to strengthen controls, validate decisions, and drive security and resilience efforts.",
-   "typical_attendees": "Security and risk leaders; information security leaders; privacy leaders responsible for enterprise security, risk strategy, resilience, and board-level decision-making.",
-   "speaking_route": "Guest/sponsored speaking via Forrester events team: https://forms.office.com/pages/responsepage.aspx?id=2sKbs8jjkk-WDkFRoa4WrXFBU1PyiG1Ktfc8xotn595UOEROSUFVQ0c1SkhCNEhDSUhIU1gzOU9ZRCQlQCN0PWcu&utm_source=chatgpt.com&route=shorturl\n",
-   "pay_to_play": "Both",
-   "deadline": "Rolling Deadline until filled",
-   "poc_email": "events@forrester.com",
-   "focus_areas": "Security; Risk Management; Privacy; Resilience; Controls & Compliance; Threat Management",
-   "venue": "Capital Hilton",
-   "pricing": "Clients: $899 USD ($1,199 CAD); Non-clients: $999 USD ($1,299 CAD)",
-   "audience_type": "Mixed"
-  },
-  {
    "num": 294,
    "name": "CDO/CAIO UK Summit 2026",
    "date_str": "December 3, 2026",
@@ -7864,29 +7836,6 @@
    "contact_info": "albert@pmmalliance.com"
   },
   {
-   "num": 305,
-   "name": "CISO Summit San Jose",
-   "date_str": "April 14, 2027",
-   "start_date": "2027-04-14",
-   "end_date": "2027-04-14",
-   "location": "San Jose, CA, USA",
-   "region": "Americas",
-   "city": "San Jose",
-   "country": "USA",
-   "type": "Enterprise",
-   "priority": "Medium",
-   "status": "upcoming",
-   "why": "",
-   "about": "",
-   "focus_areas": "",
-   "typical_attendees": "",
-   "url": "https://world.aiacceleratorinstitute.com/location/cisosiliconvalley",
-   "source": "aiacceleratorinstitute",
-   "external_id": "aiai-cisosiliconvalley",
-   "seed": false,
-   "contact_info": "albert@pmmalliance.com"
-  },
-  {
    "num": 306,
    "name": "Chief AI Officer Summit Dubai",
    "date_str": "May 14, 2027",
@@ -7975,29 +7924,6 @@
    "url": "https://world.aiacceleratorinstitute.com/location/agenticainewyork",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-agenticainewyork",
-   "seed": false,
-   "contact_info": "albert@pmmalliance.com"
-  },
-  {
-   "num": 310,
-   "name": "CISO Summit New York",
-   "date_str": "June 3, 2027",
-   "start_date": "2027-06-03",
-   "end_date": "2027-06-03",
-   "location": "New York, NY, USA",
-   "region": "Americas",
-   "city": "New York",
-   "country": "USA",
-   "type": "Enterprise",
-   "priority": "Medium",
-   "status": "upcoming",
-   "why": "",
-   "about": "",
-   "focus_areas": "",
-   "typical_attendees": "",
-   "url": "https://world.aiacceleratorinstitute.com/location/cisonewyork",
-   "source": "aiacceleratorinstitute",
-   "external_id": "aiai-cisonewyork",
    "seed": false,
    "contact_info": "albert@pmmalliance.com"
   }

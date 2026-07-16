@@ -6,9 +6,9 @@
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
     "today": 1,
-    "upcoming": 155,
+    "upcoming": 152,
     "archived": 133,
-    "total": 289
+    "total": 286
   },
   "events": [
     {
@@ -3093,36 +3093,6 @@
       "external_id": "d7f4ec99-5b06-42e6-8498-065f06ed8b49"
     },
     {
-      "num": 293,
-      "name": "Security & Risk Forum",
-      "date_str": "November 9\u201310, 2026",
-      "start_date": "2026-11-09",
-      "end_date": "2026-11-10",
-      "location": "Washington, DC",
-      "region": "Other US",
-      "region_coarse": "Global",
-      "type": "Enterprise; Tech; Compliance; AI; Security",
-      "priority": "Medium",
-      "priority_full": "Medium",
-      "why": "",
-      "url": "https://www.forrester.com/event/security-risk/?utm_source=chatgpt.com",
-      "status": "upcoming",
-      "about": "The Forrester Security & Risk Forum is a two-day event for security, risk, and privacy leaders to gain practical guidance, frameworks, and peer-driven insights to turn strategy into execution. Attendees engage with Forrester analysts, case studies, and vendors to strengthen controls, validate decisions, and drive security and resilience efforts.",
-      "focus_areas": "Security; Risk Management; Privacy; Resilience; Controls & Compliance; Threat Management",
-      "typical_attendees": "Security and risk leaders; information security leaders; privacy leaders responsible for enterprise security, risk strategy, resilience, and board-level decision-making.",
-      "speaking_route": "Guest/sponsored speaking via Forrester events team: https://forms.office.com/pages/responsepage.aspx?id=2sKbs8jjkk-WDkFRoa4WrXFBU1PyiG1Ktfc8xotn595UOEROSUFVQ0c1SkhCNEhDSUhIU1gzOU9ZRCQlQCN0PWcu&utm_source=chatgpt.com&route=shorturl\n",
-      "poc_email": "events@forrester.com",
-      "deadline": "Rolling Deadline until filled",
-      "pay_to_play": "Both",
-      "pricing": "Clients: $899 USD ($1,199 CAD); Non-clients: $999 USD ($1,299 CAD)",
-      "audience_type": "Mixed",
-      "venue": "Capital Hilton",
-      "city": "Washington, DC",
-      "country": "United States",
-      "source": "replit-reconcile",
-      "external_id": "30f59656-aa6f-4f1a-83f6-30c9470b8588"
-    },
-    {
       "num": 271,
       "name": "Leaders in AI Executive Retreat 2026",
       "date_str": "November 10\u201312, 2026",
@@ -4175,28 +4145,6 @@
       "external_id": "aiai-siliconvalley"
     },
     {
-      "num": 305,
-      "name": "CISO Summit San Jose",
-      "date_str": "April 14, 2027",
-      "start_date": "2027-04-14",
-      "end_date": "2027-04-14",
-      "location": "San Jose, CA, USA",
-      "region": "Americas",
-      "region_coarse": "Americas",
-      "type": "Enterprise",
-      "priority": "Medium",
-      "priority_full": "Medium",
-      "why": "",
-      "url": "https://world.aiacceleratorinstitute.com/location/cisosiliconvalley",
-      "status": "upcoming",
-      "contact_info": "albert@pmmalliance.com",
-      "seed": false,
-      "city": "San Jose",
-      "country": "USA",
-      "source": "aiacceleratorinstitute",
-      "external_id": "aiai-cisosiliconvalley"
-    },
-    {
       "num": 186,
       "name": "GITEX AI Asia",
       "date_str": "April 29\u201330, 2027",
@@ -4315,28 +4263,6 @@
       "country": "USA",
       "source": "aiacceleratorinstitute",
       "external_id": "aiai-agenticainewyork"
-    },
-    {
-      "num": 310,
-      "name": "CISO Summit New York",
-      "date_str": "June 3, 2027",
-      "start_date": "2027-06-03",
-      "end_date": "2027-06-03",
-      "location": "New York, NY, USA",
-      "region": "Americas",
-      "region_coarse": "Americas",
-      "type": "Enterprise",
-      "priority": "Medium",
-      "priority_full": "Medium",
-      "why": "",
-      "url": "https://world.aiacceleratorinstitute.com/location/cisonewyork",
-      "status": "upcoming",
-      "contact_info": "albert@pmmalliance.com",
-      "seed": false,
-      "city": "New York",
-      "country": "USA",
-      "source": "aiacceleratorinstitute",
-      "external_id": "aiai-cisonewyork"
     },
     {
       "num": 25,
