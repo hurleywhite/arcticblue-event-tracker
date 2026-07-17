@@ -1700,7 +1700,10 @@
    "typical_attendees": "CEOs, COOs, General Counsels, Chief AI Officers, Board Directors from global companies with major European operations; senior C-suite decision-maker audience",
    "speaking_route": "Request Invite (speaker/participant): conference-board.org/events/future-enterprise-and-ai. Sponsorship inquiry: conference-board.org",
    "contact_info": "conference-board.org",
-   "focus_areas": "Enterprise AI governance and EU AI Act compliance; Embedding AI across corporate strategy and operations; AI for business transformation in European multinationals; AI leadership and board-level oversight; AI risk management in regulated European industries"
+   "focus_areas": "Enterprise AI governance and EU AI Act compliance; Embedding AI across corporate strategy and operations; AI for business transformation in European multinationals; AI leadership and board-level oversight; AI risk management in regulated European industries",
+   "venue": "Brussels, Belgium",
+   "meeting_formats": "Member-only Council meetings (small-group, confidential sessions) on Day 1; cross-functional networking on Day 2",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 66,
@@ -3184,7 +3187,8 @@
    "external_id": "15d1166b-dd9d-4292-91a0-ecaeaadc2b6c",
    "source": "arcticscout",
    "start_date": "2026-08-31",
-   "end_date": "2026-09-03"
+   "end_date": "2026-09-03",
+   "audience_type": "Mixed"
   },
   {
    "num": 146,
@@ -3870,7 +3874,8 @@
    "end_date": "2026-06-26",
    "pricing": "Available on official ticket page; exact delegate pricing not visible in the provided results. A discount of up to 25% is advertised with the Fullstack subscription.",
    "meeting_formats": "workshops; bootcamps; main conference + expo; power workshops; online option",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "David Blum, Schmidig; Pascal Wyler"
   },
   {
    "num": 172,
@@ -5947,7 +5952,10 @@
    "external_id": "15bc140b-fec7-405c-bd80-9d4bd039ff2f",
    "source": "arcticscout",
    "start_date": "2026-11-15",
-   "end_date": "2026-11-18"
+   "end_date": "2026-11-18",
+   "past_speakers": "Employment lawyers and inclusion/diversity experts (specific names not published)",
+   "meeting_formats": "Hands-on small group working sessions with experts",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 245,
@@ -6913,7 +6921,13 @@
    "pay_to_play": "Yes",
    "city": "Grapevine",
    "country": "USA",
-   "external_id": "replit-214"
+   "external_id": "replit-214",
+   "venue": "Gaylord Texan Hotel & Convention Center",
+   "pricing": "Public-sector price: $3,625; Early-bird price: $3,825 (register by 07/17/2026); Standard price: $4,350",
+   "meeting_formats": "Roundtables",
+   "audience_type": "Mixed",
+   "attendee_count": "1,600+",
+   "deadline": "July 17, 2026 (early-bird registration deadline)"
   },
   {
    "num": 285,
