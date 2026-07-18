@@ -2196,7 +2196,11 @@
    "external_id": "b0e8286b-dd50-4138-bda8-cc6bf9a562df",
    "source": "arcticscout",
    "start_date": "2026-05-06",
-   "end_date": "2026-05-08"
+   "end_date": "2026-05-08",
+   "pricing": "Delegate ticket required (specific cost not published in search results); exclusively available only to Data Innovation Summit delegates",
+   "past_speakers": "Chief AI Officers, AI program leaders, governance specialists, CDOs, strategists, compliance experts",
+   "meeting_formats": "Networking opportunities, workshops",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 107,
@@ -2932,7 +2936,11 @@
    "external_id": "6cc34192-16fd-4ff4-9c07-c1a118b8c126",
    "source": "arcticscout",
    "start_date": "2026-05-04",
-   "end_date": "2026-05-08"
+   "end_date": "2026-05-08",
+   "pricing": "~$2,000+ (super-early-bird discounts up to 30%); DGPO members save 15% with code DGPO15",
+   "past_speakers": "Kat Parker, Conference Manager, Dataversity; Tony Shaw, Program Chair, Dataversity; Lauri Young, Esri",
+   "meeting_formats": "Expert-led education with networking opportunities; no guaranteed/hosted 1:1 meetings or curated roundtables explicitly listed",
+   "audience_type": "Mixed"
   },
   {
    "num": 137,
@@ -3710,7 +3718,12 @@
    "external_id": "41bc38a5-184e-4568-8be6-8afcb08381a9",
    "source": "arcticscout",
    "start_date": "2026-05-13",
-   "end_date": "2026-05-14"
+   "end_date": "2026-05-14",
+   "pricing": "$599 (conference pass includes main stage, workshops, and all meals/beverages)",
+   "pay_to_play": "No",
+   "past_speakers": "Harrison Chase, LangChain; Andrew Ng, DeepLearning.AI; CJ Desai, MongoDB; Aaron Levie, Box; Carlos Pereira, Cisco",
+   "meeting_formats": "Networking at opening reception (Day 1) and afterparty (Day 2); breakfast with LangChain experts via 'Focused' (open to attendees and non-attendees); event app available for community connection",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 166,
@@ -4032,7 +4045,8 @@
    "past_speakers": "100 leading tech voices on stage (specific names not listed in sources); includes elite blockchain/crypto companies, visionary leaders, investors, and policymakers shaping the global digital economy[7]",
    "meeting_formats": "Deal-driven networking, curated roundtables, and pitch competitions with VC publicity[1][9]",
    "audience_type": "Mixed",
-   "attendee_count": "14,500+"
+   "attendee_count": "14,500+",
+   "pricing": "Registration is closed; delegate ticket price not publicly listed in search results"
   },
   {
    "num": 177,
@@ -4253,7 +4267,10 @@
    "external_id": "dc41d62c-0331-41ed-807c-c8c9fd2d4bba",
    "source": "arcticscout",
    "start_date": "2026-03-24",
-   "end_date": "2026-03-25"
+   "end_date": "2026-03-25",
+   "past_speakers": "Ikhlaq Sidhu, Dean of IE School of Science & Technology; Senior executives from strategy, technology, operations and data (diverse industries)",
+   "meeting_formats": "Networking opportunities, insightful discussions, panels, sessions, end-of-day drinks reception",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 184,
@@ -7147,7 +7164,8 @@
    "past_speakers": "CIO, Global Tech Corp; Senior IT Executive, Enterprise Solutions Inc; Gartner Expert, Gartner, Inc.",
    "meeting_formats": "Curated roundtables; networking with peers and Gartner experts",
    "audience_type": "Buyer-rich",
-   "attendee_count": "1,500+"
+   "attendee_count": "1,500+",
+   "pricing": "2026 formal price unpublished; 2025 reference: Early discount 311,300 JPY, Standard 352,000 JPY, Government/Public 295,900 JPY (all tax-included)"
   },
   {
    "num": 294,
