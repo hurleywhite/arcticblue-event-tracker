@@ -5370,7 +5370,8 @@
    "meeting_formats": "Invitation-only roundtables and workshops led by senior executives and specialists",
    "audience_type": "Buyer-rich",
    "typical_attendees": "Leaders, heads of state, CEOs, central bank governors, business leaders, and policymakers",
-   "attendee_count": "300 global leaders (inaugural event)"
+   "attendee_count": "300 global leaders (inaugural event)",
+   "pay_to_play": "No"
   },
   {
    "num": 223,
@@ -7526,12 +7527,16 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "Applied AI engineers and engineering peers building industry-ready AI",
    "url": "https://world.aiacceleratorinstitute.com/location/agenticainewyork",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-agenticainewyork",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "Convene 360 Madison Avenue",
+   "pricing": "Pricing details to be announced",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "500+"
   }
  ]
 }
