@@ -2080,7 +2080,10 @@
    "external_id": "86f5ef84-8779-484d-a482-8893a09824eb",
    "source": "arcticscout",
    "start_date": "2026-05-04",
-   "end_date": "2026-05-07"
+   "end_date": "2026-05-07",
+   "past_speakers": "Arvind Krishna, Chairman and CEO, IBM; Kate Lehman, IBM; Gaëlle Dussutour, IBM France",
+   "meeting_formats": "Keynotes, sessions, innovation previews, Forum floor experiences",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 103,
@@ -2805,7 +2808,10 @@
    "external_id": "6cc4f3b5-7aec-47e4-bb76-bad69375d0a0",
    "source": "arcticscout",
    "start_date": "2026-08-09",
-   "end_date": "2026-08-12"
+   "end_date": "2026-08-12",
+   "past_speakers": "Dr. Rumman Chowdhury (AI deployment & enterprise risk); Richard Aldrich (AI, cyber & global risk); Jason Mars (AI performance, efficiency & scalability)",
+   "meeting_formats": "Curated networking opportunities; six focused executive summits per day for peer exchange",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 130,
@@ -4469,7 +4475,12 @@
    "external_id": "566665a2-cb2b-43ca-a18e-279674088df1",
    "source": "arcticscout",
    "start_date": "2026-06-08",
-   "end_date": "2026-06-12"
+   "end_date": "2026-06-12",
+   "pricing": "Early-bird pricing available; specific delegate/ticket costs not published in search results",
+   "past_speakers": "Mati Staniszewski, Co-Founder & CEO at ElevenLabs; Anton Osika, Co-Founder & CEO at Lovable; Jeannette Zu Furstenburg, Managing Director & Head of Europe at General Catalyst",
+   "meeting_formats": "Official London Tech Week App for finding people and booking meetings",
+   "audience_type": "Mixed",
+   "attendee_count": "40,000"
   },
   {
    "num": 191,
@@ -4582,7 +4593,8 @@
    "pricing": "Registration is now open; specific delegate/ticket prices not listed in search results",
    "past_speakers": "400+ world-class speakers across six core pillars including connectivity, AI, data centres, cybersecurity, and digital transformation[5][6]",
    "meeting_formats": "Outcome-driven networking focused on enterprise excellence and socioeconomic development; dedicated startup programmes for pitching and connecting with buyers[1][4]",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "attendee_count": "15,000+"
   },
   {
    "num": 195,
@@ -5396,7 +5408,11 @@
    "external_id": "d1116f71-1147-4b25-aff7-12d9e698a989",
    "source": "arcticscout",
    "start_date": "2027-01-25",
-   "end_date": "2027-01-26"
+   "end_date": "2027-01-26",
+   "pay_to_play": "Yes",
+   "past_speakers": "Senior Insurance Leader, Major Insurer; Senior Insurtech Executive, Leading Insurtech Firm; Digital Innovation Director, UK Insurance Group",
+   "meeting_formats": "Hosted 1:1 meetings, curated roundtables, invite-only networking",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 224,
