@@ -319,7 +319,11 @@
    "speaker": "Thor; Jerome",
    "workflow_status": "Submitted",
    "external_id": "34ad1391-120e-4b8b-ba36-b8eb908cd551",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Launch prices range from £25 to £1,399; special rates for start-ups, investors, academics, and government personnel; VIP All Access pass and London Tech Week bundle pass available",
+   "past_speakers": "Global Leaders in Enterprise AI (full list at www.london.theaisummit.com); 400+ speakers across 10 stages and 14 tracks including enterprise AI strategy, generative AI, responsible AI, EU AI Act compliance, and industry-specific tracks",
+   "meeting_formats": "Hands-on experiences, live demos, cross-industry collaboration, and immersive demonstrations",
+   "audience_type": "Mixed"
   },
   {
    "num": 32,
@@ -5750,7 +5754,12 @@
    "country": "USA",
    "notes": "- https://www.linkedin.com/company/eutncom/about/\n- https://x.com/etnshow\n- https://etnshow.co/",
    "external_id": "e3848d4f-71be-4c02-a8b9-f8166430da7e",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pay_to_play": "No",
+   "past_speakers": "Ronan Chambers, Co-founder ETN; Luke Knight, Co-founder ETN; Lars Rasmussen, Original Founder of Google Maps; Oliver, Growth @ European Technology Network; Harriet, Interviewer",
+   "meeting_formats": "Live-streamed broadcast with real-time Q&A on X and YouTube; no guaranteed 1:1 meetings or attendee app",
+   "audience_type": "Mixed",
+   "typical_attendees": "Founders, investors, CEOs, venture partners, and tech professionals in the European ecosystem"
   },
   {
    "num": 237,
@@ -6655,7 +6664,8 @@
    "focus_areas": "Enterprise AI strategy at the board level; AI leadership and culture transformation; Governing AI for long-term enterprise value; The human element of AI deployment; AI and the future of work",
    "seed": false,
    "urgent": false,
-   "external_id": "50f6fe5e-bcce-4797-b014-13a6d73d4c7b"
+   "external_id": "50f6fe5e-bcce-4797-b014-13a6d73d4c7b",
+   "venue": "Ritz Carlton - Bachelors Gulch"
   },
   {
    "num": 272,
@@ -7151,7 +7161,10 @@
    "country": "UK",
    "external_id": "replit-221",
    "venue": "etc.venues Fenchurch Street, 8 Fenchurch Place, London, UK",
-   "deadline": "CFP closed; sponsorship ongoing"
+   "deadline": "CFP closed; sponsorship ongoing",
+   "meeting_formats": "Parallel workshops and conference sessions; no guaranteed hosted 1:1 meetings or attendee app mentioned",
+   "audience_type": "Mixed",
+   "attendee_count": "Around 250"
   },
   {
    "num": 292,
