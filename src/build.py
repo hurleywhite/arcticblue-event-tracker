@@ -4077,7 +4077,10 @@ def build():
     $badges.innerHTML = badges.join('');
 
     $date.textContent  = rec.date_str || '';
-    if (rec.url) {{
+    // A private / invite-only event has no public page — a scraped URL is almost
+    // always the wrong page (Angela). Never link a private event's title; show
+    // plain text so it can't "bring a fake link".
+    if (rec.url && rec.is_private !== true) {{
       $title.innerHTML = '<a class="modal-title-link" href="' + esc(rec.url) + '" target="_blank" rel="noopener">' + esc(rec.name || 'Event') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>';
     }} else {{
       $title.textContent = rec.name || 'Event';
@@ -4096,6 +4099,10 @@ def build():
     // "Why it fits ArcticBlue" removed from the read view (Hurley 2026-07-09) —
     // still used by search/suggestions scoring.
     var v = '';
+    // Notes lead the read view — right below "Chat with the team", above About
+    // (Angela). field() returns '' when empty, so it only appears when there are
+    // notes. Removed from the per-branch bottoms below.
+    v += field('Notes', rec.notes);
     // Point of contact — the one detail that matters for a private event.
     var contactBits = [];
     if (rec.poc_name)  contactBits.push(esc(rec.poc_name));
@@ -4107,7 +4114,6 @@ def build():
       // Private / invite-only: just POC + notes (link is the title, chat above).
       v += pocHtml;
       v += field('ArcticBlue speaker', rec.speaker);
-      v += field('Notes', rec.notes);
     }} else {{
       // Legacy status marker (e.g. "Sponsorship Only") — kept OFF the card face
       // by design, but shown here so a saved marker is visible in Details. field()
@@ -4134,7 +4140,6 @@ def build():
       v += pocHtml;
       v += field('Additional contacts', rec.additional_contacts);
       v += field('Post-mortem (ROI)', rec.postmortem);
-      v += field('Notes', rec.notes);
     }}
 
     // "Updated Nd ago" now lives here (italic, at the bottom of the detail),
@@ -5265,7 +5270,10 @@ def build():
       var contactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       // A link added/edited in event_state (override) wins over the catalog URL,
       // so adding a link to a link-less catalog event lights up the card ↗.
-      var _cardUrl = (st.url && String(st.url).trim()) ? String(st.url).trim() : (ev.url || '');
+      // Private events have no public page — a scraped URL is usually wrong, so
+      // never link the card title for them (Angela).
+      var _catPriv = (st.is_private === true) || (ev.is_private === true);
+      var _cardUrl = _catPriv ? '' : ((st.url && String(st.url).trim()) ? String(st.url).trim() : (ev.url || ''));
 
       var metaLine = (st.updated_by && st.updated_at)
         ? '<p class="ops-meta" title="' + escapeHtml(st.updated_by) + '">Last edit · ' + escapeHtml(firstNameFromEmail(st.updated_by)) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
@@ -5477,11 +5485,14 @@ def build():
       var _mFootHtml = (_mDeadlineHtml || mApplyBtn || mContactBadge) ? ('<div class="ops-card-foot">' + _mDeadlineHtml + mContactBadge + mApplyBtn + '</div>') : '';
       var _mdate = escapeHtml(cardDate(mev.date_str, mev.start_date, mev.end_date));
       var _mloc  = escapeHtml(shortLocation(mev));
+      // Private events have no public page — a scraped URL is usually wrong, so
+      // never link the card title for them (Angela).
+      var _mCardUrl = (mev.is_private === true) ? '' : mev.url;
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<h3 class="event-name">' +
-            (mev.url
-              ? '<a class="event-name-link" href="' + escapeHtml(mev.url) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
+            (_mCardUrl
+              ? '<a class="event-name-link" href="' + escapeHtml(_mCardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(mev.name || '') + '">' + escapeHtml(mev.name || '') + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
               : escapeHtml(mev.name || '')) +
           '</h3>' +
           // Top-right cluster (shown on every card): star · hide · chat.
