@@ -987,7 +987,14 @@
    "speaking_route": "Apply to speak: gaiworld.com/speakers (Apply to Speak link active). Contact: hope@gaiinsights.com",
    "contact_info": "hope@gaiinsights.com; gaiworld.com",
    "pay_to_play": "No",
-   "focus_areas": "Generative AI ROI and enterprise deployment case studies; AI strategy and enterprise budget planning for 2027; Agentic AI workflows in enterprise operations; AI governance and responsible deployment at scale; Enterprise AI scaling: from pilot to production"
+   "focus_areas": "Generative AI ROI and enterprise deployment case studies; AI strategy and enterprise budget planning for 2027; Agentic AI workflows in enterprise operations; AI governance and responsible deployment at scale; Enterprise AI scaling: from pilot to production",
+   "venue": "Hynes Convention Center",
+   "pricing": "Standard Pass: $1,895 (or $2,595 regular); VIP Pass: $2,920 (or $3,995 regular)",
+   "past_speakers": "John Sviokla, GAI Insights; Paul Baier, GAI Insights",
+   "meeting_formats": "curated peer discussions; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "800+",
+   "deadline": "30th April 2026"
   },
   {
    "num": 39,
@@ -2919,7 +2926,8 @@
    "external_id": "ad340261-5969-4f21-bcb7-3eeea0e51a06",
    "source": "arcticscout",
    "start_date": "2026-07-15",
-   "end_date": "2026-07-17"
+   "end_date": "2026-07-17",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 136,
@@ -6430,7 +6438,11 @@
    "focus_areas": "AI-powered HR transformation and agentic HCM; Workforce redesign and human-AI operating models; People analytics and AI-driven talent strategy; CHRO AI strategy and HR technology investment; AI governance in HR: compliance, bias, and responsible deployment",
    "seed": false,
    "urgent": false,
-   "external_id": "10cf6def-711a-4449-ab10-c5a646714b98"
+   "external_id": "10cf6def-711a-4449-ab10-c5a646714b98",
+   "venue": "Mandalay Bay, Las Vegas",
+   "meeting_formats": "attendee app for pre-booking meetings; curated expo/solution-provider meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "7,200+"
   },
   {
    "num": 261,
