@@ -3741,6 +3741,14 @@ def build():
     function ta(f, val, rows) {{
       return '<textarea class="me-input" data-edit="' + f + '" rows="' + (rows || 3) + '">' + esc(val || '') + '</textarea>';
     }}
+    // Legacy "Status label" dropdown (Sponsorship Only, etc.), built from the
+    // shared status palette bridged as window.opsStatusOptions. data-edit="status"
+    // so it saves via opsWrite (event_state for catalog, manual_events for manual).
+    function statusDD(cur) {{
+      var c = (cur === '__deleted__') ? '' : (cur || '');
+      var opts = (window.opsStatusOptions) ? window.opsStatusOptions(c) : ('<option value="">\\u2014 none \\u2014</option>');
+      return '<select class="me-input" data-edit="status">' + opts + '</select>';
+    }}
     var stages = rec.stage_tags || [];
     var order = window.opsStageOrder || ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
     // Pipeline chips = the SPEAKING track only. "Attending" is managed per-person
@@ -3837,10 +3845,12 @@ def build():
         h += ef('Price to attend', inp('pricing', rec.pricing, 'e.g. $1,995 delegate pass; free for buyers'));
         h += ef('Attendee count', inp('attendee_count', rec.attendee_count, 'e.g. 1,500+'));
         h += ef('Track', '<select class="me-input" data-edit="track">' + ['', 'Sponsor', 'Earned', 'Both', 'Unknown'].map(function (v) {{ return opt(v, rec.track); }}).join('') + '</select>');
-        // The free-text "legacy status" label that shows on the card face
-        // (e.g. "Sponsorship Only") — editable + clearable; the soft-delete
-        // sentinel is hidden so it can't be edited by accident.
-        h += ef('Status label (shown on the card)', inp('status', rec.workflow_status === '__deleted__' ? '' : rec.workflow_status, 'e.g. Sponsorship only · clear to remove'));
+        // The "legacy status" label that shows on the card face (e.g.
+        // "Sponsorship Only") — now a DROPDOWN (Angela): a text write-in only
+        // committed on blur, so closing the editor first dropped the value; a
+        // select saves the moment it's picked. The soft-delete sentinel is
+        // hidden so it can't be chosen by accident.
+        h += ef('Status marker (e.g. Sponsorship Only)', statusDD(rec.workflow_status));
       }}
     }} else {{
       if (!priv) {{
@@ -3852,6 +3862,9 @@ def build():
         h += ef('Meetings & networking', inp('meeting_formats', rec.meeting_formats));
         h += ef('Past / announced speakers', ta('past_speakers', rec.past_speakers, 2));
         h += ef('Submission status', inp('submission_status', rec.submission_status));
+        // Same "Status label" dropdown as catalog events, so both edit sections
+        // match (Angela) — writes manual_events.status.
+        h += ef('Status marker (e.g. Sponsorship Only)', statusDD(rec.workflow_status));
       }}
       h += ef('POC name', inp('poc_name', rec.poc_name));
       h += ef('POC email', inp('poc_email', rec.poc_email));
@@ -4096,6 +4109,10 @@ def build():
       v += field('ArcticBlue speaker', rec.speaker);
       v += field('Notes', rec.notes);
     }} else {{
+      // Legacy status marker (e.g. "Sponsorship Only") — kept OFF the card face
+      // by design, but shown here so a saved marker is visible in Details. field()
+      // returns '' when unset, so it only appears for deliberately-marked events.
+      v += field('Status marker', rec.workflow_status === '__deleted__' ? '' : rec.workflow_status);
       v += field('About', rec.about);
       v += field('Focus areas', rec.focus_areas);
       v += field('Typical attendees', rec.typical_attendees);
@@ -4470,6 +4487,9 @@ def build():
       }}
       return rows;
     }}
+    // Bridge for the Details editor (separate closure) — the legacy "Status
+    // label" (incl. "Sponsorship Only") is a dropdown built from these options.
+    window.opsStatusOptions = statusOptionRows;
 
     // ── Pipeline stages (the simplified, multi-tag status model) ───────
     // An event can hold SEVERAL of these at once (e.g. Submitted + Meeting

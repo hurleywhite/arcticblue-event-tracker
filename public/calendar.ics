@@ -12,7 +12,7 @@ DTSTART;VALUE=DATE:20261125
 DTEND;VALUE=DATE:20261127
 SUMMARY:Enterprise AI Expo - Muscat\, Oman (MENA Region)
 LOCATION:Sheraton\, Muscat\, Oman
-DESCRIPTION:Omani enterprise AI expo for Gulf CXOs — potential supplementary MENA touchpoint though lower priority than Abu Dhabi AI Everything\; consider only if already in region.\nNotes: Followed up twice-- he responded Sponsorship Only.\nStatus: Submitted · (Postponed from May)\nSpeaker: Thor\nStatus: Sponsorship Only\nPriority: High
+DESCRIPTION:Omani enterprise AI expo for Gulf CXOs — potential supplementary MENA touchpoint though lower priority than Abu Dhabi AI Everything\; consider only if already in region.\nNotes: Followed up twice-- he responded Sponsorship Only.\nUnfortunately\, we do not offer speaking opportunities for solution providers outside of sponsorship packages. Our events are exclusive\, closed-door gatherings for C-level decision-makers\, and speaking slots are primarily reserved for end-user/buyer profiles. Sponsorship participation also includes pre-scheduled B2B meetings designed to maximize ROI for our partners.\nSpeaker: Thor\nStatus: Sponsorship Only\nPriority: High
 URL:https://aienterpriseexpo.com/
 END:VEVENT
 BEGIN:VEVENT
@@ -24,6 +24,106 @@ SUMMARY:ITC London 2027
 LOCATION:The Brewery
 DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance sector digital transformation.\nSpeaker: Thor\nPriority: Medium
 URL:https://london.insuretechconnect.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-519@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20261123
+DTEND;VALUE=DATE:20261125
+SUMMARY:Digital Health World Congress 2026
+LOCATION:Kensington Conference and Events Centre\, London\, UK
+DESCRIPTION:Annual London AI health tech conference (200+ delegates) with NHS\, AstraZeneca\, Oracle\, Capgemini\, and UBS representation — direct entry into Jerome's healthcare vertical with AI transformation and digital health deployment themes.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://digitalhealthcareworldcongress.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-518@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20261001
+DTEND;VALUE=DATE:20261002
+SUMMARY:AI Assurance & Governance Summit 2026
+LOCATION:Palo Alto\, CA\, USA
+DESCRIPTION:Invite-only summit at Stanford Faculty Club bringing together frontier AI labs\, venture capital\, regulated industry leaders (insurance underwriting\, healthcare diagnostics)\, and academics to build trustworthy AI frameworks — exact intersection of Verma's de-risk AI governance thesis and ArcticBlue's regulated-industry mandate.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://trustmodel.ai/summit2026
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-517@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20260922
+DTEND;VALUE=DATE:20260923
+SUMMARY:World Health AI Forum London 2026
+LOCATION:ME Hotel London\, London\, UK
+DESCRIPTION:One-day healthcare AI forum at ME London with NHS England\, Bupa\, Nuffield Health\, and Microsoft as institutional attendees — targets Jerome's healthcare vertical with AI governance and scaling-beyond-pilot themes.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.worldhealth.ai/london
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-516@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20261112
+DTEND;VALUE=DATE:20261114
+SUMMARY:Millennium Alliance Digital Enterprise CIO Transformation Assembly
+LOCATION:Miami\, FL
+DESCRIPTION:Millennium Alliance's Q4 CIO summit at JW Marriott Turnberry Resort & Spa\, Miami\; open speaker application\; peer-led CIO discussions on AI-driven enterprise transformation with Fortune 100 representation — strong South Florida enterprise buyer audience.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://mill-all.com/assemblies/digital-enterprise-cio-transformation-assembly-november-2026/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-515@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20261207
+DTEND;VALUE=DATE:20261210
+SUMMARY:Conference Board Employee Well-Being 2026
+LOCATION:Orlando\, FL\, USA
+DESCRIPTION:The Conference Board's year-end Employee Well-Being conference at Signia by Hilton Orlando — HR\, benefits\, total rewards\, and wellbeing leaders exploring mental\, physical\, and financial wellbeing ROI\; Joe's AI + human enablement message connects directly to well-being and sustainable workforce capability themes.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.conference-board.org/events/be-well
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-514@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20260917
+DTEND;VALUE=DATE:20260918
+SUMMARY:DC SHRM Annual Conference 2026
+LOCATION:Washington\, DC\, USA
+DESCRIPTION:DC SHRM's annual conference 'Leading Through Change: Shaping the Future of Work' — open call for speakers accepted\; local DC/metro area HR professionals with government\, nonprofit\, and enterprise representation\; Joe's AI + future of work content directly matches the 2026 theme.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://dcshrm.site-ym.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-513@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20261115
+DTEND;VALUE=DATE:20261119
+SUMMARY:SHRM BLUEPRINT for Inclusion & Diversity 2026
+LOCATION:Nashville\, TN\, USA
+DESCRIPTION:SHRM's BLUEPRINT conference for inclusion and diversity leadership co-located with All Things Work at Gaylord Opryland Nashville — enterprise HR and DEI leaders at Fortune 500 companies\; Joe's AI + human enablement message bridges AI adoption and inclusive workforce design\, a natural fit for this audience.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://conference.shrm.org/blueprint
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-512@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20261019
+DTEND;VALUE=DATE:20261021
+SUMMARY:Marcus Evans Healthcare HR Summit 2026
+LOCATION:Las Vegas\, NV\, USA
+DESCRIPTION:Marcus Evans' invitation-only Healthcare HR Summit at Red Rock Casino Resort Las Vegas — America's most senior healthcare HR leaders explore AI-enabled workforce planning\, talent retention\, and skills-based care delivery\; adjacent to Joe's core message and a strategic beachhead for ArcticMind in high-growth healthcare sector.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.marcusevans.com/summit/hcchro/may26/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-511@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20261020
+DTEND;VALUE=DATE:20261023
+SUMMARY:HR Executive Strategy Summit 2026
+LOCATION:Las Vegas\, NV\, USA
+DESCRIPTION:Co-located with HR Tech at Mandalay Bay\, the HR Executive Strategy Summit is an invitation-only gathering of the most senior HR leaders exploring workforce transformation\, AI strategy\, organizational design\, and culture — a high-caliber CHRO/CPO audience that Joe's AI + human enablement keynote is built for.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.hrtechnologyconference.com/strategy-summit
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-510@arcticblue-event-tracker
+DTSTAMP:20260722T000000Z
+DTSTART;VALUE=DATE:20261117
+DTEND;VALUE=DATE:20261119
+SUMMARY:ATD L&D Managers Conference 2026
+LOCATION:USA
+DESCRIPTION:ATD's brand-new L&D Managers Conference — designed for learning leaders managing teams under resource constraints\; AI in learning strategy is central to the 2026 agenda\; Joe's practical AI enablement approach and practice-based fluency framework speak directly to L&D managers wrestling with AI adoption at the team level.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.td.org/atd-l-and-d-managers-conference
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-509@arcticblue-event-tracker
