@@ -3448,12 +3448,22 @@
         var val = (el.value == null ? '' : String(el.value)).trim();
         if (field === 'name' && !val) { el.value = rec.name || ''; return; }
         var out = val === '' ? null : val;
+        // Clearing a descriptive field on a CATALOG event: a plain null override
+        // just falls back to the (often junky) catalog value, so the cleared text
+        // "pops back up" — e.g. deleting a stray website from Contact info didn't
+        // stick. Write a '__cleared__' sentinel instead; the render merge treats it
+        // as an explicit blank that WINS over the catalog value. (Manual events own
+        // their columns outright, so null already clears them there.)
+        var _CLEARABLE_CAT = { contact_info:1, why:1, about:1, focus_areas:1, typical_attendees:1, speaking_route:1, venue:1, pricing:1, past_speakers:1, meeting_formats:1, attendee_count:1, deadline:1 };
+        if (out === null && rec._table === 'event_state' && _CLEARABLE_CAT[field]) out = '__cleared__';
         if ((field === 'url' || field === 'apply_url') && out && !/^https?:\/\//i.test(out)) out = 'https://' + out;
         // "Paid" is a boolean column on manual_events — coerce the select value.
         if (field === 'paid') out = (val === 'true') ? true : (val === 'false' ? false : null);
         var patch = {}; patch[field] = out;
-        if (field === 'priority_override') rec.priority = out;
-        else rec[field] = out;
+        // The sentinel goes to the DB, but the in-memory record shows a real blank.
+        var _recVal = (out === '__cleared__') ? '' : out;
+        if (field === 'priority_override') rec.priority = _recVal;
+        else rec[field] = _recVal;
         // Editing the Date must ALSO update the structured start_date / end_date
         // — the card, calendar and iCal read those (they win over the free-text
         // date_str). Applies to BOTH manual events and catalog events (whose
@@ -4592,7 +4602,7 @@
       var past = isPastEvent(ev);
       var speaker = (st.speaker || '').trim();
       var att = ((st.attendees || ev.attendees) || []).map(_personName).filter(Boolean);
-      var d = (st.deadline != null && String(st.deadline).trim()) ? st.deadline : ev.deadline;
+      var d = (st.deadline === '__cleared__') ? '' : ((st.deadline != null && String(st.deadline).trim()) ? st.deadline : ev.deadline);
       var closed = !past && d && !_isJunkVal(d) && isDeadlinePast(d);
       // Each bit carries a priority: COMMITTED presence (Attending / Booked)
       // leads (p1), then the pending "Submitted to speak" (p2), then the
@@ -4700,8 +4710,8 @@
       // Attending signals — an event_state override (edited on the card) wins
       // over the catalog value, so audience / 1:1 / price edits show on the face.
       var _aud   = (st.audience_type  && String(st.audience_type).trim())  ? st.audience_type  : ev.audience_type;
-      var _meet  = (st.meeting_formats && String(st.meeting_formats).trim()) ? st.meeting_formats : ev.meeting_formats;
-      var _price = (st.pricing && String(st.pricing).trim()) ? st.pricing : ev.pricing;
+      var _meet  = (st.meeting_formats === '__cleared__') ? '' : ((st.meeting_formats && String(st.meeting_formats).trim()) ? st.meeting_formats : ev.meeting_formats);
+      var _price = (st.pricing === '__cleared__') ? '' : ((st.pricing && String(st.pricing).trim()) ? st.pricing : ev.pricing);
       card.dataset.audience = (_aud || '');
       var _pn = priceNumOf(_price);
       card.dataset.price    = (_pn == null ? '' : String(_pn));
@@ -4739,7 +4749,12 @@
       // so they don't clutter/mute the manual ones Angela scans for.
       // Should-Attend is now the blue card outline (is-sa), not a face badge.
       var saBadge = '';
-      card.dataset.contactFound = hasEmailContact(st, ev) ? '1' : '';
+      // A cleared ('__cleared__') contact override must not fall back to the
+      // catalog email for the ✉ Contact badge / Contacts filter either.
+      var _effContact = (st && st.contact_info != null && String(st.contact_info).trim() !== '')
+        ? (st.contact_info === '__cleared__' ? '' : st.contact_info)
+        : (ev.contact_info || '');
+      card.dataset.contactFound = hasEmailContact({ poc_email: (st && st.poc_email) || ev.poc_email, contact_info: _effContact }) ? '1' : '';
       // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
       var contactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
       // A link added/edited in event_state (override) wins over the catalog URL,
@@ -4804,7 +4819,11 @@
          'pay_to_play', 'venue', 'contact_info', 'deadline', 'type',
          'url', 'apply_url', 'pricing', 'audience_type', 'past_speakers',
          'meeting_formats', 'attendee_count'].forEach(function (f) {
-          if (st[f] != null && String(st[f]).trim() !== '') rec[f] = st[f];
+          // '__cleared__' is an explicit "blank this out" sentinel — it WINS over
+          // the catalog value (rendered as empty), so a deleted field stays deleted
+          // instead of the catalog value popping back up.
+          if (st[f] === '__cleared__') rec[f] = '';
+          else if (st[f] != null && String(st[f]).trim() !== '') rec[f] = st[f];
         });
         if (st.interested && st.interested.length) rec.interested = st.interested;
         if (st.attendees && st.attendees.length) rec.attendees = st.attendees;
@@ -6436,7 +6455,7 @@
         interested: (interested && interested.slice) ? interested.slice() : [],
         stages: stages,
         decision: (st && st.decision) || base.decision || '',
-        deadline: (st && st.deadline) || base.deadline || '',
+        deadline: (st && st.deadline === '__cleared__') ? '' : ((st && st.deadline) || base.deadline || ''),
         queue_dismissed: !!((st && st.queue_dismissed) || base.queue_dismissed),
         past: isPastEvent(base),
         hidden: _isHiddenForMe(kind === 'manual', kind === 'manual' ? base.id : base.num, (st && st.hidden === true) || (base && base.hidden === true)),
