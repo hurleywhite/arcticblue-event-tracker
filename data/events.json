@@ -225,7 +225,10 @@
    "external_id": "43c9b8e9-d33a-415d-8655-d5d2444d4ec7",
    "source": "arcticscout",
    "meeting_formats": "Attendee app for pre-booking meetings",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "pricing": "Paid tickets; exact 2026 delegate pricing not verified from the provided results",
+   "past_speakers": "notable companies represented include PayPal; Bank of America; Meta; HelloFresh; United Nations; Capital One",
+   "deadline": "May 19, 2026"
   },
   {
    "num": 22,
@@ -1266,7 +1269,8 @@
    "speaking_route": "Sponsor packages include speaking. Contact: cdo.cdm.events",
    "contact_info": "cdo.cdm.events; cdmmedia.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Enterprise AI strategy and West Coast CDO/CAIO perspective; CAIO and CDO priorities for 2026–27; AI governance and enterprise data transformation in regulated industries; AI risk management and compliance; Agentic AI for enterprise operations and analytics"
+   "focus_areas": "Enterprise AI strategy and West Coast CDO/CAIO perspective; CAIO and CDO priorities for 2026–27; AI governance and enterprise data transformation in regulated industries; AI risk management and compliance; Agentic AI for enterprise operations and analytics",
+   "attendee_count": "1,000-2,000 delegates"
   },
   {
    "num": 77,
@@ -2214,7 +2218,8 @@
    "pricing": "Delegate ticket required (specific cost not published in search results); exclusively available only to Data Innovation Summit delegates",
    "past_speakers": "Chief AI Officers, AI program leaders, governance specialists, CDOs, strategists, compliance experts",
    "meeting_formats": "Networking opportunities, workshops",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "attendee_count": "5,000+"
   },
   {
    "num": 107,
@@ -4575,7 +4580,9 @@
    "external_id": "81bbbba6-a8c0-45be-a9d2-b34fbb20482b",
    "source": "arcticscout",
    "start_date": "2026-11-02",
-   "end_date": "2026-11-05"
+   "end_date": "2026-11-05",
+   "audience_type": "Mixed",
+   "attendee_count": "30,000+"
   },
   {
    "num": 194,
@@ -4780,7 +4787,10 @@
    "speaker": "Thor; Joe",
    "workflow_status": "Submitted",
    "external_id": "7ad79a17-a53e-42d6-8a6b-7e4f9a2bd3fb",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "past_speakers": "Greg Hoffman, Former Nike CMO; Dr. Dirk Holbach, CSCO, Henkel Consumer Brands; Edward Marx, Former CIO, Cleveland Clinic; Joe Sullivan, Former CSO, Facebook/Uber/Cloudflare; Timothy Youngblood, Former CISO, T-Mobile/McDonalds/Kimberly Clark/Dell; Antoinette Irvine, Former CHRO, Unilever Global Operations; Neil Hoyne, Chief Strategist, Google; Dr. Jennifer Posa, Former Chief Wellbeing Officer, CIA",
+   "meeting_formats": "attendee app for personalized schedules, meetings, and special activities; executive assemblies described as peer-to-peer senior executive programs",
+   "audience_type": "Mixed"
   },
   {
    "num": 201,
