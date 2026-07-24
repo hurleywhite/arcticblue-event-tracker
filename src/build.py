@@ -5183,7 +5183,10 @@ def build():
         // .submitted_at) — surface it on her status line only.
         var _subDate = (window.isAngelaUser && window.isAngelaUser() && st.submitted_at)
           ? '<span class="st-sub-date"> \\u00b7 submitted ' + escapeHtml(_fmtSubmittedDate(st.submitted_at)) + '</span>' : '';
-        bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + ST_MIC + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + _subDate + (closed ? ' (CFP closed)' : '') + '</span>' }});
+        // Just "Submitted" — the mic already says it's the speaking track, so
+        // "to speak" was redundant (Angela). ("Closed to speak" below KEEPS its
+        // wording: it carries no mic.)
+        bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted' + ST_MIC + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + _subDate + (closed ? ' (CFP closed)' : '') + '</span>' }});
       }} else if (closed) {{
         bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>' }});
       }}
