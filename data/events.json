@@ -2098,7 +2098,8 @@
    "end_date": "2026-05-07",
    "past_speakers": "Arvind Krishna, Chairman and CEO, IBM; Kate Lehman, IBM; Gaëlle Dussutour, IBM France",
    "meeting_formats": "Keynotes, sessions, innovation previews, Forum floor experiences",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "pricing": "Paid; exact delegate/ticket price not verified in the provided results"
   },
   {
    "num": 103,
@@ -2738,7 +2739,11 @@
    "external_id": "ff8d40ed-7069-493b-ba61-5532ec660be9",
    "source": "arcticscout",
    "start_date": "2026-06-29",
-   "end_date": "2026-06-30"
+   "end_date": "2026-06-30",
+   "pricing": "General Admission: GBP 599.00",
+   "meeting_formats": "Chatham House roundtables; closed-door labs; interactive workshops",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "300+"
   },
   {
    "num": 127,
@@ -6452,7 +6457,9 @@
    "venue": "Mandalay Bay, Las Vegas",
    "meeting_formats": "attendee app for pre-booking meetings; curated expo/solution-provider meetings",
    "audience_type": "Buyer-rich",
-   "attendee_count": "7,200+"
+   "attendee_count": "7,200+",
+   "pricing": "Super Saver conference pass for HR Practitioners: $1,295; Standard conference pass for HR Practitioners: $1,995; Expo-only pass: from $95; other tiers (Consulting/Advising/Talent and Industry Partner) priced higher",
+   "deadline": "July 31, 2026"
   },
   {
    "num": 261,
