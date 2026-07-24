@@ -11291,14 +11291,20 @@ def build():
       }});
 
       // Drop duplicate events the grid collapsed, so the calendar (and its
-      // export) never double-books an event.
-      var _dupSet = {{}};
+      // export) never double-books an event. Same pass collects the events the
+      // signed-in person ARCHIVED: archiving is "hide this from MY view", so an
+      // archived event must not clutter the calendar either (Angela was checking
+      // what clashed with Thor's Munich trip and hit exactly this). The map
+      // already skips is-hidden cards — the calendar was the one view that
+      // didn't. Read the class off the card so per-person archiving, catalog and
+      // manual events are all handled by one rule.
+      var _dupSet = {{}}, _archSet = {{}};
       Array.prototype.forEach.call($opsGrid ? $opsGrid.querySelectorAll('.ops-card') : [], function (c) {{
-        if (c.dataset.dupHidden === '1') {{
-          _dupSet[String(c.dataset.manualId ? ('m' + c.dataset.manualId) : c.dataset.eventNum)] = 1;
-        }}
+        var _k = String(c.dataset.manualId ? ('m' + c.dataset.manualId) : c.dataset.eventNum);
+        if (c.dataset.dupHidden === '1') _dupSet[_k] = 1;
+        if (c.classList.contains('is-hidden')) _archSet[_k] = 1;
       }});
-      combined = combined.filter(function (ev) {{ return !_dupSet[String(ev.num)]; }});
+      combined = combined.filter(function (ev) {{ return !_dupSet[String(ev.num)] && !_archSet[String(ev.num)]; }});
       // Honor the active grid filters (stage chips, search, price, region, …):
       // when something is filtered, drop calendar events whose card didn't pass.
       var _pf = opsCalPassed();
