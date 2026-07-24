@@ -795,6 +795,10 @@ def build():
     .st-no   {{ background: #b91c1c; }}
     .st-sep  {{ color: var(--ab-fg-3); font-weight: 400; }}
     .st-sub-date {{ color: var(--ab-fg-3); font-weight: 500; }}
+    /* Mic on the speaking statuses (Booked / Submitted / Rejected) — sits
+       between the status word and the "— Name". */
+    .st-mic {{ display: inline-flex; align-items: center; margin: 0 0 0 5px; opacity: 0.75; }}
+    .st-mic svg {{ display: block; }}
     /* Whisper-quiet data-freshness cue from updated_at. Deliberately faint —
        it's a background reassurance / nudge, not a headline. */
     .ops-fresh-line {{ margin: -4px 0 10px; }}
@@ -1914,10 +1918,6 @@ def build():
     .extra-chip.pri-high.is-on   {{ background: #166534; color: #fff; border-color: #166534; box-shadow: 0 0 0 2px #166534; }}
     .extra-chip.pri-medium.is-on {{ background: #fef3c7; color: #92400e; border-color: #92400e; box-shadow: 0 0 0 2px #92400e; }}
     .extra-chip.pri-low.is-on    {{ background: var(--ab-bg-3); color: var(--ab-fg-3); border-color: var(--ab-fg-3); box-shadow: 0 0 0 2px var(--ab-fg-3); }}
-    .extra-chip.track-sponsor.is-on  {{ background: #dbeafe; color: #1e40af; border-color: #1e40af; box-shadow: 0 0 0 2px #1e40af; }}
-    .extra-chip.track-earned.is-on   {{ background: #fef3c7; color: #92400e; border-color: #92400e; box-shadow: 0 0 0 2px #92400e; }}
-    .extra-chip.track-both.is-on     {{ background: #e9d5ff; color: #6b21a8; border-color: #6b21a8; box-shadow: 0 0 0 2px #6b21a8; }}
-    .extra-chip.track-unknown.is-on  {{ background: var(--ab-bg-3); color: var(--ab-fg-3); border-color: var(--ab-fg-3); box-shadow: 0 0 0 2px var(--ab-fg-3); }}
     /* Pipeline / Region / Should-attend chips keep their palette when selected. */
     .extra-chip.stage-chip-dd.is-on  {{ background: var(--sc-bg); color: var(--sc-fg); border-color: var(--sc-bg); box-shadow: 0 0 0 2px var(--sc-fg); }}
     .extra-chip.region-chip-dd.is-on {{ background: var(--rc-col); color: #fff; border-color: var(--rc-col); box-shadow: 0 0 0 2px var(--rc-col); }}
@@ -3313,10 +3313,6 @@ def build():
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Priority</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- chips injected by buildExtraFilters() --></div>
           </div>
-          <div class="filter-dd" id="filter-track">
-            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Track</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
-            <div class="filter-dd-menu"></div>
-          </div>
           <div class="filter-dd" id="filter-speaker">
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Speaking</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><span class="extra-empty" id="filter-speaker-empty">No speakers assigned yet</span></div>
@@ -3904,7 +3900,6 @@ def build():
     // so nothing is lost and the form above stays scannable.
     var sRare = '';
     if (!priv) {{
-      if (isCat) sRare += ef('Track', '<select class="me-input" data-edit="track">' + ['', 'Sponsor', 'Earned', 'Both', 'Unknown'].map(function (v) {{ return opt(v, rec.track); }}).join('') + '</select>');
       if (!isCat) {{
         sRare += ef('Submission status', inp('submission_status', rec.submission_status));
         sRare += ef('Additional contacts', ta('additional_contacts', rec.additional_contacts, 2));
@@ -4464,17 +4459,17 @@ def build():
 
     var STATUS_OPTIONS = [
       // ── Confirmed / scheduled ──
-      {{ group: 'Confirmed', value: 'Booked',                                  bg: '#047857', fg: '#ffffff' }},
-      {{ group: 'Confirmed', value: 'Self Submitted',                          bg: '#15803d', fg: '#ffffff' }},
-      {{ group: 'Confirmed', value: 'Attending',                               bg: '#a78bfa', fg: '#3730a3' }},
-      {{ group: 'Confirmed', value: 'Attending (Not Speaking)',                bg: '#c4b5fd', fg: '#4c1d95' }},
-      {{ group: 'Confirmed', value: 'Attending?',                              bg: '#ddd6fe', fg: '#5b21b6' }},
+      {{ group: 'Confirmed', value: 'Booked',                                  dup: true, bg: '#047857', fg: '#ffffff' }},
+      {{ group: 'Confirmed', value: 'Self Submitted',                          dup: true, bg: '#15803d', fg: '#ffffff' }},
+      {{ group: 'Confirmed', value: 'Attending',                               dup: true, bg: '#a78bfa', fg: '#3730a3' }},
+      {{ group: 'Confirmed', value: 'Attending (Not Speaking)',                dup: true, bg: '#c4b5fd', fg: '#4c1d95' }},
+      {{ group: 'Confirmed', value: 'Attending?',                              dup: true, bg: '#ddd6fe', fg: '#5b21b6' }},
       // ── Active / in progress ──
-      {{ group: 'Active',    value: 'Submitted',                               bg: '#bbf7d0', fg: '#14532d' }},
-      {{ group: 'Active',    value: 'Booking in Progress',                     bg: '#86efac', fg: '#14532d' }},
+      {{ group: 'Active',    value: 'Submitted',                               dup: true, bg: '#bbf7d0', fg: '#14532d' }},
+      {{ group: 'Active',    value: 'Booking in Progress',                     dup: true, bg: '#86efac', fg: '#14532d' }},
       {{ group: 'Active',    value: 'In contact with',                         bg: '#d1fae5', fg: '#065f46' }},
       {{ group: 'Active',    value: 'In Progress',                             bg: '#fcd34d', fg: '#78350f' }},
-      {{ group: 'Active',    value: 'Received Intro Meeting',                  bg: '#a7f3d0', fg: '#064e3b' }},
+      {{ group: 'Active',    value: 'Received Intro Meeting',                  dup: true, bg: '#a7f3d0', fg: '#064e3b' }},
       {{ group: 'Active',    value: 'Personal Contact/Inquiry',                bg: '#e9d5ff', fg: '#6b21a8' }},
       {{ group: 'Active',    value: 'Application Process Inquiry',             bg: '#dbeafe', fg: '#1e40af' }},
       {{ group: 'Active',    value: 'Pending',                                 bg: '#fef3c7', fg: '#854d0e' }},
@@ -4495,8 +4490,8 @@ def build():
       {{ group: 'Action',    value: 'Verma Interested',                        bg: '#67e8f9', fg: '#155e75' }},
       // ── Closed ──
       {{ group: 'Closed',    value: 'No Openings',                             bg: '#111827', fg: '#ffffff' }},
-      {{ group: 'Closed',    value: 'Not Accepted',                            bg: '#dc2626', fg: '#ffffff' }},
-      {{ group: 'Closed',    value: 'Not Accepted This Yr',                    bg: '#ef4444', fg: '#ffffff' }},
+      {{ group: 'Closed',    value: 'Not Accepted',                            dup: true, bg: '#dc2626', fg: '#ffffff' }},
+      {{ group: 'Closed',    value: 'Not Accepted This Yr',                    dup: true, bg: '#ef4444', fg: '#ffffff' }},
       {{ group: 'Closed',    value: 'Skip',                                    bg: '#b91c1c', fg: '#ffffff' }},
       {{ group: 'Closed',    value: 'Passing',                                 bg: '#94a3b8', fg: '#1e293b' }},
       {{ group: 'Closed',    value: "We'll Pass",                              bg: '#cbd5e1', fg: '#475569' }},
@@ -4531,6 +4526,12 @@ def build():
     function statusOptionRows(current) {{
       var rows = '<option value=""' + (!current ? ' selected' : '') + '>\\u2014 none \\u2014</option>';
       STATUS_OPTIONS.forEach(function (s) {{
+        // Options flagged `dup` restate a Pipeline stage that already has its own
+        // button (Submitted / Booked / Attending / …). Angela was recording the
+        // same fact in two places, so they're no longer OFFERED here — but they
+        // stay in STATUS_OPTIONS so existing values keep their colour, dot and
+        // filter chip, and an event already set to one still shows it (below).
+        if (s.dup && s.value !== current) return;
         var sel = (s.value === current) ? ' selected' : '';
         rows += '<option value="' + escapeHtml(s.value) + '"' + sel + '>' + escapeHtml(s.value) + '</option>';
       }});
@@ -4866,9 +4867,6 @@ def build():
         var cls = 'pri-' + st.priority_override.toLowerCase();
         tags.push('<span class="ops-tag ' + cls + '">' + escapeHtml(st.priority_override) + '</span>');
       }}
-      if (st.track) {{
-        tags.push('<span class="ops-tag">' + escapeHtml(st.track) + '</span>');
-      }}
       // The legacy single status (imported Replit label, e.g. "Sponsorship
       // Only") is NO LONGER shown on the card face — 148 of them were cluttering
       // the cards. It's preserved in event_state and editable/clearable in
@@ -4981,9 +4979,7 @@ def build():
       // blue star (is-mine), not a "Name interested" label.
       var intr = (st.interested || []).filter(Boolean);
       if (intr.length && window.isAngelaUser && window.isAngelaUser()) rows.push(_rosterRow('\\u2605 Interested', intr, escapeHtml(intr.join(', ')), ''));
-      // Secondary: small track pill (kept, out of the roster).
       var pills = [];
-      if (st.track) pills.push('<span class="ops-tag">' + escapeHtml(st.track) + '</span>');
       // Audience badge (Buyer-rich etc.) shares this SAME row so the labels sit
       // side-by-side instead of stacking (the card is a flex column, so two
       // separate rows would each take a full line — wasted vertical space).
@@ -5175,16 +5171,16 @@ def build():
       // speak" and "attending" reads "Attending … · Submitted to speak …".
       var bits = [];   // {{ p: priority, h: html }}
       if (stages.indexOf('Booked') !== -1) {{
-        bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>' }});
+        bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + ST_MIC + (speaker ? ' \\u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>' }});
       }} else if (stages.indexOf('Rejected') !== -1) {{
         // Rejected to speak — a terminal "no" that wins over a pending Submitted.
-        bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + '</span>' }});
+        bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + ST_MIC + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + '</span>' }});
       }} else if (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) {{
         // Angela records WHEN the application went out (event_state/manual
         // .submitted_at) — surface it on her status line only.
         var _subDate = (window.isAngelaUser && window.isAngelaUser() && st.submitted_at)
           ? '<span class="st-sub-date"> \\u00b7 submitted ' + escapeHtml(_fmtSubmittedDate(st.submitted_at)) + '</span>' : '';
-        bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + _subDate + (closed ? ' (CFP closed)' : '') + '</span>' }});
+        bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted to speak' + ST_MIC + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + _subDate + (closed ? ' (CFP closed)' : '') + '</span>' }});
       }} else if (closed) {{
         bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>' }});
       }}
@@ -5230,6 +5226,17 @@ def build():
       return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
     }}
 
+    // Microphone marking the SPEAKING statuses (Booked / Submitted / Rejected)
+    // so a speaking outcome reads apart from merely attending at a glance —
+    // "Rejected 🎤 — Thor" (Angela). Attending deliberately has no mic.
+    var ST_MIC = '<span class="st-mic" title="Speaking" aria-label="speaking">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="11" height="11">' +
+      '<rect x="9" y="2" width="6" height="11" rx="3"/>' +
+      '<path d="M5 10v2a7 7 0 0 0 14 0v-2"/>' +
+      '<line x1="12" x2="12" y1="19" y2="22"/>' +
+    '</svg></span>';
+
     // "Contact found" = we have a real email to reach this event's organizer,
     // in the structured poc_email or embedded in the free-text contact_info.
     var _EMAIL_RE = /[^\\s@]+@[^\\s@]+\\.[^\\s@]{{2,}}/;
@@ -5270,7 +5277,6 @@ def build():
       card.dataset.sort = opsMeta.sort;
       // Priority falls back to the event's own priority; override wins if set
       card.dataset.priority = (st.priority_override || ev.priority || '');
-      card.dataset.track    = (st.track || '');
       card.dataset.speaker  = (st.speaker || '');
       // Attending signals — an event_state override (edited on the card) wins
       // over the catalog value, so audience / 1:1 / price edits show on the face.
@@ -5488,7 +5494,6 @@ def build():
       var manualStages = stageTagsOf(mev);
       card.dataset.statusTags = manualStages.join('|');
       card.dataset.priority = mev.priority || '';
-      card.dataset.track    = ''; // manual_events doesn't carry a track column
       card.dataset.speaker  = (mev.speaker || '');
       card.dataset.audience = (mev.audience_type || '');
       var _mpn = priceNumOf(mev.pricing);
@@ -5876,7 +5881,6 @@ def build():
               }}
             }}
             if (f === 'priority_override') card.dataset.priority = sel.value || '';
-            if (f === 'track')             card.dataset.track    = sel.value || '';
             if (f === 'attend_verdict')    card.dataset.attend   = sel.value || '';
             applyFilters();
             flashOk();
@@ -5952,21 +5956,6 @@ def build():
         }});
         pri.appendChild(clr);
         pri.dataset.built = '1';
-      }}
-      // Track (static — values defined in the schema CHECK constraint)
-      var trk = document.querySelector('#filter-track .filter-dd-menu');
-      if (trk && trk.dataset.built !== '1') {{
-        [['Sponsor','track-sponsor'], ['Earned','track-earned'], ['Both','track-both'], ['Unknown','track-unknown']].forEach(function (pair) {{
-          trk.appendChild(_makeExtraChip(pair[0], pair[0], pair[1]));
-        }});
-        var clrT = document.createElement('button');
-        clrT.type = 'button'; clrT.className = 'extra-clear'; clrT.textContent = 'Clear';
-        clrT.addEventListener('click', function () {{
-          trk.querySelectorAll('.extra-chip.is-on').forEach(function (b) {{ b.classList.remove('is-on'); }});
-          applyFilters();
-        }});
-        trk.appendChild(clrT);
-        trk.dataset.built = '1';
       }}
       // Ticket price (multi-select bubbles — pick any bands)
       var prc = document.querySelector('#filter-price .filter-dd-menu');
@@ -6060,7 +6049,7 @@ def build():
     function countActiveOpsFilters() {{
       var n = 0;
       ['ops-f-submitted', 'ops-f-recent'].forEach(function (id) {{ var e = document.getElementById(id); if (e && e.checked) n++; }});
-      ['filter-price', 'filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {{
+      ['filter-price', 'filter-priority', 'filter-speaker'].forEach(function (id) {{
         var box = document.getElementById(id);
         if (box && box.querySelector('.filter-dd-btn.has-active')) n++;
       }});
@@ -6166,7 +6155,7 @@ def build():
       // Angela's power-user set — keep them OUT of everyone else's filter drawer,
       // which then holds only the filters that were there before for them:
       // Pipeline / Region / Fits / Months (+ Should-attend, gated above).
-      ['filter-price', 'filter-priority', 'filter-track', 'filter-speaker'].forEach(function (id) {{
+      ['filter-price', 'filter-priority', 'filter-speaker'].forEach(function (id) {{
         var el = document.getElementById(id);
         if (el) el.style.display = show ? '' : 'none';
       }});
@@ -6542,10 +6531,6 @@ def build():
         document.querySelectorAll('#filter-priority .extra-chip.is-on'),
         function (b) {{ return b.dataset.value; }}
       );
-      var activeTracks = Array.prototype.map.call(
-        document.querySelectorAll('#filter-track .extra-chip.is-on'),
-        function (b) {{ return b.dataset.value; }}
-      );
       var activeSpeakers = Array.prototype.map.call(
         document.querySelectorAll('#filter-speaker .extra-chip.is-on'),
         function (b) {{ return (b.dataset.value || '').toLowerCase(); }}
@@ -6672,7 +6657,6 @@ def build():
         }}
         if (activeStatuses.length   > 0 && activeStatuses.indexOf(card.dataset.status   || '') === -1) on = false;
         if (activePriorities.length > 0 && activePriorities.indexOf(card.dataset.priority || '') === -1) on = false;
-        if (activeTracks.length     > 0 && activeTracks.indexOf(card.dataset.track     || '') === -1) on = false;
         // Speaking filter — the assigned speaker (booked, or pursuing a slot),
         // NOT an attending-only event.
         if (activeSpeakers.length > 0) {{
@@ -6793,7 +6777,7 @@ def build():
         var el = document.getElementById(id); if (el) el.checked = false;
       }});
       Array.prototype.forEach.call(
-        document.querySelectorAll('#filter-pipeline .extra-chip.is-on, #filter-region .extra-chip.is-on, #filter-months .extra-chip.is-on, #filter-should .extra-chip.is-on, .status-filters .status-chip.is-on, #filter-price .extra-chip.is-on, #filter-fits .extra-chip.is-on, #filter-priority .extra-chip.is-on, #filter-track .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
+        document.querySelectorAll('#filter-pipeline .extra-chip.is-on, #filter-region .extra-chip.is-on, #filter-months .extra-chip.is-on, #filter-should .extra-chip.is-on, .status-filters .status-chip.is-on, #filter-price .extra-chip.is-on, #filter-fits .extra-chip.is-on, #filter-priority .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
         function (c) {{ c.classList.remove('is-on'); }}
       );
       opsStatFilter = ''; _userPickedStat = true;   // "clear all" = show All; don't re-default to My fits
