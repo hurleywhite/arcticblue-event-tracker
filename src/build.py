@@ -795,10 +795,13 @@ def build():
     .st-no   {{ background: #b91c1c; }}
     .st-sep  {{ color: var(--ab-fg-3); font-weight: 400; }}
     .st-sub-date {{ color: var(--ab-fg-3); font-weight: 500; }}
-    /* Glyphs between the status word and the "— Name": mic = speaking
-       (Booked / Submitted / Rejected), ticket = attending. */
-    .st-mic {{ display: inline-flex; align-items: center; margin: 0 2px 0 5px; opacity: 0.75; }}
-    .st-mic svg {{ display: block; }}
+    /* Emoji between the status word and the "— Name": 🎤 = speaking
+       (Booked / Submitted / Rejected), 🎟 = attending. No opacity — it just
+       washes emoji out — and a hair under 1em so they sit with the text. */
+    .st-mic {{
+      display: inline-block; margin: 0 3px 0 5px; font-size: 0.92em; line-height: 1;
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    }}
     /* Whisper-quiet data-freshness cue from updated_at. Deliberately faint —
        it's a background reassurance / nudge, not a headline. */
     .ops-fresh-line {{ margin: -4px 0 10px; }}
@@ -5229,19 +5232,11 @@ def build():
     // Two status glyphs so speaking vs attending reads at a glance (Angela):
     //   mic    = the SPEAKING track (Booked / Submitted / Rejected) — "Rejected 🎤 — Thor"
     //   ticket = ATTENDING (we're in the room, not on stage)
-    var ST_MIC = '<span class="st-mic" title="Speaking" aria-label="speaking">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="11" height="11">' +
-      '<rect x="9" y="2" width="6" height="11" rx="3"/>' +
-      '<path d="M5 10v2a7 7 0 0 0 14 0v-2"/>' +
-      '<line x1="12" x2="12" y1="19" y2="22"/>' +
-    '</svg></span>';
-    var ST_TICKET = '<span class="st-mic st-ticket" title="Attending" aria-label="attending">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="11" height="11">' +
-      '<path d="M3 8V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a2 2 0 0 0 0 4v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2a2 2 0 0 0 0-4z"/>' +
-      '<line x1="14" x2="14" y1="5" y2="16"/>' +
-    '</svg></span>';
+    // Real emoji, not hairline SVGs — the thin outline icons rendered as faint
+    // smudges at 11px on the card (Angela). \\uD83C\\uDFA4 = 🎤,
+    // \\uD83C\\uDF9F\\uFE0F = 🎟 (the VS16 forces emoji, not text, presentation).
+    var ST_MIC    = '<span class="st-mic" role="img" title="Speaking" aria-label="speaking">\\uD83C\\uDFA4</span>';
+    var ST_TICKET = '<span class="st-mic st-ticket" role="img" title="Attending" aria-label="attending">\\uD83C\\uDF9F\\uFE0F</span>';
 
     // "Contact found" = we have a real email to reach this event's organizer,
     // in the structured poc_email or embedded in the free-text contact_info.
