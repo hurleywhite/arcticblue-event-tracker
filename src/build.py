@@ -6538,8 +6538,14 @@ def build():
             // about/focus text finds the event even though the stripped card
             // face doesn't show them.
             var _r = card._modalRec || {{}};
+            // NOTES are indexed too: Angela writes the organiser/contact person
+            // she spoke to straight into Notes, and searching that name found
+            // nothing because notes never reach the card face. Same for the
+            // outreach note and the remaining contact fields.
             _blob = card._searchBlob = ((card.textContent || '') + ' ' +
-              [_r.poc_name, _r.poc_email, _r.contact_info, _r.speaker, _r.past_speakers,
+              [_r.poc_name, _r.poc_email, _r.poc_linkedin, _r.contact_info,
+               _r.additional_contacts, _r.notes, _r.outreach_note,
+               _r.speaker, _r.past_speakers,
                _r.about, _r.focus_areas, _r.typical_attendees].filter(Boolean).join(' ')).toLowerCase();
           }}
           if (_blob.indexOf(q) === -1) on = false;
@@ -6966,9 +6972,14 @@ def build():
       var interested = (st && st.interested) || base.interested || [];
       var outr = (st && st.outreach_assignees) || base.outreach_assignees || [];
       var meta = opsMonthMeta(base.start_date || (st && st.start_date), base.date_str);
-      var blob = [base.name, base.about, base.focus_areas, base.typical_attendees,
-                  base.location, base.region, base.city, base.country, base.type,
-                  base.notes, base.past_speakers].join(' ');
+      // Prefer the event_state override where one exists: a CATALOG event's notes
+      // and contact live on `st`, so reading base.* alone missed them entirely.
+      var _pick = function (f) {{ var v = (st && st[f]); if (v === '__cleared__') return ''; return (v != null && String(v).trim() !== '') ? v : (base[f] || ''); }};
+      var blob = [base.name, _pick('about'), _pick('focus_areas'), _pick('typical_attendees'),
+                  base.location, base.region, base.city, base.country, _pick('type'),
+                  _pick('notes'), _pick('past_speakers'),
+                  _pick('poc_name'), _pick('poc_email'), _pick('contact_info'),
+                  _pick('outreach_note')].join(' ');
       return {{
         kind: kind,
         key: (kind === 'manual') ? base.id : base.num,
