@@ -739,7 +739,10 @@
    "typical_attendees": "Chief AI Officers, SVP/VP AI, enterprise AI strategy leaders; curated executive-only audience",
    "speaking_route": "Request invitation/speak: https://world.aiacceleratorinstitute.com/location/caioberlin/requesttospeak\n\n Contact: albert@pmmalliance.com (speaker); jordan@aiacceleratorinstitute.com (sponsor)",
    "contact_info": "albert@pmmalliance.com",
-   "focus_areas": "CAIO role and enterprise AI strategy; Scaling AI from pilot to enterprise production; AI governance, compliance, and organizational risk; Enterprise AI operating model design; AI leadership and talent transformation"
+   "focus_areas": "CAIO role and enterprise AI strategy; Scaling AI from pilot to enterprise production; AI governance, compliance, and organizational risk; Enterprise AI operating model design; AI leadership and talent transformation",
+   "venue": "The Ritz Carlton, 3 Potsdamer Platz, Berlin",
+   "pricing": "Request complimentary pass; attendee pricing not publicly listed",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 36,
@@ -1323,7 +1326,11 @@
    "speaking_route": "Primarily Gartner analysts; guest keynotes by invitation only. Exhibitor/sponsor: gartner.com/en/conferences/na/symposium-us/exhibitors. Contact: GlobalConferences@gartner.com",
    "contact_info": "GlobalConferences@gartner.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Agentic AI for enterprise operations; AI technology infrastructure and architecture; CIO strategic planning and execution; IT operating model transformation; Enterprise AI governance and risk"
+   "focus_areas": "Agentic AI for enterprise operations; AI technology infrastructure and architecture; CIO strategic planning and execution; IT operating model transformation; Enterprise AI governance and risk",
+   "venue": "Walt Disney World Swan & Dolphin Resort",
+   "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "7,000+"
   },
   {
    "num": 44,
@@ -3350,7 +3357,10 @@
    "external_id": "2aeb756c-fcd7-4a9d-a523-ce95ba1c6be4",
    "source": "arcticscout",
    "start_date": "2026-04-29",
-   "end_date": "2026-04-29"
+   "end_date": "2026-04-29",
+   "meeting_formats": "curated networking sessions; co-located summit access",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "125+"
   },
   {
    "num": 152,
@@ -3545,7 +3555,12 @@
    "external_id": "8654b00a-dc72-48d1-be13-a650e1f94007",
    "source": "arcticscout",
    "start_date": "2026-05-05",
-   "end_date": "2026-05-06"
+   "end_date": "2026-05-06",
+   "pricing": "In-person tickets were available in tiers; the event site says the virtual live stream is free, and it offers a discounted “AI Ecosystem Pass” for researchers, government officials, and students, but it does not publish a single clear standard in-person price in the provided results.",
+   "meeting_formats": "curated roundtables; networking formats; side events; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "300",
+   "deadline": "31st December 2025"
   },
   {
    "num": 159,
@@ -7396,12 +7411,15 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "Engineers, builders, and tech executives",
    "url": "https://world.aiacceleratorinstitute.com/location/austin",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-austin",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "Hilton Austin",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "250+"
   },
   {
    "num": 301,
