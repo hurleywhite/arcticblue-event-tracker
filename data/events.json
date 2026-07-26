@@ -2864,7 +2864,10 @@
    "external_id": "6257723e-785e-485a-8419-bf9f4cd6e670",
    "source": "arcticscout",
    "start_date": "2026-08-18",
-   "end_date": "2026-08-19"
+   "end_date": "2026-08-19",
+   "past_speakers": "Sean McCall, Leaders In AI Summit; Bruce Monaco, Leaders In AI Summit post author; Robert Jaggers III, Leaders In AI Summit post author",
+   "meeting_formats": "invite-only executive think tank dinners; private, hands-on Agentic AI workshops",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 131,
@@ -4780,7 +4783,9 @@
    "source": "arcticscout",
    "meeting_formats": "Open Mic & Networking; 5+ breakout rooms; 10-minute presentations followed by 15-minute networking sessions moderated by the speaker",
    "attendee_count": "500+",
-   "url": "https://pef.co/"
+   "url": "https://pef.co/",
+   "past_speakers": "Barak Kaufman, Post-Exit Founders (PEF); Anastasia Koroleva, Exit Paradox; Omar Haroun, entrepreneur and exited founder; Mimi Ikonn, entrepreneur and founder",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 200,

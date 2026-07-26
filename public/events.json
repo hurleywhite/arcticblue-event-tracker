@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-25T00:00:00Z",
-  "build_date": "2026-07-25",
+  "generated_at": "2026-07-26T00:00:00Z",
+  "build_date": "2026-07-26",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -221,6 +221,9 @@
       "typical_attendees": "CEO, CIO, CDO, CAIO, VP AI at enterprise companies",
       "speaking_route": "Sponsorship/Invite only",
       "pay_to_play": "Yes",
+      "audience_type": "Buyer-rich",
+      "past_speakers": "Sean McCall, Leaders In AI Summit; Bruce Monaco, Leaders In AI Summit post author; Robert Jaggers III, Leaders In AI Summit post author",
+      "meeting_formats": "invite-only executive think tank dinners; private, hands-on Agentic AI workshops",
       "seed": false,
       "urgent": false,
       "venue": "Canopy by Hilton Nashville Downtown, The Gulch, Nashville, TN",
@@ -3958,6 +3961,8 @@
       "contact_info": "Connor \u2014 connor@pef.xyz",
       "attendee_count": "500+",
       "pay_to_play": "No",
+      "audience_type": "Buyer-rich",
+      "past_speakers": "Barak Kaufman, Post-Exit Founders (PEF); Anastasia Koroleva, Exit Paradox; Omar Haroun, entrepreneur and exited founder; Mimi Ikonn, entrepreneur and founder",
       "meeting_formats": "Open Mic & Networking; 5+ breakout rooms; 10-minute presentations followed by 15-minute networking sessions moderated by the speaker",
       "seed": false,
       "urgent": false,
