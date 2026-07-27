@@ -376,7 +376,13 @@
    "city": "San Francisco",
    "country": "USA",
    "external_id": "baf42aa6-0e88-4064-8df3-ddba26e57d91",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "General Admission: $1,895; Keynote & Expo Only: $195",
+   "past_speakers": "Ali Ghodsi, Databricks; Databricks co-founders, Databricks; Databricks product leaders, Databricks",
+   "meeting_formats": "Attendee app for networking and session planning; training, hackathon, and meetups; some programs require prescheduling",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "30,000+ in person; tens of thousands virtual",
+   "deadline": "Call for Proposals submission window closed"
   },
   {
    "num": 27,
@@ -2401,7 +2407,8 @@
    "end_date": "2026-04-28",
    "past_speakers": "Mike McGarvey, Atos (Moving from Traditional DEX to Predictive Experience Management and XLA 4.0); HP Premier Exhibitor representative (HP Workforce Experience Platform live demos); HP VIP Reception host (Exclusive VIP Reception at Eighteen Sky Bar)",
    "meeting_formats": "Book a meeting with Atos (pre-booking 1:1 meetings); Premier Exhibitor presence on show floor for real-world use case exploration and live demos",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "attendee_count": "Hundreds"
   },
   {
    "num": 115,
@@ -2459,7 +2466,8 @@
    "external_id": "076452d1-4149-4678-8f2d-2c92c854d81e",
    "source": "arcticscout",
    "start_date": "2026-04-28",
-   "end_date": "2026-05-01"
+   "end_date": "2026-05-01",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 117,
@@ -3622,7 +3630,11 @@
    "external_id": "183945ce-aeb8-46c5-b752-eac7135fec17",
    "source": "arcticscout",
    "start_date": "2026-05-06",
-   "end_date": "2026-05-07"
+   "end_date": "2026-05-07",
+   "past_speakers": "Joe Sullivan, Former CSO at Facebook, Uber, and Cloudflare",
+   "meeting_formats": "Invite-only in-person assembly; request-an-invite/approved application",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "Buyer-rich"
   },
   {
    "num": 161,
@@ -6532,7 +6544,10 @@
    "focus_areas": "Enterprise agentic AI orchestration and enablement; Long-term AI value stewardship and enterprise governance; AI delivery vs. AI orchestration transformation frameworks; Agentic AI for operations transformation and workflow automation; Enterprise AI compliance and stewardship models",
    "seed": false,
    "urgent": false,
-   "external_id": "2c223fad-53f6-4f2b-9587-25026cdf3ea1"
+   "external_id": "2c223fad-53f6-4f2b-9587-25026cdf3ea1",
+   "venue": "Not verifiable from the provided results",
+   "meeting_formats": "Hosted 1:1 meetings; pre-qualified invitation-only hosted guest format",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 263,
