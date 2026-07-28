@@ -46,16 +46,6 @@ DESCRIPTION:AI Accelerator Institute's Canadian cluster (GenAI + Agentic AI + CA
 URL:https://world.aiacceleratorinstitute.com/location/toronto/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-594@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260928
-DTEND;VALUE=DATE:20260930
-SUMMARY:Forrester B2B Forum EMEA 2026
-LOCATION:London\, UK
-DESCRIPTION:Forrester’s B2B marketing and technology forum in London for European enterprise leaders — AI-powered revenue\, go-to-market transformation\, and enterprise technology strategy\; Forrester analyst-led sessions\; speaking via Forrester events team.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.forrester.com/event/b2b-forum-emea/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-593@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20260826
@@ -334,16 +324,6 @@ SUMMARY:State and Local Government AI Summit 2026
 LOCATION:Denver\, CO
 DESCRIPTION:Government Technology’s invitation-only AI summit for State and Local Government AI leaders in Denver — a niche public sector audience including City and County of Denver AI leaders\; opens ArcticBlue’s government sector pipeline in a market not covered by commercial enterprise events.\nPriority: Low\nAdded by: dust@arcticblue.ai
 URL:https://events.govtech.com/State-and-Local-Government-AI-Summit
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-565@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261013
-DTEND;VALUE=DATE:20261014
-SUMMARY:CDAO Perth 2026
-LOCATION:Perth\, Australia
-DESCRIPTION:Corinium’s one-day CDAO summit in Perth connects Australian data and AI executives from Western Australia’s energy\, mining\, and financial services sectors — a lower-priority Pacific market but part of ArcticBlue’s English-speaking geographic expansion.\nPriority: Low\nAdded by: dust@arcticblue.ai
-URL:https://cdao-perth.coriniumintelligence.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-564@arcticblue-event-tracker
@@ -666,16 +646,6 @@ DESCRIPTION:Priority: Medium\nAdded by: Angela
 URL:https://www.forrester.com/event/technology-innovation-central/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-530@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260825
-DTEND;VALUE=DATE:20260826
-SUMMARY:Forrester Sydney Forum
-LOCATION:Sydney\, Australia
-DESCRIPTION:Priority: Medium\nAdded by: Angela
-URL:https://www.forrester.com/event/sydney-forum/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-529@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261201
@@ -896,16 +866,6 @@ DESCRIPTION:6th annual AI Governance World Conference at Flamingo Hotel Las Vega
 URL:https://aiworldconference.ai/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-507@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260811
-DTEND;VALUE=DATE:20260813
-SUMMARY:CDAO Chicago 2026
-LOCATION:Chicago\, IL\, USA
-DESCRIPTION:Corinium's premier metro data & AI leadership event brings together Chief Data and Analytics Officers from Fortune 500 companies in Chicago\; open 'Suggest a Speaker' route makes this one of ArcticBlue's most accessible earned stages for Q3.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://da-metro-chicago.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-506@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20260928
@@ -1056,36 +1016,6 @@ DESCRIPTION:Gathers 100+ CFOs and senior finance leaders including speakers from
 URL:https://transformanceltd.com/uk-cfo-summit/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-490@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261104
-DTEND;VALUE=DATE:20261106
-SUMMARY:Forrester Technology & Innovation Forum East
-LOCATION:New York City\, USA
-DESCRIPTION:Forrester's US flagship CIO/CDO/CAIO event in New York ('The IT Singularity' theme) — analyst-grade credibility and intimate executive format\; best Q4 East Coast US touchpoint for enterprise technology buyer engagement.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.forrester.com/event/technology-innovation-east/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-489@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261026
-DTEND;VALUE=DATE:20261028
-SUMMARY:CDAO Fall 2026
-LOCATION:Boston\, MA\, USA
-DESCRIPTION:Corinium's 13th flagship CDAO gathering (500+ CDOs/CAOs/CIOs\; Renaissance Boston Seaport) with open request-to-speak form — ideal earned speaking opportunity for ArcticBlue's AI data strategy and governance narrative directly to enterprise data leaders.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://cdao-fall.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-488@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260930
-DTEND;VALUE=DATE:20261002
-SUMMARY:Forrester Technology & Innovation Forum EMEA
-LOCATION:London\, UK
-DESCRIPTION:Forrester's premier EMEA CIO/CDO/CAIO forum themed 'The IT Singularity' — AI governance and operationalization at enterprise scale\; direct buyer audience for ArcticBlue's agentic AI platform in the European market.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.forrester.com/event/technology-innovation-emea/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-487@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261012
@@ -1114,16 +1044,6 @@ SUMMARY:Enterprise AI Summit — Charlotte\, NC
 LOCATION:Charlotte\, NC
 DESCRIPTION:IT Revolution's intimate 50–100 practitioner enterprise AI summit at Carolina Theatre — past participants from Vanguard\, American Express\, Fidelity\, Disney\, Amazon\; 100% NPS\; earned experience-report speaker format gives ArcticBlue's AI deployment narrative strong credibility.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://events.itrevolution.com/2026-charlotte/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-484@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260915
-DTEND;VALUE=DATE:20260916
-SUMMARY:CDAO Financial Services & Insurance UK 2026
-LOCATION:London\, UK
-DESCRIPTION:120+ CDOs and data leaders from UK financial services and insurance (separate FS and insurance tracks) with confirmed speakers from Standard Chartered\, Reinsurance Group of America\, and FirstBank UK — pure regulated-industry buyer audience directly matching ArcticBlue's ICP.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://cdao-fs-uk.coriniumintelligence.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-483@arcticblue-event-tracker

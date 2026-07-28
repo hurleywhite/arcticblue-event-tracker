@@ -14,3 +14,6 @@ venv/
 
 # Vercel
 .vercel
+
+# local dev helper (machine-specific absolute path)
+scripts/devserve.cjs
