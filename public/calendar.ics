@@ -116,16 +116,6 @@ DESCRIPTION:London's broad AI congress with enterprise AI integration and respon
 URL:https://aiconference.london/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-586@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261110
-DTEND;VALUE=DATE:20261112
-SUMMARY:iVentiv Learning Futures Los Angeles 2026
-LOCATION:Los Angeles\, CA
-DESCRIPTION:iVentiv’s West Coast CLO Knowledge Exchange at USC Marshall School of Business (max ~40 C-suite attendees)\; brings Global Heads of L&D and CLOs from major enterprises together for structured peer dialogue on AI and workforce learning transformation — Joe’s AI & human enablement content maps precisely to these attendees’ strategic agenda.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://iventiv.com/events/learning-futures/learning-futures-la-executive-knowledge-exchange-2026
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-585@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20270114
@@ -406,16 +396,6 @@ DESCRIPTION:CDO Magazine’s Dallas CDO Forum at Omni Las Colinas draws top AI a
 URL:https://live.cdomagazine.tech/2026_Dallas_CDO_Forum
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-556@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261116
-DTEND;VALUE=DATE:20261119
-SUMMARY:Gartner IT Symposium/Xpo™ Kochi 2026
-LOCATION:Kochi\, India
-DESCRIPTION:Gartner’s APAC IT leadership conference in India\; 1\,500+ Indian and APAC enterprise CIOs\; lower priority relative to US/Europe but relevant if ArcticBlue expands into APAC.\nPriority: Low\nAdded by: dust@arcticblue.ai
-URL:https://www.gartner.com/en/conferences/apac/symposium-india
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-555@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261020
@@ -544,16 +524,6 @@ SUMMARY:Abu Dhabi Finance Week 2026
 LOCATION:Abu Dhabi\, UAE
 DESCRIPTION:ADGM’s flagship four-day MENA finance summit (35\,000+ attendees\, 750+ speakers including Allianz CEO\, Franklin Templeton CEO\, Temasek CEO) encompassing Abu Dhabi Economic Forum\, Asset Abu Dhabi\, and Fintech Abu Dhabi — ArcticBlue’s highest-density MENA finance leadership touchpoint of Q4.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.adfw.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-540@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261110
-DTEND;VALUE=DATE:20261112
-SUMMARY:NDSML Summit 2026
-LOCATION:Stockholm\, Sweden
-DESCRIPTION:Largest enterprise Applied Agentic AI conference in the Nordics (10th annual\, 400 in-person)\, focused on production-ready enterprise AI and autonomous workflows — strong DACH/Nordic enterprise AI practitioner and buyer audience for ArcticBlue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://ndsmlsummit.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-539@arcticblue-event-tracker
@@ -2443,16 +2413,6 @@ SUMMARY:ODSC AI West 2026 (incl. AI X Leadership Track)
 LOCATION:Burlingame\, CA
 DESCRIPTION:The largest applied AI conference in San Francisco Bay Area (Oct 27-29) with a dedicated AI X Leadership executive track for C-suite\; open CFP available\; complements AIAI Boston (Oct 29) for a strong West Coast AI leadership presence in Carlos's Americas calendar.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://odsc.ai/west/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-311@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261118
-DTEND;VALUE=DATE:20261119
-SUMMARY:IDC FutureTech Summit Madrid 2026
-LOCATION:Madrid\, Spain
-DESCRIPTION:IDC's FutureTech Summit in Madrid on November 18 themed 'Scaling AI Across Cloud and Enterprise Platforms' — directly targets Spanish enterprise technology leaders in Carlos's Tier 2 Spanish market.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://event.idc.com/upcoming-events/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-310@arcticblue-event-tracker

@@ -658,14 +658,20 @@
     }
     textarea.me-input { resize: vertical; }
     .me-input:focus { outline: none; border-color: var(--ab-fg); box-shadow: 0 0 0 2px var(--ab-bg-3); }
-    /* Edit-form zones: a rule + small caps heading separating Basics / Notes /
-       Speaking / Attending / Contacts / Details, so the form is scannable
-       instead of one 30-field column (Angela). */
-    .me-sec { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--ab-rule); }
+    /* Zone dividers, used by BOTH the Details read view and the edit form, so
+       the two read as the same document (Angela). A heavier 2px rule — the old
+       hairline didn't separate the groups strongly enough to scan by. */
+    .me-sec { margin-top: 24px; padding-top: 16px; border-top: 2px solid var(--ab-rule-strong); }
     .me-sec:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+    /* Read-view zones stack their fields the way .modal-body does. */
+    .modal-view .me-sec { display: flex; flex-direction: column; gap: 16px; }
+    .modal-view .me-sec-h { margin-bottom: 0; }
+    /* The zone heading must outrank the field labels inside it — it was lighter
+       and thinner than them, which read as backwards. Full-strength ink, heavier
+       and a touch larger than a .modal-field .k. */
     .me-sec-h {
-      margin: 0 0 12px; font-family: var(--ab-sans); font-size: 0.72rem; font-weight: 600;
-      letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3);
+      margin: 0 0 12px; font-family: var(--ab-sans); font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg);
     }
     /* The folded "Rarely used" zone — click the heading to reveal. */
     .me-sec-fold > .me-sec-h { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; }
@@ -3627,14 +3633,17 @@
     // Hide: Archive), ahead of the read-only detail fields.
     html += '<div class="event-chat" id="event-chat-panel"></div>';
 
-    // Read-only view. The edit form below mirrors this exact layout.
+    // Read-only view — grouped into the SAME labelled zones as the edit form
+    // (Angela: "break it up and group them more logically, i.e. attendees
+    // together"). sec() drops a zone whose body came back empty, so a sparse or
+    // private event never shows a bare header. Same .me-sec markup as the editor
+    // so both views get the identical divider treatment.
     // "Why it fits ArcticBlue" removed from the read view (Hurley 2026-07-09) —
     // still used by search/suggestions scoring.
-    var v = '';
-    // Notes lead the read view — right below "Chat with the team", above About
-    // (Angela). field() returns '' when empty, so it only appears when there are
-    // notes. Removed from the per-branch bottoms below.
-    v += field('Notes', rec.notes);
+    function sec(title, body) {
+      if (!body) return '';
+      return '<section class="me-sec"><h4 class="me-sec-h">' + esc(title) + '</h4>' + body + '</section>';
+    }
     // Point of contact — the one detail that matters for a private event.
     var contactBits = [];
     if (rec.poc_name)  contactBits.push(esc(rec.poc_name));
@@ -3642,36 +3651,45 @@
     if (rec.poc_linkedin) contactBits.push('<a href="' + esc(rec.poc_linkedin) + '" target="_blank" rel="noopener">LinkedIn ↗</a>');
     var pocHtml = (contactBits.length ? field('Point of contact', contactBits.join(' · '), true) : '') +
                   field('Contact info', rec.contact_info);
+
+    var v = '';
+    // Notes lead the read view — right below "Chat with the team" (Angela).
+    v += sec('Notes', field('Notes', rec.notes));
     if (rec.is_private) {
-      // Private / invite-only: just POC + notes (link is the title, chat above).
-      v += pocHtml;
-      v += field('ArcticBlue speaker', rec.speaker);
+      // Private / invite-only: just the speaker + POC (link is the title, chat above).
+      v += sec('Speaking', field('ArcticBlue speaker', rec.speaker));
+      v += sec('Contacts', pocHtml);
     } else {
-      // Legacy status marker (e.g. "Sponsorship Only") — kept OFF the card face
-      // by design, but shown here so a saved marker is visible in Details. field()
-      // returns '' when unset, so it only appears for deliberately-marked events.
-      v += field('Status marker', rec.workflow_status === '__deleted__' ? '' : rec.workflow_status);
-      v += field('About', rec.about);
-      v += field('Focus areas', rec.focus_areas);
-      v += field('Typical attendees', rec.typical_attendees);
-      v += field('Past / announced speakers', rec.past_speakers);
-      v += field('Meetings & networking', rec.meeting_formats);
-      v += field('Speaking route', rec.speaking_route);
-      // Short facts in a 2-up grid
-      var grid = '';
-      grid += field('Deadline', (window.isStaleDeadline && window.isStaleDeadline(rec.deadline)) ? '' : rec.deadline);
-      grid += field('Attendee count', rec.attendee_count);
-      grid += field('Audience', rec.audience_type);
-      grid += field('Price to attend', rec.pricing);
-      grid += field('Pay-to-play', rec.pay_to_play);
-      grid += field('Venue', rec.venue);
-      grid += field('Submission status', rec.submission_status);
-      grid += field('Speaking fee', rec.speaking_fee);
-      if (grid) v += '<div class="modal-grid">' + grid + '</div>';
-      v += field('ArcticBlue speaker', rec.speaker);
-      v += pocHtml;
-      v += field('Additional contacts', rec.additional_contacts);
-      v += field('Post-mortem (ROI)', rec.postmortem);
+      // — Speaking & submission: how we'd get on stage, and where we stand.
+      //   The legacy status marker (e.g. "Sponsorship Only") is kept OFF the card
+      //   face by design but belongs here so a saved marker is visible.
+      v += sec('Speaking & submission',
+        field('ArcticBlue speaker', rec.speaker) +
+        field('Status marker', rec.workflow_status === '__deleted__' ? '' : rec.workflow_status) +
+        field('Speaking route', rec.speaking_route) +
+        field('Deadline', (window.isStaleDeadline && window.isStaleDeadline(rec.deadline)) ? '' : rec.deadline) +
+        field('Pay-to-play', rec.pay_to_play) +
+        field('Submission status', rec.submission_status) +
+        field('Speaking fee', rec.speaking_fee));
+      // — Who's in the room: every audience fact in one place.
+      v += sec('Who attends',
+        field('Typical attendees', rec.typical_attendees) +
+        field('Past / announced speakers', rec.past_speakers) +
+        (function () {
+          var g = field('Attendee count', rec.attendee_count) + field('Audience', rec.audience_type);
+          return g ? '<div class="modal-grid">' + g + '</div>' : '';
+        })() +
+        field('Meetings & networking', rec.meeting_formats));
+      // — About the event itself.
+      v += sec('About the event',
+        field('About', rec.about) +
+        field('Focus areas', rec.focus_areas) +
+        (function () {
+          var g = field('Price to attend', rec.pricing) + field('Venue', rec.venue);
+          return g ? '<div class="modal-grid">' + g + '</div>' : '';
+        })());
+      v += sec('Contacts', pocHtml + field('Additional contacts', rec.additional_contacts));
+      v += sec('After the event', field('Post-mortem (ROI)', rec.postmortem));
     }
 
     // "Updated Nd ago" now lives here (italic, at the bottom of the detail),
