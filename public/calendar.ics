@@ -26,6 +26,126 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-597@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20261110
+DTEND;VALUE=DATE:20261112
+SUMMARY:HRFest Canada — HR Leaders Summit 2026
+LOCATION:Toronto\, Canada
+DESCRIPTION:Canada's premier CHRO/CPO summit brings 300 senior HR leaders for board-level discussions on AI governance and workforce strategy — Joe's human economy message plays powerfully to this executive room of Canadian enterprise HR leaders.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://humanresourcesfest.com/canada/hr-leaders
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-596@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20261112
+DTEND;VALUE=DATE:20261113
+SUMMARY:AIAI Toronto Summit Cluster
+LOCATION:Toronto\, Canada
+DESCRIPTION:AI Accelerator Institute's Canadian cluster (GenAI + Agentic AI + CAIO Summits) at Marriott Downtown Toronto — ArcticBlue's entry into the Canadian enterprise AI buyer market with open speaker application.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://world.aiacceleratorinstitute.com/location/toronto/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-595@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20260922
+DTEND;VALUE=DATE:20260925
+SUMMARY:Gartner Security & Risk Management Summit EMEA 2026
+LOCATION:London\, UK
+DESCRIPTION:Gartner’s flagship cybersecurity and risk management summit in London for European CISOs — AI-driven security strategies and risk management frameworks\; 1\,500+ CISOs and risk leaders\; exhibitor speaking route for enterprise AI security and governance solution providers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.gartner.com/en/conferences/emea/security-risk-management-uk
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-594@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20260928
+DTEND;VALUE=DATE:20260930
+SUMMARY:Forrester B2B Forum EMEA 2026
+LOCATION:London\, UK
+DESCRIPTION:Forrester’s B2B marketing and technology forum in London for European enterprise leaders — AI-powered revenue\, go-to-market transformation\, and enterprise technology strategy\; Forrester analyst-led sessions\; speaking via Forrester events team.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.forrester.com/event/b2b-forum-emea/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-593@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20260826
+DTEND;VALUE=DATE:20260828
+SUMMARY:Smart Data & AI Summit Saudi Arabia 2026
+LOCATION:Riyadh\, Saudi Arabia
+DESCRIPTION:Tradepass’ 3rd annual Saudi Data & AI Summit in Riyadh — 300+ CDOs\, CIOs\, CTOs\, Heads of AI Strategy from Saudi Vision 2030 enterprises\; earned speaking route\; direct MENA enterprise AI buyer access ahead of GAIN Summit.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://saudi.smartdataseries.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-592@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20260915
+DTEND;VALUE=DATE:20260918
+SUMMARY:GAIN Summit 2026 (Global AI Summit)
+LOCATION:King Abdulaziz International Conference Center\, Riyadh\, Saudi Arabia
+DESCRIPTION:Saudi Arabia’s flagship AI summit under Crown Prince patronage — 200+ speakers from 70 countries\, 6\,700+ attendees\, SDAIA-organized\; ideal entry point for ArcticBlue’s MENA expansion alongside LEAP\; government + enterprise AI buyer audience across GCC.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://globalaisummit.org/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-591@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20261027
+DTEND;VALUE=DATE:20261028
+SUMMARY:F3: Future of Freight Festival 2026
+LOCATION:The Signal\, Chattanooga\, TN
+DESCRIPTION:FreightWaves’ flagship freight and logistics AI festival at The Signal\, Chattanooga — logistics executives deploying AI agents for supply chain optimization\; speaking route via FreightWaves events team\; niche but vertically deep for enterprise AI in operations.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://live.freightwaves.com/f3-2026
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-590@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20261110
+DTEND;VALUE=DATE:20261111
+SUMMARY:Pharma Smart Factories Summit 2026
+LOCATION:Chicago\, IL
+DESCRIPTION:AMG World’s senior pharma manufacturing + AI summit in Chicago — pharmaceutical operations\, manufacturing technology\, and AI transformation leaders\; niche but high-value vertical for ArcticBlue’s AI-for-operations enterprise thesis.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://www.amg-world.co.uk/pharma-smart-factories-summit/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-589@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20261021
+DTEND;VALUE=DATE:20261023
+SUMMARY:NexGen Banking Summit 3rd Edition UK
+LOCATION:Canary Riverside Plaza Hotel\, London\, UK
+DESCRIPTION:London's dedicated GenAI-in-banking summit with speakers from JPMC\, Lloyds\, Wells Fargo\, Standard Chartered\, UBS\, NatWest\, Citi and Royal London — highly targeted banking/FS buyer audience for ArcticBlue’s structured AI rollout message.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://nexgenbanking.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-588@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20261120
+DTEND;VALUE=DATE:20261121
+SUMMARY:GenAI London 2026
+LOCATION:QEII Centre\, London\, UK
+DESCRIPTION:London’s GenAI conference for forward-thinking executives — useful for brand visibility and ecosystem building with GenAI innovation leaders\, though primarily practitioner-tech audience rather than pure enterprise buyers.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://www.genailondon.uk/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-587@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20261125
+DTEND;VALUE=DATE:20261127
+SUMMARY:AI World Congress 2026
+LOCATION:Kensington Conference and Events Centre\, London\, UK
+DESCRIPTION:London's broad AI congress with enterprise AI integration and responsible AI governance tracks — useful for brand visibility and ecosystem networking even though the audience skews mixed (researchers\, developers\, enterprise leaders).\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://aiconference.london/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-586@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20261110
+DTEND;VALUE=DATE:20261112
+SUMMARY:iVentiv Learning Futures Los Angeles 2026
+LOCATION:Los Angeles\, CA
+DESCRIPTION:iVentiv’s West Coast CLO Knowledge Exchange at USC Marshall School of Business (max ~40 C-suite attendees)\; brings Global Heads of L&D and CLOs from major enterprises together for structured peer dialogue on AI and workforce learning transformation — Joe’s AI & human enablement content maps precisely to these attendees’ strategic agenda.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://iventiv.com/events/learning-futures/learning-futures-la-executive-knowledge-exchange-2026
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-585@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20270114
@@ -464,16 +584,6 @@ SUMMARY:Abu Dhabi Finance Week 2026
 LOCATION:Abu Dhabi\, UAE
 DESCRIPTION:ADGM’s flagship four-day MENA finance summit (35\,000+ attendees\, 750+ speakers including Allianz CEO\, Franklin Templeton CEO\, Temasek CEO) encompassing Abu Dhabi Economic Forum\, Asset Abu Dhabi\, and Fintech Abu Dhabi — ArcticBlue’s highest-density MENA finance leadership touchpoint of Q4.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.adfw.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-541@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261104
-DTEND;VALUE=DATE:20261107
-SUMMARY:Gartner IT Symposium/Xpo Japan 2026
-LOCATION:Yokohama\, Japan
-DESCRIPTION:Gartner’s premier Japan CIO gathering in Yokohama — strategic APAC market access point for ArcticBlue with Japanese enterprise technology leaders navigating AI strategy and digital transformation in one of Asia’s most important regulated-industry markets.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.gartner.com/jp/conferences/apac/symposium-japan
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-540@arcticblue-event-tracker
@@ -3693,16 +3803,6 @@ SUMMARY:Economist AI in Health Summit 2026
 LOCATION:London\, UK
 DESCRIPTION:The Economist's dedicated AI-in-health summit brings together NHS leaders\, pharmaceutical executives\, and health system operators exploring practical AI scaling — relevant for ArcticBlue's healthcare regulated-industry narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://events.economistenterprise.com/ai-health-summit/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-151@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260915
-DTEND;VALUE=DATE:20260916
-SUMMARY:AI in Finance Summit London 2026
-LOCATION:London\, UK
-DESCRIPTION:RE:WORK's London BFSI AI conference draws AI and data science practitioners from Barclays\, HSBC\, JP Morgan\, and Deutsche Bank — strong brand-building opportunity in the UK financial services AI community.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://london-ai-finance.re-work.co/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-149@arcticblue-event-tracker

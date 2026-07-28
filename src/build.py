@@ -960,9 +960,11 @@ def build():
     .modal-loc .event-region {{ color: var(--ab-fg); font-weight: 600; }}
     .modal-body {{ display: flex; flex-direction: column; gap: 16px; }}
     .modal-field {{ display: flex; flex-direction: column; gap: 4px; }}
+    /* Field labels in Details (NOTES, ATTENDEES, ARCTICBLUE SPEAKER, …) — bold
+       and a step darker so each section is findable when scanning (Angela). */
     .modal-field .k {{
       font-family: var(--ab-mono); font-size: 0.64rem; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--ab-fg-3);
+      text-transform: uppercase; color: var(--ab-fg-2); font-weight: 700;
     }}
     .modal-field .v {{ font-size: 0.92rem; color: var(--ab-fg); line-height: 1.55; white-space: pre-wrap; }}
     .modal-field .v a {{ color: var(--ab-blue); }}
@@ -4285,13 +4287,24 @@ def build():
   // "Interested" = people who want Angela to apply for them. Drop anyone who's
   // ALREADY booked (the assigned speaker) or attending (in attendees) for this
   // event — no need to apply for someone already going. Keeps everyone else.
-  window.visibleInterested = function (interested, speaker, attendees) {{
+  //
+  // The speaker only counts as covered once the event is actually BOOKED. A name
+  // in `speaker` with nothing booked is the person we INTEND to put forward — the
+  // application still has to go out, so they belong in Angela's queue. This is
+  // the same rule resolveAttendeeKeys uses for the Day-Of brief ("submitted is
+  // not attending"). Without it, every event carrying a suggested speaker fell
+  // out of the queue and the tab count was far lower than the real workload —
+  // e.g. Jerome's five upcoming Reuters/CV Summit events vanished.
+  window.visibleInterested = function (interested, speaker, attendees, stages) {{
     if (!interested || !interested.length) return [];
     var covered = {{}};
     (attendees || []).forEach(function (a) {{ var k = String(a).toLowerCase().trim(); if (k) covered[k] = 1; }});
-    String(speaker || '').toLowerCase().replace(/\\s+and\\s+/g, ',').split(/[,;\\/&]/).forEach(function (s) {{
-      s = s.trim(); if (s) {{ covered[s] = 1; covered[s.split(/\\s+/)[0]] = 1; }}
-    }});
+    var _booked = !stages || (stages.indexOf && stages.indexOf('Booked') !== -1);
+    if (_booked) {{
+      String(speaker || '').toLowerCase().replace(/\\s+and\\s+/g, ',').split(/[,;\\/&]/).forEach(function (s) {{
+        s = s.trim(); if (s) {{ covered[s] = 1; covered[s.split(/\\s+/)[0]] = 1; }}
+      }});
+    }}
     return interested.filter(function (n) {{
       var low = String(n).toLowerCase().trim();
       return !(covered[low] || covered[low.split(/\\s+/)[0]]);
@@ -5524,7 +5537,23 @@ def build():
       card.dataset.contactFound = (hasEmailContact(mev) || _EMAIL_RE.test(String(mev.poc_email || ''))) ? '1' : '';
       // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
       var mContactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
-      var mRecent = isRecentlyAdded(mev.created_at);
+      // "Recently added" means UNTRIAGED-and-new. Once someone has worked the
+      // event — tagged it, written a note, flagged it for a teammate, archived
+      // it — it isn't new to Angela any more, so it drops the yellow outline and
+      // leaves the "Recently added" filter even inside the 7-day window. It was
+      // still showing up as new after she'd already dealt with it.
+      var mRecent = isRecentlyAdded(mev.created_at) && !opsHandled({{
+        hidden: _isHiddenForMe(true, mev.id, mev.hidden === true),
+        queue_dismissed: mev.queue_dismissed,
+        stages: manualStages,
+        workflow_status: mev.status,
+        notes: mev.notes,
+        interested: mev.interested,
+        attendees: mev.attendees,
+        outreach_assignees: mev.outreach_assignees,
+        speaker: mev.speaker,
+        decision: mev.decision
+      }});
       card.dataset.recent = mRecent ? '1' : '';
       // Recently added now shows as a YELLOW card outline, no label — a triage cue
       // for support (Angela/Hurley), the same audience the old "Recently Added"
@@ -7032,12 +7061,41 @@ def build():
         outreach_assignees: (outr && outr.slice) ? outr.slice() : [],
         outreach_note: (st && st.outreach_note) || base.outreach_note || '',
         speaker_topic: (st && st.speaker_topic) || base.speaker_topic || '',
+        // Notes + legacy status marker, so the "has anyone already worked this
+        // event?" test (opsHandled) can see them. '__cleared__' is an explicit
+        // blank; '__deleted__' is the soft-delete sentinel — neither is content.
+        notes: (function () {{ var v = (st && st.notes); if (v === '__cleared__') v = ''; return (v && String(v).trim()) ? v : (base.notes || ''); }})(),
+        workflow_status: (function () {{ var v = (st && st.status) || base.status || ''; return v === '__deleted__' ? '' : v; }})(),
         briefing_json: (st && st.briefing_json) || base.briefing_json || null,
         briefing_generated_at: (st && st.briefing_generated_at) || base.briefing_generated_at || null,
         createdBy: abFold(base.created_by || ''),
         text: abFold(blob)
       }};
     }}
+
+    // "Has this event already been dealt with?" — ONE definition, used by every
+    // surface that is supposed to show only UNTRIAGED events (Recently added,
+    // the Planner's coverage gaps, Plan Ahead suggestions). Angela's rule: once
+    // she's looked into an event — tagged it, written a note, flagged it for
+    // someone, assigned a speaker, made a go/no-go call, or archived it — it is
+    // no longer "new" and must stop being offered back to her as something to
+    // triage. Everything here is a deliberate action someone took on the event.
+    function opsHandled(it) {{
+      if (!it) return false;
+      return !!(
+        it.hidden ||                                        // archived (per person)
+        it.queue_dismissed ||                               // "not relevant" in the queue
+        (it.stages && it.stages.length) ||                  // any pipeline stage
+        (it.workflow_status && String(it.workflow_status).trim()) ||
+        (it.notes && String(it.notes).trim()) ||
+        (it.interested && it.interested.length) ||          // flagged for someone
+        (it.attendees && it.attendees.length) ||
+        (it.outreach_assignees && it.outreach_assignees.length) ||
+        (it.speaker && String(it.speaker).trim()) ||
+        (it.decision && String(it.decision).trim())
+      );
+    }}
+    window.opsHandled = opsHandled;
 
     // Attendee persona keys for an event = explicit `attendees` ∪ any persona
     // matched by the assigned speaker. Drives the Day-Of tab + brief.
@@ -7422,6 +7480,17 @@ def build():
     }}
 
     // ── Queue: every flagged "apply for me" event, grouped by progress ──
+    // THE queue definition — the tab badge and the rendered list MUST use this
+    // same function. They used to carry two different filters (the badge dropped
+    // Booked but counted dismissed rows; the list did the opposite), so the
+    // number never matched what Angela actually saw in the Queue.
+    function queueItems() {{
+      return opsAllItems().filter(function (it) {{
+        return window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).length &&
+               !it.past && !it.queue_dismissed && !it.hidden;
+      }});
+    }}
+
     function renderQueue() {{
       var host = document.getElementById('ops-queue');
       if (!host) return;
@@ -7430,7 +7499,7 @@ def build():
       // people NOT already booked/attending (window.visibleInterested).
       // queue_dismissed = Angela said "not relevant" (the × next to Mark
       // applied) — keeps it off the queue without touching who's interested.
-      var items = opsAllItems().filter(function (it) {{ return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past && !it.queue_dismissed; }});
+      var items = queueItems();
 
       function deadlineHtml(it) {{
         if (_isJunkVal(it.deadline) || isDeadlinePast(it.deadline)) return '';
@@ -7438,7 +7507,7 @@ def build():
         return '<span class="q-deadline' + (soon ? ' soon' : '') + '">&#9203; ' + escapeHtml(it.deadline) + '</span>';
       }}
       function rowHtml(it, actions) {{
-        var ints = window.visibleInterested(it.interested, it.speaker, it.attendees).map(function (n) {{ return '<span class="q-int-chip">' + escapeHtml(n) + '</span>'; }}).join('');
+        var ints = window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).map(function (n) {{ return '<span class="q-int-chip">' + escapeHtml(n) + '</span>'; }}).join('');
         var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>' : '';
         var loc = [it.location].filter(Boolean).join(' &middot; ');
         return '<div class="queue-row">' +
@@ -8608,15 +8677,32 @@ def build():
       function _whoLabel(w) {{ return escapeHtml(w ? w.charAt(0).toUpperCase() + w.slice(1) : ''); }}
       function _whoList(arr) {{ return (arr || []).map(_whoLabel).join(' &amp; '); }}
       // One reusable suggestion row (name · date · loc + interested/skip).
-      function sugRow(it, extraHtml) {{
+      //
+      // `forWho` = the teammate this row is being suggested FOR. Angela and
+      // Hurley run the tracker but never attend, so "I'm interested" / "Not for
+      // me" was meaningless in their view — the row belongs to Thor, Verma, etc.
+      // For them the buttons name that person ("Thor's interested" / "Not for
+      // him"); for everyone else the row is their own and the wording stays
+      // first-person. See [[sales-support-non-attendees]].
+      function sugRow(it, extraHtml, forWho) {{
         var loc = it.location || '';
+        var who = (support && forWho) ? String(forWho) : '';
+        var whoCap = who ? who.charAt(0).toUpperCase() + who.slice(1) : '';
+        // Name rather than a pronoun ("Not for Thor", not "Not for him") — it
+        // reads the same and doesn't guess anyone's pronouns.
+        var yes = who ? (escapeHtml(whoCap) + '&#39;s interested') : 'I&#39;m interested';
+        var no  = who ? ('Not for ' + escapeHtml(whoCap)) : 'Not for me';
+        var noTitle = who ? ('Take this off ' + escapeHtml(whoCap) + '&#39;s list (and out of your Plan Ahead)')
+                          : 'Take this off your list';
         return '<div class="queue-row sug-row"><div class="queue-main">' +
             '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
             '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' \\u00b7 ' + escapeHtml(loc) : '') + '</p>' +
             (extraHtml || '') +
           '</div><div class="queue-actions sug-actions">' +
-            '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">I&#39;m interested</button>' +
-            '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="Take this off your list">Not for me</button>' +
+            '<button type="button" class="q-btn primary" data-pa-flag="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '"' +
+              (who ? ' data-pa-for="' + escapeHtml(who) + '"' : '') + '>' + yes + '</button>' +
+            '<button type="button" class="q-btn sug-skip" data-pa-skip="1" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '"' +
+              (who ? ' data-pa-for="' + escapeHtml(who) + '"' : '') + ' title="' + noTitle + '">' + no + '</button>' +
           '</div></div>';
       }}
       // Small "hide this whole block from Plan Ahead" ✕ for a trip cluster / radar
@@ -8670,7 +8756,7 @@ def build():
             shownKeys[n.it.kind + ':' + n.it.key] = 1;
             var prox = (n.gap === 0 ? 'overlaps' : ('~' + n.gap + ' day' + (n.gap === 1 ? '' : 's') + ' apart')) +
               ' \\u00b7 ' + (n.km < 25 ? 'same city' : ('~' + Math.round(n.km) + ' km away'));
-            tripHtml += sugRow(n.it, '<p class="trip-prox">' + prox + '</p>');
+            tripHtml += sugRow(n.it, '<p class="trip-prox">' + prox + '</p>', cl.who);
           }});
           // Nothing else tracked near this trip. Rather than a dead end, we
           // PROACTIVELY hunt for nearby events (≤5) via a one-time, cached AI
@@ -8736,7 +8822,9 @@ def build():
           recHtml += anchorHead(lead, rc.anchor, 'rec-cluster');
           rc.recs.forEach(function (p) {{
             shownKeys[p.it.kind + ':' + p.it.key] = 1;
-            recHtml += sugRow(p.it, '');
+            // Name the person when the recommendation traces to exactly one of
+            // them; with several interested it stays generic.
+            recHtml += sugRow(p.it, '', (rc.who && rc.who.length === 1) ? rc.who[0] : '');
           }});
           recHtml += '</div>';
         }});
@@ -8798,6 +8886,21 @@ def build():
           var it = opsAllItems().filter(function (x) {{ return x.kind === kind && String(x.key) === key; }})[0];
           if (!it) return;
           btn.setAttribute('aria-busy', 'true');
+          // Angela/Hurley flag ON BEHALF OF the teammate the row was suggested
+          // for — toggleMyInterest would have registered THEM, and they don't
+          // attend. Add that person to the shared interested list instead
+          // (same write the Planner's "+ Flag for X" does).
+          var forWho = btn.getAttribute('data-pa-for');
+          if (forWho) {{
+            var target = OPS_ROSTER.filter(function (n) {{ return n.toLowerCase() === String(forWho).toLowerCase(); }})[0];
+            if (target) {{
+              var list = (it.interested || []).slice();
+              if (list.indexOf(target) === -1) list.push(target);
+              list = OPS_ROSTER.filter(function (x) {{ return list.indexOf(x) !== -1; }});
+              opsQuickWrite(kind, key, {{ interested: list }});
+              return;
+            }}
+          }}
           toggleMyInterest(kind, it.key, it.interested, it.startObj && it.startObj.attend_verdict);
         }});
       }});
@@ -9525,28 +9628,34 @@ def build():
         var inTerr = items.filter(function (it) {{ return !it.past && !it.hidden && terr.test(it); }});
         if (!inTerr.length) return;
         var covered = inTerr.filter(function (it) {{ return it.speaker && it.speaker.trim(); }});
-        var gaps = inTerr.filter(function (it) {{ return !(it.speaker && it.speaker.trim()); }});
+        // A "gap" is an event NOBODY has dealt with yet. Once Angela flags it for
+        // someone, tags it, notes it, or archives it, it drops off this list —
+        // it stayed put before (just re-labelled "✓ Flagged for X"), so the list
+        // never shrank as she worked it. opsHandled covers every such action.
+        var gaps = inTerr.filter(function (it) {{
+          return !(it.speaker && it.speaker.trim()) && !opsHandled(it);
+        }});
         gaps.sort(function (a, b) {{ return a.sort - b.sort; }});
         html += '<div class="gap-owner"><div class="gap-owner-head">' +
             '<span class="gap-owner-name">' + escapeHtml(terr.who) + '</span>' +
-            '<span class="gap-owner-stat">' + inTerr.length + ' events &middot; ' + covered.length + ' covered &middot; <b>' + gaps.length + ' open</b></span>' +
+            '<span class="gap-owner-stat">' + inTerr.length + ' events &middot; ' + covered.length + ' covered &middot; <b>' + gaps.length + ' untouched</b></span>' +
           '</div>';
         if (!gaps.length) {{
-          html += '<p class="gap-none">&#10003; All ' + inTerr.length + ' covered &mdash; nothing open.</p>';
+          html += '<p class="gap-none">&#10003; Nothing left to triage here &mdash; every event is assigned, flagged or already dealt with.</p>';
         }} else {{
           html += '<div class="gap-list">';
           gaps.slice(0, CAP).forEach(function (it) {{
             var loc = [it.location].filter(Boolean).join(' &middot; ');
-            var flagged = it.interested.indexOf(terr.who) !== -1;
+            // No "✓ Flagged for X" state any more — flagging removes the row
+            // from the gap list entirely (that's the point: the list is work
+            // still to do, and it should shrink as she works it).
             html += '<div class="gap-row"><div>' +
                 '<button class="gap-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
                 '<p class="gap-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
               '</div>' +
               '<div class="gap-actions">' +
                 '<button class="q-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
-                (flagged
-                  ? '<span class="q-int-chip">&#10003; Flagged for ' + escapeHtml(terr.who) + '</span>'
-                  : '<button class="q-btn primary" data-flag="' + escapeHtml(terr.who) + '" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ Flag for ' + escapeHtml(terr.who) + '</button>') +
+                '<button class="q-btn primary" data-flag="' + escapeHtml(terr.who) + '" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ Flag for ' + escapeHtml(terr.who) + '</button>' +
               '</div>' +
               '</div>';
           }});
@@ -9600,9 +9709,9 @@ def build():
       var qc = document.getElementById('vt-queue-count');
       var pc = document.getElementById('vt-planner-count');
       if (qc) {{
-        var n = opsAllItems().filter(function (it) {{
-          return window.visibleInterested(it.interested, it.speaker, it.attendees).length && !it.past && it.stages.indexOf('Booked') === -1;
-        }}).length;
+        // Same source as the rendered Queue — the badge is a count of the rows
+        // she'll actually see when she opens the tab, nothing else.
+        var n = queueItems().length;
         if (n) {{ qc.textContent = n; qc.removeAttribute('hidden'); }} else {{ qc.setAttribute('hidden', ''); }}
       }}
       if (pc) {{
@@ -12340,16 +12449,48 @@ def build():
       return out || _mdToHtml(txt);
     }}
     // Click a recommended card \\u2192 open that event\\u2019s detail modal.
+    //
+    // Resolve against the RENDERED cards first, always. Their _modalRec is the
+    // merged record (event_state overrides + _table/_key edit context); the raw
+    // CATALOG entry that window.openEventByNum used has none of that, so Details
+    // opened with an empty Edit form — and when the num wasn't in the client
+    // CATALOG at all (manual events carry no num; a catalog event can be stale)
+    // it silently opened nothing, which is the "can't click the details" Angela
+    // hit. Falls back to CATALOG with edit context grafted on so a card can
+    // still open even if its grid row isn't there.
+    function _askResolveRec(num, name) {{
+      var cards = $opsGrid ? Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card')) : [];
+      var rec = null;
+      if (num !== null && num !== undefined && String(num) !== '') {{
+        var k = String(num);
+        rec = (cards.filter(function (c) {{
+          return c._modalRec && c._modalRec._table === 'event_state' && String(c._modalRec._key) === k;
+        }})[0] || {{}})._modalRec || null;
+      }}
+      if (!rec && name) {{
+        var nm = String(name).trim().toLowerCase();
+        rec = (cards.filter(function (c) {{
+          return c._modalRec && (c._modalRec.name || '').trim().toLowerCase() === nm;
+        }})[0] || {{}})._modalRec || null;
+      }}
+      if (!rec && num !== null && num !== undefined && String(num) !== '') {{
+        var raw = (window.AB_CATALOG || {{}})[String(num)];
+        if (raw) {{
+          // Clone + attach the editing context the modal needs, so Edit works.
+          rec = {{}};
+          for (var kk in raw) {{ if (Object.prototype.hasOwnProperty.call(raw, kk)) rec[kk] = raw[kk]; }}
+          rec._table = 'event_state'; rec._key = raw.num;
+        }}
+      }}
+      return rec;
+    }}
     function _wireAskCards(container) {{
       container.querySelectorAll('.ask-card').forEach(function (btn) {{
         btn.addEventListener('click', function () {{
-          var num = btn.getAttribute('data-evnum');
-          if (num && typeof window.openEventByNum === 'function') {{ window.openEventByNum(num); return; }}
-          var nm = (btn.getAttribute('data-evname') || '').trim().toLowerCase();
-          if (!nm) return;
-          var hit = Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card'))
-            .filter(function (c) {{ return c._modalRec && (c._modalRec.name || '').trim().toLowerCase() === nm; }})[0];
-          if (hit && typeof window.openEventModal === 'function') window.openEventModal(hit._modalRec);
+          var rec = _askResolveRec(btn.getAttribute('data-evnum'), btn.getAttribute('data-evname'));
+          if (rec && typeof window.openEventModal === 'function') {{ window.openEventModal(rec); return; }}
+          // Nothing matched — say so instead of looking dead on click.
+          if (typeof status === 'function') status('Could not open that event \\u2014 it may have been deleted or renamed.', 'error');
         }});
       }});
     }}
