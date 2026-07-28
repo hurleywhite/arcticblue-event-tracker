@@ -321,7 +321,7 @@ def _gather_events(host):
                 })
     # Manual events
     st, rows = _http_json(
-        'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name,date_str,location,'
+        'GET', SUPABASE_URL + '/rest/v1/manual_events?select=id,name,date_str,location,'
         'region,type,priority,status_tags,speaker,attend_verdict,audience_type,'
         'pricing,deadline,why,url,poc_name,poc_email,contact_info',
         headers={'apikey': SUPABASE_PUBLISHABLE,
@@ -335,6 +335,11 @@ def _gather_events(host):
                 m.get('type'), m.get('audience_type'), m.get('why'))))
             endish = _endish_iso(None, None, m.get('date_str'))
             out.append({
+                # Stable id so the UI can open the right event by KEY instead of
+                # guessing from the name. The card face trims a trailing year
+                # ("IDC CIO Summit Spain 2026" -> "IDC CIO Summit Spain"), so
+                # name matching alone silently failed for manual events.
+                'mid': m.get('id'),
                 'name': m.get('name'), 'date': m.get('date_str'),
                 'location': m.get('location'), 'region': region,
                 'type': m.get('type'), 'priority': m.get('priority'),
@@ -764,7 +769,7 @@ def _match_cards(names, events):
         if hit and id(hit) not in seen:
             seen.add(id(hit))
             cards.append({k: hit.get(k) for k in (
-                'num', 'name', 'date', 'location', 'region', 'audience',
+                'num', 'mid', 'name', 'date', 'location', 'region', 'audience',
                 'attend', 'stage', 'price', 'url', 'priority')})
         if len(cards) >= 8:
             break

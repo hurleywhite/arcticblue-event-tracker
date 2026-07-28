@@ -11933,9 +11933,14 @@
         if (_acPri) tags.push('<span class="ac-tag pri-' + _acPri.toLowerCase() + '">' + escapeHtml(_acPri) + '</span>');
         if (c.stage) tags.push('<span class="ac-tag">' + escapeHtml(String(c.stage).split(',')[0].trim()) + '</span>');
         if (c.price) tags.push('<span class="ac-tag">' + escapeHtml(c.price) + '</span>');
-        var idAttr = (c.num !== null && c.num !== undefined)
-          ? ' data-evnum="' + escapeHtml(String(c.num)) + '"'
-          : ' data-evname="' + escapeHtml(c.name || '') + '"';
+        // Carry every identifier we have: catalog num, manual id, AND the name.
+        // The name alone is not reliable — the card face trims a trailing year,
+        // so the AI's "IDC CIO Summit Spain 2026" never equalled the card's
+        // "IDC CIO Summit Spain" and the click did nothing.
+        var idAttr = '';
+        if (c.num !== null && c.num !== undefined) idAttr += ' data-evnum="' + escapeHtml(String(c.num)) + '"';
+        if (c.mid !== null && c.mid !== undefined) idAttr += ' data-evmid="' + escapeHtml(String(c.mid)) + '"';
+        idAttr += ' data-evname="' + escapeHtml(c.name || '') + '"';
         return '<button type="button" class="ask-card"' + idAttr + '>' +
           '<span class="rank">#' + (i + 1) + '</span>' +
           '<span class="ac-name">' + escapeHtml(c.name || 'Untitled event') + '</span>' +
@@ -11973,20 +11978,46 @@
     // it silently opened nothing, which is the "can't click the details" Angela
     // hit. Falls back to CATALOG with edit context grafted on so a card can
     // still open even if its grid row isn't there.
-    function _askResolveRec(num, name) {
+    // Fold a title down to something comparable across the AI's copy and the
+    // card's: lowercase, strip accents (Zürich/Zurich), drop a trailing edition
+    // year and any "20xx" token, drop punctuation, collapse whitespace.
+    function _askNameKey(s) {
+      var t = String(s || '');
+      if (t.normalize) t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return t.toLowerCase()
+              .replace(/\b20\d\d\b/g, ' ')
+              .replace(/[^a-z0-9]+/g, ' ')
+              .trim();
+    }
+    function _askResolveRec(num, mid, name) {
       var cards = $opsGrid ? Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card')) : [];
       var rec = null;
-      if (num !== null && num !== undefined && String(num) !== '') {
-        var k = String(num);
-        rec = (cards.filter(function (c) {
-          return c._modalRec && c._modalRec._table === 'event_state' && String(c._modalRec._key) === k;
+      var pick = function (table, key) {
+        var k = String(key);
+        return (cards.filter(function (c) {
+          return c._modalRec && c._modalRec._table === table && String(c._modalRec._key) === k;
         })[0] || {})._modalRec || null;
-      }
+      };
+      // 1) By key — exact and unambiguous.
+      if (num !== null && num !== undefined && String(num) !== '') rec = pick('event_state', num);
+      if (!rec && mid !== null && mid !== undefined && String(mid) !== '') rec = pick('manual_events', mid);
+      // 2) Exact name.
       if (!rec && name) {
         var nm = String(name).trim().toLowerCase();
         rec = (cards.filter(function (c) {
           return c._modalRec && (c._modalRec.name || '').trim().toLowerCase() === nm;
         })[0] || {})._modalRec || null;
+      }
+      // 3) Normalised name — survives the trimmed year, accents and punctuation.
+      if (!rec && name) {
+        var key = _askNameKey(name);
+        if (key) {
+          var hits = cards.filter(function (c) {
+            return c._modalRec && _askNameKey(c._modalRec.name) === key;
+          });
+          // Only accept a fuzzy hit when it's unambiguous.
+          if (hits.length === 1) rec = hits[0]._modalRec;
+        }
       }
       if (!rec && num !== null && num !== undefined && String(num) !== '') {
         var raw = (window.AB_CATALOG || {})[String(num)];
@@ -12002,7 +12033,7 @@
     function _wireAskCards(container) {
       container.querySelectorAll('.ask-card').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          var rec = _askResolveRec(btn.getAttribute('data-evnum'), btn.getAttribute('data-evname'));
+          var rec = _askResolveRec(btn.getAttribute('data-evnum'), btn.getAttribute('data-evmid'), btn.getAttribute('data-evname'));
           if (rec && typeof window.openEventModal === 'function') { window.openEventModal(rec); return; }
           // Nothing matched — say so instead of looking dead on click.
           if (typeof status === 'function') status('Could not open that event \u2014 it may have been deleted or renamed.', 'error');
