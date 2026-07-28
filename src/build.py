@@ -4203,7 +4203,7 @@ def build():
         field('ArcticBlue speaker', rec.speaker) +
         field('Status marker', rec.workflow_status === '__deleted__' ? '' : rec.workflow_status) +
         field('Speaking route', rec.speaking_route) +
-        field('Deadline', (window.isStaleDeadline && window.isStaleDeadline(rec.deadline)) ? '' : rec.deadline) +
+        field('Deadline', (window.opsDeadlineUsable && window.opsDeadlineUsable(rec.deadline, rec)) ? rec.deadline : '') +
         field('Pay-to-play', rec.pay_to_play) +
         field('Submission status', rec.submission_status) +
         field('Speaking fee', rec.speaking_fee));
@@ -5261,26 +5261,36 @@ def build():
       // Raw CFP deadline DATES are Angela's business (she runs applications) —
       // the derived open/closed STATUS shows for everyone via cardStatusLine.
       if (!(window.isAngelaUser && window.isAngelaUser())) return '';
-      if (d == null || !String(d).trim()) return '';
+      if (!deadlineUsable(d, o)) return '';   // shared vetting — see deadlineUsable
       var txt = String(d).trim();
-      if (_isJunkVal(txt)) return '';   // skip "not specified" / "TBD" / "N/A" clutter
-      if (isStaleDeadline(txt)) return '';  // skip stale "…as of April 21" hedges
-      if (isDeadlinePast(d)) return '';  // closed state is on the status line now
-      // A CFP deadline on or after the event itself is nonsensical — you can't
-      // submit a talk once the event has started. (Angela saw "CFP deadline:
-      // 1 September 2026" on an event running July 7-10.) Hide it rather than
-      // confuse. Parse the deadline the same resilient way isDeadlinePast does.
+      var cls = isDeadlineSoon(d) ? ' deadline-soon' : '';
+      return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
+    }}
+
+    // Is this CFP deadline worth showing AT ALL? Same rules the card applies,
+    // pulled out so the Details pop-up can't disagree with the card — it used to
+    // print the raw value, so eCommerce Day Uruguay (event Jul 30) showed a
+    // "2026-06-30" deadline in Details that the card had already suppressed.
+    // Rejected: blank, junk ("TBD"/"N/A"), a stale "…as of April 21" hedge, a
+    // deadline that has already passed, and — per Angela — any deadline falling
+    // ON or AFTER the event itself (you can't submit a talk once it's started).
+    function deadlineUsable(d, o) {{
+      if (d == null || !String(d).trim()) return false;
+      var txt = String(d).trim();
+      if (_isJunkVal(txt)) return false;
+      if (isStaleDeadline(txt)) return false;
+      if (isDeadlinePast(d)) return false;
       var evStart = eventStartIso(o);
       if (evStart) {{
         var dl = null;
         try {{ var diso = deriveDatesFromText(txt).start_date; if (diso) dl = new Date(diso + 'T00:00:00'); }} catch (e) {{}}
         if (!dl || isNaN(dl)) {{ var d2 = new Date(txt); if (!isNaN(d2)) dl = d2; }}
         var evd = new Date(evStart + 'T00:00:00');
-        if (dl && !isNaN(dl) && !isNaN(evd) && dl >= evd) return '';
+        if (dl && !isNaN(dl) && !isNaN(evd) && dl >= evd) return false;
       }}
-      var cls = isDeadlineSoon(d) ? ' deadline-soon' : '';
-      return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
+      return true;
     }}
+    window.opsDeadlineUsable = deadlineUsable;
 
     // Two status glyphs so speaking vs attending reads at a glance (Angela):
     //   mic    = the SPEAKING track (Booked / Submitted / Rejected) — "Rejected 🎤 — Thor"
@@ -6657,7 +6667,7 @@ def build():
           var _intNames = (card.dataset.interestedNames || '').split('|').filter(Boolean);
           var _fitHit = activeFits.some(function (k) {{
             var pf = AB_PROFILE_BY_KEY[k]; if (!pf) return false;
-            if (profileFits(pf, card.dataset.fitText, card.dataset.region)) return true;
+            if (profileFits(pf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card))) return true;
             // If that person flagged "I'm interested", the event fits THEM —
             // keep it in their Fits filter even when the keywords don't match.
             var kf = abFold(pf.key);
@@ -6724,7 +6734,7 @@ def build():
             // Fits my profile OR I flagged interested (interest = a fit). Mirrors
             // the count in renderStats and the Fits-dropdown rule.
             var _mfInt = (card.dataset.interestedNames || '').split('|').filter(Boolean).some(function (n) {{ return abFold(n).split(/\\s+/)[0] === _attMe; }});
-            if (!(_mfInt || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region)))) on = false;
+            if (!(_mfInt || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card))))) on = false;
           }}
         }}
         if (activeStages.length > 0) {{
@@ -6882,6 +6892,9 @@ def build():
       // on every (re)render until the reader clicks a status chip — robust to the
       // load-order of profiles vs. the first stats render.
       if (!_userPickedStat && !opsStatFilter && AB_PROFILE_BY_LCKEY[meFirst]) opsStatFilter = 'myfits';
+      // Angela has no "My fits" chip (see renderStats) — make sure she can never
+      // be left sitting on that filter with no visible control to clear it.
+      if (opsStatFilter === 'myfits' && window.isAngelaUser && window.isAngelaUser()) opsStatFilter = '';
       function _isMine(list) {{ return (list || []).some(function (n) {{ return String(n).toLowerCase() === me; }}); }}
       // "Attending" is PER-ACCOUNT: events where the signed-in person is an
       // assigned attendee — the attendee list is the source of truth (not the
@@ -6947,11 +6960,11 @@ def build():
         if (isPastEvent(ev)) return;
         var st2 = stByNum[ev.num] || {{}};
         var _int = (st2.interested && st2.interested.length) ? st2.interested : (ev.interested || []);
-        if (_mineInterest(_int) || (_myPf && profileFits(_myPf, _fitBlob(ev, st2), canonicalRegion(ev)))) myFits++;
+        if (_mineInterest(_int) || (_myPf && profileFits(_myPf, _fitBlob(ev, st2), canonicalRegion(ev), priceNumOf((st2 && st2.pricing) || ev.pricing)))) myFits++;
       }});
       (manualRows || []).forEach(function (m) {{
         if (isPastEvent(m)) return;
-        if (_mineInterest(m.interested) || (_myPf && profileFits(_myPf, _fitBlob(m, m), canonicalRegion(m)))) myFits++;
+        if (_mineInterest(m.interested) || (_myPf && profileFits(_myPf, _fitBlob(m, m), canonicalRegion(m), priceNumOf(m.pricing)))) myFits++;
       }});
       // A cut-and-dry segmented status filter (data-stat). 'All' clears the
       // status filter; the rest are one-click chips. Other filters (region,
@@ -6968,15 +6981,16 @@ def build():
         tile('pipeline', inPipeline, 'Pending') +
         tile('booked', booked, 'Booked') +
         tile('attending', attending, _support ? 'Team Attending' : 'Attending');
-      var _myfitsTile = tile('myfits', myFits, 'My fits');
+      // "My fits" is a personal targeting filter — it means nothing for Angela,
+      // who books events FOR the team and never attends herself, so she doesn't
+      // get the chip at all (it used to sit at the end of her row). Everyone
+      // else is targeting their own fits, so it leads — left of "All" (Hurley).
+      var _myfitsTile = _isAngelaView ? '' : tile('myfits', myFits, 'My fits');
       // "Contacts" = events where we have an organizer email / POC — Angela-only
       // (like the ✉ badge), sits after Attending.
       var _contactsTile = _isAngelaView ? tile('contacts', contacts, 'Contacts') : '';
-      // Angela rarely attends herself, so her row leads with "All" and pushes
-      // "My fits" to the END (after Contacts). Everyone else is targeting their
-      // own fits, so "My fits" sits FIRST — to the left of "All" (Hurley).
       $stats.innerHTML = _isAngelaView
-        ? (_coreTiles + _contactsTile + _myfitsTile)
+        ? (_coreTiles + _contactsTile)
         : (_myfitsTile + _coreTiles);
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {{
@@ -9471,13 +9485,23 @@ def build():
       {{ key: 'Joe', label: 'HR & people (US)', regions: [],
          kw: ['hr','human resources','chro','clo','chief people','people officer','vp of hr','talent','workforce','future of work','upskilling','reskilling','learning','l&d','people analytics','change management','human enablement','human capital','organizational development','employee experience'] }},
       {{ key: 'Thor', label: 'Healthcare (exec)', regions: [],
-         kw: ['healthcare','healthtech','health tech','digital health','medtech','med tech','life sciences','pharma','pharmaceutical','biotech','medical','clinical','hospital','health system','healthcare ai','patient care','telehealth','payer','provider'] }},
+         kw: ['healthcare','healthtech','health tech','digital health','medtech','med tech','life sciences','pharma','pharmaceutical','biotech','medical','health system','healthcare ai','patient care','telehealth','payer','provider'] }},
       {{ key: 'Verma', label: 'Insurance & regulated (board-level)', regions: [],
-         kw: ['insurance','insurtech','life insurance','reinsurance','finance','financial services','bank','banking','capital markets','payments','wealth','asset management','fintech','board','chief risk','chief data','regulated','compliance','australia','australian','sydney','melbourne','brisbane','perth','canberra','adelaide'] }},
+         kw: ['insurance','insurtech','life insurance','reinsurance','finance','financial services','bank','banking','capital markets','payments','fintech','board','chief data','regulated','compliance'] }},
       {{ key: 'Carlos', label: 'Americas (mid-market)', regions: ['US & Canada','Latin America'], locked: true,
          kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] }},
       {{ key: 'Jim', label: 'Government (DC)', regions: [],
-         kw: ['government','public sector','federal','defense','national security','govtech','civic','municipal','state and local','washington','washington dc','capitol','congress','white house','agency','gsa','dod','nist','fedramp','public policy'] }}
+         kw: ['government','public sector','federal','defense','national security','govtech','civic','municipal','state and local','washington','washington dc','capitol','congress','white house','agency','gsa','dod','nist','fedramp','public policy'] }},
+      // Hurley runs the tracker and doesn't speak — his "fits" are the ones he'd
+      // actually walk into: FREE AI events within reach of the Northeast. Unlike
+      // the others this is an AND, not a keyword OR: it must be an AI event, AND
+      // in the Northeast, AND free. Hence allKw (every group must hit) + freeOnly.
+      {{ key: 'Hurley', label: 'Free AI events (Northeast)', regions: [], kw: [], support: true,
+         freeOnly: true,
+         allKw: [
+           ['ai','a i','artificial intelligence','machine learning','deep learning','genai','gen ai','generative ai','llm','llms','agentic','data science','mlops','nlp'],
+           ['new york','new york city','nyc','manhattan','brooklyn','queens','bronx','long island','boston','cambridge','somerville','philadelphia','philly','pittsburgh','newark','jersey city','princeton','hoboken','stamford','hartford','new haven','greenwich','providence','portland maine','burlington','albany','buffalo','rochester','syracuse','new england','northeast','tri state','tri-state','connecticut','massachusetts','new jersey','rhode island','new hampshire','vermont','maine','pennsylvania','new york state']
+         ] }}
     ];
     var AB_PROFILE_BY_KEY = {{}};
     AB_PROFILES.forEach(function (p) {{ AB_PROFILE_BY_KEY[p.key] = p; }});
@@ -9486,15 +9510,40 @@ def build():
     var AB_PROFILE_BY_LCKEY = {{}};
     AB_PROFILES.forEach(function (p) {{ AB_PROFILE_BY_LCKEY[String(p.key).toLowerCase()] = p; }});
     // True if an event (canonical region + folded text blob) fits a profile.
-    function profileFits(p, blob, region) {{
+    function _cardPriceNum(card) {{
+      var v = card && card.dataset ? card.dataset.price : '';
+      if (v === '' || v == null) return null;
+      var n = parseFloat(v);
+      return isNaN(n) ? null : n;
+    }}
+    // priceNum: the event's parsed ticket price (0 = free, null = unknown). Only
+    // consulted by a freeOnly profile; every other profile ignores it.
+    function profileFits(p, blob, region, priceNum) {{
       if (!p) return false;
-      // Australia is VERMA'S territory only — no one else fits an AU event, even
-      // when the industry keywords match (an AU healthcare event ≠ Thor's).
-      if (p.key !== 'Verma' && /\\b(australia|australian|sydney|melbourne|brisbane|perth|canberra|adelaide)\\b/.test(String(blob || ''))) return false;
+      // (Australia used to be carved out as Verma's exclusive territory. It was
+      // taken off his profile, so this gate went with it — kept on its own it
+      // would have left every AU event fitting NOBODY. Australian events now
+      // match on their own merits, like anywhere else: an AU insurance event
+      // still reaches Verma via 'insurance', an AU healthcare one reaches Thor.)
       // HR / CHRO / people events are JOE'S audience only — keep them off everyone
       // else's fit (a CHRO summit whose attendees span industries was matching
       // Thor on a stray "healthcare"). Matched on the strong HR event signals.
       if (p.key !== 'Joe' && /\\bchro\\b|shrm|chief (human resources|people)|people officer|\\bhr (summit|conference|forum|assembly|exchange|congress|leaders)\\b/.test(String(blob || ''))) return false;
+      // AND-profile (Hurley): every keyword group must hit, and a freeOnly
+      // profile additionally requires a price we KNOW is zero — an unknown price
+      // is not "free", so it stays out rather than pretending.
+      if (p.allKw && p.allKw.length) {{
+        if (p.freeOnly && priceNum !== 0) return false;
+        var hb = ' ' + String(blob || '').replace(/[^a-z0-9]/g, ' ').replace(/ +/g, ' ').trim() + ' ';
+        for (var gi = 0; gi < p.allKw.length; gi++) {{
+          var grp = p.allKw[gi], hit = false;
+          for (var gj = 0; gj < grp.length; gj++) {{
+            if (hb.indexOf(' ' + grp[gj] + ' ') !== -1) {{ hit = true; break; }}
+          }}
+          if (!hit) return false;
+        }}
+        return true;
+      }}
       var regionOk = !!(region && p.regions.indexOf(region) !== -1);
       // Region-locked people (Jerome = Europe, Carlos = Latin America) fit ONLY
       // their own region — a loose keyword (a city named in a blurb, or 'web
@@ -9507,7 +9556,7 @@ def build():
     }}
 
     // Planner coverage-gap territories, derived from the profiles above.
-    var AB_TERRITORIES = AB_PROFILES.map(function (p) {{
+    var AB_TERRITORIES = AB_PROFILES.filter(function (p) {{ return !p.support; }}).map(function (p) {{
       return {{ who: p.key, label: p.label, test: function (it) {{ return profileFits(p, it.text, it.region); }} }};
     }});
 

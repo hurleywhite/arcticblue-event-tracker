@@ -26,6 +26,26 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-599@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20270222
+DTEND;VALUE=DATE:20270225
+SUMMARY:AHLA Winter Institute — The Complexities of AI in Health Care Track
+LOCATION:Las Vegas\, NV
+DESCRIPTION:American Health Law Association's Winter Institute dedicates a full track to AI in health care governance\, legal\, and compliance complexity — directly aligned with Verma's regulated-industry (healthcare) AI governance and board-oversight focus\, with an official open call-for-speakers.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.americanhealthlaw.org/education-events/call-for-educational-content/call-for-speakers
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-598@arcticblue-event-tracker
+DTSTAMP:20260728T000000Z
+DTSTART;VALUE=DATE:20270222
+DTEND;VALUE=DATE:20270225
+SUMMARY:Fintech Meetup 2027
+LOCATION:Las Vegas\, NV
+DESCRIPTION:One of the largest fintech/banking gatherings in North America (5\,000+ attendees\, 700+ financial institutions\, 1\,000+ CEOs/founders) with a 2027 theme of 'Built on Trust' explicitly framed around AI\, data\, and decision confidence in financial services — strong fit for Verma's regulated fintech/banking audience.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://fintechmeetup.com/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-597@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261110
@@ -3322,7 +3342,7 @@ DTEND;VALUE=DATE:20260822
 SUMMARY:CDO Vision Chicago 2026
 LOCATION:Chicago\, IL\, USA
 DESCRIPTION:2nd edition exclusive invite-only gathering of 30+ top CDOs and enterprise AI leaders in Chicago — intimate decision-maker forum with direct contact route for ArcticBlue's data strategy and AI adoption consulting.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://cdovision.aim.media/events/cdo-vision-chicago-2026
+URL:https://aim.media/discover-events/cdo-vision-chicago-2026
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-183@arcticblue-event-tracker
