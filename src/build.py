@@ -819,11 +819,21 @@ def build():
     /* Deadline/closed-to-speak label + Apply button sit side by side in one
        compact row, pinned to the bottom of the card (not each its own
        full-width block). */
-    .ops-card-foot {{ display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: auto; }}
+    /* Card footer = a fixed STACK, one item per row, always in the same order:
+       CFP deadline -> ✉ Contact -> Apply to speak. It used to be a wrapping row,
+       so a card with a deadline put "CFP deadline: Rolling" and the Contact chip
+       side by side while every other card had Contact on its own line — the chip
+       landed in a different place card to card (Angela). Pinned to the bottom
+       (margin-top:auto) so the footers line up across a row of cards. */
+    .ops-card-foot {{
+      display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+      margin-top: auto;
+    }}
+    .ops-card-foot > * {{ max-width: 100%; }}
     .ops-card-foot .ops-meta {{ margin: 0; }}
     /* Apply spans the FULL card width on its own row (Hurley — only Angela sees
        the button), below any deadline/contact note. */
-    .ops-card-foot .ops-apply-btn {{ flex: 0 0 100%; width: 100%; margin-left: 0; }}
+    .ops-card-foot .ops-apply-btn {{ width: 100%; margin-left: 0; }}
     .ops-apply-btn {{
       display: flex; align-items: center; justify-content: center;
       box-sizing: border-box; text-align: center;
