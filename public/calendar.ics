@@ -46,16 +46,6 @@ DESCRIPTION:AI Accelerator Institute's Canadian cluster (GenAI + Agentic AI + CA
 URL:https://world.aiacceleratorinstitute.com/location/toronto/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-595@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260922
-DTEND;VALUE=DATE:20260925
-SUMMARY:Gartner Security & Risk Management Summit EMEA 2026
-LOCATION:London\, UK
-DESCRIPTION:Gartner’s flagship cybersecurity and risk management summit in London for European CISOs — AI-driven security strategies and risk management frameworks\; 1\,500+ CISOs and risk leaders\; exhibitor speaking route for enterprise AI security and governance solution providers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.gartner.com/en/conferences/emea/security-risk-management-uk
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-594@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20260928
@@ -664,16 +654,6 @@ SUMMARY:Asia New Vision Forum Innovation
 LOCATION:Singapore\, Singapore
 DESCRIPTION:Priority: Medium\nAdded by: Angela
 URL:https://www.caixinglobal.com/caixin-anvf-2026/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-532@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261109
-DTEND;VALUE=DATE:20261111
-SUMMARY:Security & Risk Forum
-LOCATION:Washington DC
-DESCRIPTION:Priority: Medium\nAdded by: Angela
-URL:https://www.forrester.com/event/security-risk/?utm_source=chatgpt.com
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-531@arcticblue-event-tracker
@@ -1466,16 +1446,6 @@ DESCRIPTION:CDM Media’s dedicated Chief Data Officer and Chief AI Officer summ
 URL:https://www.cdmmedia.com/cdo
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-445@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260917
-DTEND;VALUE=DATE:20260918
-SUMMARY:CDM Media CIO/CISO Ireland Summit 2026
-LOCATION:Dublin\, Ireland
-DESCRIPTION:CDM Media’s joint CIO & CISO executive summit in Dublin covering enterprise AI\, cloud and security — reaches Irish and European multinational enterprise decision-makers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.cdmmedia.com/event/3a5f270f-b461-45db-a607-a70633857de8/summary
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-444@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261014
@@ -1723,26 +1693,6 @@ SUMMARY:IDC FutureTech Summit UK 2026
 LOCATION:London\, UK
 DESCRIPTION:IDC's premier UK event for CTOs and IT architects on scaling AI across cloud and enterprise platforms\; backed by IDC analyst research credibility\; themes include responsible AI adoption\, EU AI Act compliance\, and AI ROI — directly aligned with ArcticBlue's enterprise scaling narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://event.idc.com/event/futuretech-summit-uk/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-412@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261126
-DTEND;VALUE=DATE:20261127
-SUMMARY:CDAO Benelux 2026
-LOCATION:Amsterdam\, Netherlands
-DESCRIPTION:Europe’s focused one-day CDO summit for Benelux and broader European data leaders\; real-world AI applications\, EU AI Act compliance\, data governance\, and predictive analytics\; boutique format (80+ attendees) enabling high-quality networking with European enterprise data buyers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://cdao-benelux.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-411@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261026
-DTEND;VALUE=DATE:20261028
-SUMMARY:Chief AI Officer Fall 2026
-LOCATION:Renaissance Boston Seaport District\, Boston\, MA\, USA
-DESCRIPTION:Corinium’s inaugural Chief AI Officer-specific conference (200+ attendees\, 100+ speakers\, co-located with CDAO Fall)\; AI-driven decision-making\, agentic AI governance\, ethics\, and responsible AI deployment — ArcticBlue’s target buyer (CAIOs and enterprise AI executives) is the core audience.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://caio-fall.coriniumintelligence.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-410@arcticblue-event-tracker
@@ -2235,16 +2185,6 @@ DESCRIPTION:Premier German-market AI in insurance conference with C-level speake
 URL:https://live.handelsblatt.com/event/handelsblatt-jahrestagung-ai-in-insurance/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-360@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260922
-DTEND;VALUE=DATE:20260924
-SUMMARY:CDAO Defense & Security 2026
-LOCATION:Le Méridien Washington\, D.C.\, USA
-DESCRIPTION:Corinium's premier defense/intelligence data-and-AI gathering co-locates with CDAO Government — strong public-sector AI governance audience relevant to ArcticBlue's responsible AI and operating model messaging.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://cdao-def.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-359@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20260801
@@ -2345,16 +2285,6 @@ DESCRIPTION:Asia's premier fintech and AI festival co-organized by HKMA\, SFC\, 
 URL:https://www.fintechweek.hk/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-348@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260820
-DTEND;VALUE=DATE:20260821
-SUMMARY:Forrester AI Forum Singapore 2026
-LOCATION:Singapore\, Singapore
-DESCRIPTION:Forrester's flagship APAC AI forum for technology\, security\, and B2B marketing leaders at Marina Bay Sands\; enterprise AI-into-action framing with regulated-industry lens maps precisely to Verma's de-risking and culture-of-experimentation narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.forrester.com/event/singapore-forum/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-347@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261013
@@ -2363,16 +2293,6 @@ SUMMARY:Tech Day IT NOW — República Dominicana 2026
 LOCATION:Hotel Jaragua\, Santo Domingo\, Dominican Republic
 DESCRIPTION:IT NOW's flagship stop in Carlos's home city of Santo Domingo — Hotel Jaragua is DR's premier business venue\; enterprise CIOs\, CTOs\, CEOs and AI decision-makers convene for a day of AI\, digital transformation\, and agentic automation content\; ArcticBlue's best home-turf branding and relationship-building event of Q4.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.techdayitnow.com/en
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-346@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260910
-DTEND;VALUE=DATE:20260913
-SUMMARY:LATAM CISO Summit 2026
-LOCATION:Cancún\, Mexico
-DESCRIPTION:Latin America's leading enterprise cybersecurity and AI governance summit draws CISOs\, CDOs and enterprise risk executives from across the region — directly aligned with ArcticBlue's AI governance and responsible AI adoption message in Carlos's Tier 2 LatAm market.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.digiamericas.org/Summit2026
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-343@arcticblue-event-tracker
@@ -2675,16 +2595,6 @@ DESCRIPTION:Organized by DIFC under royal patronage with 10\,000+ business leade
 URL:https://dubaifintechsummit.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-306@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261006
-DTEND;VALUE=DATE:20261010
-SUMMARY:IAPP Privacy. Security. Risk. + AI Governance Global 2026
-LOCATION:Seattle\, USA
-DESCRIPTION:The convergence of AI governance\, data privacy\, regulatory enforcement\, and cybersecurity risk draws the DPOs\, CISOs\, compliance officers\, and legal counsel who govern AI adoption at regulated enterprises — directly on-target for ArcticBlue's de-risking and AI governance positioning.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://iapp.org/conference/iapp-psr
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-303@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261110
@@ -2793,16 +2703,6 @@ SUMMARY:Transformational Data Assembly Europe – November 2026
 LOCATION:Atzavara Hotel & Spa\, Barcelona\, Spain
 DESCRIPTION:Millennium Alliance European CDO assembly co-located at same Barcelona venue — European Chief Data Officers on AI-ready data foundations\, directly enabling ArcticBlue's data-to-AI-value narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://mill-all.com/assemblies/transformational-data-assembly-europe-november-2026/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-292@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260811
-DTEND;VALUE=DATE:20260813
-SUMMARY:Millennium Alliance Enterprise AI Security Transformation Assembly – August
-LOCATION:The Omni Barton Creek\, Austin\, TX
-DESCRIPTION:Millennium Alliance CISO assembly on AI-driven cyber defense — 200+ Fortune 500 CISOs managing AI governance and enterprise AI risk\, a core ArcticBlue buyer segment.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/enterprise-ai-security-transformation-assembly-august-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-290@arcticblue-event-tracker
@@ -3815,16 +3715,6 @@ DESCRIPTION:Top UK healthcare AI conference focused on scaling AI in health syst
 URL:https://www.kingsfund.org.uk/events/digital-health-ai-conference-2026
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-147@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260923
-DTEND;VALUE=DATE:20260924
-SUMMARY:CDAO Washington D.C. - Enterprise (Corinium)
-LOCATION:Washington\, D.C.\, USA
-DESCRIPTION:Corinium's Enterprise Data & AI one-day summit in Washington D.C. for senior CDOs and enterprise AI leaders — great ArcticBlue speaking and networking opportunity at the intersection of government and enterprise AI adoption.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-146@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261028
@@ -3885,16 +3775,6 @@ DESCRIPTION:Intelligent Insurer's premier agentic AI summit for insurance leader
 URL:https://events.newton.media/Agentic-and-Generative-AI-for-Insurance-USA
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-138@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261202
-DTEND;VALUE=DATE:20261203
-SUMMARY:CDAO Dallas 2026 (Corinium)
-LOCATION:Dallas\, TX\, USA
-DESCRIPTION:Corinium's premier one-day CDAO summit at The Highland Dallas for Texas enterprise data\, analytics\, and AI leaders\; focused peer discussions on AI strategy and data governance — strong ArcticBlue speaking and relationship-building opportunity in the Texas market.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://cdao-dallas.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-136@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261214
@@ -3953,16 +3833,6 @@ SUMMARY:HIMSS AI in Healthcare Forum San Diego 2026
 LOCATION:San Diego\, CA\, USA
 DESCRIPTION:HIMSS's dedicated AI-in-healthcare forum for senior healthcare executives and clinicians — AI leadership strategy\, governance\, and real-world AI implementation in regulated health systems\; Verma's regulated-healthcare/AI-at-scale narrative fits this audience perfectly.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.himss.org/events-overview/ai-in-healthcare-forum-san-diego/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-128@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261026
-DTEND;VALUE=DATE:20261028
-SUMMARY:CAIO Fall 2026
-LOCATION:Boston\, MA\, USA
-DESCRIPTION:Inaugural purpose-built Chief AI Officer conference by Corinium with open speaker application\; directly targets ArcticBlue's CAIO/CDO buyer audience with AI governance\, agentic AI\, and ROI measurement themes.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://caio-fall.coriniumintelligence.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-127@arcticblue-event-tracker
@@ -4185,26 +4055,6 @@ DESCRIPTION:SSON's European GBS/Shared Services flagship — Agentic AI for end-
 URL:https://www.ssonetwork.com/events-ssow-autumn/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-90@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260922
-DTEND;VALUE=DATE:20260924
-SUMMARY:CDAO Government 2026
-LOCATION:Le Méridien Washington D.C. Metro\, Washington\, D.C.\, USA
-DESCRIPTION:Corinium's 14th annual US government CDAO event — senior data and AI leaders from Defense Logistics Agency\, US Treasury\, FAA\, State of Maryland\; co-located with CDAO DC and CDAO Defense\; useful for regulated-sector and government-adjacent pipeline when already in DC.\nPriority: Low\nAdded by: dust@arcticblue.ai
-URL:https://cdao-gov.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-89@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260902
-DTEND;VALUE=DATE:20260903
-SUMMARY:Enterprise AI Melbourne 2026
-LOCATION:Crown Promenade Melbourne\, Melbourne\, Australia
-DESCRIPTION:Corinium's practitioner-focused AI event co-located with CDAO Melbourne — covers agentic AI scaling\, legacy integration\, and responsible governance with enterprise AI professionals from Australian industry\; 'Request to Speak' open.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://enterpriseai-mel.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-88@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261118
@@ -4235,16 +4085,6 @@ DESCRIPTION:Mexico's flagship tech and innovation week in CDMX with AI\, startup
 URL:https://www.mexicotechweek.mx/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-85@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260901
-DTEND;VALUE=DATE:20260903
-SUMMARY:CDAO Melbourne 2026
-LOCATION:Melbourne\, Australia
-DESCRIPTION:Corinium's Australian data and AI leadership flagship — 500+ Australian CDOs\, CAIOs\, and CIOs from finance\, healthcare\, energy\, and government\; co-located with Enterprise AI Melbourne and Data & AI Architecture Melbourne\; strong APAC market-entry opportunity for ArcticBlue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://cdao-mel.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-83@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261015
@@ -4253,16 +4093,6 @@ SUMMARY:eRetail Day México 2026
 LOCATION:Mexico City\, Mexico
 DESCRIPTION:Mexico's most exclusive digital retail event (13th edition) with AI and digital transformation focus in CDMX — high-value LatAm access point for Carlos's pipeline in Mexico.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://eretailday.org/2026/mx/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-82@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260703
-SUMMARY:CIO/CISO UK Summit 2026
-LOCATION:Rosewood London\, London\, UK
-DESCRIPTION:CDM Media's senior UK CIO & CISO one-day summit at Rosewood London — tight peer group of enterprise technology and security leaders from major UK organisations\; speaking via partner packages\; strong enterprise buyer concentration in ArcticBlue's core London market.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.cdmmedia.com/event/481a77f8-bcc4-4db5-ab1c-a80cb2b25981/summary
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-78@arcticblue-event-tracker

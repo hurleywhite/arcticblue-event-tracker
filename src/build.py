@@ -2984,6 +2984,15 @@ def build():
       font-family: var(--ab-mono); font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em;
       padding: 3px 8px; border-radius: 0 9px 0 6px; background: var(--ab-red); color: #fff;
     }}
+    /* The event a duplicate was matched AGAINST — shown alongside it in review
+       mode so the pair can be compared, and tagged so it's obvious which one the
+       tracker is keeping. */
+    body.review-dupes .ops-card[data-dup-keeper="1"] {{ outline: 2px solid var(--ab-fg-3); outline-offset: -2px; }}
+    body.review-dupes .ops-card[data-dup-keeper="1"]::before {{
+      content: 'KEEPING'; position: absolute; top: 0; right: 0; z-index: 3;
+      font-family: var(--ab-mono); font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em;
+      padding: 3px 8px; border-radius: 0 9px 0 6px; background: var(--ab-fg-3); color: #fff;
+    }}
 
     /* Flexible date text field + click-to-open calendar popup (single or range). */
     .date-pick {{ position: relative; }}
@@ -6582,6 +6591,13 @@ def build():
       opsCards.forEach(function (card) {{
         // Hidden duplicate of an already-shown event — never render or count it.
         if (card.dataset.dupHidden === '1' && !_reviewDupes) {{ card.style.display = 'none'; dupSkipped++; return; }}
+        // "Review duplicates" is a COMPARISON view: show only the suspected
+        // duplicates AND the events they duplicate, so each pair can be judged
+        // side by side. Previously it un-hid the dupes into the full grid, which
+        // meant hunting for the original before deciding what to delete.
+        if (_reviewDupes && card.dataset.dupHidden !== '1' && card.dataset.dupKeeper !== '1') {{
+          card.style.display = 'none'; return;
+        }}
         var on = true;
         if (q) {{
           // Cache the lowercased search text on the node. textContent serializes
@@ -9821,6 +9837,8 @@ def build():
       var groups = {{}};
       Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {{
         c.dataset.dupHidden = '';
+        c.dataset.dupKeeper = '';
+        c.dataset.dupGroup = '';
         c.classList.remove('is-dupe');
         var k = dupKeyOf(c._modalRec || {{}});
         if (k) (groups[k] = groups[k] || []).push(c);
@@ -9832,7 +9850,11 @@ def build():
         g.sort(function (a, b) {{ return _trackScore(b) - _trackScore(a); }});
         // Mark the duplicate cards (keep the richest). Hidden by default; the
         // "Review duplicates" toggle reveals them (marked) so they can be deleted.
-        for (var i = 1; i < g.length; i++) {{ g[i].dataset.dupHidden = '1'; g[i].classList.add('is-dupe'); if (!_reviewDupes) g[i].style.display = 'none'; hidden++; }}
+        // Tag the KEEPER too, and stamp the group id on every card in it, so
+        // "Review duplicates" can show each dupe next to the event it duplicates
+        // (Angela needs to compare the pair before deleting one).
+        g[0].dataset.dupKeeper = '1'; g[0].dataset.dupGroup = k;
+        for (var i = 1; i < g.length; i++) {{ g[i].dataset.dupHidden = '1'; g[i].dataset.dupGroup = k; g[i].classList.add('is-dupe'); if (!_reviewDupes) g[i].style.display = 'none'; hidden++; }}
       }});
       // ── Pass 2 — title VARIATIONS the exact key misses ────────────────
       // Same start DATE + same CITY, where one event's distinctive words are a
@@ -9875,7 +9897,8 @@ def build():
         for (var i = 1; i < g.length; i++) {{
           if (g[i].dataset.dupHidden === '1') continue;
           if (_topicRelated(sigK, _topicSig(g[i]._modalRec || {{}}))) {{
-            g[i].dataset.dupHidden = '1'; g[i].classList.add('is-dupe'); if (!_reviewDupes) g[i].style.display = 'none'; hidden++; merged++;
+            g[i].dataset.dupHidden = '1'; g[i].dataset.dupGroup = key; g[i].classList.add('is-dupe'); if (!_reviewDupes) g[i].style.display = 'none'; hidden++; merged++;
+            keeper.dataset.dupKeeper = '1'; keeper.dataset.dupGroup = key;
           }}
         }}
         // (Duplicates marked above; hidden unless "Review duplicates" is on.)
