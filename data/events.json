@@ -1279,7 +1279,8 @@
    "contact_info": "cdo.cdm.events; cdmmedia.com",
    "pay_to_play": "Yes",
    "focus_areas": "Enterprise AI strategy and West Coast CDO/CAIO perspective; CAIO and CDO priorities for 2026–27; AI governance and enterprise data transformation in regulated industries; AI risk management and compliance; Agentic AI for enterprise operations and analytics",
-   "attendee_count": "1,000-2,000 delegates"
+   "attendee_count": "1,000-2,000 delegates",
+   "pricing": "Complimentary for qualified attendees"
   },
   {
    "num": 77,
@@ -3182,7 +3183,10 @@
    "external_id": "7571a2de-52da-4f96-bff6-edc16f9a169f",
    "source": "arcticscout",
    "start_date": "2026-04-06",
-   "end_date": "2026-04-09"
+   "end_date": "2026-04-09",
+   "past_speakers": "Daniel Lurie, Mayor of San Francisco; Jon Weiner, Co-Founder of HumanX; Stefan Weitz, Co-Founder of HumanX; Alex Karp, CEO of Palantir; Fei-Fei Li, Professor at Stanford University; Arvind Krishna, Chairman and CEO of IBM",
+   "meeting_formats": "hosted networking opportunities; curated sessions and workshops; attendee networking events",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 144,
@@ -5127,7 +5131,11 @@
    "external_id": "c59e5f7b-fecf-43f7-8256-5c2228c6a775",
    "source": "arcticscout",
    "start_date": "2026-06-01",
-   "end_date": "2026-06-03"
+   "end_date": "2026-06-03",
+   "pricing": "Public ticket pricing is not verifiable from the provided results; the official site says attendees must submit an application to register and mentions a regularly priced Forum Pass, with separate student/financial-assistance handling.",
+   "pay_to_play": "Yes",
+   "meeting_formats": "Interactive workshops and networking; attendee application/registration process",
+   "audience_type": "Mixed"
   },
   {
    "num": 212,
@@ -5761,7 +5769,8 @@
    "end_date": "2027-03-11",
    "meeting_formats": "Invitation-only exchange format; likely pre-scheduled meetings, but this exact edition's meeting mechanics are not explicitly verified in the available results",
    "audience_type": "Buyer-rich",
-   "typical_attendees": "Finance executives, CFOs, and senior finance leaders"
+   "typical_attendees": "Finance executives, CFOs, and senior finance leaders",
+   "attendee_count": "60+"
   },
   {
    "num": 235,
@@ -6403,7 +6412,9 @@
    "external_id": "f08966da-e98e-4c99-b174-33cd940b7a7b",
    "source": "arcticscout",
    "start_date": "2026-06-30",
-   "end_date": "2026-07-02"
+   "end_date": "2026-07-02",
+   "meeting_formats": "Curated networking and workshops; official event-week programming with hosted receptions and conference sessions",
+   "audience_type": "Mixed"
   },
   {
    "num": 258,
