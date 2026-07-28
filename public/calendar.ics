@@ -476,16 +476,6 @@ DESCRIPTION:Intelligent Insurer's exclusive gathering of Chief Underwriting Offi
 URL:https://events.newton.media/Underwriting-USA
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-549@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20261019
-DTEND;VALUE=DATE:20261021
-SUMMARY:CDAIO New Zealand 2026
-LOCATION:Grand Millennium Auckland\, Auckland\, New Zealand
-DESCRIPTION:Corinium's Chief Data\, Analytics\, and AI Officer summit in Auckland with 50+ speakers from NZ's leading enterprises — the definitive CDAIO gathering in New Zealand\; open speaker request route\; expands ArcticBlue's English-speaking Pacific market footprint.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://cdao-nz.coriniumintelligence.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-548@arcticblue-event-tracker
 DTSTAMP:20260728T000000Z
 DTSTART;VALUE=DATE:20261118
@@ -634,16 +624,6 @@ SUMMARY:Asia New Vision Forum Innovation
 LOCATION:Singapore\, Singapore
 DESCRIPTION:Priority: Medium\nAdded by: Angela
 URL:https://www.caixinglobal.com/caixin-anvf-2026/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-531@arcticblue-event-tracker
-DTSTAMP:20260728T000000Z
-DTSTART;VALUE=DATE:20260914
-DTEND;VALUE=DATE:20260916
-SUMMARY:Technology & Innovation Forum Central
-LOCATION:Austin\, TX
-DESCRIPTION:Priority: Medium\nAdded by: Angela
-URL:https://www.forrester.com/event/technology-innovation-central/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-529@arcticblue-event-tracker
