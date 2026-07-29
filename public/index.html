@@ -533,13 +533,14 @@
     .modal-badges .badge { position: static; }
     /* Most events now render NO top label at all — don't leave its margin behind. */
     .modal-badges:empty { margin-bottom: 0; }
+    /* Date now sits LAST, under the city — so it carries no bottom margin. */
     .modal-date {
       font-family: var(--ab-mono); font-size: 0.82rem; color: var(--ab-fg-3);
-      margin: 0 0 4px; letter-spacing: 0.02em;
+      margin: 0; letter-spacing: 0.02em;
     }
     .modal-title {
       font-family: var(--ab-sans); font-size: 1.55rem; font-weight: 800;
-      line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--ab-fg);
+      line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 6px; color: var(--ab-fg);
     }
     /* Modal heading doubles as the website link — underlined, inherits 800 weight. */
     .modal-title-link {
@@ -550,7 +551,9 @@
     .modal-title-link:hover, .modal-title-link:focus-visible {
       color: var(--ab-blue); text-decoration-color: var(--ab-blue);
     }
-    .modal-loc { font-size: 0.92rem; color: var(--ab-fg-2); margin: 0; }
+    /* City sits between the title and the date — a hair of space either side so
+       the two read as one block of qualifiers under the name. */
+    .modal-loc { font-size: 0.92rem; color: var(--ab-fg-2); margin: 0 0 3px; }
     .modal-loc .event-region { color: var(--ab-fg); font-weight: 600; }
     .modal-body { display: flex; flex-direction: column; gap: 16px; }
     .modal-field { display: flex; flex-direction: column; gap: 4px; }
@@ -2927,11 +2930,13 @@
         <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
       </div>
       <div class="modal-scroll">
+        <!-- Name, then city, then date (Hurley 2026-07-29). The event is what
+             you came for; where and when are the qualifiers under it. -->
         <div class="modal-head">
           <div class="modal-badges" id="modal-badges"></div>
-          <p class="modal-date" id="modal-date"></p>
           <h2 class="modal-title" id="modal-title"></h2>
           <p class="modal-loc" id="modal-loc"></p>
+          <p class="modal-date" id="modal-date"></p>
         </div>
         <div class="modal-body" id="modal-body"></div>
         <div class="modal-actions" id="modal-actions"></div>
