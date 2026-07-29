@@ -1868,7 +1868,11 @@
    "speaking_route": "Speaker submission: gitex.com/speakers. Sponsor/exhibit: gitex.com",
    "contact_info": "gitex.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Enterprise AI governance and data sovereignty (GITEX Scale Summit); Industrial AI and enterprise digital transformation in GCC/MEA; Agentic AI at global enterprise scale; AI investment and sovereign AI strategy; Digital economy and enterprise technology leadership (GCC focus)"
+   "focus_areas": "Enterprise AI governance and data sovereignty (GITEX Scale Summit); Industrial AI and enterprise digital transformation in GCC/MEA; Agentic AI at global enterprise scale; AI investment and sovereign AI strategy; Digital economy and enterprise technology leadership (GCC focus)",
+   "venue": "Dubai Exhibition Centre, Expo City Dubai",
+   "meeting_formats": "curated networking events; high-value dealmaking; pre-booked meetings via event app not verified",
+   "audience_type": "Mixed",
+   "attendee_count": "200,000+"
   },
   {
    "num": 51,
@@ -4904,7 +4908,8 @@
    "external_id": "9a23c088-0297-4827-8c69-d1b7b2fcb837",
    "source": "arcticscout",
    "start_date": "2026-03-15",
-   "end_date": "2026-03-19"
+   "end_date": "2026-03-19",
+   "meeting_formats": "attendee app for pre-booking meetings; curated sessions, labs, certifications, and meetups"
   },
   {
    "num": 206,
@@ -5503,7 +5508,8 @@
    "end_date": "2026-05-27",
    "past_speakers": "Marianna Schapira, FT",
    "audience_type": "Mixed",
-   "meeting_formats": "In-Person Briefing (no guaranteed hosted 1:1s or attendee app mentioned)[1]"
+   "meeting_formats": "In-Person Briefing (no guaranteed hosted 1:1s or attendee app mentioned)[1]",
+   "pricing": "Free to attend"
   },
   {
    "num": 227,
@@ -5736,7 +5742,11 @@
    "external_id": "c5d9ea6c-f3a9-44b4-96d8-f59098fc332c",
    "source": "arcticscout",
    "start_date": "2027-04-12",
-   "end_date": "2027-04-14"
+   "end_date": "2027-04-14",
+   "pricing": "All-access conference pass: $1,295 (current listed price) and $2,995 (higher tier/list price shown on registration page)",
+   "past_speakers": "Becky Schmitt, PepsiCo; Vicki Walia, Prudential Financial; Alex Kweskin, Internal Revenue Service; Kate Gebo, United Airlines; Jason Desentz, Toshiba; Supriya Bahri, Roblox",
+   "meeting_formats": "interactive small-group discussions; curated roundtables; executive peer programming",
+   "audience_type": "Mixed"
   },
   {
    "num": 236,
@@ -6496,7 +6506,8 @@
    "external_id": "2c223fad-53f6-4f2b-9587-25026cdf3ea1",
    "venue": "Not verifiable from the provided results",
    "meeting_formats": "Hosted 1:1 meetings; pre-qualified invitation-only hosted guest format",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Kai Hahn, Unknown Company; Celia Mattie, Unknown Company; Matthew Weisburg, Unknown Company; David Heimlich, Unknown Company; Natalie Senft, Unknown Company; Frances Augustine, Unknown Company"
   },
   {
    "num": 263,
@@ -6604,7 +6615,10 @@
    "focus_areas": "Enterprise AI strategy and leadership (Silicon Valley/West Coast); AI governance and organizational AI readiness; Agentic AI deployment and AI orchestration frameworks; AI talent development and culture transformation; AI ROI and board-level AI accountability",
    "seed": false,
    "urgent": false,
-   "external_id": "4b2021b2-a1dc-473d-b7b0-5d505671e320"
+   "external_id": "4b2021b2-a1dc-473d-b7b0-5d505671e320",
+   "venue": "Downtown San Jose",
+   "past_speakers": "Rick Grandy, Principal Solutions Architect & SA Manager; Prabhakar Bolleddu, SVP - Business Analytics; Dipak Prasad, Executive Director, Hybrid Cloud; Awah Teh, Chief Data Architect; Leila Emami, VP, Data Architecture and Engineering; Jon Mabe, VP, AI & Engineering; Shelby Tallent, Head of AI Governance; Sonia Gupta, Chief Medical Officer; Ed Soo Hoo, Worldwide CTO Global Accounts",
+   "audience_type": "Mixed"
   },
   {
    "num": 268,
