@@ -725,16 +725,6 @@ DESCRIPTION:IDC’s Italian CIO summit in Milan\; enterprise AI and digital tran
 URL:https://event.idc.com/event/cio-summit-italy_it/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-569@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260916
-DTEND;VALUE=DATE:20260918
-SUMMARY:ALL IN 2026 — Canada’s Largest AI Event
-LOCATION:Palais des Congrès de Montréal\, Montreal\, Canada
-DESCRIPTION:Canada’s largest AI event (6\,500+ business decision-makers and AI experts) at Palais des Congrès in Montreal — the definitive Canadian stage for enterprise AI leaders across all sectors\; a must-reach market for ArcticBlue’s Americas expansion and Carlos’s Canadian pipeline.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://allinevent.ai/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-568@arcticblue-event-tracker
 DTSTAMP:20260729T000000Z
 DTSTART;VALUE=DATE:20260914
@@ -1843,16 +1833,6 @@ SUMMARY:10DX Summit South Africa 2026
 LOCATION:Johannesburg\, South Africa
 DESCRIPTION:South Africa's premier intelligent banking event — by-invitation-only with 75+ banking and FI executives examining AI in production\, open rails\, and model governance under FATF and SARB regulation — ideal for ArcticBlue's Africa regulated-industry expansion.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.10dxsummit.com/events/sa
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-436@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260929
-DTEND;VALUE=DATE:20260930
-SUMMARY:Datos Insights Insurance Leaders Summit at ITC 2026
-LOCATION:Las Vegas\, USA
-DESCRIPTION:Co-located with ITC Vegas\, this Datos Insights forum gathers 125+ insurance technology executives (CIOs\, CTOs\, CAIOs) for intimate peer roundtables on AI governance and intelligent insurance — ideal speaking platform for Verma's regulated-industry AI expertise.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.datos-insights.com/ilfitc26/overview
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-435@arcticblue-event-tracker
@@ -3784,16 +3764,6 @@ DESCRIPTION:Exclusive Millennium Alliance C-suite assembly at Omni Frisco Hotel 
 URL:https://mill-all.com/assemblies/digital-enterprise-cio-transformation-assembly-august-2026/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-182@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260929
-DTEND;VALUE=DATE:20261002
-SUMMARY:InsureTech Connect ITC Vegas 2026
-LOCATION:Las Vegas\, NV\, USA
-DESCRIPTION:World’s largest gathering of insurance leaders and innovators at Mandalay Bay Las Vegas\; AI reshaping insurance value chain is a central theme — prime stage for ArcticBlue’s AI sprint methodology for insurance enterprises.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://vegas.insuretechconnect.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-181@arcticblue-event-tracker
 DTSTAMP:20260729T000000Z
 DTSTART;VALUE=DATE:20260929
@@ -3932,16 +3902,6 @@ SUMMARY:IDC CIO Summit Spain 2026
 LOCATION:Madrid\, Spain
 DESCRIPTION:IDC's flagship Spanish CIO summit at Hotel Mandarin Oriental Ritz\, Madrid — themed 'The Rise of Agentic Systems'\; senior CIOs and CTOs of Spain's leading enterprises making 2027 AI investment decisions\; perfect Carlos entry point into Spanish enterprise market.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://event.idc.com/event/cio-summit-spain_en/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-160@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260915
-DTEND;VALUE=DATE:20260918
-SUMMARY:Salesforce Dreamforce 2026
-LOCATION:San Francisco\, CA
-DESCRIPTION:World's largest enterprise software conference (40\,000+ in-person) fully themed around Agentforce and enterprise AI in 2026 — ArcticBlue's exact buyer audience at massive scale.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.salesforce.com/dreamforce/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-159@arcticblue-event-tracker
@@ -4122,16 +4082,6 @@ SUMMARY:HIMSS AI in Healthcare Forum San Diego 2026
 LOCATION:San Diego\, CA\, USA
 DESCRIPTION:HIMSS's dedicated AI-in-healthcare forum for senior healthcare executives and clinicians — AI leadership strategy\, governance\, and real-world AI implementation in regulated health systems\; Verma's regulated-healthcare/AI-at-scale narrative fits this audience perfectly.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.himss.org/events-overview/ai-in-healthcare-forum-san-diego/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-127@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260928
-DTEND;VALUE=DATE:20261002
-SUMMARY:Sibos 2026
-LOCATION:Miami\, FL\, USA
-DESCRIPTION:SWIFT's global financial services flagship (10\,100+ participants\, 500+ speakers) with 2026 programme focused on AI reshaping global finance\, digital assets\, and payments — the world's most concentrated regulated-finance C-suite event\; Verma's AI-in-banking thesis is perfectly positioned.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.sibos.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-125@arcticblue-event-tracker

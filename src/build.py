@@ -3005,6 +3005,15 @@ def build():
       font-family: var(--ab-mono); font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em;
       padding: 3px 8px; border-radius: 0 9px 0 6px; background: var(--ab-red); color: #fff;
     }}
+    /* Loose pass-3 match: flagged for a human to judge, never auto-hidden. */
+    body.review-dupes .ops-card[data-dup-maybe="1"] {{ outline: 2px dashed #b45309; outline-offset: -2px; }}
+    body.review-dupes .ops-card[data-dup-maybe="1"]::before {{
+      content: 'POSSIBLE'; position: absolute; top: 0; right: 0; z-index: 3;
+      font-family: var(--ab-mono); font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em;
+      padding: 3px 8px; border-radius: 0 9px 0 6px; background: #b45309; color: #fff;
+    }}
+    /* Overdue review nudge (3 days) */
+    .ops-dupe-review.due {{ border-color: var(--ab-red); color: var(--ab-red); font-weight: 700; }}
     /* The event a duplicate was matched AGAINST — shown alongside it in review
        mode so the pair can be compared, and tagged so it's obvious which one the
        tracker is keeping. */
@@ -6667,7 +6676,8 @@ def build():
         // duplicates AND the events they duplicate, so each pair can be judged
         // side by side. Previously it un-hid the dupes into the full grid, which
         // meant hunting for the original before deciding what to delete.
-        if (_reviewDupes && card.dataset.dupHidden !== '1' && card.dataset.dupKeeper !== '1') {{
+        if (_reviewDupes && card.dataset.dupHidden !== '1' && card.dataset.dupKeeper !== '1'
+            && card.dataset.dupMaybe !== '1') {{
           card.style.display = 'none'; return;
         }}
         var on = true;
@@ -9970,6 +9980,7 @@ def build():
       Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {{
         c.dataset.dupHidden = '';
         c.dataset.dupKeeper = '';
+        c.dataset.dupMaybe = '';
         c.dataset.dupGroup = '';
         c.classList.remove('is-dupe');
         var k = dupKeyOf(c._modalRec || {{}});
@@ -10035,6 +10046,52 @@ def build():
         }}
         // (Duplicates marked above; hidden unless "Review duplicates" is on.)
       }});
+
+      // ── Pass 3 — LOOSE "possible duplicate" pass (review only) ────────
+      // Passes 1 and 2 key on name-core+city+year / same-date+city+topic, so a
+      // trailing qualifier defeats them: "Sibos" and "Sibos 2026 Miami" (same
+      // dates, same city) never matched. This pass catches that shape — one
+      // title's distinctive words being a SUBSET of the other's, on the same
+      // date or in the same city.
+      //
+      // Crucially it only FLAGS. It never sets dupHidden and never hides a card,
+      // because at this looseness it also pairs genuinely different events
+      // ("IDC CIO Summit UK" vs "IDC AI & Data Summit UK"). Auto-hiding those
+      // would lose real events; a human decides in the Review view instead.
+      var _DUP_STOP = {{ the:1, a:1, an:1, and:1, of:1, for:1, to:1, in:1, on:1, at:1, by:1, with:1,
+        summit:1, summits:1, conference:1, conferences:1, expo:1, forum:1, event:1, events:1,
+        annual:1, edition:1, world:1, global:1, international:1 }};
+      function _dupToks(name) {{
+        var t = abFold(String(name || '')).replace(/\b20\d\d\b/g, ' ').replace(/[^a-z0-9]+/g, ' ');
+        var out = {{}}, n = 0;
+        t.split(' ').forEach(function (w) {{ if (w.length > 1 && !_DUP_STOP[w] && !out[w]) {{ out[w] = 1; n++; }} }});
+        return {{ set: out, n: n }};
+      }}
+      var _maybe = 0;
+      var _live = Array.prototype.filter.call($opsGrid.querySelectorAll('.ops-card'), function (c) {{
+        return c.dataset.dupHidden !== '1';           // already handled by pass 1/2
+      }});
+      for (var pi = 0; pi < _live.length; pi++) {{
+        for (var pj = pi + 1; pj < _live.length; pj++) {{
+          var A = _live[pi], B = _live[pj];
+          var ra = A._modalRec || {{}}, rb = B._modalRec || {{}};
+          var ta = _dupToks(ra.name), tb = _dupToks(rb.name);
+          if (!ta.n || !tb.n) continue;
+          var shared = 0, kk;
+          for (kk in ta.set) {{ if (tb.set[kk]) shared++; }}
+          if (shared !== Math.min(ta.n, tb.n)) continue;          // needs full subset
+          var sameDate = A.dataset.sort && A.dataset.sort !== '99999999' && A.dataset.sort === B.dataset.sort;
+          var ca = dupCityOf(ra), cb = dupCityOf(rb);
+          var sameCity = ca && ca === cb;
+          if (!sameDate && !sameCity) continue;
+          var mk = 'maybe:' + [A.dataset.sort, ca, Object.keys(ta.set).sort().join('-')].join('|');
+          [A, B].forEach(function (el) {{
+            if (el.dataset.dupMaybe !== '1') {{ el.dataset.dupMaybe = '1'; _maybe++; }}
+            if (!el.dataset.dupGroup) el.dataset.dupGroup = mk;
+          }});
+        }}
+      }}
+
       // Drive the "Review duplicates" toggle in the results header.
       var _revBtn = document.getElementById('ops-dupe-review');
       if (_revBtn) {{
@@ -10049,10 +10106,19 @@ def build():
         }}
         // Angela-only: only she can review/delete duplicates, so only she sees
         // the toggle. Everyone else just gets the clean, deduped grid.
-        _revBtn.hidden = (hidden === 0) || !(window.isAngelaUser && window.isAngelaUser());
+        var _revTotal = hidden + _maybe;
+        _revBtn.hidden = (_revTotal === 0) || !(window.isAngelaUser && window.isAngelaUser());
         _revBtn.textContent = _reviewDupes
           ? '\\u2715 Done \\u00b7 hide duplicates again'
-          : ('Review ' + hidden + ' possible duplicate' + (hidden === 1 ? '' : 's'));
+          : ('Review ' + _revTotal + ' possible duplicate' + (_revTotal === 1 ? '' : 's'));
+        // Nudge every 3 days so the pile doesn't quietly grow: if it's been that
+        // long since duplicates were last reviewed, the button goes red.
+        var _dupSeenKey = 'ab.dupseen.' + (getCollabName() || '').toLowerCase();
+        var _lastSeen = 0;
+        try {{ _lastSeen = parseInt(localStorage.getItem(_dupSeenKey) || '0', 10) || 0; }} catch (e) {{}}
+        var _stale = (Date.now() - _lastSeen) > 3 * 86400000;
+        _revBtn.classList.toggle('due', _stale && !_reviewDupes && _revTotal > 0);
+        if (_reviewDupes) {{ try {{ localStorage.setItem(_dupSeenKey, String(Date.now())); }} catch (e) {{}} }}
       }}
       return hidden;
     }}
