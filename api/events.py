@@ -405,15 +405,37 @@ def _iso_day(d):
         return None
 
 
+def _row3(row):
+    """Normalize a (name, date) or (name, date, url) tuple to all three."""
+    if len(row) >= 3:
+        return row[0], row[1], row[2]
+    return row[0], row[1], ''
+
+
 def _year_index(pairs):
-    """{year: [(token_set, date), ...]} for near-date duplicate matching."""
+    """{year: [(token_set, date, domain), ...]} for near-date dup matching."""
     idx = {}
-    for name, d in pairs:
+    for row in pairs:
+        name, d, url = _row3(row)
         day = _iso_day(d)
         if not day:
             continue
-        idx.setdefault(day.year, []).append((_name_token_set(name), day))
+        idx.setdefault(day.year, []).append((_name_token_set(name), day, _domain_of(url)))
     return idx
+
+
+def _domains_conflict(a, b):
+    """True when two events are demonstrably run by DIFFERENT outfits.
+
+    The event link is the only handle we have on who is actually offering an
+    event, and it settles cases the title alone can't: two events whose names
+    look alike but live on different companies' sites are different events, and
+    must not be merged (Hurley 2026-07-29). When either side has no link we know
+    nothing, so this returns False and the title rules decide on their own.
+    """
+    if not a or not b:
+        return False
+    return a != b
 
 
 # How many days apart two records can be and still be the same event. Small on
@@ -913,9 +935,57 @@ def _row_has_fact_gaps(row):
 
 
 def _existing_manual_dated():
-    """(name, start_date) for every manual event — start_date may be ''."""
+    """(name, start_date, url) for every manual event — either may be ''."""
     status, rows = _http_json(
-        'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name,start_date',
+        'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name,start_date,url',
+        headers=_svc_headers(), timeout=15)
+    out = []
+    if status == 200 and isinstance(rows, list):
+        for r in rows:
+            n = (r.get('name') or '').strip()
+            if n:
+                out.append((n, (r.get('start_date') or '').strip(), (r.get('url') or '').strip()))
+    return out
+
+
+def _catalog_dated(host):
+    """(name, start_date, url) from the public catalog (events.json) served by
+    this same deployment. Best-effort — failures just return an empty list."""
+    if not host:
+        return []
+    url = 'https://%s/events.json' % host
+    status, data = _http_json('GET', url, timeout=15)
+    out = []
+    if status == 200 and isinstance(data, dict):
+        for e in (data.get('events') or []):
+            n = (e.get('name') or '').strip()
+            if n:
+                out.append((n, (e.get('start_date') or '').strip(), (e.get('url') or '').strip()))
+    return out
+
+
+def _date_index(dated):
+    """start_date -> [(name token-set, domain)], for date-scoped dup matching."""
+    idx = {}
+    for row in dated:
+        n, d, u = _row3(row)
+        if d:
+            idx.setdefault(d, []).append((_name_token_set(n), _domain_of(u)))
+    return idx
+
+
+def _deleted_backlog():
+    """(name, start_date) for every event a human DELETED in the tracker.
+
+    Deleting used to leave nothing behind for a manual event, so the nightly
+    scrape would cheerfully re-add it and someone would delete it again. This is
+    the "don't bring this back" list (see scripts/2026-07-29_deleted_events.sql).
+
+    Best-effort: if the table hasn't been migrated yet the request 404s and we
+    return an empty backlog, so ingest carries on exactly as before.
+    """
+    status, rows = _http_json(
+        'GET', SUPABASE_URL + '/rest/v1/deleted_events?select=name,start_date',
         headers=_svc_headers(), timeout=15)
     out = []
     if status == 200 and isinstance(rows, list):
@@ -926,29 +996,64 @@ def _existing_manual_dated():
     return out
 
 
-def _catalog_dated(host):
-    """(name, start_date) from the public catalog (events.json) served by this
-    same deployment. Best-effort — failures just return an empty list."""
-    if not host:
-        return []
-    url = 'https://%s/events.json' % host
-    status, data = _http_json('GET', url, timeout=15)
-    out = []
-    if status == 200 and isinstance(data, dict):
-        for e in (data.get('events') or []):
-            n = (e.get('name') or '').strip()
-            if n:
-                out.append((n, (e.get('start_date') or '').strip()))
-    return out
+def _deleted_index(dated):
+    """Index the deleted-events backlog for matching.
 
+    Two buckets, because how hard a deletion should bite depends on whether we
+    recorded a date for it:
 
-def _date_index(dated):
-    """start_date -> list of name token-sets, for date-scoped dup matching."""
-    idx = {}
-    for n, d in dated:
-        if d:
-            idx.setdefault(d, []).append(_name_token_set(n))
+      undated — all we have is the name, so it blocks by name / fingerprint
+                outright, in any year.
+      by year — a dated deletion blocks only within THAT year, so next year's
+                edition of an annual event is still welcome. Same year
+                discipline as the live dedupe above.
+    """
+    idx = {
+        'undated_names': set(),
+        'undated_fps':   set(),
+        'year_names':    {},
+        'year_fps':      {},
+        'year_tokens':   _year_index(dated),
+        'all_names':     {n.lower() for n, _d in dated},
+    }
+    for name, d in dated:  # backlog rows are (name, start_date) — no url stored
+        day = _iso_day(d)
+        if not day:
+            idx['undated_names'].add(name.lower())
+            fp = _fingerprint(name)
+            if fp:
+                idx['undated_fps'].add(fp)
+            continue
+        idx['year_names'].setdefault(day.year, set()).add(name.lower())
+        fp = _fingerprint(name)
+        if fp:
+            idx['year_fps'].setdefault(day.year, set()).add(fp)
     return idx
+
+
+def _deleted_match(name, fp, start_date, idx):
+    """Reason string if this incoming event was previously deleted, else None."""
+    if not idx:
+        return None
+    lname = (name or '').strip().lower()
+    if not lname:
+        return None
+    if lname in idx['undated_names'] or (fp and fp in idx['undated_fps']):
+        return 'previously deleted'
+    day = _iso_day((start_date or '').strip())
+    if not day:
+        # No usable date on the incoming event, so there's no year to disagree
+        # about — an exact name match anywhere in the backlog is enough.
+        return 'previously deleted' if lname in idx['all_names'] else None
+    if lname in idx['year_names'].get(day.year, ()) or (fp and fp in idx['year_fps'].get(day.year, ())):
+        return 'previously deleted'
+    # Same title-shape a few days off, within the same year — the re-add that
+    # landed on a different day of a multi-day run.
+    tokens = _name_token_set(name)
+    for other_tokens, other_day, _other_dom in idx['year_tokens'].get(day.year, ()):
+        if abs((other_day - day).days) <= _DUP_DAY_WINDOW and _same_event_on_date(tokens, other_tokens):
+            return 'previously deleted (same title, within %d days)' % _DUP_DAY_WINDOW
+    return None
 
 
 # Columns that may not exist yet on older DBs (added by the 2026-06 migration).
@@ -1034,9 +1139,24 @@ class handler(BaseHTTPRequestHandler):
         _send(self, 204, {})
 
     def do_GET(self):
-        _send(self, 405, {
-            'error': 'method not allowed',
-            'hint':  'POST a JSON event (or {"events":[...]}) with header X-API-Key.',
+        # An authenticated GET returns the "don't bring this back" backlog, so a
+        # scraper / agent can see what NOT to include before it even submits
+        # (the POST path blocks these anyway, reporting "previously deleted").
+        if _match_secret(self) is None:
+            return _send(self, 405, {
+                'error': 'method not allowed',
+                'hint':  'POST a JSON event (or {"events":[...]}) with header X-API-Key. '
+                         'An authenticated GET returns the deleted-events backlog.',
+            })
+        if not SERVICE_ROLE:
+            return _send(self, 500, {'error': 'server not configured: SUPABASE_SERVICE_ROLE_KEY missing'})
+        backlog = _deleted_backlog()
+        _send(self, 200, {
+            'deleted_events': [{'name': n, 'start_date': d or None} for n, d in backlog],
+            'count': len(backlog),
+            'note':  'Events a human deleted in the tracker. Do not submit these again. '
+                     'A dated entry blocks re-adds in that year only, so a later '
+                     'edition of an annual event is still welcome.',
         })
 
     def do_POST(self):
@@ -1093,10 +1213,10 @@ class handler(BaseHTTPRequestHandler):
         # organizer/edition word is caught even when its fingerprint differs).
         manual_dated   = _existing_manual_dated()
         catalog_dated  = _catalog_dated(self.headers.get('Host', ''))
-        existing_names = {n.lower() for n, _d in manual_dated}
-        catalog_names  = {n.lower() for n, _d in catalog_dated}
-        existing_fps   = _fps_of(n for n, _d in manual_dated)
-        catalog_fps    = _fps_of(n for n, _d in catalog_dated)
+        existing_names = {n.lower() for n, _d, _u in manual_dated}
+        catalog_names  = {n.lower() for n, _d, _u in catalog_dated}
+        existing_fps   = _fps_of(n for n, _d, _u in manual_dated)
+        catalog_fps    = _fps_of(n for n, _d, _u in catalog_dated)
         date_index     = _date_index(manual_dated + catalog_dated)
         # Same event re-added a day or two off (organisers shift dates, or the
         # scrape lands on the wrong day of a multi-day run) escaped the
@@ -1105,6 +1225,9 @@ class handler(BaseHTTPRequestHandler):
         # and 2027 editions of an annual event apart.
         year_index     = _year_index(manual_dated + catalog_dated)
         seen_names, seen_fps = set(), set()
+
+        # "Don't bring this back" — events a human already deleted in the tracker.
+        deleted_idx = _deleted_index(_deleted_backlog())
 
         inserted, rejected, skipped, errors = [], [], [], []
         enrich_used = 0  # how many Exa speaking-route lookups we've spent
@@ -1148,13 +1271,22 @@ class handler(BaseHTTPRequestHandler):
                     or (fp and (fp in seen_fps or fp in existing_fps or fp in catalog_fps))):
                 dup_reason = 'duplicate'
             else:
+                # The LOOSE title rules below pair events on title shape alone, so
+                # they're the ones that can get it wrong. The event link is the
+                # tiebreaker: if this event and the one we'd pair it with live on
+                # different companies' domains, they're different events run by
+                # different outfits and must both be kept (Hurley 2026-07-29).
+                # A missing link on either side tells us nothing, so the title
+                # rules stand on their own exactly as before.
+                dom = _domain_of(row.get('url') or '')
                 # Same event, same DATE, re-worded title (extra organizer/edition
                 # word the fingerprint keeps) — e.g. "CDAO New York" vs
                 # "CDAO New York 2026 - Corinium" both on 2026-06-10.
                 sd = (row.get('start_date') or '').strip()
                 if sd and sd in date_index:
                     rt = _name_token_set(name)
-                    if any(_same_event_on_date(rt, ot) for ot in date_index[sd]):
+                    if any(_same_event_on_date(rt, ot) and not _domains_conflict(dom, od_dom)
+                           for ot, od_dom in date_index[sd]):
                         dup_reason = 'duplicate (same title + date)'
                 # Same title-shape a few days off, WITHIN THE SAME YEAR. The year
                 # bound is deliberate: "Chief AI Officer Summit New York" in 2026
@@ -1164,10 +1296,17 @@ class handler(BaseHTTPRequestHandler):
                     day = _iso_day(sd)
                     if day:
                         rt = _name_token_set(name)
-                        for ot, od in year_index.get(day.year, ()):
-                            if abs((od - day).days) <= _DUP_DAY_WINDOW and _same_event_on_date(rt, ot):
+                        for ot, od, od_dom in year_index.get(day.year, ()):
+                            if (abs((od - day).days) <= _DUP_DAY_WINDOW
+                                    and _same_event_on_date(rt, ot)
+                                    and not _domains_conflict(dom, od_dom)):
                                 dup_reason = 'duplicate (same title, within %d days)' % _DUP_DAY_WINDOW
                                 break
+            if not dup_reason:
+                # Someone already threw this event out — don't put it back.
+                # (A deleted event is NOT a duplicate: it isn't in the tracker
+                # any more, so none of the checks above can see it.)
+                dup_reason = _deleted_match(name, fp, row.get('start_date'), deleted_idx)
             if dup_reason:
                 skipped.append({'name': name, 'reason': dup_reason})
                 continue

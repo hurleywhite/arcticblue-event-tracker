@@ -735,16 +735,6 @@ DESCRIPTION:IDC’s Kuwait CIO summit themed ‘The Rise of Agentic Systems’\;
 URL:https://event.idc.com/event/idc-cio-summit-kuwait/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-567@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260910
-DTEND;VALUE=DATE:20260911
-SUMMARY:IDC AI & Data Summit London 2026
-LOCATION:London\, UK
-DESCRIPTION:IDC’s London AI and data leadership summit themed ‘Unlocking the Power of Data and AI’\; enterprise AI deployment and data strategy for UK enterprise CIOs and CDOs\; sponsor/partner speaking route with direct access to UK enterprise technology buyers.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://event.idc.com/event/ai-data-summit-uk/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-566@arcticblue-event-tracker
 DTSTAMP:20260729T000000Z
 DTSTART;VALUE=DATE:20260819
@@ -1193,16 +1183,6 @@ SUMMARY:DC SHRM Annual Conference 2026
 LOCATION:Washington\, DC\, USA
 DESCRIPTION:DC SHRM's annual conference 'Leading Through Change: Shaping the Future of Work' — open call for speakers accepted\; local DC/metro area HR professionals with government\, nonprofit\, and enterprise representation\; Joe's AI + future of work content directly matches the 2026 theme.\nPriority: Low\nAdded by: dust@arcticblue.ai
 URL:https://dcshrm.site-ym.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-513@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20261115
-DTEND;VALUE=DATE:20261119
-SUMMARY:SHRM BLUEPRINT for Inclusion & Diversity 2026
-LOCATION:Nashville\, TN\, USA
-DESCRIPTION:SHRM's BLUEPRINT conference for inclusion and diversity leadership co-located with All Things Work at Gaylord Opryland Nashville — enterprise HR and DEI leaders at Fortune 500 companies\; Joe's AI + human enablement message bridges AI adoption and inclusive workforce design\, a natural fit for this audience.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://conference.shrm.org/blueprint
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-512@arcticblue-event-tracker
@@ -1715,16 +1695,6 @@ DESCRIPTION:Exclusive CLO-level executive forum hosted at Moody's NYC HQ—chair
 URL:https://iventiv.com/events/learning-futures/learning-futures-new-york-executive-knowledge-exchange-8
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-449@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260818
-DTEND;VALUE=DATE:20260820
-SUMMARY:Learning Futures San Francisco\, Executive Knowledge Exchange
-LOCATION:San Francisco\, CA
-DESCRIPTION:Small-group (max 40) CLO and Global Head of L&D executive forum hosted at a Fortune 500 headquarters—ideal for Joe to position AI-enabled learning thought leadership directly with enterprise L&D decision-makers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://iventiv.com/events/learning-futures/learning-futures-san-francisco-executive-knowledge-exchange-3
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-448@arcticblue-event-tracker
 DTSTAMP:20260729T000000Z
 DTSTART;VALUE=DATE:20261111
@@ -2062,16 +2032,6 @@ SUMMARY:SHRM Georgia Conference & Expo 2026
 LOCATION:Savannah\, GA\, USA
 DESCRIPTION:SHRM Georgia brings together HR leaders and practitioners across the Southeast\; SHRM Savannah chapter runs active call-for-speakers for the state conference — confirmed open speaker submission route for qualified HR/AI content.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.shrmgeorgia.org/Conference-page
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-403@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260928
-DTEND;VALUE=DATE:20261001
-SUMMARY:SHRM New York State Annual Conference 2026
-LOCATION:Buffalo\, NY\, USA
-DESCRIPTION:SHRM NY State draws 500+ HR professionals and leaders across New York\; open CFP (just closed Feb 2026 deadline but contact route active)\; theme 'Creating Workplace Magic' covers AI and people transformation topics matching Joe's content.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://affiliate.shrm.org/nys/en/events/2026/09-2026/2026-shrm-new-york-state-annual-conference
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-402@arcticblue-event-tracker
@@ -2434,16 +2394,6 @@ DESCRIPTION:Vendor-neutral 3-day summit purpose-built for enterprise AI governan
 URL:https://tdwi.org/events/executive-summits/anaheim/home.aspx
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-365@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260902
-DTEND;VALUE=DATE:20260904
-SUMMARY:L&D Practitioner Summit 2026
-LOCATION:Philadelphia\, PA\, USA
-DESCRIPTION:Vendor-free gathering exclusively for corporate L&D leaders — Head of L&D\, CLO\, Director of Learning from large enterprises — the tightest concentration of Joe's AI enablement and learning transformation ICP in one room.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://board.org/learning-development/meetings/practitioner-summit26/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-364@arcticblue-event-tracker
 DTSTAMP:20260729T000000Z
 DTSTART;VALUE=DATE:20261108
@@ -2674,16 +2624,6 @@ DESCRIPTION:WOBI's premier CEO/C-suite leadership forum at Javits Center featuri
 URL:https://wobi.us/wbf-nyc/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-334@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260922
-DTEND;VALUE=DATE:20260925
-SUMMARY:HumanX Europe 2026
-LOCATION:Amsterdam\, Netherlands
-DESCRIPTION:2\,500+ attendees (60% VP+) across Europe's premier AI leadership conference — no pay-to-play speaker selection\, 200+ speakers from top enterprises including HubSpot CEO and Isomorphic Labs President\; strong European enterprise AI buyer audience for ArcticBlue expansion.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.humanx.co/europe/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-333@arcticblue-event-tracker
 DTSTAMP:20260729T000000Z
 DTSTART;VALUE=DATE:20261020
@@ -2812,16 +2752,6 @@ SUMMARY:IDC European CIO Xchange 2026
 LOCATION:Eurostars Sitges\, Barcelona\, Spain
 DESCRIPTION:IDC's flagship European CIO gathering with agentic AI as the centrepiece theme — buyer-rich audience of senior enterprise technology decision-makers from across Europe\; direct fit for ArcticBlue's European expansion.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://event.idc.com/event/european-cio-xchange/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-315@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:Transformational CHRO Assembly – November 2026
-LOCATION:Atlanta\, GA\, USA
-DESCRIPTION:Millennium Alliance's fall CHRO Assembly brings together senior HR chiefs from Fortune 100 enterprises to tackle workforce AI\, digital transformation\, and people strategy — directly aligned with Joe's positioning.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/transformational-chro-assembly-november-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-314@arcticblue-event-tracker
@@ -2972,16 +2902,6 @@ SUMMARY:European MGA Summit 2026
 LOCATION:Marriott Rive Gauche\, Paris\, France
 DESCRIPTION:Brings together 400+ senior European insurance leaders (80% Director+) exploring underwriting\, AI\, and distribution innovation — relevant for ArcticBlue's insurance-sector AI positioning and potential dialogue with MGAs digitising operations.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://events.theinsurer.com/eumgasummit
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-294@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260910
-DTEND;VALUE=DATE:20260911
-SUMMARY:IDC CIO Summit UK 2026
-LOCATION:London\, UK
-DESCRIPTION:IDC's European CIO Summit gathers senior IT and transformation leaders around agentic AI\, tech modernisation\, and AI governance — directly overlapping with ArcticBlue's proposition for regulated enterprises.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://event.idc.com/event/cio-summit-uk/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-293@arcticblue-event-tracker
@@ -3172,16 +3092,6 @@ SUMMARY:CHRO/CLO New York Summit 2026
 LOCATION:New York\, NY
 DESCRIPTION:CDM Media's CHRO/CLO summit uniquely unites both Joe's primary ICPs — Chief HR Officers AND Chief Learning Officers — around workforce reskilling at scale\, AI literacy\, and talent transformation in New York.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://events.cdmmedia.com/event/4262891c-bcbc-4ca2-b0e1-35b289a5058c/summary
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-267@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20261116
-DTEND;VALUE=DATE:20261119
-SUMMARY:SHRM Linkage Leadership Institute 2026
-LOCATION:Nashville\, TN
-DESCRIPTION:SHRM's Linkage Leadership Institute brings together enterprise leaders and high-performers for immersive leadership development with direct application to AI-era leadership challenges — Joe's coaching and human enablement framework aligns with the faculty model.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://conference.shrm.org/linkage-institute
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-265@arcticblue-event-tracker
@@ -3542,16 +3452,6 @@ SUMMARY:Mexico AI\, Cloud & Data Summit 2026
 LOCATION:Mexico City\, Mexico
 DESCRIPTION:Mexico's premier enterprise AI\, cloud\, and data leadership summit (6th edition\, 250+ high-level attendees) in Mexico City — Carlos's most direct access to Mexican enterprise C-suite AI decision-makers across financial services\, tech\, and telco in a Spanish-language setting.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://mexicobusiness.events/ai/2026/10
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-213@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20260902
-DTEND;VALUE=DATE:20260904
-SUMMARY:Data & AI Strategy Practitioner Summit 2026
-LOCATION:Pennsylvania Convention Center\, Philadelphia\, PA
-DESCRIPTION:Board.org's flagship conference exclusively designed for enterprise data\, analytics\, AI\, and governance leaders — one of the most buyer-rich CDO/CAIO gatherings in the US\, perfectly aligned with ArcticBlue's enterprise AI operations and governance positioning.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://board.org/data/meetings/practitioner-summit26/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-212@arcticblue-event-tracker
@@ -3962,16 +3862,6 @@ SUMMARY:King's Fund Digital Health and AI Conference 2026
 LOCATION:London\, UK
 DESCRIPTION:Top UK healthcare AI conference focused on scaling AI in health systems responsibly — directly relevant to ArcticBlue's regulated-industry healthcare ICP including NHS and private health operators.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.kingsfund.org.uk/events/digital-health-ai-conference-2026
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-146@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20261028
-DTEND;VALUE=DATE:20261031
-SUMMARY:TEDAI
-LOCATION:Vienna\, Austria
-DESCRIPTION:High-prestige\, official TED conference entirely dedicated to AI with senior tech and enterprise speakers (AWS\, Google DeepMind\, GitHub)\, making it a strong influence/visibility stage for ArcticBlue\, though the audience skews more toward builders and thinkers than enterprise buyers.\nPriority: Medium\nAdded by: Jerome
-URL:https://tedai-vienna.ted.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-145@arcticblue-event-tracker

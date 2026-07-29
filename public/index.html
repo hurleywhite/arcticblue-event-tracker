@@ -501,6 +501,25 @@
       border-bottom: 1px solid var(--ab-rule);
       border-radius: 8px 8px 0 0;
     }
+    /* Top-LEFT slot — holds the trash-can Delete while the editor is open. The
+       topbar is justify-content: flex-end, so this pushes itself to the left. */
+    #modal-head-left { margin-right: auto; display: flex; align-items: center; }
+    /* Trash-can Delete. Only appears in edit mode, and reads as destructive
+       (red text, red-tinted hover) so it can't be mistaken for a save action. */
+    .qa-del {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--ab-sans); font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 7px 12px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--ab-rule-strong); background: #fff; color: var(--ab-red, #b91c1c);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    /* An explicit `display` beats the [hidden] attribute's UA style, so the
+       hidden state has to be spelled out or DELETE shows outside edit mode. */
+    .qa-del[hidden] { display: none; }
+    .qa-del svg { width: 15px; height: 15px; }
+    .qa-del:hover, .qa-del:focus-visible { background: var(--ab-red, #b91c1c); border-color: var(--ab-red, #b91c1c); color: #fff; }
+    .qa-del:disabled { opacity: 0.5; cursor: wait; }
     .modal-close {
       flex-shrink: 0;
       width: 34px; height: 34px; border: none; background: var(--ab-bg-3);
@@ -512,6 +531,8 @@
     .modal-badges { padding-right: 150px; }  /* clear the top-right Edit + close toolbar */
     .modal-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
     .modal-badges .badge { position: static; }
+    /* Most events now render NO top label at all — don't leave its margin behind. */
+    .modal-badges:empty { margin-bottom: 0; }
     .modal-date {
       font-family: var(--ab-mono); font-size: 0.82rem; color: var(--ab-fg-3);
       margin: 0 0 4px; letter-spacing: 0.02em;
@@ -1037,7 +1058,8 @@
     /* Sits right after the quickbar, which already supplies the divider line
        (border-bottom) — no second border here, or you get a doubled-up gap. */
     .event-chat { margin-top: 4px; margin-bottom: 20px; }
-    .chat-h { font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 10px; }
+    /* Bold, and a step darker so the weight actually reads at 0.7rem (Hurley). */
+    .chat-h { font-family: var(--ab-mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-2); margin: 0 0 10px; }
     .chat-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; margin: 0 0 12px; padding-top: 16px; }
     .chat-empty { font-size: 0.85rem; color: var(--ab-fg-3); font-style: italic; margin: 0; }
     .chat-msg { position: relative; background: var(--ab-bg-2); border: 1px solid var(--ab-rule); border-radius: 8px; padding: 8px 10px; }
@@ -1805,6 +1827,13 @@
     }
     /* My Events intro stays on one line (no 70ch cap) at desktop widths. */
     .myev-intro { max-width: none; }
+    /* "Your skips are narrowing this" + its undo, inside the Plan Ahead intro. */
+    .veto-note { color: var(--ab-fg-3); }
+    .veto-reset {
+      font: inherit; color: var(--ab-blue); background: none; border: 0;
+      padding: 0; cursor: pointer; text-decoration: underline;
+    }
+    .veto-reset:hover, .veto-reset:focus-visible { color: var(--ab-fg); }
     .queue-section { margin: 0 0 26px; }
     .queue-sec-head {
       display: flex; align-items: baseline; gap: 10px; margin: 0 0 10px;
@@ -1905,7 +1934,27 @@
     .wn-group-head:hover { background: var(--ab-bg-3); }
     .wn-group-name { font-weight: 650; font-size: 0.9rem; color: var(--ab-fg); }
     .wn-group-count { font-size: 0.85rem; color: var(--ab-fg-3); }
-    .wn-group-head .qsec-caret { margin-left: auto; }
+    /* "Mark all as read" — Slack's own wording and register: a quiet text
+       action, not a button competing with the content. Sits to the right, goes
+       blue on hover so it reads as clickable. */
+    .wn-readall {
+      font-family: var(--ab-sans); font-size: 0.78rem; font-weight: 600;
+      color: var(--ab-fg-3); background: none; border: 0; padding: 2px 4px;
+      cursor: pointer; border-radius: 5px; white-space: nowrap;
+      transition: color 120ms ease, background 120ms ease;
+    }
+    .wn-readall:hover, .wn-readall:focus-visible { color: var(--ab-blue); background: rgba(39,115,194,0.08); }
+    /* The section-level one closes out the whole feed — right-aligned in the head. */
+    .wn-readall--all { margin-left: auto; }
+    /* Per-person: push it right, keeping the caret last. */
+    .wn-group-head .wn-readall { margin-left: auto; }
+    .wn-group-head .qsec-caret { margin-left: 0; }
+    /* Reveal the per-group action on hover / keyboard focus so a collapsed feed
+       stays calm, but keep it permanently visible on touch (no hover there). */
+    .wn-group-head .wn-readall { opacity: 0; }
+    .wn-group:hover .wn-readall, .wn-group-head:focus-within .wn-readall,
+    .wn-group-head .wn-readall:focus-visible { opacity: 1; }
+    @media (hover: none) { .wn-group-head .wn-readall { opacity: 1; } }
     .wn-group.collapsed .qsec-caret { transform: rotate(-90deg); display: inline-block; }
     .wn-group.collapsed .wn-group-body { display: none; }
     .wn-group-body { padding: 4px 10px 6px; }
@@ -2873,6 +2922,7 @@
   <div id="event-modal" class="modal-overlay" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-topbar">
+        <div id="modal-head-left"></div>
         <div id="modal-head-side"></div>
         <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
       </div>
@@ -3061,6 +3111,12 @@
     return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' +
            '<span class="v">' + (html ? val : _linkifyEsc(esc(val))) + '</span></div>';
   }
+  // Value with NO key label — for a field whose section heading already names it.
+  // Notes was printing "Notes" twice (the zone heading, then the field key).
+  function fieldBare(val) {
+    if (val == null || String(val).trim() === '') return '';
+    return '<div class="modal-field"><span class="v">' + _linkifyEsc(esc(val)) + '</span></div>';
+  }
 
   // ── Editable modal: one-tap quick actions ──────────────────────────
   // Should-Attend has TWO sources that must NOT blur together (Angela: the 256
@@ -3116,25 +3172,33 @@
     // the booked/attending-filtered visibleInterested() made the summary read
     // "No one flagged yet" right after someone (e.g. the speaker) clicked
     // Interested. The dedup still applies to the Planner/Queue + card-face label.
+    //
+    // The "No one flagged yet" placeholder is ANGELA-ONLY (Hurley 2026-07-29):
+    // she runs the apply queue, so an empty interested list is information she
+    // acts on. For everyone else it was just a line of nothing — no flags is the
+    // normal state of most events, so the row now shows only the button.
     var summary = formatInterested(rec.interested);
-    var intRow =
-      '<span class="qa-row-label">Interested:</span>' +
-      '<button type="button" class="qa' + (iAmIn ? ' on' : '') + '" data-qa="interested">' + (iAmIn ? '✓ Interested' : "I'm interested") + '</button>' +
-      (summary
-        ? '<span class="qa-int-summary">' + summary + '</span>'
-        : '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>');
-    // Archive lives at the bottom under a "Hide:" label. Archiving now happens
-    // ONLY in this pop-up (the card face just shows an "Archived" label), so the
-    // control is here for BOTH catalog and manual events. Manual events also keep
-    // their separate "Delete this event" button in the edit form.
+    var _qbAngela = !!(window.isAngelaUser && window.isAngelaUser());
+    var intBtn =
+      '<button type="button" class="qa' + (iAmIn ? ' on' : '') + '" data-qa="interested">' + (iAmIn ? '✓ Interested' : "I'm interested") + '</button>';
+    var intSummary = summary
+      ? '<span class="qa-int-summary">' + summary + '</span>'
+      : (_qbAngela ? '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>' : '');
+    // Archiving happens ONLY in this pop-up (the card face just shows an
+    // "Archived" label), so the control is here for BOTH catalog and manual
+    // events. Manual events also keep their separate "Delete this event" button
+    // in the edit form.
     var _qbMan = rec._table === 'manual_events';
     var _qbHiddenMe = (window.opsIsHiddenForMe ? window.opsIsHiddenForMe(_qbMan, rec._key, rec.hidden === true) : !!rec.hidden);
-    var hideRow = '<span class="qa-row-label">Hide:</span>' +
+    var hideBtn =
         '<button type="button" class="qa' + (_qbHiddenMe ? ' on' : '') + '" data-qa="hidden" title="Archiving hides this from YOUR view only — teammates still see it">' + (_qbHiddenMe ? 'Unarchive' : 'Archive') + '</button>';
+    // The "Status:" / "Interested:" / "Hide:" row labels are gone (Hurley
+    // 2026-07-29) — the buttons say what they do, and the labels were reading as
+    // a wall of headings. The rows stay on SEPARATE lines, with "I'm interested"
+    // and Archive sharing the second one.
     return '<div class="modal-quickbar">' +
-           '<div class="qa-row qa-row--status" style="align-items:center;"><span class="qa-row-label">Status:</span>' + bStage.join('') + '</div>' +
-           '<div class="qa-row" style="margin-top:6px;align-items:center;">' + intRow + '</div>' +
-           (hideRow ? '<div class="qa-row" style="margin-top:6px;align-items:center;">' + hideRow + '</div>' : '') +
+           '<div class="qa-row qa-row--status" style="align-items:center;">' + bStage.join('') + '</div>' +
+           '<div class="qa-row qa-row--me" style="margin-top:6px;align-items:center;">' + intBtn + hideBtn + intSummary + '</div>' +
            '</div>';
   }
   // Natural-language list of who's interested: "Joe is interested" /
@@ -3614,28 +3678,22 @@
     });
   }
 
+  // Trash can for the top-left Delete (same glyph as the profile file-delete).
+  var MD_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+
   function openEventModal(rec) {
     if (!rec) return;
+    // Top labels: cleared out (Hurley 2026-07-29). Priority, event type, the
+    // pipeline stages, Pay-to-play, Seed and Private all repeated something the
+    // reader already has — the stages are the Status buttons right below, and
+    // priority / type / pay-to-play / private are on the card face they just
+    // clicked through. The ONE exception is the legacy "Sponsorship Only"
+    // marker: it's a real closed-stage outcome ("they'll take our money, not our
+    // speaker") with no button of its own, so it still earns a label up top.
     var badges = [];
-    // Priority range (High / Medium / Low) — shown to everyone. Blends the
-    // stored priority with buyer-rich + who's interested (see cardPriority).
-    var _mdPri = cardPriority(rec);
-    if (_mdPri) badges.push('<span class="badge ' + priClass(_mdPri) + '">' + esc(_mdPri) + '</span>');
-    // "Halo" is an internal event-type flag, not something to surface as a label.
-    if (rec.type && rec.type.toLowerCase() !== 'halo') badges.push('<span class="badge p-medium">' + esc(rec.type) + '</span>');
-    // Pipeline stages (primary). Fall back to the legacy single status badge
-    // only when no stages are set, so we don't double up.
-    if (rec.stage_tags && rec.stage_tags.length) {
-      rec.stage_tags.forEach(function (k) { badges.push('<span class="badge p-low">' + esc(k) + '</span>'); });
-    } else if (rec.workflow_status) {
+    if (/sponsorship\s*only/i.test(String(rec.workflow_status || ''))) {
       badges.push('<span class="badge p-low">' + esc(rec.workflow_status) + '</span>');
     }
-    if (rec.status && !(rec.stage_tags && rec.stage_tags.length) && /booked|confirm|attend/i.test(rec.status)) badges.push('<span class="badge p-low">' + esc(rec.status) + '</span>');
-    if (rec.pay_to_play && /yes|both/i.test(rec.pay_to_play)) badges.push('<span class="badge p-low">Pay-to-play</span>');
-    // (Buyer-rich audience is no longer its own badge — it now feeds the
-    //  priority range above, so a buyer-rich room reads as higher priority.)
-    if (rec.seed === true)   badges.push('<span class="badge p-low">Seed</span>');
-    if (rec.is_private === true) badges.push('<span class="badge badge-private">Private</span>');
     $badges.innerHTML = badges.join('');
 
     $date.textContent  = rec.date_str || '';
@@ -3677,8 +3735,9 @@
                   field('Contact info', rec.contact_info);
 
     var v = '';
-    // Notes lead the read view — right below "Chat with the team" (Angela).
-    v += sec('Notes', field('Notes', rec.notes));
+    // Notes lead the read view — right below "Chat with the team" (Angela). The
+    // zone heading already says "Notes", so the value goes in bare.
+    v += sec('Notes', fieldBare(rec.notes));
     if (rec.is_private) {
       // Private / invite-only: just the speaker + POC (link is the title, chat above).
       v += sec('Speaking', field('ArcticBlue speaker', rec.speaker));
@@ -3689,7 +3748,14 @@
       //   face by design but belongs here so a saved marker is visible.
       v += sec('Speaking & submission',
         field('ArcticBlue speaker', rec.speaker) +
-        field('Status marker', rec.workflow_status === '__deleted__' ? '' : rec.workflow_status) +
+        field('Status marker', (function () {
+          var ws = rec.workflow_status;
+          if (!ws || ws === '__deleted__') return '';
+          // Rejected is terminal — a leftover legacy "Pending" marker would
+          // contradict it, so it's suppressed (Hurley 2026-07-29).
+          if (/^\s*pending\s*$/i.test(ws) && (rec.stage_tags || []).indexOf('Rejected') !== -1) return '';
+          return ws;
+        })()) +
         field('Speaking route', rec.speaking_route) +
         field('Deadline', (window.opsDeadlineUsable && window.opsDeadlineUsable(rec.deadline, rec)) ? rec.deadline : '') +
         field('Pay-to-play', rec.pay_to_play) +
@@ -3731,6 +3797,23 @@
 
     // "Edit event" toggle — header top-right, same spot for every event. It
     // swaps the read-only view for the (identically-laid-out) edit form.
+    // Trash-can DELETE — top LEFT of the toolbar, and only while the editor is
+    // open (Hurley 2026-07-29). It drives the SAME delete path as the "Delete
+    // this event" button at the foot of the form (confirm dialog, catalog
+    // soft-delete vs manual hard-delete, backlog record), so there is one
+    // implementation reachable two ways.
+    var $left = document.getElementById('modal-head-left');
+    if ($left) {
+      $left.innerHTML = editForm
+        ? '<button type="button" class="qa-del" id="modal-delete-btn" hidden title="Delete this event">' + MD_TRASH + '<span>Delete</span></button>'
+        : '';
+      var dbtn = document.getElementById('modal-delete-btn');
+      if (dbtn) dbtn.addEventListener('click', function () {
+        var formDel = $body.querySelector('.modal-editform .me-delete');
+        if (formDel) formDel.click();
+      });
+    }
+
     var $side = document.getElementById('modal-head-side');
     if ($side) {
       // "Enrich" — research missing details on demand (editable records only).
@@ -3746,14 +3829,17 @@
         var view = $body.querySelector('.modal-view');
         var form = $body.querySelector('.modal-editform');
         if (!form) return;
+        var del = document.getElementById('modal-delete-btn');
         if (form.hasAttribute('hidden')) {
           form.removeAttribute('hidden'); if (view) view.setAttribute('hidden', '');
           et.classList.add('on'); et.setAttribute('aria-expanded', 'true');
           et.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✓</span> Done';
+          if (del) del.removeAttribute('hidden');
         } else {
           form.setAttribute('hidden', ''); if (view) view.removeAttribute('hidden');
           et.classList.remove('on'); et.setAttribute('aria-expanded', 'false');
           et.innerHTML = '<span class="qa-edit-ic" aria-hidden="true">✎</span> Edit';
+          if (del) del.setAttribute('hidden', '');
         }
       });
     }
@@ -3953,6 +4039,68 @@
     // Roster used by the Planner's coverage-gap "Flag for X" action. (The modal
     // closure has its own AB_ROSTER; this closure needs its own copy.)
     var OPS_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
+
+    // ── English-language gate for Thor / Verma / Joe ──────────────────────
+    // They work the room and take the stage in English, so an event RUN in
+    // Spanish / Portuguese / French / German / Italian ("Foro Digital
+    // Iberoamericano") is not a fit for them however well the topic or city
+    // scores (Hurley 2026-07-29). Jerome (Europe) and Carlos (Latin America)
+    // are unaffected — their territories are exactly where those events are.
+    //
+    // Detected from the TITLE, which is the reliable proxy for the working
+    // language. Deliberately NOT from the country: "Big Data & AI World Madrid"
+    // is an English-language event in Spain and still counts for all three.
+    var _ENGLISH_ONLY_PEOPLE = { thor: 1, verma: 1, joe: 1 };
+    // One of these is enough on its own — no English event title carries them.
+    // Deliberately absent: words that are also English brand or venue names.
+    // "Datos Insights" (the research firm) runs English events in London, "Messe
+    // Frankfurt" and "Fiera Milano" are venues, and an "AI Salon" is an English
+    // event format — so datos / dados / messe / fiera / salon sit in the weak
+    // list below and need corroboration. A false positive here silently hides a
+    // good event from someone's fits, which is worse than letting one through.
+    var _FL_STRONG = [
+      'foro', 'foros', 'congreso', 'congresso', 'cumbre', 'jornada', 'jornadas',
+      'encuentro', 'encuentros', 'feria', 'semana', 'iberoamericano',
+      'iberoamericana', 'latinoamericano', 'latinoamericana', 'inteligencia',
+      'tecnologia', 'tecnologias', 'innovacion', 'inovacao', 'empresas',
+      'empresarial', 'negocios', 'seguridad', 'educacion',
+      'educacao', 'gestion', 'gestao', 'transformacion', 'transformacao',
+      'kongress', 'tagung', 'wirtschaft', 'kunstliche', 'digitalisierung',
+      'convegno', 'giornata', 'settimana', 'intelligenza', 'imprese',
+      'numerique', 'journee', 'journees', 'rencontres', 'assises', 'entreprise',
+      'entreprises', 'donnees'
+    ];
+    // Weak signals — a place name, brand or venue can supply one on its own, so
+    // TWO are required. 'las' is deliberately absent: "Las Vegas" is a target city.
+    var _FL_FUNC = [
+      'de', 'del', 'la', 'el', 'los', 'y', 'para', 'con', 'da', 'do', 'dos',
+      'das', 'em', 'sobre', 'du', 'des', 'pour', 'les', 'sur', 'avec', 'und',
+      'fur', 'der', 'die', 'per', 'della', 'delle', 'sul', 'nel',
+      'datos', 'dados', 'salon', 'messe', 'fiera'
+    ];
+    function _isForeignLangEvent(o) {
+      var name = String((o && o.name) || '');
+      if (!name) return false;
+      // Strip the event's OWN location words first: "Rio de Janeiro", "Ciudad de
+      // Mexico" and "Sao Paulo" in a title are a place, not the language it runs
+      // in, and they'd otherwise supply the function words on their own.
+      var locTok = {};
+      abFold([o.location, o.city, o.country, o.region].filter(Boolean).join(' '))
+        .replace(/[^a-z0-9]+/g, ' ').split(' ')
+        .forEach(function (w) { if (w) locTok[w] = 1; });
+      var strong = 0, func = 0;
+      abFold(name).replace(/[^a-z0-9]+/g, ' ').trim().split(' ').forEach(function (w) {
+        if (!w || locTok[w]) return;
+        if (_FL_STRONG.indexOf(w) !== -1) strong++;
+        else if (_FL_FUNC.indexOf(w) !== -1) func++;
+      });
+      return strong >= 1 || func >= 2;
+    }
+    // True when this event must stay off `who`'s fits / radar / trip lists.
+    function _langBlocked(who, o) {
+      var k = abFold(String(who || '')).split(/\s+/)[0];
+      return !!_ENGLISH_ONLY_PEOPLE[k] && _isForeignLangEvent(o);
+    }
 
     function showOnly(el) {
       [$loading, $signin, $sent, $unauth, $ops].forEach(function (n) {
@@ -4869,6 +5017,11 @@
       card.dataset.attendeeNames = ((st.attendees || ev.attendees) || []).map(function (n) { return String(n).toLowerCase(); }).join('|');
       card.dataset.briefReady = (st.briefing_json ? '1' : '');   // Day-Of brief pre-generated?
       card.dataset.fitText = abFold([ev.name, ev.about, ev.focus_areas, ev.typical_attendees, ev.location, ev.city, ev.country, ev.type, ev.past_speakers, _aud].join(' '));
+      // Non-English event title -> off Thor's / Verma's / Joe's fit lists.
+      card.dataset.foreignLang = _isForeignLangEvent(ev) ? '1' : '';
+      // Signals the per-person "Not for me" veto scores against (see _vetoScore).
+      card.dataset.vetoOrg  = _orgKeyOf(ev);
+      card.dataset.vetoCity = _lesserCityOf(ev);
       var _opsPast = isPastEvent(ev);
       card.dataset.past = _opsPast ? '1' : '';
       if (_opsPast) card.classList.add('is-past');
@@ -5086,6 +5239,11 @@
       card.dataset.attendeeNames = (mev.attendees || []).map(function (n) { return String(n).toLowerCase(); }).join('|');
       card.dataset.briefReady = (mev.briefing_json ? '1' : '');   // Day-Of brief pre-generated?
       card.dataset.fitText = abFold([mev.name, mev.about, mev.focus_areas, mev.typical_attendees, mev.location, mev.city, mev.country, mev.type, mev.past_speakers, mev.audience_type].join(' '));
+      // Non-English event title -> off Thor's / Verma's / Joe's fit lists.
+      card.dataset.foreignLang = _isForeignLangEvent(mev) ? '1' : '';
+      // Signals the per-person "Not for me" veto scores against (see _vetoScore).
+      card.dataset.vetoOrg  = _orgKeyOf(mev);
+      card.dataset.vetoCity = _lesserCityOf(mev);
       var _manPast = isPastEvent(mev);
       card.dataset.past = _manPast ? '1' : '';
       if (_manPast) card.classList.add('is-past');
@@ -5329,9 +5487,18 @@
         var name = (form.querySelector('input[name="name"]').value || '').trim();
         if (!confirm('Delete "' + (name || 'this manual event') + '"? This cannot be undone.')) return;
         delBtn.disabled = true; delBtn.textContent = 'Deleting…';
+        var _dLoc = form.querySelector('input[name="location"]');
+        var _dStart = form.querySelector('input[name="start_date"]');
         sb.from('manual_events').delete().eq('id', id).then(function (resp) {
           delBtn.disabled = false; delBtn.textContent = 'Delete event';
           if (resp.error) { status('Delete failed: ' + resp.error.message, 'error'); return; }
+          // Same backlog the modal's delete writes to — keeps the nightly ingest
+          // from re-adding this one whichever button was used.
+          if (window.opsRecordDeleted) window.opsRecordDeleted({
+            table: 'manual_events', key: id, name: name,
+            start_date: _dStart ? _dStart.value : '',
+            location:   _dLoc ? _dLoc.value : ''
+          });
           card.remove();
           updateOpsCount();
           loadKnownNames();   // freed-up name is now valid for reuse
@@ -6192,7 +6359,7 @@
           var _intNames = (card.dataset.interestedNames || '').split('|').filter(Boolean);
           var _fitHit = activeFits.some(function (k) {
             var pf = AB_PROFILE_BY_KEY[k]; if (!pf) return false;
-            if (profileFits(pf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card))) return true;
+            if (profileFits(pf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1')) return true;
             // If that person flagged "I'm interested", the event fits THEM —
             // keep it in their Fits filter even when the keywords don't match.
             var kf = abFold(pf.key);
@@ -6237,7 +6404,9 @@
             // up / Meeting held, not yet Booked). Per-account (I'm the speaker);
             // team-wide for Angela/Hurley.
             var _ps = tagsS.split('|');
-            var _isPend = (_ps.indexOf('Submitted') !== -1 || _ps.indexOf('Followed up') !== -1 || _ps.indexOf('Meeting held') !== -1) && _ps.indexOf('Booked') === -1;
+            // Rejected is terminal — never "pending" (matches _iPending's count).
+            var _isPend = _ps.indexOf('Rejected') === -1 &&
+              (_ps.indexOf('Submitted') !== -1 || _ps.indexOf('Followed up') !== -1 || _ps.indexOf('Meeting held') !== -1) && _ps.indexOf('Booked') === -1;
             var _mine = _attSupport;
             if (_isPend && !_mine) {
               var _sp = (card.dataset.speaker || '').toLowerCase();
@@ -6259,7 +6428,10 @@
             // Fits my profile OR I flagged interested (interest = a fit). Mirrors
             // the count in renderStats and the Fits-dropdown rule.
             var _mfInt = (card.dataset.interestedNames || '').split('|').filter(Boolean).some(function (n) { return abFold(n).split(/\s+/)[0] === _attMe; });
-            if (!(_mfInt || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card))))) on = false;
+            // A learned "Not for me" pattern narrows MY fits — but never drops an
+            // event I've actively flagged interest in.
+            if (!_mfInt && _vetoedCard(card)) on = false;
+            else if (!(_mfInt || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1')))) on = false;
           }
         }
         if (activeStages.length > 0) {
@@ -6431,6 +6603,10 @@
       // person: Submitted / Followed up / Meeting held but NOT yet Booked (the
       // goal). Tied to them as the assigned speaker; support = team-wide.
       function _iPending(stages, speaker) {
+        // Rejected is TERMINAL — the organizer already said no, so there is
+        // nothing in flight (Hurley 2026-07-29). It used to keep counting as
+        // Pending because only Booked closed the application out.
+        if (stages.indexOf('Rejected') !== -1) return false;
         var pend = (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) && stages.indexOf('Booked') === -1;
         if (!pend) return false;
         return _support || speakerTokens(speaker || '').indexOf(meFirst) !== -1;
@@ -6485,11 +6661,13 @@
         if (isPastEvent(ev)) return;
         var st2 = stByNum[ev.num] || {};
         var _int = (st2.interested && st2.interested.length) ? st2.interested : (ev.interested || []);
-        if (_mineInterest(_int) || (_myPf && profileFits(_myPf, _fitBlob(ev, st2), canonicalRegion(ev), priceNumOf((st2 && st2.pricing) || ev.pricing)))) myFits++;
+        if (_mineInterest(_int)) myFits++;
+        else if (!_vetoedItem(ev) && _myPf && profileFits(_myPf, _fitBlob(ev, st2), canonicalRegion(ev), priceNumOf((st2 && st2.pricing) || ev.pricing), _isForeignLangEvent(ev))) myFits++;
       });
       (manualRows || []).forEach(function (m) {
         if (isPastEvent(m)) return;
-        if (_mineInterest(m.interested) || (_myPf && profileFits(_myPf, _fitBlob(m, m), canonicalRegion(m), priceNumOf(m.pricing)))) myFits++;
+        if (_mineInterest(m.interested)) myFits++;
+        else if (!_vetoedItem(m) && _myPf && profileFits(_myPf, _fitBlob(m, m), canonicalRegion(m), priceNumOf(m.pricing), _isForeignLangEvent(m))) myFits++;
       });
       // A cut-and-dry segmented status filter (data-stat). 'All' clears the
       // status filter; the rest are one-click chips. Other filters (region,
@@ -7230,17 +7408,26 @@
     }
 
     // ── "In the last week" + "Suggested for you" (My Events) ─────────
-    // Per-person local read/dismiss state — checking an item off, or clicking
-    // into it, takes it down (Slack-style). Nothing is written to the DB.
+    // Per-person local read/dismiss state. An item comes down ONLY when it's
+    // checked off (Hurley 2026-07-29) — opening the event or reading the thread
+    // deliberately leaves it in the feed, so following a link to look at
+    // something can't lose your place in the list. Nothing is written to the DB.
     function _wnStoreKey() { return 'ab.whatsnew.' + (getCollabName() || '').toLowerCase(); }
     function _wnState() { try { return JSON.parse(localStorage.getItem(_wnStoreKey()) || '{}'); } catch (e) { return {}; } }
     function _wnSave(s) { try { localStorage.setItem(_wnStoreKey(), JSON.stringify(s)); } catch (e) {} }
-    function _wnDismiss(item) {
+    // Mark a whole batch read in ONE write — drives "Mark all as read".
+    function _wnDismissMany(items) {
       var s = _wnState();
-      if (item.chatKey) { s.chatSeen = s.chatSeen || {}; s.chatSeen[item.chatKey] = ((_chatMeta[item.chatKey] || {}).latest) || new Date().toISOString(); }
-      else { s.dismissed = s.dismissed || {}; s.dismissed[item.id] = 1; }
+      (items || []).forEach(function (item) {
+        if (!item) return;
+        // A comment row is cleared by recording the latest message we've shown
+        // as seen, so a NEWER reply legitimately brings the row back.
+        if (item.chatKey) { s.chatSeen = s.chatSeen || {}; s.chatSeen[item.chatKey] = ((_chatMeta[item.chatKey] || {}).latest) || new Date().toISOString(); }
+        else { s.dismissed = s.dismissed || {}; s.dismissed[item.id] = 1; }
+      });
       _wnSave(s);
     }
+    function _wnDismiss(item) { _wnDismissMany([item]); }
     // Compact relative time for the activity feed ("2h", "3d", "1w").
     function _relTime(ts) {
       try {
@@ -7258,7 +7445,7 @@
       if (!parts.length) return '?';
       return (parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]) : parts[0].slice(0, 1)).toUpperCase();
     }
-    function _whatsNewItems() {
+    function _whatsNewItems(all) {
       var me = (getCollabName() || '').trim().toLowerCase().split(/\s+/)[0];
       var st = _wnState(), dis = st.dismissed || {}, seen = st.chatSeen || {};
       var cutoff = new Date(Date.now() - 7 * 86400000).toISOString();
@@ -7354,7 +7541,11 @@
       // always show (for support).
       items = items.filter(function (w) { return w.mention || w.profile || _onRadar(w.kind, w.key); });
       items.sort(function (a, b) { return a.ts < b.ts ? 1 : -1; });
-      return items.slice(0, 8);
+      // The feed SHOWS at most 8 so a busy week can't bury My Lineup. Pass
+      // all=true for the real set — "Mark all as read" has to clear the events
+      // behind the cap too, or clearing the visible 8 just promotes the next 8
+      // and the feed never empties.
+      return all ? items : items.slice(0, 8);
     }
     // Per-person "not for me" list — deciding NO on a suggestion takes it off
     // your list for good, so Plan Ahead is a decision you can clear to zero
@@ -7366,6 +7557,173 @@
     function _sugSkip(kind, key) {
       var s = _sugSkips(); s[_sugSkipId(kind, key)] = 1;
       try { localStorage.setItem(_sugSkipKey(), JSON.stringify(s)); } catch (e) {}
+      _vetoLearn(kind, key);   // and learn from it (see below)
+    }
+
+    // ── "Not for me" LEARNS, per person ──────────────────────────────────
+    // A skip used to hide that one event and nothing else. Now each skip also
+    // records WHAT was rejected, building a per-person negative profile that
+    // narrows that person's My Fit and their suggestions (Hurley 2026-07-29).
+    // Personal + local, like the skip list itself — one person's rejections
+    // never affect anyone else's fits.
+    //
+    // The signals, weighted by how much they actually tell us:
+    //   organizer (3) — the outfit putting the event on, read off the event URL's
+    //                   domain (falling back to the brand word in the title).
+    //                   "I don't want this company's events" is the clearest
+    //                   thing a rejection can mean.
+    //   topics    (2) — what the event is about.
+    //   city      (2) — but ONLY a lesser-known city. An established hub (New
+    //                   York, London, Dubai, Las Vegas …) can never be vetoed,
+    //                   however many events get skipped there: those are the
+    //                   cities the personas are built on.
+    //   roles     (1) — who attends. Least stringent, per Hurley: it can tip a
+    //                   decision, never make one on its own.
+    //
+    // Deliberately forgiving. Nothing is vetoed until a person has skipped at
+    // least twice, every signal needs REPEAT evidence, and no single signal
+    // except a twice-rejected organizer can reach the threshold alone.
+    var _VETO_MIN = 3;
+    var _VETO_REPEAT = 2;    // how many times a signal must recur to count
+    function _vetoKey() { return 'ab.sugveto.' + (getCollabName() || '').toLowerCase(); }
+    function _vetoProfile() {
+      try {
+        var v = JSON.parse(localStorage.getItem(_vetoKey()) || 'null');
+        if (v && typeof v === 'object') {
+          v.n = v.n || 0; v.orgs = v.orgs || {}; v.topics = v.topics || {};
+          v.roles = v.roles || {}; v.cities = v.cities || {};
+          return v;
+        }
+      } catch (e) {}
+      return { n: 0, orgs: {}, topics: {}, roles: {}, cities: {} };
+    }
+    // The registrable-ish domain of an event URL — our best available stand-in
+    // for "who is offering this event" (there's no organizer column).
+    function _urlOrg(url) {
+      var s = String(url || '').trim();
+      if (!s) return '';
+      try {
+        var h = new URL(s.indexOf('://') === -1 ? 'https://' + s : s).hostname.toLowerCase();
+        h = h.replace(/^www\./, '');
+        var parts = h.split('.').filter(Boolean);
+        if (parts.length < 2) return '';
+        // Keep three labels for co.uk / com.au / com.br style suffixes.
+        var tail2 = parts.slice(-2).join('.');
+        if (/^(co|com|org|net|gov|ac)\.[a-z]{2}$/.test(tail2) && parts.length >= 3) return parts.slice(-3).join('.');
+        return tail2;
+      } catch (e) { return ''; }
+    }
+    // Organizer key: the URL domain when we have one, else the distinctive brand
+    // word from the title (same first-distinctive-word rule as _brandKey).
+    function _orgKeyOf(o) {
+      if (!o) return '';
+      var d = _urlOrg(o.url || (o.startObj && o.startObj.url));
+      if (d) return 'd:' + d;
+      var cityToks = {};
+      abFold(String(o.location || '') + ' ' + String(o.city || ''))
+        .replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).forEach(function (w) { if (w) cityToks[w] = 1; });
+      var words = abFold(o.name || '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i];
+        if (w.length >= 3 && !_BRAND_STOP[w] && !/^\d+$/.test(w) && !cityToks[w]) return 'b:' + w;
+      }
+      return '';
+    }
+    // Every city the personas already target, folded. These are the "current
+    // ones" Hurley wants kept — a rejection in one of them teaches us nothing
+    // about the city, only about the event.
+    var _KNOWN_CITY_TOKS = null;
+    function _knownCityToks() {
+      if (_KNOWN_CITY_TOKS) return _KNOWN_CITY_TOKS;
+      var t = {};
+      var P = window.AB_PERSONAS || {};
+      Object.keys(P).forEach(function (k) {
+        ((P[k] && P[k].geo) || []).forEach(function (g) {
+          abFold(g).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).forEach(function (w) {
+            if (w && w.length >= 4) t[w] = 1;
+          });
+        });
+      });
+      // Only cache a real answer. Caching an empty set (personas not parsed yet)
+      // would silently disable the hub protection for the rest of the session.
+      if (Object.keys(t).length) _KNOWN_CITY_TOKS = t;
+      return t;
+    }
+    // The city token for veto purposes — '' when it's an established hub.
+    function _lesserCityOf(o) {
+      if (!o) return '';
+      var known = _knownCityToks();
+      var toks = abFold(String(o.city || '') + ' ' + String(o.location || ''))
+        .replace(/[^a-z0-9 ]/g, ' ').split(/\s+/)
+        .filter(function (w) { return w && w.length >= 4; });
+      // Any established-hub word in the location -> not a lesser-known city.
+      for (var i = 0; i < toks.length; i++) { if (known[toks[i]]) return ''; }
+      return toks.length ? toks[0] : '';
+    }
+    function _itemByKey(kind, key) {
+      var all = opsAllItems();
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].kind === kind && String(all[i].key) === String(key)) return all[i];
+      }
+      return null;
+    }
+    // Fold one rejected event into the signed-in person's negative profile.
+    function _vetoLearn(kind, key) {
+      var it = _itemByKey(kind, key);
+      if (!it) return;
+      var v = _vetoProfile();
+      v.n = (v.n || 0) + 1;
+      var _b = it.startObj || it;
+      var org = _orgKeyOf({ name: it.name, url: _b.url || it.url, location: it.location || _b.location, city: it.city || _b.city });
+      if (org) v.orgs[org] = (v.orgs[org] || 0) + 1;
+      var city = _lesserCityOf(it.startObj || it);
+      if (city) v.cities[city] = (v.cities[city] || 0) + 1;
+      var prof = _contentProfile(it);
+      Object.keys(prof.topics).forEach(function (t) { v.topics[t] = (v.topics[t] || 0) + 1; });
+      Object.keys(prof.roles).forEach(function (r) { v.roles[r] = (v.roles[r] || 0) + 1; });
+      try { localStorage.setItem(_vetoKey(), JSON.stringify(v)); } catch (e) {}
+    }
+    // Score a candidate against the profile. Signals are pre-extracted so this
+    // works both from a live item and from a rendered card's dataset.
+    function _vetoScore(sig) {
+      var v = _vetoProfile();
+      if ((v.n || 0) < 2) return 0;          // one click is not a pattern
+      var s = 0;
+      if (sig.org) {
+        var oc = v.orgs[sig.org] || 0;
+        if (oc >= _VETO_REPEAT) s += 3;      // this outfit, more than once
+        else if (oc === 1) s += 1;           // once — a nudge, not a verdict
+      }
+      if (sig.city && (v.cities[sig.city] || 0) >= _VETO_REPEAT) s += 2;
+      var topicHits = 0, roleHits = 0, k;
+      var toks = _simTokens(sig.text || '');
+      for (k in toks) {
+        if ((v.topics[k] || 0) >= _VETO_REPEAT) topicHits++;
+        if ((v.roles[k]  || 0) >= _VETO_REPEAT) roleHits++;
+      }
+      if (topicHits >= 2) s += 2;            // needs two repeatedly-rejected topics
+      if (roleHits  >= 3) s += 1;            // audience alone can only ever tip it
+      return s;
+    }
+    function _vetoedSig(sig) { return _vetoScore(sig) >= _VETO_MIN; }
+    // From a live item / event object.
+    function _vetoedItem(o) {
+      if (!o) return false;
+      var base = o.startObj || o;
+      return _vetoedSig({
+        org:  _orgKeyOf({ name: o.name, url: base.url || o.url, location: o.location || base.location, city: o.city || base.city }),
+        city: _lesserCityOf(base),
+        text: abFold([o.name, base.about, base.focus_areas, base.type, base.industry, base.typical_attendees, base.past_speakers].filter(Boolean).join(' '))
+      });
+    }
+    // From a rendered card (the signals are stashed on its dataset at build time).
+    function _vetoedCard(card) {
+      if (!card || !card.dataset) return false;
+      return _vetoedSig({
+        org:  card.dataset.vetoOrg || '',
+        city: card.dataset.vetoCity || '',
+        text: card.dataset.fitText || ''
+      });
     }
     // Plan-Ahead "hide this whole block" — dismisses a trip cluster or an Event
     // Radar group (keyed by its anchor event) from Plan Ahead only. Unlike
@@ -7563,8 +7921,10 @@
         if (it.stages.length) return;                       // already in the pipeline
         if (BAD.test(it.name)) return;                      // compliance-centric — skip
         if (!_govOk(meFirst) && _isGovDef(it)) return;       // gov/A&D is Jim's lane only
+        if (_langBlocked(meFirst, it)) return;               // non-English event — not Thor's / Verma's / Joe's
         if (!_inPlanWindow(it.sort)) return;                 // outside the 2–4 month planning window
         if (skips[_sugSkipId(it.kind, it.key)]) return;      // you decided "not for me"
+        if (_vetoedItem(it)) return;                         // looks like what you keep saying no to
         if ((it.interested || []).some(function (n) { return String(n).toLowerCase().split(/\s+/)[0] === meFirst; })) return;
         var o = it.startObj || {};
         var inGeo = (P && geo.length) ? geoHit(it) : false;
@@ -7607,7 +7967,8 @@
       scored.sort(function (a, b) { return (b.tScore - a.tScore) || (b.s - a.s) || (a.it.sort - b.it.sort); });
       return scored;   // callers slice to their own depth (My Events widget vs. the full Plan Ahead page)
     }
-    var _wnLast = [];
+    var _wnLast = [];   // what's on screen (capped at 8)
+    var _wnAll  = [];   // everything eligible — what "Mark all as read" clears
     // Display name from a lowercased first-name key ("thor" -> "Thor"). Kept in
     // the ops closure (AB_ROSTER lives in the modal closure), so just capitalize.
     function _outreachName(k) {
@@ -7675,8 +8036,10 @@
       var upTitle = b.support ? 'Attending &amp; speaking' : 'You&#39;re attending';
       // Past events collapse into a dropdown, hidden by default (like the grid's
       // month groups). _myEventsPastOpen remembers if the reader expanded them.
-      // "In the last week" — teammates' updates + new comments; check one off
-      // (or click into it) and it comes down, like Slack read-state.
+      // "In the last week" — teammates' updates + new comments. A row comes down
+      // when it's CHECKED OFF and only then; clicking through to the event leaves
+      // it in place. "Mark all as read" clears the feed, or one person's routine
+      // updates, in a single go.
       // Support: load recent profile uploads once, then re-render to fold them in.
       if (b.support && _recentUploads === null && !_recentUploadsLoading) {
         _recentUploadsLoading = true;
@@ -7705,6 +8068,7 @@
           '<span class="queue-sec-count">' + _outreach.length + '</span></div>' + outRows + '</div>';
       }
       _wnLast = _whatsNewItems();
+      _wnAll  = _whatsNewItems(true);
       var wnHtml = '';
       if (_wnLast.length) {
         // Comment threads surface at FULL visibility (they likely need a reply);
@@ -7743,17 +8107,30 @@
                 '<button type="button" class="queue-name wn-open" data-wn-open="' + o.i + '">' + escapeHtml(o.w.detail || o.w.label) + '</button>' +
               '</div><div class="queue-actions"><button type="button" class="q-btn wn-check" data-wn-check="' + o.i + '" title="Mark as seen">&#10003;</button></div></div>';
           }).join('');
+          // Batch check-off for this person's routine updates — clearing a run of
+          // pipeline moves one ✓ at a time was the tedious part (Hurley). Keyed by
+          // the PERSON, not the visible row indexes, so it also clears their
+          // updates sitting behind the 8-item display cap.
           return '<div class="wn-group collapsed">' +
               '<div class="wn-group-head" role="button" tabindex="0">' +
                 '<span class="wn-avatar wn-avatar--sm">' + escapeHtml(_wnInitials(who)) + '</span>' +
                 '<span class="wn-group-name">' + escapeHtml(who) + '</span>' +
                 '<span class="wn-group-count">' + list.length + ' routine update' + (list.length === 1 ? '' : 's') + '</span>' +
+                '<button type="button" class="wn-readall" data-wn-readgroup="' + escapeHtml(who) + '">Mark all as read</button>' +
                 '<span class="qsec-caret" aria-hidden="true">&#9662;</span>' +
               '</div>' +
               '<div class="wn-group-body">' + rows + '</div>' +
             '</div>';
         }).join('');
-        wnHtml = '<div class="queue-section wn-section"><div class="queue-sec-head"><span class="queue-sec-title">In the last week</span><span class="queue-sec-count">' + _wnLast.length + '</span></div>' +
+        wnHtml = '<div class="queue-section wn-section"><div class="queue-sec-head">' +
+            '<span class="queue-sec-title">In the last week</span>' +
+            // Say so when there's more behind the 8-item cap, otherwise
+            // "Mark all as read" appears to clear 8 and silently clears 14.
+            '<span class="queue-sec-count">' + _wnLast.length +
+              (_wnAll.length > _wnLast.length ? ' of ' + _wnAll.length : '') + '</span>' +
+            // Section-level clear-everything, same wording as the per-person one.
+            '<button type="button" class="wn-readall wn-readall--all" data-wn-readall>Mark all as read</button>' +
+          '</div>' +
           _cardsHtml + _groupsHtml + '</div>';
       }
       // Plan Ahead now lives at the BOTTOM of My Lineup (below Past events),
@@ -7771,11 +8148,11 @@
         var _open = function () {
           var w = _wnLast[parseInt(el.getAttribute('data-wn-open'), 10)];
           if (!w) return;
-          _wnDismiss(w);
+          // NOTE: opening does NOT mark it read — only the ✓ does (Hurley). You
+          // can click through to the event, come back, and the row is still here.
           // A profile-upload update opens My Profile (it isn't tied to an event).
           if (w.profile) { setView('myprofile'); return; }
           opsOpenRef(w.kind, String(w.key));
-          renderMyEvents();
         };
         el.addEventListener('click', _open);
         // Comment cards are role="button" — open on Enter / Space too.
@@ -7790,12 +8167,37 @@
           renderMyEvents();
         });
       });
+      // "Mark all as read" — the whole feed.
+      host.querySelectorAll('[data-wn-readall]').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+          e.stopPropagation();
+          _wnDismissMany(_wnAll);   // everything, not just the visible 8
+          renderMyEvents();
+        });
+      });
+      // "Mark all as read" — one person's routine updates. stopPropagation keeps
+      // the click off the group header, which would otherwise collapse/expand.
+      host.querySelectorAll('[data-wn-readgroup]').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var who = el.getAttribute('data-wn-readgroup') || '';
+          _wnDismissMany(_wnAll.filter(function (w) {
+            return w.type !== 'comment' && String(w.who || 'Someone') === who;
+          }));
+          renderMyEvents();
+        });
+      });
       // Per-person "routine updates" groups start collapsed; tap the header to
       // expand (ephemeral — no need to persist a one-week feed's open state).
       host.querySelectorAll('.wn-group-head').forEach(function (head) {
         var _tg = function () { head.closest('.wn-group').classList.toggle('collapsed'); };
         head.addEventListener('click', _tg);
-        head.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _tg(); } });
+        head.addEventListener('keydown', function (e) {
+          // Only the header itself toggles — Enter/Space on the nested
+          // "Mark all as read" button must not also collapse the group.
+          if (e.target !== head) return;
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _tg(); }
+        });
       });
       host.querySelectorAll('[data-brief-kind]').forEach(function (el) {
         el.addEventListener('click', function (e) { e.stopPropagation(); openBriefDrawer(el.getAttribute('data-brief-kind'), el.getAttribute('data-brief-key')); });
@@ -8133,7 +8535,9 @@
             if (BADt.test(it.name)) return;
             if (_anyRole(it, anchor.who)) return;               // already on this person's list
             if (!ownerGov && _isGovDef(it)) return;             // gov/A&D is Jim's lane
+            if (_langBlocked(anchor.who, it)) return;           // non-English — don't batch it onto their trip
             if (skips[_sugSkipId(it.kind, it.key)]) return;
+            if (_vetoedItem(it)) return;                        // learned "not for me" pattern
             if (usedKeys[anchor.who + '|' + it.kind + ':' + it.key]) return;  // don't repeat within this person's trips
             var nm = abFold(it.name); if (seenName[nm]) return;  // collapse duplicate events
             var g = geoOf(it); if (!g) return;
@@ -8219,7 +8623,11 @@
           if (it.stages.length) return;                       // already in the pipeline
           if (BADt.test(it.name)) return;
           if (!ownerGov && _isGovDef(it)) return;             // gov/A&D is Jim's lane
+          // Non-English event: drop it only when EVERY owner this rec is for is
+          // English-only — if Jerome or Carlos is also interested, it still fits.
+          if (A.who.every(function (w) { return _langBlocked(w, it); })) return;
           if (skips[_sugSkipId(it.kind, it.key)]) return;
+          if (_vetoedItem(it)) return;                        // learned "not for me" pattern
           // Skip anything an interested owner is already tied to.
           if (A.who.some(function (w) { return _anyRole(it, w); })) return;
           var nm = abFold(it.name); if (seenName[nm]) return;
@@ -8256,7 +8664,16 @@
       var intro = '<p class="queue-intro myev-intro"><strong>Plan Ahead:</strong> ' +
         (support ? 'Events around where the team&#39;s already headed, plus others worth a look. '
                  : (personalized ? 'Events around the trips you&#39;re already taking, plus more like the ones you flag. ' : 'Events worth a look. ')) +
-        'Flag the ones to go to (Angela registers you) and skip the rest.</p>';
+        'Flag the ones to go to (Angela registers you) and skip the rest.' +
+        // Skipping teaches this page what you don't want (organizer, topic,
+        // lesser-known city). Say so plainly, and always offer the undo — a
+        // learned pattern you can't clear would quietly shrink your own fits.
+        (function () {
+          var v = _vetoProfile();
+          if ((v.n || 0) < 2) return '';
+          return ' <span class="veto-note">Your skips are narrowing what shows here and in <em>My fits</em>. ' +
+                 '<button type="button" class="veto-reset" data-veto-reset>Reset what I&#39;ve taught it</button></span>';
+        })() + '</p>';
       // Person label helpers — trips + interest recs go team-wide for support.
       // Label by the identifier the team actually uses (the persona key: Thor,
       // Jerome, Verma, Carlos, Joe, Jim), which is how attendees are stored.
@@ -8499,6 +8916,14 @@
             }
           }
           toggleMyInterest(kind, it.key, it.interested, it.startObj && it.startObj.attend_verdict);
+        });
+      });
+      // Undo the learning (not the individual skips — those stay decided).
+      host.querySelectorAll('[data-veto-reset]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          try { localStorage.removeItem(_vetoKey()); } catch (e) {}
+          renderPlanAhead();
+          if (window.opsRefresh) window.opsRefresh();   // My fits recomputes
         });
       });
       host.querySelectorAll('[data-pa-skip]').forEach(function (btn) {
@@ -9057,8 +9482,13 @@
     }
     // priceNum: the event's parsed ticket price (0 = free, null = unknown). Only
     // consulted by a freeOnly profile; every other profile ignores it.
-    function profileFits(p, blob, region, priceNum) {
+    // isForeign: the event's title is in a non-English language. Thor, Verma and
+    // Joe present and sell in English, so a Spanish/Portuguese/French/German/
+    // Italian-language event is never their fit (Hurley 2026-07-29) — it stays
+    // available to Jerome and Carlos, whose territories it belongs to.
+    function profileFits(p, blob, region, priceNum, isForeign) {
       if (!p) return false;
+      if (isForeign && _ENGLISH_ONLY_PEOPLE[String(p.key || '').toLowerCase()]) return false;
       // (Australia used to be carved out as Verma's exclusive territory. It was
       // taken off his profile, so this gate went with it — kept on its own it
       // would have left every AU event fitting NOBODY. Australian events now
@@ -9096,7 +9526,7 @@
 
     // Planner coverage-gap territories, derived from the profiles above.
     var AB_TERRITORIES = AB_PROFILES.filter(function (p) { return !p.support; }).map(function (p) {
-      return { who: p.key, label: p.label, test: function (it) { return profileFits(p, it.text, it.region); } };
+      return { who: p.key, label: p.label, test: function (it) { return profileFits(p, it.text, it.region, null, _isForeignLangEvent(it)); } };
     });
 
     function opsDateRange(o) {
@@ -9496,6 +9926,15 @@
         for (var t in sm.set) { if (!lg.set[t]) return false; }
         return true;                                  // smaller topic fully inside larger
       }
+      // ── The event link decides who's actually running an event ──────────
+      // Passes 2 and 3 pair events on TITLE SHAPE, which is exactly where a
+      // guess goes wrong. The link settles it: two similar-looking events on
+      // different companies' domains are different events (Hurley 2026-07-29).
+      // A missing link on either side tells us nothing, so the title rules then
+      // stand on their own, unchanged.
+      function _dupDom(o) { return _urlOrg((o && o.url) || ''); }
+      function _domsConflict(a, b) { return !!a && !!b && a !== b; }
+      function _domsAgree(a, b) { return !!a && !!b && a === b; }
       var dcGroups = {};
       Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {
         if (c.dataset.dupHidden === '1') return;      // already hidden by pass 1
@@ -9511,8 +9950,11 @@
         if (g.length < 2) return;
         g.sort(function (a, b) { return _trackScore(b) - _trackScore(a); });
         var keeper = g[0], sigK = _topicSig(keeper._modalRec || {}), merged = 0;
+        var domK = _dupDom(keeper._modalRec || {});
         for (var i = 1; i < g.length; i++) {
           if (g[i].dataset.dupHidden === '1') continue;
+          // Different outfit -> a different event, however alike the titles read.
+          if (_domsConflict(domK, _dupDom(g[i]._modalRec || {}))) continue;
           if (_topicRelated(sigK, _topicSig(g[i]._modalRec || {}))) {
             g[i].dataset.dupHidden = '1'; g[i].dataset.dupGroup = key; g[i].classList.add('is-dupe'); if (!_reviewDupes) g[i].style.display = 'none'; hidden++; merged++;
             keeper.dataset.dupKeeper = '1'; keeper.dataset.dupGroup = key;
@@ -9551,12 +9993,23 @@
           var ra = A._modalRec || {}, rb = B._modalRec || {};
           var ta = _dupToks(ra.name), tb = _dupToks(rb.name);
           if (!ta.n || !tb.n) continue;
+          var domA = _dupDom(ra), domB = _dupDom(rb);
+          // Different companies' sites -> not a pair. This is what stops the
+          // loose pass from nagging about events that merely sound alike.
+          if (_domsConflict(domA, domB)) continue;
           var shared = 0, kk;
           for (kk in ta.set) { if (tb.set[kk]) shared++; }
-          if (shared !== Math.min(ta.n, tb.n)) continue;          // needs full subset
           var sameDate = A.dataset.sort && A.dataset.sort !== '99999999' && A.dataset.sort === B.dataset.sort;
           var ca = dupCityOf(ra), cb = dupCityOf(rb);
           var sameCity = ca && ca === cb;
+          var subset = (shared === Math.min(ta.n, tb.n));
+          // Normally a full subset is required. But when both events sit on the
+          // SAME company's domain on the same date, one distinctive shared word
+          // is enough to be worth a look — that's the "HumanX Amsterdam" vs
+          // "HumanX Europe" shape, which no subset rule can see. Flag-only, as
+          // ever: siblings a single host runs side by side (CDAO Government vs
+          // CDAO Defense) land here too, and a human decides.
+          if (!subset && !(_domsAgree(domA, domB) && sameDate && shared >= 1)) continue;
           if (!sameDate && !sameCity) continue;
           var mk = 'maybe:' + [A.dataset.sort, ca, Object.keys(ta.set).sort().join('-')].join('|');
           [A, B].forEach(function (el) {
@@ -12667,18 +13120,74 @@
     };
     // Re-fetch + re-render everything (used after server-side enrichment writes).
     window.opsRefresh = function () { return renderOps(getCollabName() || 'Team'); };
+    // ── "Don't bring this back" backlog ─────────────────────────────
+    // Every delete is recorded in deleted_events so the nightly Dust ingest can
+    // skip an event someone has already thrown out (api/events.py reads this
+    // table and reports it as "previously deleted"). A hard-deleted manual event
+    // used to leave no trace at all, so the scraper would re-add it days later.
+    //
+    // Best-effort by design: a table that hasn't been migrated yet, or a failed
+    // insert, NEVER blocks the delete. Worst case the scraper re-suggests it.
+    function recordDeleted(info) {
+      if (!info || !info.name) return;
+      var row = {
+        name:         String(info.name).slice(0, 300),
+        start_date:   (info.start_date && /^\d{4}-\d{2}-\d{2}/.test(info.start_date)) ? String(info.start_date).slice(0, 10) : null,
+        location:     info.location ? String(info.location).slice(0, 300) : null,
+        source_table: info.table || null,
+        source_key:   (info.key == null) ? null : String(info.key),
+        deleted_by:   getCollabName() || null,
+        reason:       info.reason || 'deleted in the tracker'
+      };
+      try {
+        sb.from('deleted_events').insert(row).then(function (r) {
+          if (r && r.error) console.warn('deleted_events not recorded: ' + r.error.message);
+        }, function (e) { console.warn('deleted_events not recorded: ' + e); });
+      } catch (e) { console.warn('deleted_events not recorded: ' + e); }
+    }
+    window.opsRecordDeleted = recordDeleted;
+    // Name / date / location for the row being deleted, pulled from what's
+    // already loaded (an event_state override wins over the catalog value, same
+    // as everywhere else). Returns a nameless stub if we can't find it — then
+    // recordDeleted no-ops rather than writing a useless row.
+    function _deletedInfoFor(table, key) {
+      var o = null, st = {};
+      if (table === 'manual_events') {
+        o = (_lastManual || []).filter(function (m) { return String(m.id) === String(key); })[0];
+        st = o || {};
+      } else {
+        o = (_lastEvs || []).filter(function (e) { return String(e.num) === String(key); })[0];
+        st = (o && (_lastStateMap || {})[o.num]) || {};
+      }
+      if (!o) return { table: table, key: key, name: '' };
+      return {
+        table: table, key: key,
+        name:       st.name       || o.name       || '',
+        start_date: st.start_date || o.start_date || '',
+        location:   st.location   || o.location   || ''
+      };
+    }
+
     // Delete bridge for the modal's Edit form. Manual events are hard-deleted;
     // catalog events (from the daily ingest) are persistently suppressed via a
     // '__deleted__' sentinel on their event_state row, so they don't reappear.
+    // Either way the event goes on the deleted_events backlog first, so the
+    // ingest won't offer it again.
     window.opsDelete = function (table, key) {
+      var _info = _deletedInfoFor(table, key);
       if (table === 'manual_events') {
         return sb.from('manual_events').delete().eq('id', key).then(function (resp) {
           if (resp && resp.error) { status('Delete failed: ' + resp.error.message, 'error'); }
-          else { flashOk('Manual event deleted'); if (typeof loadKnownNames === 'function') loadKnownNames(); renderOps(getCollabName() || 'Team'); }
+          else {
+            // Record only once the delete actually landed.
+            recordDeleted(_info);
+            flashOk('Manual event deleted'); if (typeof loadKnownNames === 'function') loadKnownNames(); renderOps(getCollabName() || 'Team');
+          }
           return resp;
         });
       }
       // Catalog event — soft-delete via opsWrite (re-renders + filters it out).
+      recordDeleted(_info);
       return window.opsWrite('event_state', key, { status: '__deleted__' });
     };
 
@@ -12882,7 +13391,9 @@
       // re-rendered) message.
       document.querySelectorAll('.chat-fwd-menu, .chat-more-menu').forEach(function (x) { x.remove(); });
       list.innerHTML = '';
-      if (!msgs.length) { list.innerHTML = '<p class="chat-empty">No messages yet — start the conversation.</p>'; return; }
+      // An empty thread shows nothing at all (Hurley 2026-07-29) — the composer
+      // below it is already the invitation to start one.
+      if (!msgs.length) return;
       var me = (getCollabName() || '').trim().toLowerCase();
       // Support (Angela / Hurley) can moderate — delete ANY message, not just
       // their own; everyone else can delete only what they wrote.
@@ -12957,15 +13468,9 @@
         // empty state instead of a setup warning (a send will surface the error).
         if (resp.error) { _paintChatList(list, []); return; }
         _paintChatList(list, resp.data || []);
-        // Opening the thread marks it read — its "new comments" row in
-        // My Events comes down automatically (Slack-style).
-        try {
-          var _sn = _wnState(); _sn.chatSeen = _sn.chatSeen || {};
-          _sn.chatSeen[panel.dataset.chatkey] = (resp.data && resp.data.length)
-            ? (resp.data[resp.data.length - 1].created_at || new Date().toISOString())
-            : new Date().toISOString();
-          _wnSave(_sn);
-        } catch (e) {}
+        // Reading the thread does NOT clear its "In the last week" row any more
+        // (Hurley 2026-07-29) — that row comes down only when it's checked off,
+        // so opening an event to look at it can't quietly empty your feed.
       });
       var form = document.getElementById('chat-form');
       if (form) form.addEventListener('submit', function (e) {
