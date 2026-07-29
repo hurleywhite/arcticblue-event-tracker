@@ -5304,11 +5304,34 @@ def build():
     // "Contact found" = we have a real email to reach this event's organizer,
     // in the structured poc_email or embedded in the free-text contact_info.
     var _EMAIL_RE = /[^\\s@]+@[^\\s@]+\\.[^\\s@]{{2,}}/;
+    // The ✉ badge means "there's a human we can reach here" — an email OR a NAMED
+    // person. It used to require an email address, so an event where Angela had
+    // written down a contact's name but no address showed nothing (Angela).
+    //
+    // A bare website is NOT a contact: contact_info is often just "ai4.io" or a
+    // registration URL, so free text only counts once the URLs/domains are
+    // stripped out and something human-readable is still left. Junk values
+    // ("TBD", "Not verifiable…") never count.
+    function _contactText(v) {{
+      var s = String(v == null ? '' : v).trim();
+      if (!s || _isJunkVal(s)) return '';
+      if (_EMAIL_RE.test(s)) return s;                       // an address anywhere wins
+      var stripped = s
+        .replace(/https?:\\/\\/\\S+/gi, ' ')                    // full URLs
+        .replace(/\\b[\\w-]+(\\.[\\w-]+)+(\\/\\S*)?/g, ' ')        // bare domains / paths
+        .replace(/[^A-Za-z0-9]+/g, ' ')
+        .trim();
+      return stripped.length >= 3 ? stripped : '';
+    }}
     function hasEmailContact() {{
       for (var i = 0; i < arguments.length; i++) {{
         var o = arguments[i]; if (!o) continue;
         if (_EMAIL_RE.test(String(o.poc_email || ''))) return true;
-        if (_EMAIL_RE.test(String(o.contact_info || ''))) return true;
+        // A named point of contact counts on its own — no address required.
+        if (_contactText(o.poc_name)) return true;
+        if (String(o.poc_linkedin || '').trim()) return true;
+        if (_contactText(o.contact_info)) return true;
+        if (_contactText(o.additional_contacts)) return true;
       }}
       return false;
     }}
@@ -5389,9 +5412,15 @@ def build():
       var _effContact = (st && st.contact_info != null && String(st.contact_info).trim() !== '')
         ? (st.contact_info === '__cleared__' ? '' : st.contact_info)
         : (ev.contact_info || '');
-      card.dataset.contactFound = hasEmailContact({{ poc_email: (st && st.poc_email) || ev.poc_email, contact_info: _effContact }}) ? '1' : '';
+      card.dataset.contactFound = hasEmailContact({{
+        poc_email:           (st && st.poc_email) || ev.poc_email,
+        poc_name:            (st && st.poc_name) || ev.poc_name,
+        poc_linkedin:        (st && st.poc_linkedin) || ev.poc_linkedin,
+        additional_contacts: (st && st.additional_contacts) || ev.additional_contacts,
+        contact_info:        _effContact
+      }}) ? '1' : '';
       // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
-      var contactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
+      var contactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="We have a contact for this event — a name, an email or both">✉ Contact</span>' : '';
       // A link added/edited in event_state (override) wins over the catalog URL,
       // so adding a link to a link-less catalog event lights up the card ↗.
       // Private events have no public page — a scraped URL is usually wrong, so
@@ -5581,9 +5610,9 @@ def build():
       var mDecBadge = (mev.decision === 'go' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="decision-badge go">✓ Go</span>' : '';
       // Should-Attend is now the blue card outline (is-sa), not a face badge.
       var mSaBadge = '';
-      card.dataset.contactFound = (hasEmailContact(mev) || _EMAIL_RE.test(String(mev.poc_email || ''))) ? '1' : '';
+      card.dataset.contactFound = hasEmailContact(mev) ? '1' : '';
       // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
-      var mContactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="An email contact was found for this event">✉ Contact</span>' : '';
+      var mContactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="We have a contact for this event — a name, an email or both">✉ Contact</span>' : '';
       // "Recently added" means UNTRIAGED-and-new. Once someone has worked the
       // event — tagged it, written a note, flagged it for a teammate, archived
       // it — it isn't new to Angela any more, so it drops the yellow outline and

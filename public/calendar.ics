@@ -3965,16 +3965,6 @@ DESCRIPTION:Focused enterprise AI conference where speakers share real-world AI 
 URL:https://www.aibusinessconference.co.uk/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-152@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20261104
-DTEND;VALUE=DATE:20261105
-SUMMARY:Economist AI in Health Summit 2026
-LOCATION:London\, UK
-DESCRIPTION:The Economist's dedicated AI-in-health summit brings together NHS leaders\, pharmaceutical executives\, and health system operators exploring practical AI scaling — relevant for ArcticBlue's healthcare regulated-industry narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.economistenterprise.com/ai-health-summit/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-149@arcticblue-event-tracker
 DTSTAMP:20260729T000000Z
 DTSTART;VALUE=DATE:20260630
