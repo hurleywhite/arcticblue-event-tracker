@@ -6653,11 +6653,18 @@ def build():
             // she spoke to straight into Notes, and searching that name found
             // nothing because notes never reach the card face. Same for the
             // outreach note and the remaining contact fields.
+            // Indexed: the card face (name, date, location, status, tags) plus the
+            // fields you'd actually search BY — the contact block and our own
+            // written record. The "Who attends" prose is deliberately NOT indexed:
+            // typical_attendees and past_speakers are long lists of other people's
+            // names and job titles, so searching for a contact matched dozens of
+            // events that merely list someone with that name in their audience or
+            // past-speaker blurb, burying the event you actually wanted (Angela).
             _blob = card._searchBlob = ((card.textContent || '') + ' ' +
               [_r.poc_name, _r.poc_email, _r.poc_linkedin, _r.contact_info,
                _r.additional_contacts, _r.notes, _r.outreach_note,
-               _r.speaker, _r.past_speakers,
-               _r.about, _r.focus_areas, _r.typical_attendees].filter(Boolean).join(' ')).toLowerCase();
+               _r.speaker, _r.speaker_topic,
+               _r.about, _r.focus_areas].filter(Boolean).join(' ')).toLowerCase();
           }}
           if (_blob.indexOf(q) === -1) on = false;
         }}
@@ -7089,9 +7096,12 @@ def build():
       // Prefer the event_state override where one exists: a CATALOG event's notes
       // and contact live on `st`, so reading base.* alone missed them entirely.
       var _pick = function (f) {{ var v = (st && st[f]); if (v === '__cleared__') return ''; return (v != null && String(v).trim() !== '') ? v : (base[f] || ''); }};
-      var blob = [base.name, _pick('about'), _pick('focus_areas'), _pick('typical_attendees'),
+      // Same rule as the grid's search blob: identity + place + our own record +
+      // contacts. NOT typical_attendees / past_speakers — those are other people's
+      // names and titles, and they drown a contact search in false matches.
+      var blob = [base.name, _pick('about'), _pick('focus_areas'),
                   base.location, base.region, base.city, base.country, _pick('type'),
-                  _pick('notes'), _pick('past_speakers'),
+                  _pick('notes'),
                   _pick('poc_name'), _pick('poc_email'), _pick('contact_info'),
                   _pick('outreach_note')].join(' ');
       return {{

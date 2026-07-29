@@ -893,7 +893,7 @@ DTEND;VALUE=DATE:20261104
 SUMMARY:Global Summit AI Vancouver 2026
 LOCATION:Vancouver\, Canada
 DESCRIPTION:Expanded two-day AI summit in Vancouver targeting leaders\, builders\, researchers\, and investors in Canada’s West Coast AI ecosystem — niche Canadian market presence for ArcticBlue’s North American financial services and enterprise AI positioning.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.globalsummitai.com/
+URL:https://globalsummit.ca/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-546@arcticblue-event-tracker
@@ -3793,16 +3793,6 @@ SUMMARY:SAIAConf IV
 LOCATION:Buenos Aires\, Argentina
 DESCRIPTION:Argentina's most important annual AI conference (SAIA\, 3\,000+ members\, 500-800 attendees) with ethics\, regulation\, and enterprise AI implementation tracks — stage to position ArcticBlue's AI governance expertise in the Argentine enterprise market.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://saiaconf.ar/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-176@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20261104
-DTEND;VALUE=DATE:20261105
-SUMMARY:Economist Impact: AI in Health Summit 2026
-LOCATION:London\, UK
-DESCRIPTION:Economist Impact's dedicated healthcare AI summit in London — clinicians\, policymakers\, pharma and health system leaders exploring AI from hype to reality\; open Become a Speaker route aligns with Verma's de-risking AI in regulated healthcare narrative.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://events.economist.com/ai-health-summit/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-175@arcticblue-event-tracker

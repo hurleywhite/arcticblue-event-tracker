@@ -215,7 +215,7 @@
    "focus_areas": "Enterprise AI and big data strategy; AI deployment at scale; Data infrastructure for AI; Cloud AI and MLOps; Industry AI applications",
    "typical_attendees": "Enterprise tech leaders, CTOs, VP Engineering, data engineers, AI practitioners; 8,000+ attendees",
    "speaking_route": "Speaker applications via ai-expo.net/northamerica/",
-   "contact_info": "ai-expo.net/northamerica/",
+   "contact_info": "ai-expo.net/northamerica/ · Organizer: CloserStill Media",
    "attendee_count": "8,000+",
    "seed": false,
    "urgent": false,
@@ -945,7 +945,7 @@
    "city": "London",
    "country": "UK",
    "about": "Big Data LDN at Olympia London — free to attend, two-day conference and exhibition. 8,000+ data, AI, and analytics professionals across enterprise-focused sessions on building scalable, AI-ready data platforms. Strong presence from enterprise data leaders across UK financial services, retail, and technology sectors.",
-   "contact_info": "bigdataldn.com",
+   "contact_info": "bigdataldn.com · Organizer: CloserStill Media",
    "focus_areas": "Enterprise AI deployment and data readiness; LLM operationalization and enterprise AI pipelines; Data governance for AI compliance and quality; AI-driven analytics and business performance; Enterprise data architecture for agentic AI workflows"
   },
   {
@@ -1365,7 +1365,7 @@
    "country": "Netherlands",
    "about": "European edition of the AI & Big Data Expo, part of the TechEx cluster in Amsterdam. 2-day in-person event for AI practitioners and enterprise leaders. Co-located with Cloud & 5G Expo, Cybersecurity & Cloud Expo, and IoT Tech Expo. Strong enterprise AI governance and agentic AI deployment content tracks.",
    "speaking_route": "Speaker application: ai-expo.net/europe/speakers. Sponsor/contact: ai-expo.net/europe",
-   "contact_info": "ai-expo.net/europe",
+   "contact_info": "ai-expo.net/europe · Organizer: CloserStill Media",
    "focus_areas": "Enterprise AI governance and responsible deployment; Agentic AI and intelligent automation; AI data platforms and architecture; Cloud-native AI infrastructure; Digital transformation with AI",
    "pricing": "FREE pass for attendees (delegate/ticket price); vendor/supplier rates not listed"
   },
@@ -1602,7 +1602,8 @@
    "pricing": "General attendee tickets start at EUR 895; Startup exhibitor packages (ALPHA program) start at EUR 1,500–3,000; Corporate/sponsorship packages range from EUR 25,000 to EUR 500,000+; Investor and media passes require separate application[5]",
    "pay_to_play": "Yes",
    "past_speakers": "Paddy Cosgrave, Founder of Web Summit; Piers Linney, Entrepreneur and TV Personality; Azeem Azhar, Author of 'The Exponential Era'; Sheryl Sandberg, Former COO of Meta; Brian Chesky, CEO of Airbnb; Ginni Rometty, Former CEO of IBM; Satya Nadella, CEO of Microsoft; Mark Zuckerberg, CEO of Meta[1][5]",
-   "deadline": "Q1 (early bird tickets open in Q1)[5]"
+   "deadline": "Q1 (early bird tickets open in Q1)[5]",
+   "contact_info": "Ciara Haley — runs Exec Programming for Web Summit — ciara.haley@websummit.com"
   },
   {
    "num": 63,
@@ -3699,7 +3700,8 @@
    "past_speakers": "CEO, Microsoft; CTO, Cloudflare; VP Innovation, IBM",
    "meeting_formats": "Curated small group tours for investors; attendee app for pre-booking meetings (implied by 'fastest-growing tech conference' FAQ)",
    "audience_type": "Buyer-rich",
-   "deadline": "Registration closed (as of June 26, 2026)"
+   "deadline": "Registration closed (as of June 26, 2026)",
+   "contact_info": "Ciara Haley — runs Exec Programming for Web Summit — ciara.haley@websummit.com"
   },
   {
    "num": 164,
@@ -3956,7 +3958,8 @@
    "pricing": "Buyer-rich: over 25,000 attendees from 124 countries, including 1,500 startups and 600 investors; vendor/supplier tier not specified",
    "past_speakers": "Her Excellency Sheikha Al Mayassa bint Hamad bin Khalifa Al Thani, Chairperson of Qatar Museums; Cliff Obrecht, Co-founder and COO of Canva; Cristóbal Valenzuela, Founder and CEO of Runway",
    "meeting_formats": "In-person networking, masterclasses, interactive Q&A sessions",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "contact_info": "Ciara Haley — runs Exec Programming for Web Summit — ciara.haley@websummit.com"
   },
   {
    "num": 174,
@@ -4274,7 +4277,8 @@
    "end_date": "2026-03-25",
    "past_speakers": "Ikhlaq Sidhu, Dean of IE School of Science & Technology; Senior executives from strategy, technology, operations and data (diverse industries)",
    "meeting_formats": "Networking opportunities, insightful discussions, panels, sessions, end-of-day drinks reception",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "contact_info": "Caitlin Mehta — speaker manager, The Economist — caitlinmehta@economist.com (reached personally, skipping the online form)"
   },
   {
    "num": 184,
