@@ -26,6 +26,35 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-642@arcticblue-event-tracker
+DTSTAMP:20260729T000000Z
+DTSTART;VALUE=DATE:20270224
+DTEND;VALUE=DATE:20270227
+SUMMARY:GFTN Forum\, Japan
+DESCRIPTION:Priority: Medium\nAdded by: Verma
+URL:https://gftnforum.jp/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-641@arcticblue-event-tracker
+DTSTAMP:20260729T000000Z
+DTSTART;VALUE=DATE:20270211
+DTEND;VALUE=DATE:20270213
+SUMMARY:ANZIIF International Summit
+LOCATION:Sydney\, Australia
+DESCRIPTION:Premier Australia/NZ insurance and risk leadership summit covering AI\, governance\, and cyber risk — squarely matches Verma's regulated-industry board and C-suite profile\, even though dates run a few days past the strict early-Feb cutoff.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://anziif.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-640@arcticblue-event-tracker
+DTSTAMP:20260729T000000Z
+DTSTART;VALUE=DATE:20270107
+DTEND;VALUE=DATE:20270109
+SUMMARY:AI EXPO TOKYO NEO 2027
+LOCATION:Tokyo\, Japan
+DESCRIPTION:Japan's largest AI trade show with a dedicated finance/enterprise adoption track\, giving Verma visibility with Japanese banking and insurance technology buyers evaluating AI deployment maturity.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.nextech-week.jp/aineo/en-gb.html
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-639@arcticblue-event-tracker
 DTSTAMP:20260729T000000Z
 DTSTART;VALUE=DATE:20261201

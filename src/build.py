@@ -2364,8 +2364,13 @@ def build():
       border: 0; background: none; cursor: pointer; color: var(--ab-fg-3);
       font-size: 1.1rem; line-height: 1; padding: 2px 7px; border-radius: 5px;
       opacity: 0; transition: opacity 120ms ease, color 120ms ease, background 120ms ease;
+      /* Invisible must also mean UNCLICKABLE. At opacity:0 this still swallowed
+         clicks, so aiming at the event name in the top-right of a cluster hit the
+         hidden ✕ instead and made the whole block disappear rather than opening
+         the event (Angela: "it won't let me click on any of the events"). */
+      pointer-events: none;
     }}
-    .trip-cluster:hover .plan-hide-x, .plan-hide-x:focus-visible {{ opacity: 1; }}
+    .trip-cluster:hover .plan-hide-x, .plan-hide-x:focus-visible {{ opacity: 1; pointer-events: auto; }}
     .plan-hide-x:hover {{ color: var(--ab-red); background: var(--ab-bg-3); }}
     .trip-anchor {{ font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 8px; }}
     .trip-anchor strong {{ color: var(--ab-fg); }}
@@ -8958,9 +8963,20 @@ def build():
         html += '</div>';
       }});
       host.innerHTML = html;
-      host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
-        el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
-      }});
+      // ONE delegated listener on the host instead of a listener per button.
+      // Plan Ahead rewrites parts of itself after render (the AI area-search
+      // fills each .trip-auto placeholder), and any per-element listener on
+      // replaced markup dies with it — leaving rows that look clickable and do
+      // nothing. Delegation survives every re-render, and closest() means a
+      // click anywhere on the row's button still resolves.
+      if (!host.dataset.refWired) {{
+        host.dataset.refWired = '1';
+        host.addEventListener('click', function (e) {{
+          var el = e.target && e.target.closest ? e.target.closest('[data-ref-kind]') : null;
+          if (!el || !host.contains(el)) return;
+          opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key'));
+        }});
+      }}
       // Solo trips with nothing tracked nearby: proactively fill each with up to
       // 5 AI-found events (one metered search per trip, cached 10 days — never
       // re-fired on a plain re-render). No click needed. Cap NEW searches per
