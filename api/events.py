@@ -394,6 +394,34 @@ def _name_token_set(name):
     return frozenset(t for t in s.split() if t not in _DEDUPE_STOP and not _YEAR_RE.match(t))
 
 
+def _iso_day(d):
+    """'2026-09-28...' -> a date, or None when it isn't a usable ISO day."""
+    m = re.match(r'(\d{4})-(\d{2})-(\d{2})', (d or '').strip())
+    if not m:
+        return None
+    try:
+        return _dt_date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    except ValueError:
+        return None
+
+
+def _year_index(pairs):
+    """{year: [(token_set, date), ...]} for near-date duplicate matching."""
+    idx = {}
+    for name, d in pairs:
+        day = _iso_day(d)
+        if not day:
+            continue
+        idx.setdefault(day.year, []).append((_name_token_set(name), day))
+    return idx
+
+
+# How many days apart two records can be and still be the same event. Small on
+# purpose: a real annual event never recurs within a fortnight, so this can only
+# ever pair up records inside one edition.
+_DUP_DAY_WINDOW = 4
+
+
 def _same_event_on_date(a, b):
     """True when two token sets look like the SAME event (to be paired with an
     equal start_date). Catches the case the plain fingerprint misses: the same
@@ -405,12 +433,21 @@ def _same_event_on_date(a, b):
     {cdao}) are NOT merged — a strict SUBSET with >= 2 shared tokens is
     required, so events that merely share a common prefix ("Big Data LDN" vs
     "Big Data & AI World London") stay separate."""
-    if len(a) < 2 or len(b) < 2:
+    if not a or not b:
         return False
     inter = a & b
+    if not inter:
+        return False
+    if inter != a and inter != b:
+        return False                      # must be a strict subset either way
     if len(inter) < 2:
-        return False                      # need >= 2 shared distinctive tokens
-    return inter == a or inter == b       # one title is the other + extra words
+        # A single shared token only counts when it's a distinctive BRAND name —
+        # "Sibos" / "Dreamforce" reduce to one token, so demanding two shared
+        # words meant they could never be matched against "Sibos 2026 Miami" or
+        # "Salesforce Dreamforce". Short tokens ("ai", "cdao") stay excluded, so
+        # co-located siblings that merely share a prefix are still kept apart.
+        return len(next(iter(inter))) >= 4
+    return True
 
 
 def _coerce(ev):
@@ -1061,6 +1098,12 @@ class handler(BaseHTTPRequestHandler):
         existing_fps   = _fps_of(n for n, _d in manual_dated)
         catalog_fps    = _fps_of(n for n, _d in catalog_dated)
         date_index     = _date_index(manual_dated + catalog_dated)
+        # Same event re-added a day or two off (organisers shift dates, or the
+        # scrape lands on the wrong day of a multi-day run) escaped the
+        # exact-date index. This one is keyed by YEAR so a near-date match can be
+        # found — and keying on the year is also the guard that keeps the 2026
+        # and 2027 editions of an annual event apart.
+        year_index     = _year_index(manual_dated + catalog_dated)
         seen_names, seen_fps = set(), set()
 
         inserted, rejected, skipped, errors = [], [], [], []
@@ -1113,6 +1156,18 @@ class handler(BaseHTTPRequestHandler):
                     rt = _name_token_set(name)
                     if any(_same_event_on_date(rt, ot) for ot in date_index[sd]):
                         dup_reason = 'duplicate (same title + date)'
+                # Same title-shape a few days off, WITHIN THE SAME YEAR. The year
+                # bound is deliberate: "Chief AI Officer Summit New York" in 2026
+                # and in 2027 are different editions and must both be kept, so a
+                # cross-year pair can never match here however alike the names.
+                if not dup_reason:
+                    day = _iso_day(sd)
+                    if day:
+                        rt = _name_token_set(name)
+                        for ot, od in year_index.get(day.year, ()):
+                            if abs((od - day).days) <= _DUP_DAY_WINDOW and _same_event_on_date(rt, ot):
+                                dup_reason = 'duplicate (same title, within %d days)' % _DUP_DAY_WINDOW
+                                break
             if dup_reason:
                 skipped.append({'name': name, 'reason': dup_reason})
                 continue
@@ -1126,7 +1181,10 @@ class handler(BaseHTTPRequestHandler):
                     'reason': verdict['reason'] or 'not worthy',
                     'score':  verdict['score'],
                 })
-                seen_names.add(lname)  # don't re-judge same name in this batch
+                seen_names.add(lname)
+            _nd = _iso_day((row.get('start_date') or '').strip())
+            if _nd:
+                year_index.setdefault(_nd.year, []).append((_name_token_set(name), _nd))  # don't re-judge same name in this batch
                 if fp:
                     seen_fps.add(fp)
                 continue
