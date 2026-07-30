@@ -1139,14 +1139,76 @@ def build():
     }}
     .fu-act:hover {{ color: var(--ab-blue); }}
     .fu-act-del:hover {{ color: var(--ab-red); }}
-    .fu-empty {{ font-size: 0.86rem; color: var(--ab-fg-3); margin: 0 0 12px; }}
-    .fu-add {{
-      display: inline-block; font-family: var(--ab-sans); font-size: 0.82rem;
-      font-weight: 600; color: var(--ab-blue); background: none;
-      border: 1px solid var(--ab-rule-strong); border-radius: 999px;
-      padding: 6px 14px; cursor: pointer;
+    /* ── Shared inline form ───────────────────────────────────────────
+       ONE look for every "add something" in the tool. Nothing is typed into
+       a browser prompt() any more: those float at the top of the window,
+       detached from what they're about, and look nothing like the app
+       (Hurley 2026-07-30). The pattern is always: a quiet add button, which
+       swaps in place for a field + Save/Cancel. */
+    .ab-addbtn {{
+      display: inline-flex; align-items: center; gap: 6px;
+      /* The modal section is a flex column, which blockifies inline-flex and
+         stretches the button edge-to-edge — pin it to its own content. */
+      align-self: flex-start; width: fit-content;
+      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
+      color: var(--ab-fg-2); background: var(--ab-bg-2);
+      border: 1px solid var(--ab-rule-strong); border-radius: 9px;
+      padding: 7px 14px; cursor: pointer;
+      transition: border-color 120ms, color 120ms, background 120ms;
     }}
-    .fu-add:hover {{ border-color: var(--ab-blue); background: var(--ab-bg-2); }}
+    .ab-addbtn:hover {{ border-color: var(--ab-blue); color: var(--ab-blue); background: var(--ab-bg); }}
+    .ab-addbtn .ab-addbtn-ic {{ font-size: 1rem; line-height: 1; font-weight: 400; }}
+    .ab-form {{ margin: 2px 0 12px; }}
+    .ab-input {{
+      display: block; width: 100%; box-sizing: border-box;
+      padding: 9px 12px; font: inherit; font-size: 0.87rem; line-height: 1.45;
+      border: 1px solid var(--ab-rule-strong); border-radius: 9px;
+      background: var(--ab-bg); color: var(--ab-fg); resize: vertical;
+    }}
+    .ab-input::placeholder {{ color: var(--ab-fg-3); }}
+    .ab-input:focus {{
+      border-color: var(--ab-blue); outline: none;
+      box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
+    }}
+    .ab-input + .ab-input {{ margin-top: 7px; }}
+    .ab-form-actions {{ display: flex; align-items: center; gap: 8px; margin-top: 8px; }}
+    .ab-btn-primary, .ab-btn-ghost {{
+      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
+      border-radius: 9px; padding: 7px 14px; cursor: pointer; white-space: nowrap;
+    }}
+    .ab-btn-primary {{ border: 1px solid var(--ab-blue); background: var(--ab-blue); color: #fff; }}
+    .ab-btn-primary:hover {{ filter: brightness(1.08); }}
+    .ab-btn-primary[disabled] {{ opacity: 0.45; cursor: default; filter: none; }}
+    .ab-btn-ghost {{ border: 1px solid transparent; background: none; color: var(--ab-fg-3); }}
+    .ab-btn-ghost:hover {{ color: var(--ab-fg); }}
+    .ab-form-hint {{
+      margin-left: auto; font-family: var(--ab-mono); font-size: 0.66rem;
+      color: var(--ab-fg-3);
+    }}
+    .ab-btn-danger {{ border-color: var(--ab-red); background: var(--ab-red); color: #fff; }}
+    /* Event picker inside the conflict form — the same list-of-hits idea the
+       rest of the tool uses, instead of "type a number 1-9" in a prompt. */
+    .cf-hits {{
+      margin-top: 7px; border: 1px solid var(--ab-rule); border-radius: 9px;
+      overflow: hidden; background: var(--ab-bg);
+    }}
+    .cf-hits:empty {{ display: none; }}
+    .cf-hit {{
+      display: block; width: 100%; box-sizing: border-box; text-align: left;
+      font-family: var(--ab-sans); font-size: 0.84rem; color: var(--ab-fg);
+      padding: 8px 12px; background: none; border: 0;
+      border-bottom: 1px solid var(--ab-rule); cursor: pointer;
+    }}
+    .cf-hit:last-child {{ border-bottom: 0; }}
+    .cf-hit:hover, .cf-hit:focus {{ background: var(--ab-bg-2); outline: none; }}
+    .cf-hit-when {{ margin-left: 7px; font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-3); }}
+    .cf-hit-none {{ padding: 8px 12px; font-size: 0.84rem; color: var(--ab-fg-3); }}
+    /* Matches .fu-act — one look for "quiet action on a row". */
+    .cf-edit {{
+      font-family: var(--ab-sans); font-size: 0.72rem; color: var(--ab-fg-3);
+      background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline;
+    }}
+    .cf-edit:hover {{ color: var(--ab-blue); }}
     /* Card-face conflict warning. NOT a pill and NOT bordered — a rounded
        chip read as a button people expected to click (Hurley 2026-07-30). It's
        a warning LINE: amber rule down the left, no background, no border. */
@@ -1694,19 +1756,24 @@ def build():
     .chat-react.is-mine {{ border-color: var(--ab-blue); color: var(--ab-blue); background: rgba(31,160,220,0.10); }}
     /* Mini per-event assistant — deliberately smaller than the chat composer
        so it reads as a utility, not the main action. */
-    .ask1-form {{ display: flex; gap: 6px; margin: 10px 0 0; }}
+    .ask1-form {{ display: flex; gap: 8px; margin: 18px 0 0; align-items: stretch; }}
     .ask1-input {{
-      flex: 1; padding: 6px 10px; font: inherit; font-size: 0.8rem;
-      border: 1px dashed var(--ab-rule-strong); border-radius: 7px;
-      background: var(--ab-bg-2); color: var(--ab-fg);
+      flex: 1; padding: 9px 13px; font: inherit; font-size: 0.87rem;
+      border: 1px solid var(--ab-rule-strong); border-radius: 9px;
+      background: var(--ab-bg); color: var(--ab-fg);
     }}
     .ask1-input::placeholder {{ color: var(--ab-fg-3); }}
-    .ask1-input:focus {{ border-style: solid; border-color: var(--ab-blue); background: var(--ab-bg); outline: none; }}
-    .ask1-go {{
-      padding: 0 11px; border-radius: 7px; cursor: pointer; font-size: 0.85rem;
-      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2);
+    .ask1-input:focus {{
+      border-color: var(--ab-blue); outline: none;
+      box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
     }}
-    .ask1-go:hover {{ border-color: var(--ab-blue); color: var(--ab-blue); }}
+    .ask1-go {{
+      padding: 0 16px; border-radius: 9px; cursor: pointer;
+      font-family: var(--ab-sans); font-size: 0.85rem; font-weight: 600;
+      white-space: nowrap;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg-2); color: var(--ab-fg-2);
+    }}
+    .ask1-go:hover {{ border-color: var(--ab-blue); background: var(--ab-bg); color: var(--ab-blue); }}
     .ask1-answer {{
       margin-top: 7px; padding: 9px 11px; font-size: 0.85rem; line-height: 1.45;
       color: var(--ab-fg); background: var(--ab-bg-2); border-radius: 8px;
@@ -4740,10 +4807,22 @@ def build():
                  '</li>';
         }}).join('') + '</ol>';
       }}
-      if (!_fuList.length) {{
-        _fuBody += '<p class="fu-empty">Nothing logged yet. Each entry records the date, who chased, and anything that came back.</p>';
-      }}
-      _fuBody += '<button type="button" class="fu-add" id="fu-add-btn">+ Log a follow-up</button>';
+      // No empty-state copy: an empty log is self-evident, and explaining the
+      // columns of a list that isn't there is noise (Hurley 2026-07-30).
+      // Today's date rides on the button, so the automatic stamp is visible
+      // BEFORE you commit to it rather than being a surprise afterwards.
+      var _fuToday = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
+      _fuBody += '<button type="button" class="ab-addbtn" id="fu-add-btn">' +
+                 '<span class="ab-addbtn-ic" aria-hidden="true">+</span> Log a follow-up</button>' +
+                 '<div class="ab-form" id="fu-add-form" hidden>' +
+                   '<textarea class="ab-input" id="fu-add-note" rows="2" ' +
+                     'placeholder="What you sent, or what came back (optional)"></textarea>' +
+                   '<div class="ab-form-actions">' +
+                     '<button type="button" class="ab-btn-primary" id="fu-add-save">Log for ' +
+                       esc(_fuWhen(_fuToday)) + '</button>' +
+                     '<button type="button" class="ab-btn-ghost" id="fu-add-cancel">Cancel</button>' +
+                   '</div>' +
+                 '</div>';
       v += sec('Follow-ups', _fuBody);
     }}
     if (rec.is_private) {{
@@ -4838,52 +4917,110 @@ def build():
       if (sc) sc.scrollTop = top;
       if (window.opsRefresh) window.opsRefresh();
     }}
+    // Both edit and delete happen INSIDE the row. Nothing floats to the top of
+    // the window, and the entry you're acting on stays visible while you act.
+    function _fuRowForm(li, html) {{
+      if (li.querySelector('.ab-form')) return null;          // already open
+      li.querySelectorAll('.fu-acts, .fu-note').forEach(function (n) {{ n.hidden = true; }});
+      var wrap = document.createElement('div');
+      wrap.className = 'ab-form fu-rowform';
+      wrap.innerHTML = html;
+      li.appendChild(wrap);
+      return wrap;
+    }}
+    function _fuRowClose(li) {{
+      var w = li.querySelector('.ab-form'); if (w) w.remove();
+      li.querySelectorAll('.fu-acts, .fu-note').forEach(function (n) {{ n.hidden = false; }});
+    }}
     $body.querySelectorAll('[data-fu-edit]').forEach(function (b2) {{
       b2.addEventListener('click', function () {{
-        var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
         var i = parseInt(b2.getAttribute('data-fu-edit'), 10);
-        var cur = list[i]; if (!cur) return;
-        var next = window.prompt(
-          'Edit this follow-up (' + _fuWhen(cur.on) + ')\\n\\n' +
-          'The original date is kept — an edit is stamped separately.',
-          cur.note || '');
-        if (next === null) return;
-        var today = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
-        list[i] = {{ on: cur.on, by: cur.by, note: String(next).trim(), edited: today }};
-        _fuSave(list);
+        var cur = (window.abFollowUps ? window.abFollowUps(rec) : [])[i];
+        var li = b2.parentNode && b2.parentNode.parentNode;
+        if (!cur || !li) return;
+        var w = _fuRowForm(li,
+          '<textarea class="ab-input" rows="2" placeholder="What you sent, or what came back"></textarea>' +
+          '<div class="ab-form-actions">' +
+            '<button type="button" class="ab-btn-primary" data-go>Save</button>' +
+            '<button type="button" class="ab-btn-ghost" data-cancel>Cancel</button>' +
+            '<span class="ab-form-hint">' + esc(_fuWhen(cur.on)) + ' kept</span>' +
+          '</div>');
+        if (!w) return;
+        var ta = w.querySelector('textarea');
+        ta.value = cur.note || '';
+        ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+        function commit() {{
+          var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
+          if (!list[i]) return;
+          var today = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
+          // The original date is WHEN IT HAPPENED and never moves; the edit is
+          // stamped separately so the history can't quietly rewrite itself.
+          list[i] = {{ on: list[i].on, by: list[i].by, note: ta.value.trim(), edited: today }};
+          _fuSave(list);
+        }}
+        w.querySelector('[data-go]').addEventListener('click', commit);
+        w.querySelector('[data-cancel]').addEventListener('click', function () {{ _fuRowClose(li); }});
+        ta.addEventListener('keydown', function (e) {{
+          if (e.key === 'Escape') {{ e.preventDefault(); _fuRowClose(li); }}
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {{ e.preventDefault(); commit(); }}
+        }});
       }});
     }});
     $body.querySelectorAll('[data-fu-del]').forEach(function (b2) {{
       b2.addEventListener('click', function () {{
-        var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
         var i = parseInt(b2.getAttribute('data-fu-del'), 10);
-        var cur = list[i]; if (!cur) return;
-        if (!window.confirm('Delete the follow-up logged ' + _fuWhen(cur.on) + '?')) return;
-        list.splice(i, 1);
-        _fuSave(list);
+        var cur = (window.abFollowUps ? window.abFollowUps(rec) : [])[i];
+        var li = b2.parentNode && b2.parentNode.parentNode;
+        if (!cur || !li) return;
+        var w = _fuRowForm(li,
+          '<div class="ab-form-actions" style="margin-top:0;">' +
+            '<span class="fu-note" style="flex:0 1 auto;">Delete the entry from ' +
+              esc(_fuWhen(cur.on)) + '?</span>' +
+            '<button type="button" class="ab-btn-primary ab-btn-danger" data-go>Delete</button>' +
+            '<button type="button" class="ab-btn-ghost" data-cancel>Keep</button>' +
+          '</div>');
+        if (!w) return;
+        w.querySelector('[data-go]').addEventListener('click', function () {{
+          var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
+          if (!list[i]) return;
+          list.splice(i, 1);
+          _fuSave(list);
+        }});
+        w.querySelector('[data-cancel]').addEventListener('click', function () {{ _fuRowClose(li); }});
       }});
     }});
 
     // "+ Log a follow-up" — records today's date against the signed-in name,
     // with an optional line on what came back. Appends; never replaces.
     var _fuBtn = document.getElementById('fu-add-btn');
-    if (_fuBtn) _fuBtn.addEventListener('click', function () {{
-      var note = window.prompt(
-        'Log a follow-up for "' + (rec.name || 'this event') + '"\\n\\n' +
-        'Anything to record? (optional — what you sent, or what came back)', '');
-      if (note === null) return;   // cancelled
-      var today = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
-      var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
-      list.unshift({{ on: today, by: (window.opsCurrentUser ? window.opsCurrentUser() : '') || 'Angela',
-                     note: String(note || '').trim() }});
-      rec.follow_ups = list;
-      if (window.opsWrite) window.opsWrite(rec._table, rec._key, {{ follow_ups: list }});
-      var scF = overlay.querySelector('.modal-scroll');
-      var topF = scF ? scF.scrollTop : 0;
-      openEventModal(rec);
-      if (scF) scF.scrollTop = topF;
-      if (window.opsRefresh) window.opsRefresh();
-    }});
+    var _fuForm = document.getElementById('fu-add-form');
+    if (_fuBtn && _fuForm) {{
+      var _fuTa = document.getElementById('fu-add-note');
+      function _fuAddClose() {{
+        _fuForm.hidden = true; _fuBtn.hidden = false; if (_fuTa) _fuTa.value = '';
+      }}
+      _fuBtn.addEventListener('click', function () {{
+        _fuForm.hidden = false; _fuBtn.hidden = true;
+        if (_fuTa) _fuTa.focus();
+      }});
+      var _fuCancel = document.getElementById('fu-add-cancel');
+      if (_fuCancel) _fuCancel.addEventListener('click', _fuAddClose);
+      function _fuAddSave() {{
+        // The date is never typed — it's today's, in New York, taken at the
+        // moment of logging and written straight through to Supabase.
+        var today = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
+        var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
+        list.unshift({{ on: today, by: (window.opsCurrentUser ? window.opsCurrentUser() : '') || 'Angela',
+                       note: _fuTa ? _fuTa.value.trim() : '' }});
+        _fuSave(list);
+      }}
+      var _fuGo = document.getElementById('fu-add-save');
+      if (_fuGo) _fuGo.addEventListener('click', _fuAddSave);
+      if (_fuTa) _fuTa.addEventListener('keydown', function (e) {{
+        if (e.key === 'Escape') {{ e.preventDefault(); _fuAddClose(); }}
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {{ e.preventDefault(); _fuAddSave(); }}
+      }});
+    }}
 
     // "Edit event" toggle — header top-right, same spot for every event. It
     // swaps the read-only view for the (identically-laid-out) edit form.
@@ -8534,20 +8671,40 @@ def build():
           var act = btn.getAttribute('data-act');
           if (act === 'conflict') {{
             // Add a conflict from where Angela is already working, instead of
-            // making her open Details -> Edit for it (Hurley 2026-07-30).
+            // making her open Details -> Edit for it (Hurley 2026-07-29) — and
+            // in the row itself rather than a prompt at the top of the window
+            // (Hurley 2026-07-30).
+            var host2 = btn.parentNode && btn.parentNode.parentNode &&
+                        btn.parentNode.parentNode.querySelector('.queue-main');
+            if (!host2 || host2.querySelector('.ab-form')) return;
             var cur = String(it.conflict_note || '').trim();
-            var add = window.prompt(
-              cur ? 'Scheduling conflict for "' + it.name + '"\\n\\nCurrently:\\n' + cur +
-                    '\\n\\nAdd another (leave blank to keep it as is):'
-                  : 'Scheduling conflict for "' + it.name + '"\\n\\ne.g. Thor is at the board offsite that week',
-              cur ? '' : '');
-            if (add === null) return;                 // cancelled
-            add = add.trim();
-            var next;
-            if (!add) next = cur ? '' : '';           // explicit empty clears it
-            else next = cur ? (cur.replace(/[;\s]+$/, '') + '; ' + add) : add;
-            it.conflict_note = next;
-            opsQuickWrite(it.kind, it.key, {{ conflict_note: next || null }});
+            var w = document.createElement('div');
+            w.className = 'ab-form';
+            w.innerHTML = '<textarea class="ab-input" rows="2" ' +
+                'placeholder="What\u2019s the clash? e.g. Thor is at the board offsite that week"></textarea>' +
+              '<div class="ab-form-actions">' +
+                '<button type="button" class="ab-btn-primary" data-go>Save</button>' +
+                '<button type="button" class="ab-btn-ghost" data-cancel>Cancel</button>' +
+                (cur ? '<button type="button" class="cf-edit" data-clear style="margin-left:auto;">Remove</button>' : '') +
+              '</div>';
+            // The row itself opens the card — keep clicks in the form local.
+            w.addEventListener('click', function (ev) {{ ev.stopPropagation(); }});
+            w.addEventListener('keydown', function (ev) {{ ev.stopPropagation(); }});
+            host2.appendChild(w);
+            var ta2 = w.querySelector('textarea');
+            ta2.value = cur; ta2.focus(); ta2.setSelectionRange(cur.length, cur.length);
+            function cfDone(val) {{
+              it.conflict_note = val || '';
+              opsQuickWrite(it.kind, it.key, {{ conflict_note: val || null }});
+            }}
+            w.querySelector('[data-go]').addEventListener('click', function () {{ cfDone(ta2.value.trim()); }});
+            var clr = w.querySelector('[data-clear]');
+            if (clr) clr.addEventListener('click', function () {{ cfDone(''); }});
+            w.querySelector('[data-cancel]').addEventListener('click', function () {{ w.remove(); }});
+            ta2.addEventListener('keydown', function (ev) {{
+              if (ev.key === 'Escape') {{ ev.preventDefault(); w.remove(); }}
+              if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) {{ ev.preventDefault(); cfDone(ta2.value.trim()); }}
+            }});
             return;
           }}
           if (act === 'dismiss') {{ opsQuickWrite(it.kind, it.key, {{ queue_dismissed: true }}); }}
@@ -10934,7 +11091,20 @@ def build():
           ' <button type="button" class="cf-edit" data-cf-kind="' + it.kind + '" data-cf-key="' + escapeHtml(String(it.key)) + '">edit</button>' +
           '</div></div>';
       }});
-      html += '<button type="button" class="cf-add" id="planner-cf-add">+ Add a scheduling conflict</button>';
+      html += '<button type="button" class="ab-addbtn" id="planner-cf-add">' +
+              '<span class="ab-addbtn-ic" aria-hidden="true">+</span> Add a scheduling conflict</button>' +
+              '<div class="ab-form" id="planner-cf-form" hidden>' +
+                '<input type="text" class="ab-input" id="planner-cf-q" autocomplete="off" ' +
+                  'placeholder="Which event? Start typing its name\u2026">' +
+                '<div class="cf-hits" id="planner-cf-hits"></div>' +
+                '<textarea class="ab-input" id="planner-cf-note" rows="2" ' +
+                  'placeholder="What\u2019s the clash? e.g. Thor is at the board offsite that week"></textarea>' +
+                '<div class="ab-form-actions">' +
+                  '<button type="button" class="ab-btn-primary" id="planner-cf-save" disabled>Save conflict</button>' +
+                  '<button type="button" class="ab-btn-ghost" id="planner-cf-cancel">Cancel</button>' +
+                  '<span class="ab-form-hint" id="planner-cf-picked"></span>' +
+                '</div>' +
+              '</div>';
       html += '</div>';
 
       html += '<div class="planner-section"><div class="planner-sec-head"><span class="planner-sec-title">&#128506; Coverage gaps by territory</span><span class="planner-sec-sub">upcoming events with no speaker assigned</span></div>';
@@ -10969,7 +11139,6 @@ def build():
                 '<p class="gap-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
               '</div>' +
               '<div class="gap-actions">' +
-                '<button class="q-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
                 '<button class="q-btn primary" data-flag="' + escapeHtml(terr.who) + '" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ Flag for ' + escapeHtml(terr.who) + '</button>' +
               '</div>' +
               '</div>';
@@ -11000,15 +11169,9 @@ def build():
 
       // Add / edit a scheduling conflict from the Planner, which is where
       // Angela is looking when she notices one (Hurley 2026-07-30).
-      function _cfSave(it, cur) {{
-        var add = window.prompt(
-          'Scheduling conflict for "' + it.name + '"' +
-          (cur ? '\\n\\nCurrently:\\n' + cur : '') +
-          '\\n\\ne.g. Thor is at the board offsite that week', cur || '');
-        if (add === null) return;
-        add = String(add).trim();
-        opsQuickWrite(it.kind, it.key, {{ conflict_note: add || null }});
-      }}
+      // Editing an existing conflict happens in the row it belongs to — the
+      // note becomes a field where the text was, and nothing floats to the top
+      // of the window (Hurley 2026-07-30).
       host.querySelectorAll('[data-cf-kind]').forEach(function (el) {{
         el.addEventListener('click', function (e) {{
           e.stopPropagation();
@@ -11016,28 +11179,99 @@ def build():
             return x.kind === el.getAttribute('data-cf-kind') &&
                    String(x.key) === el.getAttribute('data-cf-key');
           }})[0];
-          if (it) _cfSave(it, String((it.startObj || it).conflict_note || ''));
+          var row = el.parentNode;                       // .conflict-body
+          if (!it || !row || row.querySelector('.ab-form')) return;
+          var cur = String((it.startObj || it).conflict_note || '');
+          var keep = row.innerHTML;
+          var w = document.createElement('div');
+          w.className = 'ab-form';
+          w.innerHTML = '<textarea class="ab-input" rows="2"></textarea>' +
+            '<div class="ab-form-actions">' +
+              '<button type="button" class="ab-btn-primary" data-go>Save</button>' +
+              '<button type="button" class="ab-btn-ghost" data-cancel>Cancel</button>' +
+              '<button type="button" class="cf-edit" data-clear style="margin-left:auto;">Remove</button>' +
+            '</div>';
+          row.innerHTML = '<strong>' + escapeHtml(it.name) + '</strong>';
+          row.appendChild(w);
+          var ta = w.querySelector('textarea');
+          ta.value = cur; ta.focus(); ta.setSelectionRange(cur.length, cur.length);
+          function done(val) {{ opsQuickWrite(it.kind, it.key, {{ conflict_note: val }}); }}
+          w.querySelector('[data-go]').addEventListener('click', function () {{
+            done(ta.value.trim() || null);
+          }});
+          w.querySelector('[data-clear]').addEventListener('click', function () {{ done(null); }});
+          w.querySelector('[data-cancel]').addEventListener('click', function () {{
+            row.innerHTML = keep;
+            renderPlanner();                              // rewire the restored row
+          }});
+          ta.addEventListener('keydown', function (ev) {{
+            if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) {{ ev.preventDefault(); done(ta.value.trim() || null); }}
+          }});
         }});
       }});
+      // "+ Add a scheduling conflict" — pick the event from a filtered list
+      // rather than typing part of a name into a prompt and then a number to
+      // choose between the matches.
       var cfAdd = document.getElementById('planner-cf-add');
-      if (cfAdd) cfAdd.addEventListener('click', function () {{
-        var q = window.prompt('Which event has the conflict?\\n\\nType part of its name:', '');
-        if (q === null) return;
-        q = String(q).trim().toLowerCase();
-        if (!q) return;
-        var hits = opsAllItems().filter(function (it) {{
-          return !it.past && !it.hidden && String(it.name || '').toLowerCase().indexOf(q) !== -1;
-        }});
-        if (!hits.length) {{ window.alert('No upcoming event matches "' + q + '".'); return; }}
-        var pick = hits[0];
-        if (hits.length > 1) {{
-          var menu = hits.slice(0, 9).map(function (it, i) {{ return (i + 1) + '. ' + it.name; }}).join('\\n');
-          var n = window.prompt('Which one?\\n\\n' + menu, '1');
-          if (n === null) return;
-          pick = hits[Math.max(0, Math.min(hits.length - 1, parseInt(n, 10) - 1))] || hits[0];
+      var cfForm = document.getElementById('planner-cf-form');
+      if (cfAdd && cfForm) {{
+        var cfQ = document.getElementById('planner-cf-q');
+        var cfHits = document.getElementById('planner-cf-hits');
+        var cfNote = document.getElementById('planner-cf-note');
+        var cfSave = document.getElementById('planner-cf-save');
+        var cfPicked = document.getElementById('planner-cf-picked');
+        var _pick = null;
+        function cfClose() {{
+          cfForm.hidden = true; cfAdd.hidden = false;
+          _pick = null; cfQ.value = ''; cfNote.value = '';
+          cfHits.innerHTML = ''; cfPicked.textContent = ''; cfSave.disabled = true;
         }}
-        _cfSave(pick, String((pick.startObj || pick).conflict_note || ''));
-      }});
+        function cfSync() {{ cfSave.disabled = !(_pick && cfNote.value.trim()); }}
+        cfAdd.addEventListener('click', function () {{
+          cfForm.hidden = false; cfAdd.hidden = true; cfQ.focus();
+        }});
+        document.getElementById('planner-cf-cancel').addEventListener('click', cfClose);
+        cfQ.addEventListener('input', function () {{
+          _pick = null; cfPicked.textContent = ''; cfSync();
+          var q = cfQ.value.trim().toLowerCase();
+          if (q.length < 2) {{ cfHits.innerHTML = ''; return; }}
+          var hits = opsAllItems().filter(function (it) {{
+            return !it.past && !it.hidden && String(it.name || '').toLowerCase().indexOf(q) !== -1;
+          }}).slice(0, 7);
+          if (!hits.length) {{
+            cfHits.innerHTML = '<div class="cf-hit-none">No upcoming event matches that.</div>';
+            return;
+          }}
+          cfHits.innerHTML = hits.map(function (it, i) {{
+            return '<button type="button" class="cf-hit" data-i="' + i + '">' +
+                   escapeHtml(it.name) +
+                   '<span class="cf-hit-when">' + escapeHtml(String(it.date_str || '')) + '</span>' +
+                   '</button>';
+          }}).join('');
+          cfHits.querySelectorAll('.cf-hit').forEach(function (b, i) {{
+            b.addEventListener('click', function () {{
+              _pick = hits[i];
+              cfQ.value = _pick.name;
+              cfHits.innerHTML = '';
+              cfPicked.textContent = 'on ' + _pick.name;
+              cfNote.focus();
+              cfSync();
+            }});
+          }});
+        }});
+        cfNote.addEventListener('input', cfSync);
+        cfSave.addEventListener('click', function () {{
+          if (!_pick || !cfNote.value.trim()) return;
+          opsQuickWrite(_pick.kind, _pick.key, {{ conflict_note: cfNote.value.trim() }});
+        }});
+        cfNote.addEventListener('keydown', function (e) {{
+          if (e.key === 'Escape') {{ e.preventDefault(); cfClose(); }}
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {{ e.preventDefault(); cfSave.click(); }}
+        }});
+        cfQ.addEventListener('keydown', function (e) {{
+          if (e.key === 'Escape') {{ e.preventDefault(); cfClose(); }}
+        }});
+      }}
       host.querySelectorAll('[data-flag]').forEach(function (btn) {{
         btn.addEventListener('click', function (e) {{
           e.stopPropagation();
@@ -11185,14 +11419,21 @@ def build():
     // A door that is shut needs no chasing. Both signals already exist — a
     // Rejected stage, or a workflow_status the taxonomy files under "Closed"
     // (that's where "Sponsorship Only" lives) — so no new column.
-    function doorClosed(o, stages) {{
-      if ((stages || []).indexOf('Rejected') !== -1) return true;
+    // "Door closed" meant nothing to anyone reading it (Hurley 2026-07-30), so
+    // the reason travels with the fact: the badge says WHY we're not chasing.
+    function doorClosedWhy(o, stages) {{
+      if ((stages || []).indexOf('Rejected') !== -1) return 'they said no';
       var ws = String((o && o.workflow_status) || '').trim();
-      if (!ws || ws === '__deleted__') return false;
-      var g = STATUS_GROUP_BY_KEY[ws];
-      if (g === 'Closed') return true;
-      return /sponsorship only|declin|not accepting|no opening|passed on us/i.test(ws);
+      if (!ws || ws === '__deleted__') return '';
+      var shut = (STATUS_GROUP_BY_KEY[ws] === 'Closed') ||
+                 /sponsorship only|declin|not accepting|no opening|passed on us/i.test(ws);
+      if (!shut) return '';
+      if (/sponsorship only/i.test(ws)) return 'paid slots only';
+      if (/declin|passed on us/i.test(ws)) return 'they said no';
+      if (/not accepting|no opening/i.test(ws)) return 'not taking speakers';
+      return ws.toLowerCase();
     }}
+    function doorClosed(o, stages) {{ return !!doorClosedWhy(o, stages); }}
     var _FU_MONTHS = {{ january:1, february:2, march:3, april:4, may:5, june:6, july:7,
       august:8, september:9, october:10, november:11, december:12,
       jan:1, feb:2, mar:3, apr:4, jun:6, jul:7, aug:8, sep:9, sept:9, oct:10, nov:11, dec:12 }};
@@ -11213,7 +11454,7 @@ def build():
       // A named future month — "back to us in September", "reviewing in Q4".
       var until = null;
       var today = (window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10));
-      var m = t.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b/g);
+      var m = t.match(/\\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\\b/g);
       if (m) {{
         var yr = parseInt(today.slice(0, 4), 10), mo = parseInt(today.slice(5, 7), 10);
         m.forEach(function (name) {{
@@ -11252,18 +11493,19 @@ def build():
     //   ok       - chased recently
     //   due      - 14+ days since the last chase
     function followUpState(o, stages, extraNotes) {{
-      if (doorClosed(o, stages)) return {{ state: 'closed', label: 'Door closed' }};
+      var shutWhy = doorClosedWhy(o, stages);
+      if (shutWhy) return {{ state: 'closed', label: 'Closed \u2014 ' + shutWhy }};
       var notes = [ (o && o.notes) || '', extraNotes || '' ].join(' ');
       var hold = followUpHold(notes);
       var today = (window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10));
       var last = lastFollowUp(o);
       // Their timing beats our clock.
       if (hold && hold.until && hold.until > today) {{
-        return {{ state: 'hold', until: hold.until, label: 'Waiting — ' + _fuNice(hold.until) }};
+        return {{ state: 'hold', until: hold.until, label: 'Waiting until ' + _fuNice(hold.until) }};
       }}
       // A permanent hold is never released by the passage of time.
       if (hold && hold.permanent) {{
-        return {{ state: 'hold', permanent: true, label: 'They come back to us' }};
+        return {{ state: 'hold', permanent: true, label: 'No chase needed \u2014 they come back to us' }};
       }}
       // A soft wait expires after a month — then it's fair to nudge again.
       if (hold && !hold.until && (!last || _fuDaysSince(last.on, today) < 30)) {{
@@ -11278,11 +11520,11 @@ def build():
           lastOn = shared.on;
         }}
       }}
-      if (!lastOn) return {{ state: 'none', label: 'No follow-up logged' }};
+      if (!lastOn) return {{ state: 'none', label: 'Not contacted yet' }};
       var days = _fuDaysSince(lastOn, today);
       if (days >= FOLLOW_UP_DAYS) {{
         return {{ state: 'due', days: days, since: lastOn,
-                 label: 'Follow up — ' + days + ' days since ' + _fuNice(lastOn) }};
+                 label: 'Follow up now \u2014 ' + days + ' days since ' + _fuNice(lastOn) }};
       }}
       return {{ state: 'ok', days: days, since: lastOn, label: 'Followed up ' + _fuNice(lastOn) }};
     }}
@@ -11656,7 +11898,7 @@ def build():
         summit:1, summits:1, conference:1, conferences:1, expo:1, forum:1, event:1, events:1,
         annual:1, edition:1, world:1, global:1, international:1 }};
       function _dupToks(name) {{
-        var t = abFold(String(name || '')).replace(/\b20\d\d\b/g, ' ').replace(/[^a-z0-9]+/g, ' ');
+        var t = abFold(String(name || '')).replace(/\\b20\d\d\\b/g, ' ').replace(/[^a-z0-9]+/g, ' ');
         var out = {{}}, n = 0;
         t.split(' ').forEach(function (w) {{ if (w.length > 1 && !_DUP_STOP[w] && !out[w]) {{ out[w] = 1; n++; }} }});
         return {{ set: out, n: n }};
@@ -14299,6 +14541,7 @@ def build():
     // Render an AI reply: lead with the ranked event cards, then a short,
     // de-emphasised note for the reasoning (no big markdown blocks). When there
     // are no matching events (a factual question), fall back to the text.
+    window.abMdToHtml = _mdToHtml;
     function _askAnswerHtml(answer, cards, mode) {{
       var txt = (answer || '').trim();
       var hasCards = cards && cards.length;
@@ -15106,6 +15349,16 @@ def build():
       // re-rendered) message.
       document.querySelectorAll('.chat-fwd-menu, .chat-more-menu').forEach(function (x) {{ x.remove(); }});
       list.innerHTML = '';
+      // "Asked AI" rows are a record of who was curious about what. They're
+      // useful to Angela (she can see Thor is circling an event before he says
+      // anything) and pure clutter to everyone else, who'd just be re-reading
+      // their own questions back (Hurley 2026-07-30). Support sees them; the
+      // speakers don't — including their own.
+      if (!isSupportPerson(getCollabName() || '')) {{
+        msgs = msgs.filter(function (m) {{
+          return !/^\s*\u2753\s*Asked AI:/.test(String(m.body || ''));
+        }});
+      }}
       // An empty thread shows nothing at all (Hurley 2026-07-29) — the composer
       // below it is already the invitation to start one.
       if (!msgs.length) return;
@@ -15183,7 +15436,7 @@ def build():
         // Thor asked without anyone having to tell her.
         '<form class="ask1-form" id="ask1-form">' +
           '<input class="ask1-input" id="ask1-input" placeholder="Ask AI about this event — status, follow-ups, who to contact…" autocomplete="off" maxlength="300">' +
-          '<button type="submit" class="ask1-go" title="Ask">&#10142;</button>' +
+          '<button type="submit" class="ask1-go">Ask AI</button>' +
         '</form>' +
         '<div class="ask1-answer" id="ask1-answer" hidden></div>' +
         '';
@@ -15218,7 +15471,12 @@ def build():
             history: [], user: who, for_people: []
           }})
         }}).then(function (r) {{ return r.json(); }}).then(function (j) {{
-          box.textContent = (j && j.answer) ? j.answer : 'No answer available right now.';
+          var _ans = (j && j.answer) ? j.answer : 'No answer available right now.';
+          // Same renderer the main assistant uses (escapes first, then bold and
+          // links) — this box used to print raw text, so every **bold** run
+          // arrived as literal asterisks (Hurley 2026-07-30).
+          if (window.abMdToHtml) box.innerHTML = window.abMdToHtml(_ans);
+          else box.textContent = _ans;
           // Post the QUESTION into the thread so Angela sees it was asked. The
           // answer isn't posted — it's derived, and would just add noise.
           var row = {{ author: who, body: '\\u2753 Asked AI: ' + q }};
