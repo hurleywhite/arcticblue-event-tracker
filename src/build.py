@@ -4552,7 +4552,8 @@ def build():
       sSpeak += ef('Status marker (e.g. Sponsorship Only)', statusDD(rec.workflow_status));
     }}
     }}
-    h += sec('Speaking & submission', sSpeak);
+    // Same in the editor — these are her fields to keep straight.
+    if (window.isAngelaUser && window.isAngelaUser()) h += sec('Speaking & submission', sSpeak);
 
     // Attending & team — who from ArcticBlue is going / interested / assigned.
     var sTeam = ef('Attending \\u2014 surfaces a Day-Of brief', '<div class="me-ints">' + attChips + '</div>') +
@@ -5055,7 +5056,12 @@ def build():
         _spkStatus += field('Pay-to-play', rec.pay_to_play) +
                       field('Speaking fee', rec.speaking_fee);
       }}
-      v += sec('Speaking & submission', _spkStatus);
+      // Speaking & submission is Angela's working record of the application —
+      // the marker, the route, the deadline, pay-to-play. Where a speaker
+      // stands is already the bold status line on the card face and the pills
+      // at the top of this modal, and the apply link is its own button, so for
+      // everyone else this section only restated it (Hurley 2026-07-30).
+      if (window.isAngelaUser && window.isAngelaUser()) v += sec('Speaking & submission', _spkStatus);
       // — Who's in the room: every audience fact in one place.
       // One merged list — the heading already says who it's about, so the value
       // goes in bare rather than under a second "Typical attendees" label.
