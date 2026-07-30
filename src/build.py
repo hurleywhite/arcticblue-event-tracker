@@ -795,7 +795,7 @@ def build():
        dot; no boxes, no color assault. */
     .ops-status-line {{
       display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px;
-      margin: 0 0 10px; font-size: 0.86rem; font-weight: 600; color: var(--ab-fg-2);
+      margin: 0 0 10px; font-size: 0.86rem; font-weight: 700; color: var(--ab-fg);
     }}
     .st-bit {{ display: inline-flex; align-items: center; white-space: nowrap; }}
     .st-dot {{ width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; flex-shrink: 0; }}
@@ -6286,11 +6286,11 @@ def build():
         var _subDate = (window.isAngelaUser && window.isAngelaUser() && st.submitted_at)
           ? '<span class="st-sub-date"> \\u00b7 submitted ' + escapeHtml(_fmtSubmittedDate(st.submitted_at)) + '</span>' : '';
         // Just "Submitted" — the mic already says it's the speaking track, so
-        // "to speak" was redundant (Angela). ("Closed to speak" below KEEPS its
-        // wording: it carries no mic.)
+        // "to speak" was redundant (Angela). (Closed carries the mic too now, so it
+        // reads the same way — Hurley 2026-07-30.)
         bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted' + ST_MIC + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + _subDate + (closed ? ' (CFP closed)' : '') + '</span>' }});
       }} else if (closed) {{
-        bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed to speak</span>' }});
+        bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed' + ST_MIC + '</span>' }});
       }}
       // NOTE: no "Open to speak" / "Open to attend" bits. This is primarily a
       // SPEAKING tracker: every fitting event is implicitly open to speak, and

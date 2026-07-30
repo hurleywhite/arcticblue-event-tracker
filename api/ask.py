@@ -262,7 +262,7 @@ def _derived_status(stages, speaker, deadline, endish, today):
         bits.append('Submitted' + ((' — %s' % speaker) if speaker else '')
                     + (' (CFP closed)' if dl == 'closed' else ''))
     elif dl == 'closed':
-        bits.append('Closed to speak')
+        bits.append('Closed')
     if 'Attending' in stages:
         bits.append('Attending')
     if past:
@@ -559,7 +559,7 @@ _SYSTEM = (
     "- STATUS IS AUTHORITATIVE, BUT SAY IT LIKE A PERSON: each event carries "
     "'status' — a derived, always-true one-liner matching what the card shows "
     "(e.g. 'Booked — Thor speaking', 'Submitted — Thor (CFP closed)', "
-    "'Rejected — Thor', 'Closed to speak', 'Attending'). Treat it as the ONLY "
+    "'Rejected — Thor', 'Closed', 'Attending'). Treat it as the ONLY "
     "source of truth for where we stand — never re-derive it from stage tags. "
     "But that string is CARD SHORTHAND, not an answer: do NOT paste it, do NOT "
     "open with 'Status:', and do NOT name stage tags ('Submitted, Followed "
