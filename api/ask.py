@@ -270,6 +270,23 @@ def _derived_status(stages, speaker, deadline, endish, today):
     return ' · '.join(bits) if bits else None
 
 
+def _select_with_fallback(table, base_cols, optional_cols, headers, timeout=12):
+    """SELECT base + optional columns, retrying without the optional ones if the
+    DB hasn't been migrated yet.
+
+    Widening a SELECT with a column that doesn't exist makes PostgREST 400 the
+    whole request, so the assistant silently loses EVERY event — which is
+    exactly what shipping follow_ups ahead of its migration did (Hurley
+    2026-07-30). api/events.py already degrades this way; ask.py now does too.
+    """
+    url = '%s/rest/v1/%s?select=%s' % (SUPABASE_URL, table, ','.join(base_cols + optional_cols))
+    st, rows = _http_json('GET', url, headers=headers, timeout=timeout)
+    if st == 200:
+        return st, rows
+    url = '%s/rest/v1/%s?select=%s' % (SUPABASE_URL, table, ','.join(base_cols))
+    return _http_json('GET', url, headers=headers, timeout=timeout)
+
+
 def _fu_summary(v):
     """Follow-up log -> a short, model-readable line, newest first."""
     if isinstance(v, str):
@@ -303,13 +320,14 @@ def _gather_events(host):
     out = []
     # Ops state for catalog events, indexed by event_num.
     by_num = {}
-    st, rows = _http_json(
-        'GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,status_tags,'
-        'status,speaker,attend_verdict,saved,hidden,priority_override,'
-        'about,focus_areas,typical_attendees,attendee_count,venue,'
-        'pricing,audience_type,deadline,meeting_formats,follow_ups,conflict_note,notes',
-        headers={'apikey': SUPABASE_PUBLISHABLE,
-                 'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE}, timeout=12)
+    _H = {'apikey': SUPABASE_PUBLISHABLE, 'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE}
+    st, rows = _select_with_fallback(
+        'event_state',
+        ['event_num', 'status_tags', 'status', 'speaker', 'attend_verdict', 'saved',
+         'hidden', 'priority_override', 'about', 'focus_areas', 'typical_attendees',
+         'attendee_count', 'venue', 'pricing', 'audience_type', 'deadline',
+         'meeting_formats', 'notes'],
+        ['follow_ups', 'conflict_note'], _H)
     if st == 200 and isinstance(rows, list):
         for r in rows:
             by_num[r.get('event_num')] = r
@@ -379,14 +397,14 @@ def _gather_events(host):
                     '_sort': endish or '9999-99-99',
                 })
     # Manual events
-    st, rows = _http_json(
-        'GET', SUPABASE_URL + '/rest/v1/manual_events?select=id,name,date_str,location,'
-        'region,type,priority,status_tags,speaker,attend_verdict,audience_type,'
-        'pricing,deadline,why,url,poc_name,poc_email,contact_info,'
-        'about,focus_areas,typical_attendees,attendee_count,venue,meeting_formats,'
-        'follow_ups,conflict_note,notes',
-        headers={'apikey': SUPABASE_PUBLISHABLE,
-                 'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE}, timeout=12)
+    st, rows = _select_with_fallback(
+        'manual_events',
+        ['id', 'name', 'date_str', 'location', 'region', 'type', 'priority',
+         'status_tags', 'speaker', 'attend_verdict', 'audience_type', 'pricing',
+         'deadline', 'why', 'url', 'poc_name', 'poc_email', 'contact_info',
+         'about', 'focus_areas', 'typical_attendees', 'attendee_count', 'venue',
+         'meeting_formats', 'notes'],
+        ['follow_ups', 'conflict_note'], _H)
     if st == 200 and isinstance(rows, list):
         for m in rows:
             stages = m.get('status_tags') or []
