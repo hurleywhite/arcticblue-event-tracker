@@ -801,7 +801,7 @@ def build():
     .st-dot {{ width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; flex-shrink: 0; }}
     .st-ok   {{ background: #047857; }}
     .st-wait {{ background: #0ea5e9; }}
-    .st-no   {{ background: #b91c1c; }}
+    .st-no   {{ background: #991b1b; }}   /* deeper red, in step with the rejected mic */
     .st-sep  {{ color: var(--ab-fg-3); font-weight: 400; }}
     .st-sub-date {{ color: var(--ab-fg-3); font-weight: 500; }}
     /* Whisper-quiet data-freshness cue from updated_at. Deliberately faint —
@@ -1885,12 +1885,14 @@ def build():
       margin-left: 3px; font-family: var(--ab-mono); font-size: 0.72em;
       font-weight: 700; opacity: 0.85;
     }}
-    /* in flight */
-    .qa-step.qa-flight.is-on {{ background: #b45309; border-color: #b45309; color: #fff; }}
+    /* in flight — yellow, matching the mic. A shade darker than the icon's
+       #ca8a04 because this one carries white TEXT: #ca8a04 behind white is
+       3.1:1, under the 4.5:1 a label needs, while an icon only needs 3:1. */
+    .qa-step.qa-flight.is-on {{ background: #a16207; border-color: #a16207; color: #fff; }}
     /* landed */
     .qa-step.qa-good.is-on {{ background: #15803d; border-color: #15803d; color: #fff; }}
     /* closed */
-    .qa-step.qa-bad.is-on {{ background: #b91c1c; border-color: #b91c1c; color: #fff; }}
+    .qa-step.qa-bad.is-on {{ background: #991b1b; border-color: #991b1b; color: #fff; }}
     .qa-step.qa-static {{ cursor: default; }}
     .qa-step.qa-static:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg-2); }}
     .qa-step.qa-good.qa-static.is-on:hover {{ color: #fff; border-color: #15803d; }}
@@ -1915,7 +1917,19 @@ def build():
     .tp-stage {{
       font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
       letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3);
+      padding: 1px 6px; border-radius: 999px; background: var(--ab-bg-2);
     }}
+    /* Same three colours as the mic, so a row reads the same way a card does. */
+    .tp-stage--booked   {{ background: #dcfce7; color: #15803d; }}
+    .tp-stage--flight   {{ background: #fef9c3; color: #a16207; }}
+    .tp-stage--rejected {{ background: #fee2e2; color: #991b1b; }}
+    /* "3 booked · 12 in flight" beside the name — the answer to "who has
+       actually landed something" without reading every row. */
+    .tp-tally {{
+      margin-left: 8px; font-family: var(--ab-mono); font-size: 0.66rem;
+      font-weight: 600; color: var(--ab-fg-3); letter-spacing: 0.02em;
+    }}
+    .tp-tally b {{ color: #15803d; font-weight: 700; }}
     .tp-when {{
       margin-left: auto; white-space: nowrap;
       font-family: var(--ab-mono); font-size: 0.68rem; color: var(--ab-fg-3);
@@ -6691,10 +6705,14 @@ def build():
       // Thor submitted to speak while Jerome goes. These used to be one
       // if/else chain, so the mic silently swallowed the ticket.
       var mic = null;
+      // In flight is YELLOW, not amber — #b45309 sat close enough to the
+      // rejected red that a submitted mic read as a rejected one at card size
+      // (Hurley 2026-07-30). Rejected went a step deeper in turn, so the two
+      // are unmistakable side by side.
       if (who.show && tags.indexOf('Booked') !== -1)        mic = ['full',  '#15803d', 'Booked'];
-      else if (who.show && tags.indexOf('Rejected') !== -1) mic = ['empty', '#b91c1c', 'Rejected'];
+      else if (who.show && tags.indexOf('Rejected') !== -1) mic = ['empty', '#991b1b', 'Rejected'];
       else if (who.show && (tags.indexOf('Submitted') !== -1 || tags.indexOf('Followed up') !== -1 || tags.indexOf('Meeting held') !== -1))
-                                                            mic = ['half',  '#b45309', 'Submitted'];
+                                                            mic = ['half',  '#ca8a04', 'Submitted'];
       if (!mic && !attOn) return '';
       // The ticket is drawn FIRST so it sits to the LEFT: the mic is the fixed
       // top-right mark and must not move because someone was added.
@@ -10245,33 +10263,60 @@ def build():
         opsAllItems().forEach(function (it) {{
           if (it.past || it.hidden) return;
           var o = it.startObj || it;
-          (it.interested || []).forEach(function (n) {{ _tpAdd('interested', n, it); }});
-          (it.attendees || []).forEach(function (n) {{ _tpAdd('attending', n, it); }});
-          var stg = (it.stages || []).filter(function (x) {{ return _PIPE[x]; }});
+          var _stg = it.stages || [];
+          var _booked = _stg.indexOf('Booked') !== -1;
+          // Every row carries its date and, where there is one, the outcome —
+          // "interested" alone doesn't tell Angela whether it actually landed,
+          // which is the question these three views exist to answer.
+          function _row(stage) {{
+            return {{ kind: it.kind, key: it.key, name: it.name,
+                     date: o.date_str || '', sort: it.sort || 0, stage: stage || '' }};
+          }}
+          var _mark = _booked ? 'Booked' : (_stg.indexOf('Rejected') !== -1 ? 'Rejected' : '');
+          (it.interested || []).forEach(function (n) {{ _tpAdd('interested', n, _row(_mark)); }});
+          (it.attendees || []).forEach(function (n) {{ _tpAdd('attending', n, _row(_mark)); }});
+          var stg = _stg.filter(function (x) {{ return _PIPE[x]; }});
           if (stg.length && String(o.speaker || '').trim()) {{
             String(o.speaker).split(/\s*(?:,|;|&| and )\s*/).forEach(function (n) {{
-              _tpAdd('pipeline', n, {{ kind: it.kind, key: it.key, name: it.name,
-                                      date: o.date_str || '', sort: it.sort || 0,
-                                      stage: (it.stages.indexOf('Booked') !== -1 ? 'Booked' : stg[0]) }});
+              _tpAdd('pipeline', n, _row(_booked ? 'Booked' : stg[0]));
             }});
           }}
         }});
+        function _tpStageCls(s) {{
+          if (s === 'Booked') return ' tp-stage--booked';
+          if (s === 'Rejected') return ' tp-stage--rejected';
+          return s ? ' tp-stage--flight' : '';
+        }}
         function _tpSection(title, bucket, note) {{
           var who = Object.keys(_tp).filter(function (n) {{ return _tp[n][bucket].length; }});
           if (!who.length) return '';
           who.sort(function (a2, b2) {{ return _tp[b2][bucket].length - _tp[a2][bucket].length; }});
           var total = who.reduce(function (t, n) {{ return t + _tp[n][bucket].length; }}, 0);
           var rows = who.map(function (n) {{
-            var list = _tp[n][bucket].slice().sort(function (a2, b2) {{ return (a2.sort||0) - (b2.sort||0); }});
+            // Landed first, then whatever is still open, then by date — the
+            // top of each person's block is what actually came off.
+            var list = _tp[n][bucket].slice().sort(function (a2, b2) {{
+              var ra = a2.stage === 'Booked' ? 0 : (a2.stage === 'Rejected' ? 2 : 1);
+              var rb = b2.stage === 'Booked' ? 0 : (b2.stage === 'Rejected' ? 2 : 1);
+              if (ra !== rb) return ra - rb;
+              return (a2.sort || 0) - (b2.sort || 0);
+            }});
+            var nB = list.filter(function (x) {{ return x.stage === 'Booked'; }}).length;
+            var nF = list.filter(function (x) {{ return x.stage && x.stage !== 'Booked' && x.stage !== 'Rejected'; }}).length;
+            var tally = [];
+            if (nB) tally.push('<b>' + nB + ' booked</b>');
+            if (nF) tally.push(nF + ' in flight');
             return '<div class="tp-person"><div class="tp-head">' +
               '<span class="wn-avatar wn-avatar--sm">' + escapeHtml(_wnInitials(n)) + '</span>' +
               '<span class="tp-name">' + escapeHtml(n) + '</span>' +
+              (tally.length ? '<span class="tp-tally">' + tally.join(' · ') + '</span>' : '') +
               '<span class="tp-count">' + list.length + '</span></div>' +
               '<div class="tp-list">' + list.map(function (x) {{
                 return '<button type="button" class="tp-row" data-ref-kind="' + x.kind +
                        '" data-ref-key="' + escapeHtml(String(x.key)) + '">' +
                        '<span class="tp-ev">' + escapeHtml(x.name) + '</span>' +
-                       (x.stage ? '<span class="tp-stage">' + escapeHtml(x.stage) + '</span>' : '') +
+                       (x.stage ? '<span class="tp-stage' + _tpStageCls(x.stage) + '">' +
+                                  escapeHtml(x.stage) + '</span>' : '') +
                        (x.date ? '<span class="tp-when">' + escapeHtml(x.date) + '</span>' : '') +
                        '</button>';
               }}).join('') + '</div></div>';
