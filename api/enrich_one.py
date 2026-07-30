@@ -206,21 +206,24 @@ def apollo_contact(domain):
     if not people:
         APOLLO_WHY['reason'] = 'search found nobody \u2014 ' + '; '.join(_diag)
         return None
-    cands = []
-    for p in people:
-        org = (p.get('organization') or {})
-        # They must actually work there — Apollo will happily return someone
-        # who once did, or a namesake at another company.
-        if not _same_org(org.get('domain'), domain):
+    # Search results can arrive with the organisation omitted and the surname
+    # masked, depending on the Apollo plan — so the search pass filters on the
+    # TITLE only (the domain was the query, so employer is already constrained),
+    # and the identity checks run after enrichment, which returns the real name.
+    cands, _why = [], {'title': 0, 'org': 0}
+    for q in people:
+        org = (q.get('organization') or {})
+        if org.get('domain') and not _same_org(org.get('domain'), domain):
+            _why['org'] += 1
             continue
-        if not _title_ok(p.get('title')):
+        if not _title_ok(q.get('title')):
+            _why['title'] += 1
             continue
-        name = ' '.join(x for x in [p.get('first_name'), p.get('last_name')] if x).strip()
-        if not _looks_like_a_person(name, org.get('name')):
-            continue
-        cands.append((_title_rank(p.get('title')), name, p))
+        name = ' '.join(x for x in [q.get('first_name'), q.get('last_name')] if x).strip()
+        cands.append((_title_rank(q.get('title')), name, q))
     if not cands:
-        APOLLO_WHY['reason'] = 'found %d people, none passed the title/name checks' % len(people)
+        APOLLO_WHY['reason'] = ('found %d people; %d failed the title check, '
+                                '%d the employer check' % (len(people), _why['title'], _why['org']))
         return None
     cands.sort(key=lambda c: c[0])
     _, name, best = cands[0]
@@ -233,6 +236,14 @@ def apollo_contact(domain):
         APOLLO_WHY['reason'] = 'enrichment call failed (HTTP %s)' % st2
         return None
     person = d2.get('person') or {}
+    # Identity check on the ENRICHED record — the search copy may have been
+    # masked. A company account ("Expo Terrapinn") dies here.
+    full = ' '.join(x for x in [person.get('first_name'), person.get('last_name')] if x).strip() or name
+    org2 = (person.get('organization') or {})
+    if not _looks_like_a_person(full, org2.get('name') or ''):
+        APOLLO_WHY['reason'] = 'top match is not a person: %s' % (full or '(no name)')
+        return None
+    name = full
     email = str(person.get('email') or '').strip()
     status = str(person.get('email_status') or '').strip().lower()
     # LEGITIMACY GATE. Apollo returns guessed and catch-all addresses alongside
