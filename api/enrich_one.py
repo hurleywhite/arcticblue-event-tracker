@@ -187,6 +187,7 @@ def apollo_contact(domain):
     if root and root != domain:
         tries.append(root)
     people = []
+    _diag = []
     for dom in tries:
         st, data = _http_json('POST', APOLLO_BASE + '/api/v1/mixed_people/search', headers=H, body={
             'q_organization_domains_list': [dom],
@@ -194,12 +195,16 @@ def apollo_contact(domain):
             'per_page': 25,
         })
         if st == 200 and isinstance(data, dict):
-            people = [p for p in (data.get('people') or []) if isinstance(p, dict)]
+            people = [q for q in (data.get('people') or []) if isinstance(q, dict)]
+            _diag.append('%s: %d found' % (dom, len(people)))
+        else:
+            err = data if isinstance(data, str) else json.dumps(data)[:160]
+            _diag.append('%s: HTTP %s %s' % (dom, st, err))
         if people:
             domain = dom          # validate against the domain that matched
             break
     if not people:
-        APOLLO_WHY['reason'] = 'no people at %s with those titles' % ' / '.join(tries)
+        APOLLO_WHY['reason'] = 'search found nobody \u2014 ' + '; '.join(_diag)
         return None
     cands = []
     for p in people:
