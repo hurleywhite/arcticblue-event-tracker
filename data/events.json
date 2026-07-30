@@ -3519,7 +3519,9 @@
    "external_id": "646457d0-24cb-49dc-b11b-b776f8fde5ae",
    "source": "arcticscout",
    "start_date": "2026-04-13",
-   "end_date": "2026-04-15"
+   "end_date": "2026-04-15",
+   "pricing": "£899–£2,899; alternative listing shows passes from £799 to £2,799",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 157,
@@ -3815,7 +3817,8 @@
    "external_id": "872d7e90-593e-40b0-a0b0-2fac1fb74e50",
    "source": "arcticscout",
    "start_date": "2026-05-20",
-   "end_date": "2026-05-22"
+   "end_date": "2026-05-22",
+   "audience_type": "Mixed"
   },
   {
    "num": 168,
@@ -4965,7 +4968,10 @@
    "external_id": "661f2cb0-a3c9-4845-8b46-2482b1b1fc27",
    "source": "arcticscout",
    "start_date": "2026-03-25",
-   "end_date": "2026-03-27"
+   "end_date": "2026-03-27",
+   "meeting_formats": "Closed-door strategic roundtables; invite-only sessions; attendee app for pre-booking meetings",
+   "audience_type": "Mixed",
+   "attendee_count": "1,500+"
   },
   {
    "num": 208,
