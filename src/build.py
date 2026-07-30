@@ -3615,8 +3615,14 @@ def build():
       return '<a href="mailto:' + email + '">' + email + '</a>';
     }});
   }}
+  // "Unknown" / "TBD" / "not verified" are non-answers. Printing them makes the
+  // card look filled in when it isn't (Hurley 2026-07-29) — an absent row reads
+  // better than a row that says nothing.
+  var _MODAL_JUNK = /^(unknown|tbd|tba|n\/?a|none|null|not\s+(verified|specified|published|available|listed|confirmed|known)|no\s+information|to\s+be\s+(confirmed|announced))\.?$/i;
+  function _modalJunk(v) {{ return _MODAL_JUNK.test(String(v == null ? '' : v).trim()); }}
   function field(label, val, html) {{
     if (val == null || String(val).trim() === '') return '';
+    if (!html && _modalJunk(val)) return '';
     return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' +
            '<span class="v">' + (html ? val : _linkifyEsc(esc(val))) + '</span></div>';
   }}
@@ -3624,6 +3630,7 @@ def build():
   // Notes was printing "Notes" twice (the zone heading, then the field key).
   function fieldBare(val) {{
     if (val == null || String(val).trim() === '') return '';
+    if (_modalJunk(val)) return '';
     return '<div class="modal-field"><span class="v">' + _linkifyEsc(esc(val)) + '</span></div>';
   }}
 
@@ -3699,10 +3706,22 @@ def build():
   // rather than giving a format note a section heading of its own.
   function briefClause(v) {{
     var s = String(v == null ? '' : v).trim().replace(/\\s+/g, ' ');
-    if (!s) return '';
-    s = s.split('. ')[0].replace(/[.;,\\s]+$/, '');
-    if (s.length > 140) s = s.slice(0, 137).replace(/\\s\\S*$/, '') + '…';
-    return s;
+    if (!s || _modalJunk(s)) return '';
+    // These arrive as semicolon lists mixing real formats with non-answers
+    // ("attendee app not verified; invite-only stream; innovation clinics").
+    // Take the first clause that actually states something, not blindly the
+    // first one, and never a pipe-joined blob.
+    var parts = s.split(/\\s*[;|]\\s*|\\.\\s+/);
+    var pick = '';
+    for (var i = 0; i < parts.length; i++) {{
+      var t = parts[i].replace(/[.;,\\s]+$/, '').trim();
+      if (!t || _modalJunk(t)) continue;
+      if (/\\bnot\\s+(verified|specified|published|available|listed|confirmed|known)\\b/i.test(t)) continue;
+      pick = t; break;
+    }}
+    if (!pick) return '';
+    if (pick.length > 140) pick = pick.slice(0, 137).replace(/\\s\\S*$/, '') + '…';
+    return pick;
   }}
 
   // ── Editable modal: one-tap quick actions ──────────────────────────
