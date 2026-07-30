@@ -3104,6 +3104,73 @@
     return '<div class="modal-field"><span class="v">' + _linkifyEsc(esc(val)) + '</span></div>';
   }
 
+  // ── Who attends: one list, not two overlapping ones ──────────────────
+  // "Typical attendees" and "Past / announced speakers" described the same room
+  // from two angles and repeated each other — the same CIOs and CDOs listed
+  // twice, padded out with entries that carry no information at all ("Technology
+  // Leader, Global Enterprise") — so they're merged for display (Hurley
+  // 2026-07-29). Both columns stay separate in the editor; this is presentation.
+  //
+  // Words that describe no one in particular. An entry made only of these is
+  // filler and gets dropped; they're also ignored when judging repeats, so
+  // "CIO, Major Enterprise" is recognised as a repeat of "CIOs".
+  var _ATT_FILLER = {
+    major: 1, global: 1, worldwide: 1, international: 1, national: 1, regional: 1,
+    enterprise: 1, company: 1, corporate: 1, corporation: 1, organisation: 1,
+    organization: 1, business: 1, firm: 1, technology: 1, tech: 1, leader: 1,
+    leadership: 1, senior: 1, executive: 1, various: 1, multiple: 1, large: 1,
+    mid: 1, small: 1, level: 1, industry: 1, sector: 1, and: 1, the: 1, of: 1,
+    from: 1, for: 1, with: 1, include: 1, including: 1, past: 1, announced: 1,
+    attendee: 1, speaker: 1, delegate: 1, participant: 1, other: 1, plus: 1,
+    // Function words, or "mid-to-large enterprises" survives on the word "to".
+    to: 1, in: 1, at: 1, on: 1, or: 1, by: 1, a: 1, an: 1, as: 1, is: 1,
+    are: 1, all: 1, only: 1, some: 1, most: 1, both: 1, per: 1, via: 1
+  };
+  // Distinctive words only, singularised so "CIOs" and "CIO" are the same word.
+  function _attSig(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ')
+      .map(function (w) { return (w.length > 3 && w.charAt(w.length - 1) === 's') ? w.slice(0, -1) : w; })
+      .filter(function (w) { return w && !_ATT_FILLER[w]; });
+  }
+  function mergeAttendees(typical, past) {
+    var raw = [typical, past].filter(function (x) { return x && String(x).trim(); }).join('; ');
+    if (!raw.trim()) return '';
+    // The separators these fields actually use — semicolons, bullets, newlines
+    // and sentence breaks. NOT commas: "CIO, Major Enterprise" is one entry.
+    var parts = raw.split(/\s*(?:;|\u00b7|\u2022|\n|\.\s)\s*/);
+    var out = [], kept = [];
+    for (var i = 0; i < parts.length && out.length < 6; i++) {
+      var s = parts[i].replace(/^[\s,.;:·•\-]+/, '').replace(/[\s,.;:·•\-]+$/, '');
+      if (!s) continue;
+      var sig = _attSig(s);
+      if (!sig.length) continue;               // says nothing once filler is gone
+      // Skip when everything distinctive about it is already on the list.
+      var covered = kept.some(function (have) {
+        return sig.every(function (w) { return have.indexOf(w) !== -1; });
+      });
+      if (covered) continue;
+      // Skip a restatement: it leads with a role we already listed and adds
+      // barely anything. "CIO, Enterprise Agentic AI Deployment" after
+      // "CDOs, CAIOs, CTOs, CIOs…" is the same person described again.
+      var haveWords = {};
+      kept.forEach(function (have) { have.forEach(function (w) { haveWords[w] = 1; }); });
+      var fresh = sig.filter(function (w) { return !haveWords[w]; });
+      if (haveWords[sig[0]] && fresh.length < 3) continue;
+      kept.push(sig);
+      out.push(s);
+    }
+    return out.join('; ');
+  }
+  // One short clause — used to fold "Meetings & networking" into the overview
+  // rather than giving a format note a section heading of its own.
+  function briefClause(v) {
+    var s = String(v == null ? '' : v).trim().replace(/\s+/g, ' ');
+    if (!s) return '';
+    s = s.split('. ')[0].replace(/[.;,\s]+$/, '');
+    if (s.length > 140) s = s.slice(0, 137).replace(/\s\S*$/, '') + '…';
+    return s;
+  }
+
   // ── Editable modal: one-tap quick actions ──────────────────────────
   // Should-Attend has TWO sources that must NOT blur together (Angela: the 256
   // AI auto-tags were muting the handful Thor/Verma/Jerome flag by hand):
@@ -3449,7 +3516,7 @@
     var sDet = '';
     if (!priv) {
       if (!isCat) sDet += ef('Region', '<select class="me-input" data-edit="region">' + ['', 'US & Canada', 'Latin America', 'Europe', 'Africa', 'MENA', 'Asia-Pacific', 'Global'].map(function (v) { return opt(v, rec.region); }).join('') + '</select>');
-      sDet += ef('About', ta('about', rec.about));
+      sDet += ef('Overview', ta('about', rec.about));
       sDet += ef('Focus areas', ta('focus_areas', rec.focus_areas, 2));
       sDet += ef('Typical attendees', ta('typical_attendees', rec.typical_attendees, 2));
       sDet += ef('Type', inp('type', rec.type, 'e.g. Enterprise'));
@@ -3748,17 +3815,31 @@
         field('Submission status', rec.submission_status) +
         field('Speaking fee', rec.speaking_fee));
       // — Who's in the room: every audience fact in one place.
+      // One merged list — the heading already says who it's about, so the value
+      // goes in bare rather than under a second "Typical attendees" label.
       v += sec('Who attends',
-        field('Typical attendees', rec.typical_attendees) +
-        field('Past / announced speakers', rec.past_speakers) +
+        fieldBare(mergeAttendees(rec.typical_attendees, rec.past_speakers)) +
         (function () {
-          var g = field('Attendee count', rec.attendee_count) + field('Audience', rec.audience_type);
+          // "Audience: Buyer-rich" is a targeting judgement, not a fact about
+          // the event — it's Verma's signal (regulated-industry board rooms) and
+          // Angela's for triage. Everyone else was reading a label that didn't
+          // change what they'd do (Hurley 2026-07-29).
+          var _me = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '')
+            .trim().toLowerCase().split(/\s+/)[0];
+          var _seesAudience = _me === 'verma' || !!(window.isAngelaUser && window.isAngelaUser());
+          var g = field('Attendee count', rec.attendee_count) +
+                  (_seesAudience ? field('Audience', rec.audience_type) : '');
           return g ? '<div class="modal-grid">' + g + '</div>' : '';
+        })());
+      // — Overview of the event itself. The meeting/networking format rides
+      //   along here as one clause instead of claiming its own labelled row.
+      v += sec('Overview',
+        (function () {
+          var about = String(rec.about || '').trim();
+          var fmt = briefClause(rec.meeting_formats);
+          if (fmt) about = about ? (about.replace(/[.\s]+$/, '') + '. ' + fmt + '.') : (fmt + '.');
+          return fieldBare(about);
         })() +
-        field('Meetings & networking', rec.meeting_formats));
-      // — About the event itself.
-      v += sec('About the event',
-        field('About', rec.about) +
         field('Focus areas', rec.focus_areas) +
         (function () {
           var g = field('Price to attend', rec.pricing) + field('Venue', rec.venue);
