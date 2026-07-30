@@ -10916,49 +10916,47 @@ def build():
 
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
+      }});
 
       // Add / edit a scheduling conflict from the Planner, which is where
       // Angela is looking when she notices one (Hurley 2026-07-30).
-      function _cfSave(it, cur) {
+      function _cfSave(it, cur) {{
         var add = window.prompt(
           'Scheduling conflict for "' + it.name + '"' +
-          (cur ? '\n\nCurrently:\n' + cur : '') +
-          '\n\ne.g. Thor is at the board offsite that week' +
-          (cur ? '\n(leave blank to keep it as is)' : ''), cur || '');
+          (cur ? '\\n\\nCurrently:\\n' + cur : '') +
+          '\\n\\ne.g. Thor is at the board offsite that week', cur || '');
         if (add === null) return;
         add = String(add).trim();
-        opsQuickWrite(it.kind, it.key, { conflict_note: add || null });
-      }
-      host.querySelectorAll('[data-cf-kind]').forEach(function (el) {
-        el.addEventListener('click', function (e) {
+        opsQuickWrite(it.kind, it.key, {{ conflict_note: add || null }});
+      }}
+      host.querySelectorAll('[data-cf-kind]').forEach(function (el) {{
+        el.addEventListener('click', function (e) {{
           e.stopPropagation();
-          var it = opsAllItems().filter(function (x) {
+          var it = opsAllItems().filter(function (x) {{
             return x.kind === el.getAttribute('data-cf-kind') &&
                    String(x.key) === el.getAttribute('data-cf-key');
-          })[0];
+          }})[0];
           if (it) _cfSave(it, String((it.startObj || it).conflict_note || ''));
-        });
-      });
+        }});
+      }});
       var cfAdd = document.getElementById('planner-cf-add');
-      if (cfAdd) cfAdd.addEventListener('click', function () {
-        var q = window.prompt('Which event has the conflict?\n\nType part of its name:', '');
+      if (cfAdd) cfAdd.addEventListener('click', function () {{
+        var q = window.prompt('Which event has the conflict?\\n\\nType part of its name:', '');
         if (q === null) return;
         q = String(q).trim().toLowerCase();
         if (!q) return;
-        var hits = opsAllItems().filter(function (it) {
+        var hits = opsAllItems().filter(function (it) {{
           return !it.past && !it.hidden && String(it.name || '').toLowerCase().indexOf(q) !== -1;
-        });
-        if (!hits.length) { window.alert('No upcoming event matches "' + q + '".'); return; }
+        }});
+        if (!hits.length) {{ window.alert('No upcoming event matches "' + q + '".'); return; }}
         var pick = hits[0];
-        if (hits.length > 1) {
-          var menu = hits.slice(0, 9).map(function (it, i) { return (i + 1) + '. ' + it.name; }).join('\n');
-          var n = window.prompt('Which one?\n\n' + menu, '1');
+        if (hits.length > 1) {{
+          var menu = hits.slice(0, 9).map(function (it, i) {{ return (i + 1) + '. ' + it.name; }}).join('\\n');
+          var n = window.prompt('Which one?\\n\\n' + menu, '1');
           if (n === null) return;
           pick = hits[Math.max(0, Math.min(hits.length - 1, parseInt(n, 10) - 1))] || hits[0];
-        }
+        }}
         _cfSave(pick, String((pick.startObj || pick).conflict_note || ''));
-      });
-
       }});
       host.querySelectorAll('[data-flag]').forEach(function (btn) {{
         btn.addEventListener('click', function (e) {{

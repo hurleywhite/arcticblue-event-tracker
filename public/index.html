@@ -658,6 +658,16 @@
     .fu-when { font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg); font-weight: 600; }
     .fu-by { font-size: 0.74rem; color: var(--ab-fg-3); }
     .fu-note { flex: 1 1 100%; font-size: 0.86rem; color: var(--ab-fg-2); line-height: 1.4; }
+    .cf-add {
+      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600; color: var(--ab-blue);
+      background: none; border: 0; padding: 6px 0 0; cursor: pointer;
+    }
+    .cf-add:hover { text-decoration: underline; }
+    .cf-edit {
+      font-family: var(--ab-sans); font-size: 0.74rem; color: var(--ab-fg-3);
+      background: none; border: 0; padding: 0 2px; cursor: pointer; text-decoration: underline;
+    }
+    .cf-edit:hover { color: var(--ab-blue); }
     .fu-add {
       font-family: var(--ab-sans); font-size: 0.8rem; font-weight: 600; color: var(--ab-blue);
       background: none; border: 0; padding: 3px 0; cursor: pointer;
@@ -4140,6 +4150,29 @@
     // Notes lead the read view — right below "Chat with the team" (Angela). The
     // zone heading already says "Notes", so the value goes in bare.
     v += sec('Notes', fieldBare(rec.notes));
+    // Follow-up log — Angela's spreadsheet column, as a clean dated list.
+    // Hers to run, so hers to see.
+    if (window.isAngelaUser && window.isAngelaUser()) {
+      var _fuSt = window.abFollowUpState
+        ? window.abFollowUpState(rec, rec.stage_tags || [], '') : null;
+      var _fuList = window.abFollowUps ? window.abFollowUps(rec) : [];
+      var _fuBody = '';
+      if (_fuSt) {
+        _fuBody += '<div class="fu-state fu-' + _fuSt.state + '">' + esc(_fuSt.label) + '</div>';
+      }
+      if (_fuList.length) {
+        _fuBody += '<ol class="fu-log">' + _fuList.map(function (f) {
+          return '<li><span class="fu-when">' + esc(_fuWhen(f.on)) + '</span>' +
+                 (f.by ? '<span class="fu-by">' + esc(f.by) + '</span>' : '') +
+                 (f.note ? '<span class="fu-note">' + esc(f.note) + '</span>' : '') + '</li>';
+        }).join('') + '</ol>';
+      }
+      if (!_fuList.length) {
+        _fuBody += '<p class="fu-empty">Nothing logged yet. Each entry records the date, who chased, and anything that came back.</p>';
+      }
+      _fuBody += '<button type="button" class="fu-add" id="fu-add-btn">+ Log a follow-up</button>';
+      v += sec('Follow-ups', _fuBody);
+    }
     if (rec.is_private) {
       // Private / invite-only: just the speaker + POC (link is the title, chat above).
       v += sec('Speaking', field('ArcticBlue speaker', rec.speaker));
@@ -4200,26 +4233,6 @@
           var g = field('Price to attend', rec.pricing) + field('Venue', rec.venue);
           return g ? '<div class="modal-grid">' + g + '</div>' : '';
         })());
-      // Follow-up log — Angela's spreadsheet column, as a clean dated list.
-      // Hers to run, so hers to see.
-      if (window.isAngelaUser && window.isAngelaUser()) {
-        var _fuSt = window.abFollowUpState
-          ? window.abFollowUpState(rec, rec.stage_tags || [], '') : null;
-        var _fuList = window.abFollowUps ? window.abFollowUps(rec) : [];
-        var _fuBody = '';
-        if (_fuSt) {
-          _fuBody += '<div class="fu-state fu-' + _fuSt.state + '">' + esc(_fuSt.label) + '</div>';
-        }
-        if (_fuList.length) {
-          _fuBody += '<ol class="fu-log">' + _fuList.map(function (f) {
-            return '<li><span class="fu-when">' + esc(_fuWhen(f.on)) + '</span>' +
-                   (f.by ? '<span class="fu-by">' + esc(f.by) + '</span>' : '') +
-                   (f.note ? '<span class="fu-note">' + esc(f.note) + '</span>' : '') + '</li>';
-          }).join('') + '</ol>';
-        }
-        _fuBody += '<button type="button" class="fu-add" id="fu-add-btn">+ Log a follow-up</button>';
-        v += sec('Follow-ups', _fuBody);
-      }
       v += sec('Contacts', pocHtml + (_ctp(rec.additional_contacts) ? field('Additional contacts', rec.additional_contacts) : ''));
       // This zone only ever holds the one field, so under the one-field rule the
       // heading IS the label — which means it has to be the informative one.
@@ -10133,6 +10146,14 @@
     var AB_TERRITORIES = AB_PROFILES.filter(function (p) { return !p.support; }).map(function (p) {
       return { who: p.key, label: p.label, test: function (it) { return profileFits(p, it.text, it.region, null, _isForeignLangEvent(it)); } };
     });
+    // Thor leads the coverage gaps — he's the priority, and this list was in
+    // whatever order AB_PROFILES happened to be written (Hurley 2026-07-30).
+    AB_TERRITORIES.sort(function (x, y) {
+      var ix = PLAN_ORDER.indexOf(String(x.who).toLowerCase());
+      var iy = PLAN_ORDER.indexOf(String(y.who).toLowerCase());
+      if (ix === -1) ix = 99; if (iy === -1) iy = 99;
+      return ix - iy || String(x.who).localeCompare(String(y.who));
+    });
 
     function opsDateRange(o) {
       var s = (o.start_date && /^\d{4}-\d{2}-\d{2}/.test(o.start_date)) ? o.start_date.slice(0, 10) : null;
@@ -10287,6 +10308,21 @@
             '</span></div></div>';
         });
       }
+      // Conflicts Angela typed — the ones dates can't reveal (a board offsite,
+      // leave). Listed alongside the detected ones so the section is the whole
+      // picture, not just what the calendar could work out.
+      var manualCf = items.filter(function (it) {
+        return !it.past && !it.hidden && String((it.startObj || it).conflict_note || '').trim();
+      });
+      manualCf.forEach(function (it) {
+        html += '<div class="conflict-row"><span class="conflict-icon">&#9888;</span><div class="conflict-body">' +
+          '<button class="conflict-evt" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' +
+          escapeHtml(it.name) + '</button> &mdash; ' +
+          escapeHtml(String((it.startObj || it).conflict_note).trim()) +
+          ' <button type="button" class="cf-edit" data-cf-kind="' + it.kind + '" data-cf-key="' + escapeHtml(String(it.key)) + '">edit</button>' +
+          '</div></div>';
+      });
+      html += '<button type="button" class="cf-add" id="planner-cf-add">+ Add a scheduling conflict</button>';
       html += '</div>';
 
       html += '<div class="planner-section"><div class="planner-sec-head"><span class="planner-sec-title">&#128506; Coverage gaps by territory</span><span class="planner-sec-sub">upcoming events with no speaker assigned</span></div>';
@@ -10348,6 +10384,47 @@
 
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {
         el.addEventListener('click', function () { opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); });
+      });
+
+      // Add / edit a scheduling conflict from the Planner, which is where
+      // Angela is looking when she notices one (Hurley 2026-07-30).
+      function _cfSave(it, cur) {
+        var add = window.prompt(
+          'Scheduling conflict for "' + it.name + '"' +
+          (cur ? '\n\nCurrently:\n' + cur : '') +
+          '\n\ne.g. Thor is at the board offsite that week', cur || '');
+        if (add === null) return;
+        add = String(add).trim();
+        opsQuickWrite(it.kind, it.key, { conflict_note: add || null });
+      }
+      host.querySelectorAll('[data-cf-kind]').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var it = opsAllItems().filter(function (x) {
+            return x.kind === el.getAttribute('data-cf-kind') &&
+                   String(x.key) === el.getAttribute('data-cf-key');
+          })[0];
+          if (it) _cfSave(it, String((it.startObj || it).conflict_note || ''));
+        });
+      });
+      var cfAdd = document.getElementById('planner-cf-add');
+      if (cfAdd) cfAdd.addEventListener('click', function () {
+        var q = window.prompt('Which event has the conflict?\n\nType part of its name:', '');
+        if (q === null) return;
+        q = String(q).trim().toLowerCase();
+        if (!q) return;
+        var hits = opsAllItems().filter(function (it) {
+          return !it.past && !it.hidden && String(it.name || '').toLowerCase().indexOf(q) !== -1;
+        });
+        if (!hits.length) { window.alert('No upcoming event matches "' + q + '".'); return; }
+        var pick = hits[0];
+        if (hits.length > 1) {
+          var menu = hits.slice(0, 9).map(function (it, i) { return (i + 1) + '. ' + it.name; }).join('\n');
+          var n = window.prompt('Which one?\n\n' + menu, '1');
+          if (n === null) return;
+          pick = hits[Math.max(0, Math.min(hits.length - 1, parseInt(n, 10) - 1))] || hits[0];
+        }
+        _cfSave(pick, String((pick.startObj || pick).conflict_note || ''));
       });
       host.querySelectorAll('[data-flag]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
@@ -14484,6 +14561,10 @@
       panel.innerHTML =
         '<h4 class="chat-h">Chat with the team</h4>' +
         '<div class="chat-list" id="chat-list"><p class="chat-empty">Loading…</p></div>' +
+        '<form class="chat-form" id="chat-form">' +
+          '<input class="chat-input" id="chat-input" placeholder="Message the team about this event…" autocomplete="off" maxlength="1000">' +
+          '<button type="submit" class="chat-send">Send</button>' +
+        '</form>' +
         // Per-event mini assistant. Small, one line, under the thread — you ask
         // about THIS event and the answer lands right here (Hurley 2026-07-30).
         // Every question is also posted into the thread, so Angela can see what
@@ -14493,10 +14574,7 @@
           '<button type="submit" class="ask1-go" title="Ask">&#10142;</button>' +
         '</form>' +
         '<div class="ask1-answer" id="ask1-answer" hidden></div>' +
-        '<form class="chat-form" id="chat-form">' +
-          '<input class="chat-input" id="chat-input" placeholder="Message the team about this event…" autocomplete="off" maxlength="1000">' +
-          '<button type="submit" class="chat-send">Send</button>' +
-        '</form>';
+        '';
       sb.from('event_chat').select('*').eq(col, rec._key).order('created_at', { ascending: true }).then(function (resp) {
         var list = document.getElementById('chat-list'); if (!list) return;
         // If the event_chat table hasn't been migrated yet, show the normal
