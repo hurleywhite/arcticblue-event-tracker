@@ -1048,6 +1048,10 @@ def build():
        simply wraps to the next line rather than being cut off / scrolling. */
     .qa-row--status {{ flex-wrap: wrap; gap: 6px; }}
     .modal-quickbar .qa:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
+    .modal-quickbar .qa-static, .modal-quickbar .qa-static:hover {{
+      cursor: default; border-color: var(--ab-rule-strong);
+    }}
+    .modal-quickbar .qa-static.on, .modal-quickbar .qa-static.on:hover {{ cursor: default; }}
     .modal-quickbar .qa.on {{
       background: #166534; color: #fff; border-color: #166534;
     }}
@@ -4121,7 +4125,24 @@ def build():
     // adds/removes YOU. Angela assigns anyone via the edit-form Attending bubbles.
     var _meKey = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '').trim().split(/\\s+/)[0].toLowerCase();
     var _iAmAttending = !!(_meKey && (rec.attendees || []).some(function (a) {{ return String(a).toLowerCase() === _meKey; }}));
-    bStage.push('<button type="button" class="qa' + (_iAmAttending ? ' on' : '') + '" data-qa="attending" title="Attending is per-person — this marks whether YOU are going">' + (_iAmAttending ? '✓ Attending' : 'Attending') + '</button>');
+    if (window.isAngelaUser && window.isAngelaUser()) {{
+      // Angela doesn't go to these herself, so the per-person test read false
+      // for her on every event and the pill never ticked — even where the team
+      // IS attending (Hurley 2026-07-30). She gets the EVENT's state. It's a
+      // marker, not a toggle: clicking would have added HER to the attendees.
+      // She assigns people in the edit form's Attending bubbles.
+      var _attWho = (rec.attendees || []).map(function (a) {{
+        a = String(a || '').trim();
+        return a ? a.charAt(0).toUpperCase() + a.slice(1) : '';
+      }}).filter(Boolean);
+      var _attOn = has('Attending') || _attWho.length > 0;
+      bStage.push('<span class="qa qa-static' + (_attOn ? ' on' : '') + '" title="' +
+        (_attWho.length ? 'Attending: ' + esc(_attWho.join(', ')) + ' \u2014 set who in Edit'
+                        : 'Nobody marked as attending yet \u2014 set who in Edit') +
+        '">' + (_attOn ? '✓ Attending' : 'Attending') + '</span>');
+    }} else {{
+      bStage.push('<button type="button" class="qa' + (_iAmAttending ? ' on' : '') + '" data-qa="attending" title="Attending is per-person — this marks whether YOU are going">' + (_iAmAttending ? '✓ Attending' : 'Attending') + '</button>');
+    }}
     // Should Attend is Angela's triage tool — only she sees/sets it here. For
     // everyone else, marking Interested funnels into her Should-Attend list.
     if (window.isAngelaUser && window.isAngelaUser()) {{
@@ -8371,7 +8392,14 @@ def build():
 
     function qStagePills(stages) {{
       if (!stages || !stages.length) return '<span class="q-stage-pill">Not started</span>';
-      return stages.map(function (s) {{ return '<span class="q-stage-pill" style="' + stageStyle(s) + '">' + escapeHtml(s) + '</span>'; }}).join('');
+      // Attending is the one stage that's a settled fact rather than a step
+      // still in flight, so it gets a tick — same mark the modal's quick-action
+      // buttons use for a stage that's done (Hurley 2026-07-30).
+      return stages.map(function (s) {{
+        var lab = escapeHtml(s);
+        if (s === 'Attending') lab = '✓ ' + lab;
+        return '<span class="q-stage-pill" style="' + stageStyle(s) + '">' + lab + '</span>';
+      }}).join('');
     }}
 
     function opsQuickWrite(kind, key, patch) {{
