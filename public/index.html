@@ -684,6 +684,12 @@
     .mt-ico svg { width: 15px; height: 15px; display: block; }
     .mt-ico:hover { color: var(--ab-blue); background: var(--ab-bg-2); }
     .mt-ico.is-on { color: var(--ab-blue); }
+    /* Archive (the struck-through eye) reads as a removal, so it carries the
+       same red as every other "this is off / closed" mark (Hurley 2026-07-30).
+       Listed after .is-on so an archived event stays red rather than going blue. */
+    .mt-ico[data-qa="archive"],
+    .mt-ico[data-qa="archive"].is-on { color: #b91c1c; }
+    .mt-ico[data-qa="archive"]:hover { color: #991b1b; background: rgba(185, 28, 28, 0.10); }
     .mh-ico {
       display: inline-flex; align-items: center; justify-content: center;
       width: 30px; height: 30px; margin-right: 4px; padding: 0;
@@ -3702,9 +3708,15 @@
     // 2026-07-30). Colours match the corner mark exactly: amber in flight,
     // green landed, red closed.
     var _fuN = (window.abFollowUps ? window.abFollowUps(rec) : []).length;
+    // An OUTCOME retires the in-flight steps. The route shows where the event
+    // IS, not everywhere it has been — otherwise a booked event still reads as
+    // "chasing them", which is what Booked was clicked to say it isn't
+    // (Hurley 2026-07-30). The ×N count stays visible: the chases happened,
+    // and the log below is the history.
+    var _outcome = has('Booked') || has('Rejected');
     // A logged follow-up IS a follow-up, even without the stage tag — Angela
     // could log three chases and still see the step unlit.
-    var _fuOn = has('Followed up') || !!_fuN;
+    var _fuOn = !_outcome && (has('Followed up') || !!_fuN);
     function _step(qa, label, on, cls, extra) {
       return '<button type="button" class="qa-step' + (on ? ' is-on' : '') + (cls ? ' ' + cls : '') +
              '" data-qa="' + qa + '"' + (extra || '') + '>' +
@@ -3714,10 +3726,18 @@
     bStage.push('<div class="qa-flow">');
     bStage.push(_step('submitted', 'Submitted', has('Submitted'), 'qa-flight'));
     bStage.push('<span class="qa-arrow" aria-hidden="true">→</span>');
+    // Clicking this LOGS a chase dated today rather than flipping a bare tag:
+    // the ×N count comes from the log, so a tag-only toggle left the step stuck
+    // lit and the button looked dead (Hurley 2026-07-30). Clicking again undoes
+    // the last such quick entry; chases you typed a note against are real
+    // history and are removed from their own row below, not from here.
+    var _fuTip = _outcome
+      ? 'Retired — this event has an outcome. ' + _fuN + ' chase' + (_fuN === 1 ? '' : 's') + ' logged below.'
+      : (_fuOn ? 'Click to log another chase dated today (click again to undo it)'
+               : 'Click to log a chase dated today');
     bStage.push(_step('followed-up',
       'Followed up' + (_fuN ? '<span class="qa-n">×' + _fuN + '</span>' : ''),
-      _fuOn, 'qa-flight',
-      (_fuN && !has('Followed up')) ? ' title="' + _fuN + ' follow-up' + (_fuN > 1 ? 's' : '') + ' logged below"' : ''));
+      _fuOn, 'qa-flight', ' title="' + esc(_fuTip) + '"'));
     bStage.push('<span class="qa-arrow" aria-hidden="true">→</span>');
     bStage.push('<span class="qa-branch">');
     bStage.push(_step('booked', 'Booked', has('Booked'), 'qa-good'));
@@ -3964,18 +3984,61 @@
         rec.stage_tags = atags;
         patch.status_tags = atags;
       }
-      else if (qa === 'submitted' || qa === 'followed-up' || qa === 'booked' || qa === 'rejected') {
-        var stage = qa === 'submitted' ? 'Submitted' : (qa === 'followed-up' ? 'Followed up' : (qa === 'booked' ? 'Booked' : 'Rejected'));
+      else if (qa === 'followed-up') {
+        // The ×N on this step counts LOGGED chases, so a tag-only toggle could
+        // never turn it off — click, nothing moves, click again, still nothing
+        // (Hurley 2026-07-30). Clicking writes the log itself.
+        var _fuList = rec.follow_ups;
+        if (typeof _fuList === 'string') { try { _fuList = JSON.parse(_fuList); } catch (e) { _fuList = []; } }
+        _fuList = Array.isArray(_fuList) ? _fuList.slice() : [];
+        var _fuTags = (rec.stage_tags || []).slice();
+        var _meFu = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || '';
+        var _fuToday = window.abTodayIso ? window.abTodayIso() : '';
+        // The step is lit whenever ANY chase is logged, so "lit means the next
+        // click removes" would strand every event Angela imported with a note
+        // against it — the button would be permanently dead (Hurley
+        // 2026-07-30). So a click ADDS a chase, and only undoes the one thing
+        // this button could have created: my own note-less entry from today.
+        // Anything with a note typed against it is real history and comes off
+        // via the trash can on its own row.
+        var _undo = -1;
+        for (var _f1 = 0; _f1 < _fuList.length; _f1++) {
+          var _e1 = _fuList[_f1] || {};
+          if (String(_e1.note || '').trim()) continue;
+          if (String(_e1.on || '') !== _fuToday) continue;
+          var _by1 = String(_e1.by || '').trim().toLowerCase();
+          if (_by1 && _meFu && _by1 !== String(_meFu).trim().toLowerCase()) continue;
+          _undo = _f1;
+        }
+        if (_undo !== -1) _fuList.splice(_undo, 1);
+        else _fuList.push({ on: _fuToday, by: _meFu, note: '' });
+        // Keep the tag honest: it means "there are chases on record".
+        var _fuHad = _fuTags.indexOf('Followed up');
+        if (_fuList.length && _fuHad === -1) _fuTags.push('Followed up');
+        else if (!_fuList.length && _fuHad !== -1) _fuTags.splice(_fuHad, 1);
+        rec.follow_ups = _fuList;
+        patch.follow_ups = _fuList;
+        var _fuOrd = window.opsStageOrder || [];
+        if (_fuOrd.length) _fuTags = _fuOrd.filter(function (s) { return _fuTags.indexOf(s) !== -1; });
+        rec.stage_tags = _fuTags;
+        patch.status_tags = _fuTags;
+      }
+      else if (qa === 'submitted' || qa === 'booked' || qa === 'rejected') {
+        var stage = qa === 'submitted' ? 'Submitted' : (qa === 'booked' ? 'Booked' : 'Rejected');
         var tags = (rec.stage_tags || []).slice();
         var idx = tags.indexOf(stage);
         if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
-        // Marking an OUTCOME retires the application state, so the stored row
-        // matches what everyone reads (Hurley 2026-07-30). Turning the outcome
-        // back OFF doesn't restore Submitted — that'd be guessing at history;
-        // the button is right there if it should come back.
+        // Marking an OUTCOME retires every in-flight stage, so the stored row
+        // matches what everyone reads (Hurley 2026-07-30). Booked used to clear
+        // Submitted but leave "Followed up" lit, which read as still chasing an
+        // organiser who had already said yes. Turning the outcome back OFF
+        // doesn't restore them — that'd be guessing at history; the buttons are
+        // right there if they should come back.
         if ((stage === 'Booked' || stage === 'Rejected') && idx === -1) {
-          var _sub = tags.indexOf('Submitted');
-          if (_sub !== -1) tags.splice(_sub, 1);
+          ['Submitted', 'Followed up', 'Meeting held'].forEach(function (s) {
+            var _k = tags.indexOf(s);
+            if (_k !== -1) tags.splice(_k, 1);
+          });
         }
         var order = window.opsStageOrder || [];
         if (order.length) tags = order.filter(function (s) { return tags.indexOf(s) !== -1; });
@@ -6082,19 +6145,33 @@
     window.abStageIcon = function (st, ev) {
       var tags = stageTagsOf(st);
       var who = window.abMineOnly(((st && st.speaker) || '').trim());
-      var att = window.abMineOnly((((st && st.attendees) || (ev && ev.attendees) || [])
-                  .map(function (a) { return String(a || ''); }).join(', ')));
-      var kind = null, fill = 'none', col = '', label = '';
-      if (who.show && tags.indexOf('Booked') !== -1) {
-        kind = 'mic'; fill = 'full';  col = '#15803d'; label = 'Booked';
-      } else if (who.show && tags.indexOf('Rejected') !== -1) {
-        kind = 'mic'; fill = 'empty'; col = '#b91c1c'; label = 'Rejected';
-      } else if (who.show && (tags.indexOf('Submitted') !== -1 || tags.indexOf('Followed up') !== -1 || tags.indexOf('Meeting held') !== -1)) {
-        kind = 'mic'; fill = 'half';  col = '#b45309'; label = 'Submitted';
-      } else if (att.show && (att.names || tags.indexOf('Attending') !== -1)) {
-        kind = 'ticket'; col = '#15803d'; label = 'Attending';
-      }
-      if (!kind) return '';
+      // Whether ANYONE is down to attend is a separate question from whose
+      // names we're allowed to print. abMineOnly blanks your own name (your
+      // card is self-evidently yours), so testing `att.names` meant Jerome's
+      // own attendance read as nobody attending — HumanX Amsterdam has
+      // attendees ['jerome'] and no Attending tag, so the ticket never drew,
+      // for him or anyone (Hurley 2026-07-30). Ask the raw list instead.
+      var attList = (((st && st.attendees) || (ev && ev.attendees) || [])
+                  .map(function (a) { return String(a || '').trim(); }).filter(Boolean));
+      var att = window.abMineOnly(attList.join(', '));
+      var attOn = att.show && (attList.length > 0 || tags.indexOf('Attending') !== -1);
+      // Speaking and attending are DIFFERENT tracks and an event can be both —
+      // Thor submitted to speak while Jerome goes. These used to be one
+      // if/else chain, so the mic silently swallowed the ticket.
+      var mic = null;
+      if (who.show && tags.indexOf('Booked') !== -1)        mic = ['full',  '#15803d', 'Booked'];
+      else if (who.show && tags.indexOf('Rejected') !== -1) mic = ['empty', '#b91c1c', 'Rejected'];
+      else if (who.show && (tags.indexOf('Submitted') !== -1 || tags.indexOf('Followed up') !== -1 || tags.indexOf('Meeting held') !== -1))
+                                                            mic = ['half',  '#b45309', 'Submitted'];
+      if (!mic && !attOn) return '';
+      // The ticket is drawn FIRST so it sits to the LEFT: the mic is the fixed
+      // top-right mark and must not move because someone was added.
+      var _out = '';
+      if (attOn) _out += _drawStageMark('ticket', 'none', '#15803d', 'Attending', att.names);
+      if (mic)   _out += _drawStageMark('mic', mic[0], mic[1], mic[2], who.names);
+      return _out;
+    };
+    function _drawStageMark(kind, fill, col, label, pool) {
       var id = 'stq' + (++_stIconN);
       var body;
       if (kind === 'ticket') {
@@ -6121,7 +6198,6 @@
       // Verma" that used to trail the status line at the foot of the card
       // (Hurley 2026-07-30). Support sees everyone; a speaker sees only names
       // other than their own, since their own card is self-evidently theirs.
-      var pool = (kind === 'ticket') ? att.names : who.names;
       var inits = String(pool || '').split(/\s*(?:,|;|&| and )\s*/)
         .map(function (n) { return String(n || '').trim(); }).filter(Boolean)
         .map(function (n) {
@@ -6134,7 +6210,7 @@
           (inits.length > 3 ? '+' + (inits.length - 3) : '') + '</span>' : '';
       return '<span class="ops-stage-ico" title="' + escapeHtml(label + who2) + '" aria-label="' + escapeHtml(label + who2) + '" role="img">' +
              '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>' + initHtml + '</span>';
-    };
+    }
     function cardStatusLine(ev, st) {
       st = st || ev;
       var stages = stageTagsOf(st);
