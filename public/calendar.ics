@@ -2534,16 +2534,6 @@ DESCRIPTION:Asia's premier fintech and AI festival co-organized by HKMA\, SFC\, 
 URL:https://www.fintechweek.hk/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-347@arcticblue-event-tracker
-DTSTAMP:20260729T000000Z
-DTSTART;VALUE=DATE:20261013
-DTEND;VALUE=DATE:20261014
-SUMMARY:Tech Day IT NOW — República Dominicana 2026
-LOCATION:Hotel Jaragua\, Santo Domingo\, Dominican Republic
-DESCRIPTION:IT NOW's flagship stop in Carlos's home city of Santo Domingo — Hotel Jaragua is DR's premier business venue\; enterprise CIOs\, CTOs\, CEOs and AI decision-makers convene for a day of AI\, digital transformation\, and agentic automation content\; ArcticBlue's best home-turf branding and relationship-building event of Q4.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.techdayitnow.com/en
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-343@arcticblue-event-tracker
 DTSTAMP:20260729T000000Z
 DTSTART;VALUE=DATE:20260728

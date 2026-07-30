@@ -4946,7 +4946,14 @@ def build():
       function has(re) {{ return re.test(hay); }}
       if (has(/\\b(uae|united arab emirates|saudi|riyadh|dubai|abu dhabi|doha|qatar|bahrain|kuwait|oman|israel|tel aviv|jordan|lebanon|egypt|cairo|morocco|mena|middle east)\\b/)) return 'MENA';
       if (has(/\\b(south africa|johannesburg|cape town|nigeria|lagos|kenya|nairobi|ghana|accra|ethiopia|rwanda|kigali|tanzania|uganda|senegal|africa)\\b/)) return 'Africa';
-      if (has(/\\b(brazil|brasil|sao paulo|rio de janeiro|mexico|cdmx|argentina|buenos aires|chile|santiago|colombia|bogota|peru|lima|venezuela|caracas|uruguay|ecuador|latin america|latam|south america)\\b/)) return 'Latin America';
+      // Central America + the (non-US) Caribbean belong here too. Without them
+      // an event in Santo Domingo — where Carlos is BASED — fell through to the
+      // rule below and came back "US & Canada", because these rows carry
+      // region: "Americas" and that regex matches the word "americas". His own
+      // home market was landing in someone else's territory (Hurley 2026-07-29).
+      // Puerto Rico is deliberately NOT here: it's a US territory, and whether
+      // it counts as LatAm for GTM is a call for the team, not for this regex.
+      if (has(/\\b(brazil|brasil|sao paulo|rio de janeiro|mexico|cdmx|guadalajara|monterrey|argentina|buenos aires|chile|santiago|colombia|bogota|medellin|cartagena|peru|lima|venezuela|caracas|uruguay|montevideo|ecuador|quito|dominican republic|republica dominicana|santo domingo|panama|costa rica|guatemala|el salvador|san salvador|honduras|tegucigalpa|nicaragua|managua|paraguay|asuncion|bolivia|latin america|latam|south america|central america)\\b/)) return 'Latin America';
       if (has(/\\b(usa|united states|america|americas|canada|toronto|vancouver|montreal|ottawa|new york|nyc|san francisco|san diego|san jose|los angeles|bay area|boston|chicago|seattle|austin|dallas|houston|denver|phoenix|philadelphia|washington dc|new orleans|hoboken|menlo park|half moon bay|berkeley|leesburg|pier sixty|texas|miami|florida|atlanta|las vegas|nevada|california|midwest|northeast|southeast|southwest|west coast|east coast|mountain west|new jersey|other us)\\b/)) return 'US & Canada';
       if (has(/\\b(uk|united kingdom|england|london|france|paris|germany|berlin|munich|spain|madrid|barcelona|catalonia|italy|rome|milan|netherlands|amsterdam|ireland|dublin|switzerland|zurich|geneva|sweden|stockholm|denmark|copenhagen|norway|oslo|finland|portugal|lisbon|austria|vienna|belgium|brussels|poland|czech|prague|europe)\\b/)) return 'Europe';
       if (has(/\\b(singapore|hong kong|china|beijing|shanghai|japan|tokyo|korea|seoul|india|delhi|mumbai|bangalore|bengaluru|australia|sydney|melbourne|new zealand|indonesia|jakarta|thailand|bangkok|malaysia|vietnam|philippines|taiwan|apac|asia.pacific|asia)\\b/)) return 'Asia-Pacific';
@@ -9971,7 +9978,13 @@ def build():
          kw: ['healthcare','healthtech','health tech','digital health','medtech','med tech','life sciences','pharma','pharmaceutical','biotech','medical','health system','healthcare ai','patient care','telehealth','payer','provider'] }},
       {{ key: 'Verma', label: 'Insurance & regulated (board-level)', regions: [],
          kw: ['insurance','insurtech','life insurance','reinsurance','finance','financial services','bank','banking','capital markets','payments','fintech','board','chief data','regulated','compliance'] }},
-      {{ key: 'Carlos', label: 'Americas (mid-market)', regions: ['US & Canada','Latin America'], locked: true,
+      // Carlos runs LatAm — no US cities (Hurley 2026-07-29). 'US & Canada' used
+      // to sit in his regions, and because he's region-LOCKED that single token
+      // was doing almost all the work: 393 of his 427 fits were US events
+      // (Las Vegas, Austin, Nashville…), swamping the 34 that are actually his.
+      // NOTE: `locked` returns on the region test, so the kw list below never
+      // runs for him — it's kept only as documentation of his territory.
+      {{ key: 'Carlos', label: 'Latin America (mid-market)', regions: ['Latin America'], locked: true,
          kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] }},
       {{ key: 'Jim', label: 'Government (DC)', regions: [],
          kw: ['government','public sector','federal','defense','national security','govtech','civic','municipal','state and local','washington','washington dc','capitol','congress','white house','agency','gsa','dod','nist','fedramp','public policy'] }},

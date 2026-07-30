@@ -97,11 +97,9 @@
       "role": "Head of Sales, LatAm",
       "mode": "room",
       "geo": [
-        "US & Canada",
         "Mexico City",
         "Monterrey",
         "Santo Domingo",
-        "San Juan",
         "Sao Paulo",
         "Bogota",
         "Buenos Aires",
@@ -145,7 +143,7 @@
       ],
       "outcome_target": "3+ qualified mid-market/enterprise buyer conversations; contacts captured",
       "flags": [
-        "US & Canada are the densest mid-market buying environments (primary); Mexico City + the Caribbean (Santo Domingo, where Carlos is based; San Juan) are strong secondary",
+        "LatAm only — no US cities, and Puerto Rico counts as US (Hurley 2026-07-29). Mexico City + Santo Domingo, where Carlos is based, are his strongest markets",
         "broader LatAm (Sao Paulo, Bogota, Buenos Aires) = flag separately — longer cycles, stronger banking/telco/government adjacency",
         "fintech is the top-priority industry",
         "company size: 100-500 mid-market and larger"
