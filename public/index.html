@@ -632,7 +632,7 @@
     }
     .modal-enrich-note.ok { background: rgba(31,160,90,0.12); color: #1a8c54; font-weight: 600; }
     .modal-quickbar .qa[data-qa="saved"].on { background: var(--ab-blue); border-color: var(--ab-blue); }
-    .modal-quickbar .qa[data-qa="hidden"].on { background: var(--ab-fg-3); border-color: var(--ab-fg-3); }
+    .modal-quickbar .qa[data-qa="archive"].on { background: var(--ab-fg-3); border-color: var(--ab-fg-3); }
     .modal-quickbar .qa[data-qa="go"].on { background: #1a8c54; border-color: #1a8c54; }
     .qa-row-label {
       display: inline-flex; align-items: center; font-family: var(--ab-mono);
@@ -757,29 +757,10 @@
       .modal-grid { grid-template-columns: 1fr; }
     }
 
-    /* ───────────── archive disclosure ───────────── */
-    details.archive-block { margin: 64px 0 0; padding-top: 32px; border-top: 1px solid var(--ab-rule); }
-    details.archive-block summary {
-      cursor: pointer; list-style: none;
-      display: flex; justify-content: space-between; align-items: baseline;
-      gap: 16px; flex-wrap: wrap;
-      font-family: var(--ab-sans); font-weight: 800; font-size: 1.4rem;
-      letter-spacing: -0.015em; color: var(--ab-fg);
-    }
-    details.archive-block summary::-webkit-details-marker { display: none; }
-    details.archive-block summary::after {
-      content: "Show / hide";
-      font-family: var(--ab-mono); font-size: 0.74rem;
-      color: var(--ab-fg-3); letter-spacing: 0.1em; text-transform: uppercase;
-      font-weight: 400;
-    }
-    details[open].archive-block summary::after { content: "Hide"; }
-    .archive-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 12px;
-      margin-top: 24px;
-    }
+    /* (The .archive-block / .archive-grid rules styled the retired public
+       catalog's past-events disclosure. Removed with the markup — they were
+       also the last "Show / hide" and "Hide" strings attached to the word
+       archive, which now means one thing: an event you archived.) */
 
     /* ───────────── footer ───────────── */
     footer.foot {
@@ -1264,7 +1245,7 @@
       background: var(--ab-blue); color: var(--ab-bg); border-color: var(--ab-blue);
     }
 
-    .ops-card.is-hidden { opacity: 0.55; background: var(--ab-bg-2); }
+    .ops-card.is-archived { opacity: 0.55; background: var(--ab-bg-2); }
     /* Past events: dimmed when revealed via "Show past" (default: filtered out). */
     .ops-card.is-past { opacity: 0.6; }
     .ops-card.is-past:hover { opacity: 1; }
@@ -2718,7 +2699,7 @@
       .kpi { padding: 20px 20px 20px 0; }
       .filter-bar { flex-direction: column; align-items: stretch; }
       .filter-group { min-width: 0; }
-      .event-grid, .archive-grid, .ops-grid { grid-template-columns: 1fr; }
+      .ops-grid { grid-template-columns: 1fr; }
     }
     /* Touch screens: give the small card controls a tappable target. */
     @media (pointer: coarse) {
@@ -3194,9 +3175,9 @@
     // events. Manual events also keep their separate "Delete this event" button
     // in the edit form.
     var _qbMan = rec._table === 'manual_events';
-    var _qbHiddenMe = (window.opsIsHiddenForMe ? window.opsIsHiddenForMe(_qbMan, rec._key, rec.hidden === true) : !!rec.hidden);
+    var _qbArchivedMe = (window.opsIsArchivedForMe ? window.opsIsArchivedForMe(_qbMan, rec._key, rec.hidden === true) : !!rec.hidden);
     var hideBtn =
-        '<button type="button" class="qa' + (_qbHiddenMe ? ' on' : '') + '" data-qa="hidden" title="Archiving hides this from YOUR view only — teammates still see it">' + (_qbHiddenMe ? 'Unarchive' : 'Archive') + '</button>';
+        '<button type="button" class="qa' + (_qbArchivedMe ? ' on' : '') + '" data-qa="archive" title="Archived for you only — teammates still see it">' + (_qbArchivedMe ? 'Unarchive' : 'Archive') + '</button>';
     // The "Status:" / "Interested:" / "Hide:" row labels are gone (Hurley
     // 2026-07-29) — the buttons say what they do, and the labels were reading as
     // a wall of headings. The rows stay on SEPARATE lines, with "I'm interested"
@@ -3225,12 +3206,12 @@
       var qa = btn.dataset.qa;
       var patch = {};
       if (qa === 'saved') { rec.saved = !rec.saved; patch.saved = rec.saved; }
-      else if (qa === 'hidden') {
+      else if (qa === 'archive') {
         // Archive is PERSONAL (localStorage per signed-in name) — hides this from
         // MY view only. No DB write unless we're clearing a legacy team-wide hide.
         var _isMan = rec._table === 'manual_events';
-        var _wasHidden = (window.opsIsHiddenForMe ? window.opsIsHiddenForMe(_isMan, rec._key, rec.hidden === true) : !!rec.hidden);
-        var _makeArch = !_wasHidden;
+        var _wasArchived = (window.opsIsArchivedForMe ? window.opsIsArchivedForMe(_isMan, rec._key, rec.hidden === true) : !!rec.hidden);
+        var _makeArch = !_wasArchived;
         if (window.opsSetArchivedMine) window.opsSetArchivedMine(_isMan, rec._key, _makeArch);
         // Unarchiving a legacy team-wide hide also clears that shared flag (it
         // comes back for everyone) — there's no per-person record to remove.
@@ -3306,7 +3287,7 @@
       if (scEl) scEl.scrollTop = sc;
       // Archive lives in localStorage (no realtime echo), so re-render the grid
       // ourselves to move the card into / out of the per-person Hidden section.
-      if (qa === 'hidden' && window.opsRefresh) window.opsRefresh();
+      if (qa === 'archive' && window.opsRefresh) window.opsRefresh();
     });
   }
 
@@ -4027,7 +4008,9 @@
     var $opsStatus = document.getElementById('ops-status');
     // Month keys ('YYYY-MM' or 'tbd') the user has collapsed in the ops grid.
     // A truthy value means that month's cards are hidden via the dropdown / header.
-    var opsCollapsedMonths = { hidden: true, archive: true };
+    // Both special groups start collapsed: 'archived' = you archived it,
+    // 'past' = the date has gone by. Two different things, two different words.
+    var opsCollapsedMonths = { archived: true, past: true };
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
     // | 'buyer' | 'interested' | 'myfits') — click a top stat to show only those events.
     var opsStatFilter = '';
@@ -5035,8 +5018,8 @@
       // Angela's Should-Attend now shows as the SAME blue outline (like an
       // interested card), replacing the old "★ Should Attend" badge.
       if (window.isAngelaUser && window.isAngelaUser() && shouldAttendKind(st.attend_verdict) === 'human') card.classList.add('is-sa');
-      var _catHiddenMe = _isHiddenForMe(false, ev.num, st.hidden === true);
-      if (_catHiddenMe) card.classList.add('is-hidden');
+      var _catArchivedMe = _isArchivedForMe(false, ev.num, st.hidden === true);
+      if (_catArchivedMe) card.classList.add('is-archived');
       // Urgent = manually flagged OR an apply/CFP deadline that's closing soon.
       // (The event merely being upcoming does NOT make it urgent.)
       var _soon = isDeadlineSoon(ev.deadline) && !_opsPast;
@@ -5100,9 +5083,9 @@
           '<div class="ops-chips">' +
             starButtonHtml(st.interested, st.attend_verdict) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            (_catHiddenMe
+            (_catArchivedMe
               ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — hide this from your view only" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
+              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — for you only; teammates still see it" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
             decBadge + saBadge +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
@@ -5270,7 +5253,7 @@
       // leaves the "Recently added" filter even inside the 7-day window. It was
       // still showing up as new after she'd already dealt with it.
       var mRecent = isRecentlyAdded(mev.created_at) && !opsHandled({
-        hidden: _isHiddenForMe(true, mev.id, mev.hidden === true),
+        hidden: _isArchivedForMe(true, mev.id, mev.hidden === true),
         queue_dismissed: mev.queue_dismissed,
         stages: manualStages,
         workflow_status: mev.status,
@@ -5322,9 +5305,9 @@
           '<div class="ops-chips">' +
             starButtonHtml(mev.interested, mev.attend_verdict) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
-            (_isHiddenForMe(true, mev.id, mev.hidden === true)
+            (_isArchivedForMe(true, mev.id, mev.hidden === true)
               ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — hide this from your view only" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
+              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — for you only; teammates still see it" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
@@ -5342,7 +5325,7 @@
       mrec.region = canonicalRegion(mev);
       card._modalRec = mrec;
 
-      if (_isHiddenForMe(true, mev.id, mev.hidden === true)) card.classList.add('is-hidden');
+      if (_isArchivedForMe(true, mev.id, mev.hidden === true)) card.classList.add('is-archived');
       if (mev.saved)  card.classList.add('is-saved');
       if (meInInterested(mev.interested)) card.classList.add('is-mine');   // I starred it → blue outline
       // Angela's Should-Attend shows as the same blue outline (was the badge).
@@ -5385,7 +5368,7 @@
       var _manArch = card.querySelector('[data-archive]');
       if (_manArch) _manArch.addEventListener('click', function () {
         _archSetMine(true, mev.id, true);
-        card.classList.add('is-hidden');
+        card.classList.add('is-archived');
         _manArch.outerHTML = '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>';
         regroupOpsByMonth();
         applyFilters();
@@ -5589,7 +5572,7 @@
       var _catArch = card.querySelector('[data-archive]');
       if (_catArch) _catArch.addEventListener('click', function () {
         _archSetMine(false, num, true);
-        card.classList.add('is-hidden');
+        card.classList.add('is-archived');
         _catArch.outerHTML = '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>';
         regroupOpsByMonth();
         applyFilters();
@@ -6120,9 +6103,10 @@
     }
 
     // Card placement tier: regular months (0) sort first, then the collapsible
-    // "Hidden" group (1), then "Archive · past events" (2) at the very bottom.
+    // "Archived" group (1) — events YOU archived — then "Past events" (2), whose
+    // date has simply gone by, at the very bottom. Two separate lists, two words.
     function opsCardTier(card) {
-      if (card.classList.contains('is-hidden')) return 1;
+      if (card.classList.contains('is-archived')) return 1;
       if (card.dataset.past === '1') return 2;
       return 0;
     }
@@ -6152,7 +6136,11 @@
       var order = [];
       cards.forEach(function (card) {
         var tier = opsCardTier(card);
-        var key = tier === 1 ? 'hidden' : (tier === 2 ? 'archive' : (card.dataset.month || 'tbd'));
+        // Keys match the labels on purpose. They used to be inverted — tier 1
+        // (what the reader sees as "Archived") was keyed 'hidden', and tier 2
+        // (past events) was keyed 'archive' — so the constant called `archive`
+        // was NOT the archive anyone means.
+        var key = tier === 1 ? 'archived' : (tier === 2 ? 'past' : (card.dataset.month || 'tbd'));
         var label = tier === 1 ? 'Archived' : (tier === 2 ? 'Past events' : (card.dataset.monthLabel || 'Date TBD'));
         if (key !== curKey) {
           curKey = key;
@@ -6461,7 +6449,7 @@
         // is folded — we only hide it from view. Hidden cards live in the
         // "hidden" group regardless of their date.
         var _tier = opsCardTier(card);
-        var mkey = _tier === 1 ? 'hidden' : (_tier === 2 ? 'archive' : (card.dataset.month || 'tbd'));
+        var mkey = _tier === 1 ? 'archived' : (_tier === 2 ? 'past' : (card.dataset.month || 'tbd'));
         if (_tier === 0) activeTotal++;   // live universe (not hidden / past)
         if (on) { monthMatched[mkey] = (monthMatched[mkey] || 0) + 1; shown++; if (_tier === 0) activeShown++; }
         // Did the card pass the real filters? (independent of month/archive
@@ -6481,7 +6469,10 @@
         h.classList.toggle('collapsed', collapsed);
         h.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
         var cnt = h.querySelector('[data-mh-count]');
-        if (cnt) cnt.textContent = n + (n === 1 ? ' event' : ' events') + (collapsed ? ' · hidden' : '');
+        // "collapsed", not "hidden" — a folded group sits right next to one
+        // actually named "Archived", and two meanings of hidden in one line is
+        // exactly the confusion we just took out.
+        if (cnt) cnt.textContent = n + (n === 1 ? ' event' : ' events') + (collapsed ? ' · collapsed' : '');
       });
       var $shown = document.getElementById('ops-shown');
       if ($shown) {
@@ -6730,7 +6721,7 @@
                 : (_sup ? _an.length > 0 : _an.split('|').indexOf(_meFirst) !== -1);
               if (_hit) { _hasUpcoming = true; break; }
             }
-            if (!_hasUpcoming) { goGrid = true; opsCollapsedMonths.archive = false; }
+            if (!_hasUpcoming) { goGrid = true; opsCollapsedMonths.past = false; }
           }
           if (goGrid) setView('grid');
           applyFilters();
@@ -6760,7 +6751,7 @@
     // event_state.hidden === true is still honored as a shared hide until someone
     // unarchives it (which clears that global flag). No DB column, no migration.
     function _archStoreKey() { return 'ab.arch.' + (getCollabName() || '').toLowerCase(); }
-    // Memoized so a full render's thousands of _isHiddenForMe() calls don't each
+    // Memoized so a full render's thousands of _isArchivedForMe() calls don't each
     // hit localStorage. Invalidated on save + whenever the signed-in name changes.
     var _archCache = null, _archCacheKey = null;
     function _archList() {
@@ -6775,7 +6766,7 @@
       try { localStorage.setItem(_archCacheKey, JSON.stringify(list)); } catch (e) {}
     }
     function _archId(isManual, key) { return (isManual ? 'm' : 'e') + key; }
-    function _isHiddenForMe(isManual, key, legacyHidden) {
+    function _isArchivedForMe(isManual, key, legacyHidden) {
       if (legacyHidden === true) return true;   // legacy team-wide archive
       return _archList().indexOf(_archId(isManual, key)) !== -1;
     }
@@ -6786,7 +6777,7 @@
       _archSave(list);
     }
     // Bridge for the modal closure (quick-actions).
-    window.opsIsHiddenForMe = _isHiddenForMe;
+    window.opsIsArchivedForMe = _isArchivedForMe;
     window.opsSetArchivedMine = _archSetMine;
 
     function opsItem(kind, base, st) {
@@ -6820,7 +6811,7 @@
         deadline: (st && st.deadline === '__cleared__') ? '' : ((st && st.deadline) || base.deadline || ''),
         queue_dismissed: !!((st && st.queue_dismissed) || base.queue_dismissed),
         past: isPastEvent(base),
-        hidden: _isHiddenForMe(kind === 'manual', kind === 'manual' ? base.id : base.num, (st && st.hidden === true) || (base && base.hidden === true)),
+        hidden: _isArchivedForMe(kind === 'manual', kind === 'manual' ? base.id : base.num, (st && st.hidden === true) || (base && base.hidden === true)),
         is_private: !!((st && st.is_private) || base.is_private),   // catalog: on state; manual: on the row
         sort: meta.sort,
         startObj: base,
@@ -7380,7 +7371,7 @@
       // opsItem() read attendees inconsistently for some past catalog events.
       if (named && $opsGrid) {
         Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {
-          if (c.dataset.dupHidden === '1' || c.classList.contains('is-hidden')) return;
+          if (c.dataset.dupHidden === '1' || c.classList.contains('is-archived')) return;
           var r = c._modalRec; if (!r) return;
           var atts = (c.dataset.attendeeNames || '').split('|').filter(Boolean);
           var isAtt = support ? (atts.length > 0) : (atts.indexOf(meFold) !== -1);
@@ -11229,7 +11220,7 @@
         // Use the filter-pass flag, NOT display — past events live in the
         // collapsed Archive group (display:none) but should still map, grayed.
         if (card.dataset.passed !== '1') return;           // failed an active filter
-        if (card.classList.contains('is-hidden')) return;  // user-hidden — keep off the map
+        if (card.classList.contains('is-archived')) return;  // user-hidden — keep off the map
         var rec = card._modalRec || {};
         var ll = geoOf(rec);
         if (!ll) { unplaced++; return; }
@@ -11595,14 +11586,14 @@
       // signed-in person ARCHIVED: archiving is "hide this from MY view", so an
       // archived event must not clutter the calendar either (Angela was checking
       // what clashed with Thor's Munich trip and hit exactly this). The map
-      // already skips is-hidden cards — the calendar was the one view that
+      // already skips is-archived cards — the calendar was the one view that
       // didn't. Read the class off the card so per-person archiving, catalog and
       // manual events are all handled by one rule.
       var _dupSet = {}, _archSet = {};
       Array.prototype.forEach.call($opsGrid ? $opsGrid.querySelectorAll('.ops-card') : [], function (c) {
         var _k = String(c.dataset.manualId ? ('m' + c.dataset.manualId) : c.dataset.eventNum);
         if (c.dataset.dupHidden === '1') _dupSet[_k] = 1;
-        if (c.classList.contains('is-hidden')) _archSet[_k] = 1;
+        if (c.classList.contains('is-archived')) _archSet[_k] = 1;
       });
       combined = combined.filter(function (ev) { return !_dupSet[String(ev.num)] && !_archSet[String(ev.num)]; });
       // Honor the active grid filters (stage chips, search, price, region, …):
