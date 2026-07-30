@@ -8487,6 +8487,13 @@
       if (!parts.length) return '?';
       return (parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]) : parts[0].slice(0, 1)).toUpperCase();
     }
+    // One definition of "this is an AI question, not a message".
+    window.abIsAskRow = function (body) {
+      return /^\s*❓\s*Asked AI:/.test(String(body || ''));
+    };
+    function _askText(body) {
+      return String(body || '').replace(/^\s*❓\s*Asked AI:\s*/, '').trim();
+    }
     function _whatsNewItems(all) {
       var me = (getCollabName() || '').trim().toLowerCase().split(/\s+/)[0];
       var st = _wnState(), dis = st.dismissed || {}, seen = st.chatSeen || {};
@@ -8546,9 +8553,28 @@
       // New comments since you last opened that event's chat (others' only).
       Object.keys(_chatMeta || {}).forEach(function (k) {
         var meta = _chatMeta[k]; var last = seen[k] || '';
-        var fresh = (meta.msgs || []).filter(function (x) { return x.at > last && String(x.author || '').toLowerCase().split(/\s+/)[0] !== me; });
-        if (!fresh.length) return;
+        var freshAll = (meta.msgs || []).filter(function (x) { return x.at > last && String(x.author || '').toLowerCase().split(/\s+/)[0] !== me; });
         var kind = k.charAt(0) === 'm' ? 'manual' : 'catalog'; var key = k.slice(1);
+        // A question to the assistant is NOT a comment. It's a signal of
+        // interest, so support gets it — bunched per person like routine
+        // updates, never a card each (Hurley 2026-07-30). Nobody else sees
+        // them; they'd only be reading their own questions back.
+        var _asks = freshAll.filter(function (x) { return window.abIsAskRow(x.body); });
+        var fresh = freshAll.filter(function (x) { return !window.abIsAskRow(x.body); });
+        var _arec = (k.charAt(0) === 'm' ? byMid[k.slice(1)] : byNum[k.slice(1)]);
+        if (_wnSupport && _asks.length && _arec) {
+          _asks.forEach(function (x) {
+            var whoA = String(x.author || 'Someone').split(/\s+/)[0];
+            var idA = 'q:' + k + ':' + x.at;
+            if (dis[idA]) return;
+            items.push({ id: idA, ts: x.at, kind: kind, key: key, type: 'update',
+              who: whoA, ask: true,
+              detail: 'asked AI about ' + (_arec.name || 'an event') +
+                      ' — “' + _askText(x.body) + '”',
+              label: whoA + ' asked AI about ' + (_arec.name || 'an event') });
+          });
+        }
+        if (!fresh.length) return;
         var rec = kind === 'manual' ? byMid[key] : byNum[key]; if (!rec) return;
         // A comment that names/@mentions YOU always surfaces — even if the event
         // isn't otherwise on your radar (this is how a teammate flags you in).
@@ -9157,7 +9183,10 @@
               '<div class="wn-group-head" role="button" tabindex="0">' +
                 '<span class="wn-avatar wn-avatar--sm">' + escapeHtml(_wnInitials(who)) + '</span>' +
                 '<span class="wn-group-name">' + escapeHtml(who) + '</span>' +
-                '<span class="wn-group-count">' + list.length + ' routine update' + (list.length === 1 ? '' : 's') + '</span>' +
+                '<span class="wn-group-count">' + list.length + ' ' +
+                  (list.every(function (o) { return o.w.ask; })
+                    ? ('question' + (list.length === 1 ? '' : 's') + ' to AI')
+                    : ('routine update' + (list.length === 1 ? '' : 's'))) + '</span>' +
                 '<button type="button" class="wn-readall" data-wn-readgroup="' + escapeHtml(who) + '">Mark all as read</button>' +
                 '<span class="qsec-caret" aria-hidden="true">&#9662;</span>' +
               '</div>' +
@@ -14877,7 +14906,23 @@
     // "run the migration" note if the event_chat table isn't there yet.
     var _chatCounts = {};
     var _chatMeta = {};   // per event: {count, latest, msgs:[{author, at}]} — feeds "In the last week"
+    // Questions to the assistant are transient — they exist to tell Angela what
+    // someone was looking at this week, not to become permanent history. Once
+    // they age past the "In the last week" window they have served their
+    // purpose, so they're cleared rather than piling up forever
+    // (Hurley 2026-07-30). Support runs the sweep so it happens once, not once
+    // per teammate.
+    function _purgeOldAsks() {
+      if (!isSupportPerson(getCollabName() || '')) return;
+      var cut = new Date(Date.now() - 7 * 86400000).toISOString();
+      try {
+        sb.from('event_chat').delete()
+          .lt('created_at', cut).like('body', '%Asked AI:%')
+          .then(function () {}, function () {});
+      } catch (e) {}
+    }
     function loadChatCounts() {
+      _purgeOldAsks();
       sb.from('event_chat').select('event_num,manual_id,author,created_at,body').then(function (resp) {
         if (resp.error || !resp.data) return;   // table not migrated yet -> no counts, no noise
         var counts = {}, meta = {};
@@ -15071,16 +15116,10 @@
       // re-rendered) message.
       document.querySelectorAll('.chat-fwd-menu, .chat-more-menu').forEach(function (x) { x.remove(); });
       list.innerHTML = '';
-      // "Asked AI" rows are a record of who was curious about what. They're
-      // useful to Angela (she can see Thor is circling an event before he says
-      // anything) and pure clutter to everyone else, who'd just be re-reading
-      // their own questions back (Hurley 2026-07-30). Support sees them; the
-      // speakers don't — including their own.
-      if (!isSupportPerson(getCollabName() || '')) {
-        msgs = msgs.filter(function (m) {
-          return !/^\s*❓\s*Asked AI:/.test(String(m.body || ''));
-        });
-      }
+      // "Asked AI" rows are never conversation, so they never render in the
+      // thread — for anyone. They reach Angela as a bunched row in "In the
+      // last week" instead (Hurley 2026-07-30).
+      msgs = msgs.filter(function (m) { return !window.abIsAskRow(m.body); });
       // An empty thread shows nothing at all (Hurley 2026-07-29) — the composer
       // below it is already the invitation to start one.
       if (!msgs.length) return;
@@ -15204,9 +15243,13 @@
           // arrived as literal asterisks (Hurley 2026-07-30).
           if (window.abMdToHtml) box.innerHTML = window.abMdToHtml(_ans);
           else box.textContent = _ans;
-          // Nothing is written. Asking the assistant is a private lookup, not a
-          // message to the team — posting it turned every question into a chat
-          // row in a thread meant for actual conversation (Hurley 2026-07-30).
+          // Recorded, but NOT as a chat message — it never renders in the
+          // thread. It surfaces once, bunched per person, in Angela's "In the
+          // last week" ("Thor · 3 questions to AI"), so she can see what
+          // he's circling without wading through each one (Hurley 2026-07-30).
+          var _askRow = { author: who, body: '❓ Asked AI: ' + q };
+          _askRow[col] = rec._key;
+          sb.from('event_chat').insert(_askRow).then(function () {}, function () {});
         }).catch(function () { box.textContent = 'Could not reach the assistant.'; });
       });
 
