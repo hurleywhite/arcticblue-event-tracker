@@ -5072,11 +5072,11 @@ def build():
       // stands is already the bold status line on the card face and the pills
       // at the top of this modal, and the apply link is its own button, so for
       // everyone else this section only restated it (Hurley 2026-07-30).
-      if (window.isAngelaUser && window.isAngelaUser()) v += sec('Speaking & submission', _spkStatus);
+      var _spkSec = (window.isAngelaUser && window.isAngelaUser()) ? sec('Speaking & submission', _spkStatus) : '';
       // — Who's in the room: every audience fact in one place.
       // One merged list — the heading already says who it's about, so the value
       // goes in bare rather than under a second "Typical attendees" label.
-      v += sec('Who attends',
+      var _whoSec = sec('Who attends',
         fieldBare(mergeAttendees(rec.typical_attendees, rec.past_speakers)) +
         (function () {{
           // "Audience: Buyer-rich" is a targeting judgement, not a fact about
@@ -5091,7 +5091,7 @@ def build():
       //   along here as one clause instead of claiming its own labelled row.
       // Same organiser, other events. On an umbrella this is the list it
       // covers; on a member it's the family it belongs to (Hurley 2026-07-30).
-      v += (function () {{
+      var _sibSec = (function () {{
         var sibs = window.abSiblingEvents ? window.abSiblingEvents(rec) : [];
         if (!sibs.length) return '';
         var live = sibs.filter(function (x) {{ return !x.past; }});
@@ -5106,7 +5106,7 @@ def build():
         var more = use.length > 12 ? '<p class="sib-more">+ ' + (use.length - 12) + ' more</p>' : '';
         return sec('Also from this organiser', '<div class="sib-list">' + rowsH + more + '</div>');
       }})();
-      v += sec('Overview',
+      var _ovSec = sec('Overview',
         (function () {{
           var about = String(rec.about || '').trim();
           var fmt = briefClause(rec.meeting_formats);
@@ -5127,10 +5127,16 @@ def build():
           var g = field('Price to attend', rec.pricing) + field('Venue', rec.venue);
           return g ? '<div class="modal-grid">' + g + '</div>' : '';
         }})());
+      // Order (Hurley 2026-07-30): what we've said and where we stand first,
+      // then what the event IS, who's in the room, the submission detail and
+      // the contacts. The organiser's other events go LAST — it's a way OUT of
+      // this card, so it belongs at the bottom, not mid-read.
+      v += _ovSec + _whoSec + _spkSec;
       v += sec('Contacts', pocHtml + (_ctp(rec.additional_contacts) ? field('Additional contacts', rec.additional_contacts) : ''));
       // This zone only ever holds the one field, so under the one-field rule the
       // heading IS the label — which means it has to be the informative one.
       v += sec('Post-mortem (ROI)', field('Post-mortem (ROI)', rec.postmortem));
+      v += _sibSec;
     }}
 
     // "Updated Nd ago" now lives here (italic, at the bottom of the detail),
@@ -5345,10 +5351,10 @@ def build():
 
     // Editing now lives in the top-right "Edit event" toggle; the footer just
     // links out to the event website.
+    // No "Visit event website" button: the event NAME in the header is already
+    // that link, so this was the same click twice (Hurley 2026-07-30).
     var actHtml = '';
-    if (rec.url) {{
-      actHtml += '<a class="modal-visit" href="' + esc(rec.url) + '" target="_blank" rel="noopener">Visit event website ↗</a>';
-    }} else {{
+    if (!rec.url) {{
       actHtml += '<span class="modal-nolink">No verified website URL on file.</span>';
     }}
     var _applyUrl = rec.apply_url || speakingRouteUrl(rec.speaking_route);
