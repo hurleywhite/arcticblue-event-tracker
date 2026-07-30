@@ -667,6 +667,11 @@
     .fu-state.fu-hold::before { background: #94a3b8; }
     .fu-state.fu-closed { color: var(--ab-fg-3); }
     .fu-state.fu-closed::before { background: var(--ab-rule-strong); }
+    /* Rejected — same red as the card's status dot, so "they passed" reads the
+       same wherever it appears. */
+    .modal-note { color: var(--ab-fg-3); font-size: 0.94em; }
+    .fu-state.fu-rejected { color: #b91c1c; }
+    .fu-state.fu-rejected::before { background: #b91c1c; }
     .fu-state.fu-none { font-weight: 500; color: var(--ab-fg-3); }
     .fu-log { list-style: none; margin: 0 0 12px; padding: 0; }
     .fu-log li {
@@ -3410,7 +3415,27 @@
   // card look filled in when it isn't (Hurley 2026-07-29) — an absent row reads
   // better than a row that says nothing.
   var _MODAL_JUNK = /^(unknown|tbd|tba|n\/?a|none|null|not\s+(verified|specified|published|available|listed|confirmed|known)|no\s+information|to\s+be\s+(confirmed|announced))\.?$/i;
-  function _modalJunk(v) { return _MODAL_JUNK.test(String(v == null ? '' : v).trim()); }
+  // Enrichment writes its own ignorance into the field: "Not verifiable from
+  // provided results", "Unknown (delegate pricing not published)", "CFP deadline
+  // not specified". 77 such lines were on screen — half of every price shown.
+  // A line that only says we don't know isn't worth the row (Hurley 2026-07-30).
+  var _JUNK_WHOLE = /^(?:[a-z ]{0,24})?(?:not\s+(?:verifiable|published|specified|disclosed|listed|available|confirmed|stated|provided)|unknown|undisclosed|unclear|unspecified|no\s+(?:information|pricing|details?))[^.]*\.?$/i;
+  function _modalJunk(v) {
+    var t = String(v == null ? '' : v).trim().replace(/^[\s—-]+|[\s.;,]+$/g, '');
+    if (!t) return true;
+    return _MODAL_JUNK.test(t) || _JUNK_WHOLE.test(t);
+  }
+  // Same idea one level down: "Paid; ticket tiers not verifiable from the
+  // provided results" DOES say something ("Paid") — drop only the dead clause
+  // rather than the whole line.
+  function _dropJunkClauses(v) {
+    var t = String(v == null ? '' : v).trim();
+    if (t.indexOf(';') === -1) return t;
+    var keep = t.split(/\s*;\s*/).filter(function (c) {
+      c = c.trim(); return c && !_modalJunk(c);
+    });
+    return keep.length ? keep.join('; ') : '';
+  }
   // The audience rating also hides INSIDE other fields: a few events have it
   // typed into their PRICE ("Buyer-rich tier: $2,500; Vendor tier: $5,000") or
   // their blurb. Gating the Audience row alone still left Thor reading
@@ -3425,7 +3450,11 @@
   function field(label, val, html) {
     if (val == null || String(val).trim() === '') return '';
     if (!html && _modalJunk(val)) return '';
-    if (!html) val = _deAudience(val);
+    if (!html) {
+      val = _dropJunkClauses(val);
+      if (!val) return '';
+      val = _deAudience(val);
+    }
     return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' +
            '<span class="v">' + (html ? val : _linkifyEsc(esc(val))) + '</span></div>';
   }
@@ -3434,6 +3463,8 @@
   function fieldBare(val) {
     if (val == null || String(val).trim() === '') return '';
     if (_modalJunk(val)) return '';
+    val = _dropJunkClauses(val);
+    if (!val) return '';
     val = _deAudience(val);
     return '<div class="modal-field"><span class="v">' + _linkifyEsc(esc(val)) + '</span></div>';
   }
@@ -4350,7 +4381,8 @@
           _fuLab = 'Last chased ' + _fuWhen(_fuSt.since || (_fuList[0] && _fuList[0].on));
           _fuCls = 'ok';
         }
-        _fuBody += '<div class="fu-state fu-' + _fuCls + '">' + esc(_fuLab) + '</div>';
+        _fuBody += '<div class="fu-state fu-' + _fuCls +
+                   (_fuSt.rejected ? ' fu-rejected' : '') + '">' + esc(_fuLab) + '</div>';
       }
       if (_fuList.length) {
         // Oldest entry is the FIRST contact; everything after it is a chase.
@@ -4436,7 +4468,20 @@
           if (/^\s*pending\s*$/i.test(ws) && (rec.stage_tags || []).indexOf('Rejected') !== -1) return '';
           return ws;
         })()) +
-        field('Speaking route', rec.speaking_route) +
+        // A 94-character raw URL is not a "route" anyone reads — it's a wall of
+        // slug. Show what it IS and make the words the link (Hurley 2026-07-30).
+        field('Speaking route', (function () {
+          var r = String(rec.speaking_route || '').trim();
+          if (!r || _modalJunk(r)) return '';
+          var m = r.match(/https?:\/\/\S+/);
+          if (!m) return '';
+          var lead = r.slice(0, m.index).replace(/[\s:—-]+$/, '').trim();
+          var rest = r.slice(m.index + m[0].length).replace(/^[\s:;,—-]+/, '').trim();
+          var label = lead || 'Apply to speak';
+          return '<a href="' + esc(m[0]) + '" target="_blank" rel="noopener">' +
+                 esc(label) + ' ↗</a>' +
+                 (rest ? ' <span class="modal-note">' + esc(rest) + '</span>' : '');
+        })(), true) +
         field('Deadline', (window.opsDeadlineUsable && window.opsDeadlineUsable(rec.deadline, rec)) ? rec.deadline : '') +
         field('Submission status', rec.submission_status);
       // Pay-to-play and the fee are footnotes to a status, not a status. On
@@ -11241,7 +11286,11 @@
     //   due      - 14+ days since the last chase
     function followUpState(o, stages, extraNotes) {
       var shutWhy = doorClosedWhy(o, stages);
-      if (shutWhy) return { state: 'closed', label: 'Closed — ' + shutWhy };
+      // A rejection is a different thing from a door that was never open —
+      // "they said no" earns the red dot; sponsorship-only or not-taking-
+      // speakers is structural, and stays grey (Hurley 2026-07-30).
+      if (shutWhy) return { state: 'closed', rejected: (shutWhy === 'they said no'),
+                            label: 'Closed — ' + shutWhy };
       var notes = [ (o && o.notes) || '', extraNotes || '' ].join(' ');
       var hold = followUpHold(notes);
       var today = (window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10));
