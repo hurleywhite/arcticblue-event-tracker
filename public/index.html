@@ -3616,7 +3616,14 @@
     // groups, not a wall of buttons (Thor's feedback).
     var bStage = [];
     bStage.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
-    bStage.push('<button type="button" class="qa' + (has('Followed up') ? ' on' : '') + '" data-qa="followed-up">' + (has('Followed up') ? '✓ Followed up' : 'Followed up') + '</button>');
+    // A logged follow-up IS a follow-up. The pill only read the stage tag, so
+    // Angela could log three chases and still see it unticked (Hurley
+    // 2026-07-30). The log is the stronger evidence of the two.
+    var _fuLogged = !!((window.abFollowUps ? window.abFollowUps(rec) : []).length);
+    var _fuOn = has('Followed up') || _fuLogged;
+    bStage.push('<button type="button" class="qa' + (_fuOn ? ' on' : '') + '" data-qa="followed-up"' +
+      (_fuLogged && !has('Followed up') ? ' title="A follow-up is logged below"' : '') + '>' +
+      (_fuOn ? '✓ Followed up' : 'Followed up') + '</button>');
     bStage.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Booked') + '</button>');
     bStage.push('<button type="button" class="qa qa-neg' + (has('Rejected') ? ' on' : '') + '" data-qa="rejected" title="Rejected to speak — the organizer passed. Angela can flag it so the team can opt to just attend.">' + (has('Rejected') ? '✓ Rejected' : 'Rejected') + '</button>');
     // "Attending" is PER-PERSON: it reflects whether the signed-in person is in
@@ -4371,7 +4378,16 @@
       // 'none' means no chase logged — that reads as noise on screen, so it
       // stays blank here. The fact still travels: the assistant is told
       // explicitly that nobody has chased it, so Thor gets it if he asks.
-      if (_fuSt && _fuSt.state !== 'none') {
+      //
+      // And a badge that only repeats the single row beneath it is the same
+      // noise: one bare entry "Jul 27 · Reached out" under "Followed up Jul 27"
+      // says one thing twice (Hurley 2026-07-30). It comes back as soon as
+      // there's something the rows DON'T say — a second entry, a note to
+      // summarise, or a state other than "chased recently" (overdue, waiting,
+      // door closed), which is the whole point of having it.
+      var _fuOnlyEcho = (_fuSt && _fuSt.state === 'ok' && _fuList.length === 1 &&
+                         !String((_fuList[0] || {}).note || '').trim());
+      if (_fuSt && _fuSt.state !== 'none' && !_fuOnlyEcho) {
         var _fuLab = _fuSt.label, _fuCls = _fuSt.state;
         // "Follow up now — 6 days since Jul 24" is Angela's worklist talking.
         // On a speaker's screen it reads as a job for HIM, so the chase-cadence
