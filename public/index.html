@@ -1406,6 +1406,13 @@
     }
     .ops-card-head .event-name { flex: 1 1 auto; min-width: 60px; margin: 0; }   /* grows so the star/hide/chat cluster pins to the top-right */
     .ops-card-head .ops-chips { flex: 0 0 auto; margin-left: auto; align-self: flex-start; }   /* top-right cluster */
+    /* Status mark: always on, never hover-revealed — it IS the card's state. */
+    .ops-stage-ico {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; margin-right: 2px; vertical-align: middle;
+      opacity: 1 !important; pointer-events: none;
+    }
+    .ops-stage-ico svg { width: 17px; height: 17px; display: block; }
     .ops-card .event-date {
       font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
@@ -5927,6 +5934,57 @@
       });
       return { show: mine, names: '' };
     };
+    // Permanent status mark, top-right of every card. Shape says the TRACK
+    // (mic = speaking, ticket = attending); fill and colour say the STAGE:
+    //   empty + red    rejected      — plus a strike, so it survives being
+    //                                  printed, and colour-blind readers
+    //   half  + amber  submitted / followed up (in flight)
+    //   full  + green  booked
+    //   ticket + green attending
+    // Drawn as SVG, not emoji: emoji render at different weights and sizes on
+    // every OS, and these sit in a row where that shows (Hurley 2026-07-30).
+    var _stIconN = 0;
+    window.abStageIcon = function (st, ev) {
+      var tags = stageTagsOf(st);
+      var who = window.abMineOnly(((st && st.speaker) || '').trim());
+      var att = window.abMineOnly((((st && st.attendees) || (ev && ev.attendees) || [])
+                  .map(function (a) { return String(a || ''); }).join(', ')));
+      var kind = null, fill = 'none', col = '', label = '';
+      if (who.show && tags.indexOf('Booked') !== -1) {
+        kind = 'mic'; fill = 'full';  col = '#15803d'; label = 'Booked';
+      } else if (who.show && tags.indexOf('Rejected') !== -1) {
+        kind = 'mic'; fill = 'empty'; col = '#b91c1c'; label = 'Rejected';
+      } else if (who.show && (tags.indexOf('Submitted') !== -1 || tags.indexOf('Followed up') !== -1 || tags.indexOf('Meeting held') !== -1)) {
+        kind = 'mic'; fill = 'half';  col = '#b45309'; label = 'Submitted';
+      } else if (att.show && (att.names || tags.indexOf('Attending') !== -1)) {
+        kind = 'ticket'; col = '#15803d'; label = 'Attending';
+      }
+      if (!kind) return '';
+      var id = 'stq' + (++_stIconN);
+      var body;
+      if (kind === 'ticket') {
+        body = '<path d="M3 8.5a1.5 1.5 0 0 1 1.5-1.5h15A1.5 1.5 0 0 1 21 8.5v1.6a1.9 1.9 0 0 0 0 3.8v1.6a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 15.5v-1.6a1.9 1.9 0 0 0 0-3.8z" fill="' + col + '"/>' +
+               '<path d="M14.5 8.6v6.8" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="1.6 1.8"/>';
+      } else {
+        // capsule head 9..15 x, 2..13 y; stand + base below
+        var head = '<rect x="9" y="2" width="6" height="11" rx="3" fill="none" stroke="' + col + '" stroke-width="1.8"/>';
+        var solid = '';
+        if (fill === 'full') {
+          solid = '<rect x="9" y="2" width="6" height="11" rx="3" fill="' + col + '"/>';
+        } else if (fill === 'half') {
+          solid = '<clipPath id="' + id + '"><rect x="8" y="7.5" width="8" height="7"/></clipPath>' +
+                  '<rect x="9" y="2" width="6" height="11" rx="3" fill="' + col + '" clip-path="url(#' + id + ')"/>';
+        }
+        body = solid + head +
+          '<path d="M6 11.5a6 6 0 0 0 12 0" fill="none" stroke="' + col + '" stroke-width="1.8" stroke-linecap="round"/>' +
+          '<path d="M12 17.5V21" stroke="' + col + '" stroke-width="1.8" stroke-linecap="round"/>';
+        if (fill === 'empty') {
+          body += '<path d="M4.5 20.5 19.5 3.5" stroke="' + col + '" stroke-width="1.9" stroke-linecap="round"/>';
+        }
+      }
+      return '<span class="ops-stage-ico" title="' + escapeHtml(label) + '" aria-label="' + escapeHtml(label) + '" role="img">' +
+             '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg></span>';
+    };
     function cardStatusLine(ev, st) {
       st = st || ev;
       var stages = stageTagsOf(st);
@@ -6198,6 +6256,7 @@
           '</h3>' +
           // Top-right cluster (shown on every card): star · hide · chat.
           '<div class="ops-chips">' +
+            window.abStageIcon(st, ev) +
             starButtonHtml(st.interested, st.attend_verdict) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (_catArchivedMe
@@ -6450,6 +6509,7 @@
           '</h3>' +
           // Top-right cluster (shown on every card): star · hide · chat.
           '<div class="ops-chips">' +
+            window.abStageIcon(mev, mev) +
             starButtonHtml(mev.interested, mev.attend_verdict) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (_isArchivedForMe(true, mev.id, mev.hidden === true)
