@@ -5628,6 +5628,7 @@
         if (st.outreach_assignees && st.outreach_assignees.length) rec.outreach_assignees = st.outreach_assignees;
         if (st.outreach_note) rec.outreach_note = st.outreach_note;
         if (st.conflict_note) rec.conflict_note = st.conflict_note;
+        if (st.follow_ups) rec.follow_ups = st.follow_ups;
         if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
         if (st.decision) rec.decision = st.decision;
         if (st.is_private != null) rec.is_private = !!st.is_private;
@@ -5760,6 +5761,7 @@
       card.dataset.foreignLang = _isForeignLangEvent(mev) ? '1' : '';
       // Signals the per-person "Not for me" veto scores against (see _vetoScore).
       card.dataset.vetoOrg  = _orgKeyOf(mev);
+      // follow_ups / conflict_note live on the manual row itself.
       card.dataset.vetoCity = _lesserCityOf(mev);
       var _manPast = isPastEvent(mev);
       card.dataset.past = _manPast ? '1' : '';
