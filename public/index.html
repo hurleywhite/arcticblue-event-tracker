@@ -5714,13 +5714,13 @@
       var SPEAK = ['Booked', 'Meeting held', 'Followed up', 'Submitted'];
       var spStage = null;
       for (var i = 0; i < SPEAK.length; i++) { if (stages.indexOf(SPEAK[i]) !== -1) { spStage = SPEAK[i]; break; } }
-      var speaker = window.abDropMe((st.speaker || '').trim());
+      // The roster names people on purpose — that IS the section.
+      var speaker = (st.speaker || '').trim();
       if (spStage) rows.push(_rosterRow(spStage, speaker ? [speaker] : null, speaker ? escapeHtml(speaker) : '&mdash;', stageStyle(spStage), !speaker));
       else if (speaker) rows.push(_rosterRow('Speaker', [speaker], escapeHtml(speaker), ''));
       // Attending — the people actually GOING (the attendees roster). THIS is the
       // line that was missing: tagging an attendee now shows up here.
-      var att = window.abDropMe((st.attendees || []).map(_personName).filter(Boolean).join(', '));
-      att = att ? att.split(', ') : [];
+      var att = (st.attendees || []).map(_personName).filter(Boolean);
       if (att.length) rows.push(_rosterRow('Attending', att, escapeHtml(att.join(', ')), stageStyle('Attending')));
       else if (stages.indexOf('Attending') !== -1) rows.push(_rosterRow('Attending', null, 'add who in Details &rarr; Edit', stageStyle('Attending'), true));
       // Interested names — feeds Angela's apply queue, so ONLY she sees the list.
@@ -5906,28 +5906,35 @@
     //   Closed to speak
     //   Attending — Jerome
     // Shows NOTHING when we know nothing — no invented status, no filler.
-    // Everyone signs in as themselves, so "Submitted — Thor" on Thor's screen
-    // is telling him his own name (Hurley 2026-07-30). Drop the viewer from the
-    // list; anyone ELSE on it still shows, because that IS news. Support keeps
-    // every name — coordinating for the team is the whole job.
-    window.abDropMe = function (names) {
+    // The status line is about YOU. Everyone signs in as themselves, so their
+    // own name is noise — and a stage that belongs to a COLLEAGUE is not their
+    // status at all, so it does not belong on their card (Hurley 2026-07-30).
+    // Support is the exception: coordinating the team means seeing all of it.
+    //   show  - render this stage at all?
+    //   names - what to print after it ('' for a speaker: it is either theirs,
+    //           which they already know, or someone else's, which is hidden)
+    window.abMineOnly = function (names) {
       var raw = String(names || '').trim();
-      if (!raw) return '';
-      try { if (isSupportPerson(getCollabName() || '')) return raw; } catch (e) { return raw; }
+      try {
+        if (isSupportPerson(getCollabName() || '')) return { show: true, names: raw };
+      } catch (e) { return { show: true, names: raw }; }
+      if (!raw) return { show: true, names: '' };      // nobody named -> the event's own state
       var me = (getCollabName() || '').trim().split(/\s+/)[0].toLowerCase();
-      if (!me) return raw;
-      return raw.split(/\s*(?:,|&| and )\s*/).filter(function (n) {
+      if (!me) return { show: true, names: raw };
+      var mine = raw.split(/\s*(?:,|&| and )\s*/).some(function (n) {
         n = String(n || '').trim();
-        return n && n.split(/\s+/)[0].toLowerCase() !== me;
-      }).join(', ');
+        return n && n.split(/\s+/)[0].toLowerCase() === me;
+      });
+      return { show: mine, names: '' };
     };
     function cardStatusLine(ev, st) {
       st = st || ev;
       var stages = stageTagsOf(st);
       var past = isPastEvent(ev);
-      var speaker = window.abDropMe((st.speaker || '').trim());
-      var att = window.abDropMe(((st.attendees || ev.attendees) || []).map(_personName).filter(Boolean).join(', '));
-      att = att ? att.split(', ') : [];
+      var _spk = window.abMineOnly((st.speaker || '').trim());
+      var speaker = _spk.names, _spkShow = _spk.show;
+      var _atn = window.abMineOnly(((st.attendees || ev.attendees) || []).map(_personName).filter(Boolean).join(', '));
+      var att = _atn.names ? _atn.names.split(', ') : [], _atShow = _atn.show;
       var d = (st.deadline === '__cleared__') ? '' : ((st.deadline != null && String(st.deadline).trim()) ? st.deadline : ev.deadline);
       var closed = !past && d && !_isJunkVal(d) && isDeadlinePast(d);
       // Each bit carries a priority: COMMITTED presence (Attending / Booked)
@@ -5935,12 +5942,12 @@
       // soft Open/Closed states (p3) — so a card that is both "submitted to
       // speak" and "attending" reads "Attending … · Submitted to speak …".
       var bits = [];   // { p: priority, h: html }
-      if (stages.indexOf('Booked') !== -1) {
+      if (stages.indexOf('Booked') !== -1 && _spkShow) {
         bits.push({ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + ST_MIC + (speaker ? ' \u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>' });
-      } else if (stages.indexOf('Rejected') !== -1) {
+      } else if (stages.indexOf('Rejected') !== -1 && _spkShow) {
         // Rejected to speak — a terminal "no" that wins over a pending Submitted.
         bits.push({ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + ST_MIC + (speaker ? ' \u2014 ' + escapeHtml(speaker) : '') + '</span>' });
-      } else if (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) {
+      } else if (_spkShow && (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1)) {
         // Angela records WHEN the application went out (event_state/manual
         // .submitted_at) — surface it on her status line only.
         var _subDate = (window.isAngelaUser && window.isAngelaUser() && st.submitted_at)
@@ -5962,7 +5969,7 @@
         bits.push({ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending' + ST_TICKET + ' \u2014 ' + escapeHtml(att.join(', ')) + '</span>' });
       // The Attending STAGE is set but no attendee is named yet — still show it,
       // so ticking "Attending" on the add form holds visibly (add who in Edit).
-      } else if (stages.indexOf('Attending') !== -1 && !past) {
+      } else if (_atShow && stages.indexOf('Attending') !== -1 && !past) {
         bits.push({ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending' + ST_TICKET + '</span>' });
       }
       if (!bits.length) return '';

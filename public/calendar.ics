@@ -1874,16 +1874,6 @@ DESCRIPTION:Co-created by Universidad de los Andes and University of Notre Dame\
 URL:https://www.riseaisummit.ai/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-426@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20260825
-DTEND;VALUE=DATE:20260827
-SUMMARY:Enterprise AI Maturity & Transformation Assembly – August 2026
-LOCATION:Omni Frisco Hotel at The Star\, Dallas\, TX
-DESCRIPTION:Millennium Alliance's exclusive CIO/CAIO assembly claims 76% Fortune 100 attendance\; closed-door peer format with guaranteed 1:1 meeting facilitation — high-density enterprise buyer room for ArcticBlue sponsorship-led access.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/enterprise-ai-maturity-transformation-assembly-august-2026/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-424@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20261104
@@ -4292,16 +4282,6 @@ SUMMARY:Evanta Dallas CIO Executive Summit 2026
 LOCATION:Irving\, TX\, USA
 DESCRIPTION:Gartner/Evanta peer-led CIO summit at The Westin Irving Convention Center — Dallas-Fort Worth regional CIO community gathering focused on AI and digital transformation\; complements ALIGN AI Dallas (Oct 21) for a Texas cluster.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.evanta.com/cio/dallas/dallas-cio-executive-summit-8492
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-45@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261103
-DTEND;VALUE=DATE:20261105
-SUMMARY:(Millennium Alliance) Enterprise AI Maturity & Transformation Assembly Europe – November 2026
-LOCATION:Barcelona\, Spain
-DESCRIPTION:Exclusive European C-Suite assembly (CDOs\, CAIOs\, CTOs) at Atzavara Hotel & Spa Barcelona\; co-located with Transformational Data Assembly Europe—highest density of European enterprise AI decision-makers in one intimate venue.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/enterprise-ai-maturity-transformation-assembly-europe-november-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-44@arcticblue-event-tracker
