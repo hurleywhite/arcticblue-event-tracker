@@ -3883,6 +3883,14 @@
         var tags = (rec.stage_tags || []).slice();
         var idx = tags.indexOf(stage);
         if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
+        // Marking an OUTCOME retires the application state, so the stored row
+        // matches what everyone reads (Hurley 2026-07-30). Turning the outcome
+        // back OFF doesn't restore Submitted — that'd be guessing at history;
+        // the button is right there if it should come back.
+        if ((stage === 'Booked' || stage === 'Rejected') && idx === -1) {
+          var _sub = tags.indexOf('Submitted');
+          if (_sub !== -1) tags.splice(_sub, 1);
+        }
         var order = window.opsStageOrder || [];
         if (order.length) tags = order.filter(function (s) { return tags.indexOf(s) !== -1; });
         rec.stage_tags = tags;
@@ -5297,6 +5305,12 @@
         var k = (v == null ? '' : String(v)).trim();
         if (STAGE_BY_KEY[k]) seen[k] = true;
       });
+      // An OUTCOME ends the application: once they've said yes or no, "we've
+      // submitted" is history, not a current state. Booked and Rejected clear
+      // Submitted (Hurley 2026-07-30). Done here, in the one accessor every
+      // read goes through, so the 28 events already carrying both read right
+      // without rewriting stored rows.
+      if (seen['Booked'] || seen['Rejected']) delete seen['Submitted'];
       return STAGE_TAGS.filter(function (s) { return seen[s.key]; }).map(function (s) { return s.key; });
     }
 
