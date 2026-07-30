@@ -1390,6 +1390,37 @@
       opacity: 1 !important; pointer-events: none;
     }
     .ops-stage-ico svg { width: 17px; height: 17px; display: block; }
+    .ops-stage-ico { gap: 3px; width: auto; min-width: 20px; }
+    /* Team roll-ups: one block per person, their events beneath. */
+    .tp-section { margin-top: 18px; }
+    .tp-person { padding: 8px 0; border-bottom: 1px solid var(--ab-rule); }
+    .tp-person:last-child { border-bottom: 0; }
+    .tp-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .tp-name { font-family: var(--ab-sans); font-size: 0.9rem; font-weight: 700; color: var(--ab-fg); }
+    .tp-count {
+      margin-left: auto; font-family: var(--ab-mono); font-size: 0.7rem;
+      color: var(--ab-fg-3);
+    }
+    .tp-list { display: flex; flex-direction: column; padding-left: 30px; }
+    .tp-row {
+      display: flex; align-items: baseline; gap: 9px; width: 100%; text-align: left;
+      background: none; border: 0; padding: 4px 0; cursor: pointer;
+      font-family: var(--ab-sans); color: var(--ab-fg);
+    }
+    .tp-row:hover .tp-ev { color: var(--ab-blue); text-decoration: underline; }
+    .tp-ev { font-size: 0.86rem; }
+    .tp-stage {
+      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3);
+    }
+    .tp-when {
+      margin-left: auto; white-space: nowrap;
+      font-family: var(--ab-mono); font-size: 0.68rem; color: var(--ab-fg-3);
+    }
+    .ops-stage-who {
+      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.04em; color: var(--ab-fg-3); white-space: nowrap;
+    }
     .ops-card .event-date {
       font-family: var(--ab-mono); font-size: 0.74rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
@@ -5932,7 +5963,7 @@
       if (!raw) return { show: true, names: '' };      // nobody named -> the event's own state
       var me = (getCollabName() || '').trim().split(/\s+/)[0].toLowerCase();
       if (!me) return { show: true, names: raw };
-      var mine = raw.split(/\s*(?:,|&| and )\s*/).some(function (n) {
+      var mine = raw.split(/\s*(?:,|;|&| and )\s*/).some(function (n) {
         n = String(n || '').trim();
         return n && n.split(/\s+/)[0].toLowerCase() === me;
       });
@@ -5986,8 +6017,23 @@
           body += '<path d="M4.5 20.5 19.5 3.5" stroke="' + col + '" stroke-width="1.9" stroke-linecap="round"/>';
         }
       }
-      return '<span class="ops-stage-ico" title="' + escapeHtml(label) + '" aria-label="' + escapeHtml(label) + '" role="img">' +
-             '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg></span>';
+      // Who it's for, as initials beside the mark — this replaces the "— Thor,
+      // Verma" that used to trail the status line at the foot of the card
+      // (Hurley 2026-07-30). Support sees everyone; a speaker sees only names
+      // other than their own, since their own card is self-evidently theirs.
+      var pool = (kind === 'ticket') ? att.names : who.names;
+      var inits = String(pool || '').split(/\s*(?:,|;|&| and )\s*/)
+        .map(function (n) { return String(n || '').trim(); }).filter(Boolean)
+        .map(function (n) {
+          var w = n.split(/\s+/);
+          return (w[0].charAt(0) + (w.length > 1 ? w[w.length - 1].charAt(0) : '')).toUpperCase();
+        });
+      var who2 = pool ? ' — ' + pool : '';
+      var initHtml = inits.length
+        ? '<span class="ops-stage-who" aria-hidden="true">' + escapeHtml(inits.slice(0, 3).join(' ')) +
+          (inits.length > 3 ? '+' + (inits.length - 3) : '') + '</span>' : '';
+      return '<span class="ops-stage-ico" title="' + escapeHtml(label + who2) + '" aria-label="' + escapeHtml(label + who2) + '" role="img">' +
+             '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>' + initHtml + '</span>';
     };
     function cardStatusLine(ev, st) {
       st = st || ev;
@@ -6272,7 +6318,6 @@
           '</div>' +
         '</div>' +
         '<p class="event-meta">' + (_cdate ? '<span class="em-date">' + _cdate + '</span>' : '') + ((_cdate && _cloc) ? ' \u00b7 ' : '') + (_cloc || '') + '</p>' +
-        cardStatusLine(ev, st) +
         _cFootHtml;
       // (metaLine intentionally unused now — "Last edit" detail lived inside the
       // old inline editor, which has moved to the Details pop-up.)
@@ -6492,7 +6537,7 @@
       // The card face stays minimal: name, date · place, ONE derived status
       // line, chat count. Everything else (POC / notes / fee / priority /
       // per-person rosters) lives in the Details pop-up.
-      var tagsHtml = cardStatusLine(mev, mev);
+      var tagsHtml = '';   // status now lives in the corner mark
       var mApplyUrl = mev.apply_url || speakingRouteUrl(mev.speaking_route);
       var mApplyBtn = (mApplyUrl && window.isAngelaUser && window.isAngelaUser())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
@@ -9472,11 +9517,72 @@
           '</div>' +
           _cardsHtml + _groupsHtml + '</div>';
       }
+      // ── Team Interests / Attendance / Pipeline ──────────────────────
+      // Three roll-ups BY PERSON, because "who is actually interested, who is
+      // going, and what's in flight for whom" was only answerable by opening
+      // events one at a time (Hurley 2026-07-30). Support-only: it's the
+      // coordination view, and for a speaker it's just everyone else's business.
+      var teamHtml = '';
+      if (b.support) {
+        var _tp = {};                                  // person -> the three buckets
+        function _tpAdd(bucket, who, it) {
+          who = String(who || '').trim(); if (!who) return;
+          who = who.charAt(0).toUpperCase() + who.slice(1).toLowerCase();
+          if (!_tp[who]) _tp[who] = { interested: [], attending: [], pipeline: [] };
+          if (!_tp[who][bucket].some(function (x) { return x.kind === it.kind && String(x.key) === String(it.key); })) {
+            _tp[who][bucket].push(it);
+          }
+        }
+        var _PIPE = { 'Submitted': 1, 'Followed up': 1, 'Meeting held': 1, 'Booked': 1 };
+        opsAllItems().forEach(function (it) {
+          if (it.past || it.hidden) return;
+          var o = it.startObj || it;
+          (it.interested || []).forEach(function (n) { _tpAdd('interested', n, it); });
+          (it.attendees || []).forEach(function (n) { _tpAdd('attending', n, it); });
+          var stg = (it.stages || []).filter(function (x) { return _PIPE[x]; });
+          if (stg.length && String(o.speaker || '').trim()) {
+            String(o.speaker).split(/\s*(?:,|;|&| and )\s*/).forEach(function (n) {
+              _tpAdd('pipeline', n, { kind: it.kind, key: it.key, name: it.name,
+                                      date: o.date_str || '', sort: it.sort || 0,
+                                      stage: (it.stages.indexOf('Booked') !== -1 ? 'Booked' : stg[0]) });
+            });
+          }
+        });
+        function _tpSection(title, bucket, note) {
+          var who = Object.keys(_tp).filter(function (n) { return _tp[n][bucket].length; });
+          if (!who.length) return '';
+          who.sort(function (a2, b2) { return _tp[b2][bucket].length - _tp[a2][bucket].length; });
+          var total = who.reduce(function (t, n) { return t + _tp[n][bucket].length; }, 0);
+          var rows = who.map(function (n) {
+            var list = _tp[n][bucket].slice().sort(function (a2, b2) { return (a2.sort||0) - (b2.sort||0); });
+            return '<div class="tp-person"><div class="tp-head">' +
+              '<span class="wn-avatar wn-avatar--sm">' + escapeHtml(_wnInitials(n)) + '</span>' +
+              '<span class="tp-name">' + escapeHtml(n) + '</span>' +
+              '<span class="tp-count">' + list.length + '</span></div>' +
+              '<div class="tp-list">' + list.map(function (x) {
+                return '<button type="button" class="tp-row" data-ref-kind="' + x.kind +
+                       '" data-ref-key="' + escapeHtml(String(x.key)) + '">' +
+                       '<span class="tp-ev">' + escapeHtml(x.name) + '</span>' +
+                       (x.stage ? '<span class="tp-stage">' + escapeHtml(x.stage) + '</span>' : '') +
+                       (x.date ? '<span class="tp-when">' + escapeHtml(x.date) + '</span>' : '') +
+                       '</button>';
+              }).join('') + '</div></div>';
+          }).join('');
+          return '<div class="queue-section tp-section"><div class="queue-sec-head">' +
+            '<span class="queue-sec-title">' + title + '</span>' +
+            '<span class="queue-sec-count">' + total + '</span>' +
+            (note ? '<span class="planner-sec-sub">' + note + '</span>' : '') +
+            '</div>' + rows + '</div>';
+        }
+        teamHtml = _tpSection('Team Interests', 'interested', 'flagged &ldquo;I&rsquo;m interested&rdquo;') +
+                   _tpSection('Team Attendance', 'attending', 'down to attend') +
+                   _tpSection('Team Pipeline', 'pipeline', 'applications in flight, by speaker');
+      }
       // Plan Ahead now lives at the BOTTOM of My Lineup (below Past events),
       // replacing the old "Suggested for you" — it's a better version of the
       // same idea (trips + interest recs + monthly picks). renderPlanAhead()
       // fills the embed below; its own intro is the divider between the two.
-      host.innerHTML = intro + outHtml + wnHtml +
+      host.innerHTML = intro + outHtml + wnHtml + teamHtml +
         section(upTitle, b.upcoming, 'Nothing upcoming yet.') +
         (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen) : '') +
         '<div id="ops-planahead" class="ops-planahead-embed"></div>';
