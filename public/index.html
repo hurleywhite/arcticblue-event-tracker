@@ -702,7 +702,14 @@
       width: 8px; height: 8px; border-radius: 50%;
       background: var(--ab-bg); border: 2px solid var(--ab-rule-strong);
     }
+    /* The newest entry is filled; its colour IS the status, so a single row
+       carries the same green/red signal the badge used to (Hurley 2026-07-30). */
     .fu-log li:last-child::before { border-color: var(--ab-blue); background: var(--ab-blue); }
+    .fu-log--ok  li:last-child::before { border-color: #15803d; background: #15803d; }
+    .fu-log--due li:last-child::before { border-color: #b91c1c; background: #b91c1c; }
+    .fu-log--hold li:last-child::before,
+    .fu-log--closed li:last-child::before { border-color: #94a3b8; background: #94a3b8; }
+    .fu-inherited .fu-note { font-style: italic; color: var(--ab-fg-3); }
     .fu-when { font-family: var(--ab-mono); font-size: 0.76rem; color: var(--ab-fg); font-weight: 700; }
     .fu-kind {
       font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
@@ -4421,7 +4428,10 @@
       // alone, 2026-07-30.) Closed and waiting-on-them always show: they
       // describe the ORGANISER, which no row states.
       var _fuEcho = { ok: 1, due: 1 };
-      var _fuOnlyEcho = (_fuSt && _fuEcho[_fuSt.state] && _fuList.length === 1);
+      // One ROW on screen -> no badge. That's one entry of our own, or one
+      // inherited from a sibling event, which now renders as a row too.
+      var _fuOnlyEcho = (_fuSt && _fuEcho[_fuSt.state] &&
+                         (_fuList.length === 1 || (_fuList.length === 0 && _fuSt.via)));
       if (_fuSt && _fuSt.state !== 'none' && !_fuOnlyEcho) {
         var _fuLab = _fuSt.label, _fuCls = _fuSt.state;
         // "Follow up now — 6 days since Jul 24" is Angela's worklist talking.
@@ -4435,6 +4445,16 @@
         _fuBody += '<div class="fu-state fu-' + _fuCls +
                    (_fuSt.rejected ? ' fu-rejected' : '') + '">' + esc(_fuLab) + '</div>';
       }
+      // A chase logged on a sibling event counts for this one, but it used to
+      // show as a bare green label with nothing under it. Give it the same
+      // dated row as any other, saying where it came from (Hurley 2026-07-30).
+      if (!_fuList.length && _fuSt && _fuSt.via) {
+        _fuBody += '<ol class="fu-log fu-log--' + _fuSt.state + '"><li class="fu-inherited">' +
+          '<span class="fu-when">' + esc(_fuWhen(_fuSt.via.on)) + '</span>' +
+          '<span class="fu-kind">Followed up</span>' +
+          '<span class="fu-note">via ' + esc(_fuSt.via.name || 'another event by this organiser') + '</span>' +
+          '</li></ol>';
+      }
       if (_fuList.length) {
         // Oldest entry is the FIRST contact; everything after it is a chase.
         // Naming them that way is the whole point — Angela wants to see when
@@ -4443,7 +4463,8 @@
         // Read top-to-bottom as it happened: first contact at the top, latest
         // chase at the bottom (Hurley 2026-07-30).
         var _fuRows = _fuList.map(function (f, i) { return { f: f, i: i }; }).reverse();
-        _fuBody += '<ol class="fu-log">' + _fuRows.map(function (row) {
+        _fuBody += '<ol class="fu-log fu-log--' + ((_fuSt && _fuSt.state) || 'none') + '">' +
+          _fuRows.map(function (row) {
           var f = row.f, i = row.i;
           var kind = (i === _fuOldest) ? 'Reached out' : 'Followed up';
           return '<li data-fu-i="' + i + '">' +
@@ -11431,20 +11452,24 @@
       }
       var lastOn = last && last.on;
       // Anyone else chasing the same organiser counts.
-      var org = _fuOrgKey(o);
+      var org = _fuOrgKey(o), _via = null;
       if (org) {
         var shared = (_fuByOrg || _buildFollowUpOrgIndex())[org];
         if (shared && shared.on && (!lastOn || String(shared.on) > String(lastOn))) {
           lastOn = shared.on;
+          // Remember WHOSE chase this was — a card with no log of its own can
+          // then show the row rather than a bare label (Hurley 2026-07-30).
+          _via = { on: shared.on, name: shared.name };
         }
       }
       if (!lastOn) return { state: 'none', label: 'Not contacted yet' };
       var days = _fuDaysSince(lastOn, today);
       if (days >= followUpEvery(o, today)) {
-        return { state: 'due', days: days, since: lastOn,
+        return { state: 'due', days: days, since: lastOn, via: _via,
                  label: 'Follow up now — ' + days + ' days since ' + _fuNice(lastOn) };
       }
-      return { state: 'ok', days: days, since: lastOn, label: 'Followed up ' + _fuNice(lastOn) };
+      return { state: 'ok', days: days, since: lastOn, via: _via,
+               label: 'Followed up ' + _fuNice(lastOn) };
     }
     function _fuDaysSince(iso, today) {
       try {
