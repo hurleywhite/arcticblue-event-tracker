@@ -117,6 +117,22 @@ def _domain_of(url):
     return t.strip('.')
 
 
+_MULTI_TLD = ('co.uk', 'org.uk', 'ac.uk', 'com.au', 'co.nz', 'co.za',
+              'com.br', 'co.jp', 'com.sg', 'com.mx', 'co.in', 'com.tr')
+
+
+def _root_domain(host):
+    """aiimpact.isg-one.com -> isg-one.com. Apollo indexes companies by their
+    root domain, so an event microsite subdomain finds nobody."""
+    h = _domain_of(host)
+    parts = h.split('.')
+    if len(parts) <= 2:
+        return h
+    if '.'.join(parts[-2:]) in _MULTI_TLD:
+        return '.'.join(parts[-3:])
+    return '.'.join(parts[-2:])
+
+
 def _same_org(a, b):
     """Same outfit? Tolerates sub-domains and country suffixes on one side."""
     a, b = _domain_of(a), _domain_of(b)
@@ -159,14 +175,26 @@ def apollo_contact(domain):
         return None
     H = {'x-api-key': APOLLO_API_KEY, 'Content-Type': 'application/json',
          'Cache-Control': 'no-cache'}
-    st, data = _http_json('POST', APOLLO_BASE + '/api/v1/mixed_people/search', headers=H, body={
-        'q_organization_domains_list': [domain],
-        'person_titles': _APOLLO_TITLES,
-        'per_page': 25,
-    })
-    if st != 200 or not isinstance(data, dict):
+    # Try the host as given, then its root — event sites are very often a
+    # microsite on the organiser's domain (aiimpact.isg-one.com).
+    tries = [domain]
+    root = _root_domain(domain)
+    if root and root != domain:
+        tries.append(root)
+    people = []
+    for dom in tries:
+        st, data = _http_json('POST', APOLLO_BASE + '/api/v1/mixed_people/search', headers=H, body={
+            'q_organization_domains_list': [dom],
+            'person_titles': _APOLLO_TITLES,
+            'per_page': 25,
+        })
+        if st == 200 and isinstance(data, dict):
+            people = [p for p in (data.get('people') or []) if isinstance(p, dict)]
+        if people:
+            domain = dom          # validate against the domain that matched
+            break
+    if not people:
         return None
-    people = [p for p in (data.get('people') or []) if isinstance(p, dict)]
     cands = []
     for p in people:
         org = (p.get('organization') or {})
