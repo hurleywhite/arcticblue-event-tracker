@@ -1081,16 +1081,19 @@ def build():
     .modal-quickbar .qa[data-qa="archive"].on {{ background: var(--ab-fg-3); border-color: var(--ab-fg-3); }}
     .modal-quickbar .qa[data-qa="go"].on {{ background: #1a8c54; border-color: #1a8c54; }}
     .peek-clash {{
-      font-size: 0.82rem; font-weight: 600; color: #9a3412;
-      background: #fff7ed; border: 1px solid #fed7aa; border-radius: 7px;
-      padding: 6px 9px; margin-bottom: 10px;
+      font-size: 0.82rem; font-weight: 500; color: #9a3412;
+      background: none; border: 0; border-left: 2px solid #f59e0b; border-radius: 0;
+      padding: 1px 0 1px 9px; margin-bottom: 11px;
     }}
-    /* Card-face conflict chip — amber, so it reads as "check this", not "error". */
+    /* Card-face conflict warning. NOT a pill and NOT bordered — a rounded
+       chip read as a button people expected to click (Hurley 2026-07-30). It's
+       a warning LINE: amber rule down the left, no background, no border. */
     .ops-clash {{
-      display: inline-flex; align-items: center; gap: 5px;
-      font-family: var(--ab-sans); font-size: 0.74rem; font-weight: 600;
-      color: #9a3412; background: #fff7ed; border: 1px solid #fed7aa;
-      border-radius: 999px; padding: 2px 9px; margin-top: 6px;
+      display: flex; align-items: flex-start; gap: 6px;
+      font-family: var(--ab-sans); font-size: 0.76rem; font-weight: 500;
+      color: #9a3412; background: none; border: 0;
+      border-left: 2px solid #f59e0b; border-radius: 0;
+      padding: 1px 0 1px 8px; margin-top: 7px; cursor: default;
     }}
     /* ── Hover peek: conversation + notes without opening the card ────── */
     .card-peek {{
@@ -6076,7 +6079,8 @@ def build():
         var _it = {{ kind: card.dataset.kind || (_r._table === 'manual_events' ? 'manual' : 'catalog'),
                     key: _r._key, name: _r.name, speaker: _r.speaker,
                     attendees: _r.attendees, start_date: _r.start_date, end_date: _r.end_date,
-                    date_str: _r.date_str, startObj: _r, past: false, hidden: false }};
+                    date_str: _r.date_str, startObj: _r, past: false, hidden: false,
+                    stages: (card.dataset.statusTags || '').split('|').filter(Boolean) }};
         var _cl = [];
         try {{ _cl = visibleClashes(_it); }} catch (e) {{}}
         var _lbl = _cl.length ? clashLabel(_cl) : '';
@@ -6288,7 +6292,8 @@ def build():
         var _it = {{ kind: card.dataset.kind || (_r._table === 'manual_events' ? 'manual' : 'catalog'),
                     key: _r._key, name: _r.name, speaker: _r.speaker,
                     attendees: _r.attendees, start_date: _r.start_date, end_date: _r.end_date,
-                    date_str: _r.date_str, startObj: _r, past: false, hidden: false }};
+                    date_str: _r.date_str, startObj: _r, past: false, hidden: false,
+                    stages: (card.dataset.statusTags || '').split('|').filter(Boolean) }};
         var _cl = [];
         try {{ _cl = visibleClashes(_it); }} catch (e) {{}}
         var _lbl = _cl.length ? clashLabel(_cl) : '';
@@ -10893,14 +10898,23 @@ def build():
     // Built ONCE per render into a person -> [event] index; doing it pairwise
     // per card would be ~700^2.
     var _clashIdx = null;
+    // Only people who are actually COMMITTED — going, or booked to speak.
+    // Overlapping APPLICATIONS are normal and expected: you apply to many
+    // things and most don't land, so counting a submitted speaker as committed
+    // made every submitted event clash with every other one (Hurley
+    // 2026-07-30). Same rule as _travelRole(): an attendee, or the speaker on a
+    // Booked event. Submitted / Followed up / Meeting held are NOT commitments.
     function _clashPeople(it) {{
       var out = {{}};
       (it.attendees || []).forEach(function (a) {{
         var f = abFold(a).split(/\s+/)[0]; if (f) out[f] = 1;
       }});
-      String(it.speaker || '').split(/[,;/&]| and /).forEach(function (t) {{
-        var f = abFold(t).split(/\s+/)[0]; if (f) out[f] = 1;
-      }});
+      var stages = it.stages || (it.startObj && it.startObj.stage_tags) || [];
+      if (stages.indexOf && stages.indexOf('Booked') !== -1) {{
+        String(it.speaker || '').split(/[,;/&]| and /).forEach(function (t) {{
+          var f = abFold(t).split(/\s+/)[0]; if (f) out[f] = 1;
+        }});
+      }}
       return Object.keys(out);
     }}
     function _clashRange(it) {{
@@ -10946,9 +10960,14 @@ def build():
       var r = _clashRange(it); if (!r) return [];
       var idx = _clashIdx || _buildClashIndex();
       var me = it.kind + ':' + it.key, out = [];
+      var myName = abFold(it.name || '');
       _clashPeople(it).forEach(function (who) {{
         (idx[who] || []).forEach(function (o) {{
+          // Exclude self by key AND by name: the synthetic item a card builds
+          // doesn't always reproduce the index's kind:key, which is how "Ai4"
+          // ended up listed as its own conflict (Hurley 2026-07-30).
           if (o.key === me) return;
+          if (myName && abFold(o.name || '') === myName) return;
           if (r[0] <= o.e && o.s <= r[1]) out.push({{ who: who, name: o.name, s: o.s }});
         }});
       }});
