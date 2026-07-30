@@ -4014,7 +4014,11 @@
       // marker (Sponsorship Only, Curated invite, ...). ONE dropdown for both
       // catalog and manual — Angela hit two edit sections that disagreed.
       sSpeak += ef('Pay-to-play', '<select class="me-input" data-edit="pay_to_play">' + p2p.map(function (v) { return opt(v, rec.pay_to_play); }).join('') + '</select>');
+      // Angela's triage vocabulary, not a speaker's — Thor has no reason to set
+    // an event to "Sponsorship Only" (Hurley 2026-07-30).
+    if (window.isAngelaUser && window.isAngelaUser()) {
       sSpeak += ef('Status marker (e.g. Sponsorship Only)', statusDD(rec.workflow_status));
+    }
     }
     h += sec('Speaking & submission', sSpeak);
 
@@ -4038,7 +4042,11 @@
       // automatically; this is for everything else (Hurley 2026-07-30).
       sTeam += ef('Scheduling conflict (optional)', inp('conflict_note', rec.conflict_note, 'e.g. Thor is at the board offsite that week'));
     }
-    h += sec('Attending & team', sTeam);
+    // Attending & team is coordination: who's assigned, who to chase, the
+    // triage priority. Everyone else sets their OWN attending / interested from
+    // the buttons at the top of the card, so for them this whole section is
+    // someone else's controls (Hurley 2026-07-30).
+    if (window.isAngelaUser && window.isAngelaUser()) h += sec('Attending & team', sTeam);
 
     // Contacts — everything you'd search a person by. Kept for private events
     // too: the POC is the whole point of a private event.
