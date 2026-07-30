@@ -1098,9 +1098,13 @@ def build():
       content: ''; width: 7px; height: 7px; border-radius: 50%;
       background: var(--ab-fg-3); flex: 0 0 auto;
     }}
-    .fu-state.fu-due {{ background: #fff7ed; color: #9a3412; }}
-    .fu-state.fu-due::before {{ background: #f59e0b; }}
-    .fu-state.fu-ok {{ background: #f0fdf4; color: #15803d; }}
+    .fu-state.fu-due {{ background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }}
+    .fu-state.fu-due::before {{
+      content: '\u23f3';                       /* hourglass with flowing sand */
+      width: auto; height: auto; border-radius: 0; background: none;
+      font-size: 0.95rem; line-height: 1;
+    }}
+    .fu-state.fu-ok {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
     .fu-state.fu-ok::before {{ background: #22c55e; }}
     .fu-state.fu-hold::before {{ background: #94a3b8; }}
     .fu-state.fu-closed {{ color: var(--ab-fg-3); }}
@@ -1195,6 +1199,10 @@ def build():
     .ab-btn-primary[disabled] {{ opacity: 0.45; cursor: default; filter: none; }}
     .ab-btn-ghost {{ border: 1px solid transparent; background: none; color: var(--ab-fg-3); }}
     .ab-btn-ghost:hover {{ color: var(--ab-fg); }}
+    .ab-btn-outline {{
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2);
+    }}
+    .ab-btn-outline:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); background: var(--ab-bg-2); }}
     .ab-form-hint {{
       margin-left: auto; font-family: var(--ab-mono); font-size: 0.66rem;
       color: var(--ab-fg-3);
@@ -5057,7 +5065,7 @@ def build():
             '<span class="fu-note" style="flex:0 1 auto;">Delete the entry from ' +
               esc(_fuWhen(cur.on)) + '?</span>' +
             '<button type="button" class="ab-btn-primary ab-btn-danger" data-go>Delete</button>' +
-            '<button type="button" class="ab-btn-ghost" data-cancel>Keep</button>' +
+            '<button type="button" class="ab-btn-outline" data-cancel>Keep</button>' +
           '</div>');
         if (!w) return;
         w.querySelector('[data-go]').addEventListener('click', function () {{
