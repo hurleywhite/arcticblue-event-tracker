@@ -6232,12 +6232,13 @@ def build():
       var SPEAK = ['Booked', 'Meeting held', 'Followed up', 'Submitted'];
       var spStage = null;
       for (var i = 0; i < SPEAK.length; i++) {{ if (stages.indexOf(SPEAK[i]) !== -1) {{ spStage = SPEAK[i]; break; }} }}
-      var speaker = (st.speaker || '').trim();
+      var speaker = window.abDropMe((st.speaker || '').trim());
       if (spStage) rows.push(_rosterRow(spStage, speaker ? [speaker] : null, speaker ? escapeHtml(speaker) : '&mdash;', stageStyle(spStage), !speaker));
       else if (speaker) rows.push(_rosterRow('Speaker', [speaker], escapeHtml(speaker), ''));
       // Attending — the people actually GOING (the attendees roster). THIS is the
       // line that was missing: tagging an attendee now shows up here.
-      var att = (st.attendees || []).map(_personName).filter(Boolean);
+      var att = window.abDropMe((st.attendees || []).map(_personName).filter(Boolean).join(', '));
+      att = att ? att.split(', ') : [];
       if (att.length) rows.push(_rosterRow('Attending', att, escapeHtml(att.join(', ')), stageStyle('Attending')));
       else if (stages.indexOf('Attending') !== -1) rows.push(_rosterRow('Attending', null, 'add who in Details &rarr; Edit', stageStyle('Attending'), true));
       // Interested names — feeds Angela's apply queue, so ONLY she sees the list.
@@ -6423,12 +6424,28 @@ def build():
     //   Closed to speak
     //   Attending — Jerome
     // Shows NOTHING when we know nothing — no invented status, no filler.
+    // Everyone signs in as themselves, so "Submitted — Thor" on Thor's screen
+    // is telling him his own name (Hurley 2026-07-30). Drop the viewer from the
+    // list; anyone ELSE on it still shows, because that IS news. Support keeps
+    // every name — coordinating for the team is the whole job.
+    window.abDropMe = function (names) {{
+      var raw = String(names || '').trim();
+      if (!raw) return '';
+      try {{ if (isSupportPerson(getCollabName() || '')) return raw; }} catch (e) {{ return raw; }}
+      var me = (getCollabName() || '').trim().split(/\\s+/)[0].toLowerCase();
+      if (!me) return raw;
+      return raw.split(/\\s*(?:,|&| and )\\s*/).filter(function (n) {{
+        n = String(n || '').trim();
+        return n && n.split(/\\s+/)[0].toLowerCase() !== me;
+      }}).join(', ');
+    }};
     function cardStatusLine(ev, st) {{
       st = st || ev;
       var stages = stageTagsOf(st);
       var past = isPastEvent(ev);
-      var speaker = (st.speaker || '').trim();
-      var att = ((st.attendees || ev.attendees) || []).map(_personName).filter(Boolean);
+      var speaker = window.abDropMe((st.speaker || '').trim());
+      var att = window.abDropMe(((st.attendees || ev.attendees) || []).map(_personName).filter(Boolean).join(', '));
+      att = att ? att.split(', ') : [];
       var d = (st.deadline === '__cleared__') ? '' : ((st.deadline != null && String(st.deadline).trim()) ? st.deadline : ev.deadline);
       var closed = !past && d && !_isJunkVal(d) && isDeadlinePast(d);
       // Each bit carries a priority: COMMITTED presence (Attending / Booked)
