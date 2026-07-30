@@ -10460,17 +10460,62 @@
       _peekFor = null;
       if (_peekEl) _peekEl.classList.remove('on');
     }
+    // Fold text for comparison: case, punctuation and spacing don't count.
+    function _peekFold(t) {
+      return String(t == null ? '' : t).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    }
+    // Something has to have HAPPENED here. A peek on an event nobody has
+    // touched is noise, however many notes sit on it (Hurley 2026-07-30).
+    var _PEEK_ACTIVE = ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
+    function _peekHasActivity(card) {
+      var r = card._modalRec || {};
+      var tags = (card.dataset.statusTags || '').split('|').filter(Boolean);
+      for (var i = 0; i < _PEEK_ACTIVE.length; i++) {
+        if (tags.indexOf(_PEEK_ACTIVE[i]) !== -1) return true;
+      }
+      if ((card.dataset.attendeeNames || '').replace(/\|/g, '').trim()) return true;
+      if ((r.outreach_assignees || []).length) return true;   // Angela asked someone to reach out
+      return false;
+    }
     function _peekHtml(card) {
+      // Gate 1: has anything actually happened on this event?
+      if (!_peekHasActivity(card)) return '';
       var rec = card._modalRec || {};
       var notes = String(rec.notes || '').trim();
-      var ck = (card.querySelector('.chat-count[data-chatkey]') || {}).getAttribute
-             ? card.querySelector('.chat-count[data-chatkey]').getAttribute('data-chatkey') : null;
+      var ckEl = card.querySelector('.chat-count[data-chatkey]');
+      var ck = ckEl ? ckEl.getAttribute('data-chatkey') : null;
       var meta = (ck && _chatMeta[ck]) || null;
       var msgs = (meta && meta.msgs ? meta.msgs.slice() : []);
       msgs.sort(function (a2, b2) { return (a2.at || '') < (b2.at || '') ? 1 : -1; });
       msgs = msgs.slice(0, 3);
-      var _hasClash = !!(card.dataset.clash || String(rec.conflict_note || '').trim());
-      if (!notes && !msgs.length && !_hasClash) return '';
+
+      // Gate 2: and is there anything to SAY — a note or a message?
+      if (!notes && !msgs.length) return '';
+
+      // Don't print the same sentence twice. When a note and a message say the
+      // same thing, keep the CONVERSATION — it carries who said it and when,
+      // which the bare note doesn't (Hurley 2026-07-30).
+      var fNote = _peekFold(notes);
+      var noteCovered = false;
+      if (fNote) {
+        msgs.forEach(function (m) {
+          var fm = _peekFold(m.body);
+          // Directional on purpose: the note is redundant only when a MESSAGE
+          // already contains it. If the NOTE is the fuller one, keep the note
+          // and drop the message instead (below) — otherwise we'd throw away
+          // the detail and keep the shorter line.
+          if (fm && fm.indexOf(fNote) !== -1) noteCovered = true;
+        });
+      }
+      // And drop a message the note already states verbatim (the other way round).
+      if (fNote && !noteCovered) {
+        msgs = msgs.filter(function (m) {
+          var fm = _peekFold(m.body);
+          return !(fm && fNote.indexOf(fm) !== -1);
+        });
+      }
+      if (!notes && !msgs.length) return '';
+
       var h = '';
       if (msgs.length) {
         h += '<div class="peek-sec"><span class="peek-h">Conversation</span>';
@@ -10484,16 +10529,16 @@
         }
         h += '</div>';
       }
-      if (notes) {
+      if (notes && !noteCovered) {
         h += '<div class="peek-sec"><span class="peek-h">Notes</span>' +
              '<div class="peek-notes">' + escapeHtml(notes) + '</div></div>';
       }
-      // A double-booking is the single most useful thing to see before opening.
+      if (!h) return '';
+      h += '<div class="peek-cta">Click the card to open it</div>';
       var _pk = card.dataset.clash || '';
       if (_pk) h = '<div class="peek-clash">&#9888; ' + _pk + '</div>' + h;
       var _pcn = String(rec.conflict_note || '').trim();
       if (_pcn) h = '<div class="peek-clash">&#9888; ' + escapeHtml(_pcn) + '</div>' + h;
-      h += '<div class="peek-cta">Click the card to open it</div>';
       return h;
     }
     function _peekShow(card) {
