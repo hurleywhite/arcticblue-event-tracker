@@ -3832,12 +3832,22 @@
       return '<section class="me-sec"><h4 class="me-sec-h">' + esc(title) + '</h4>' + body + '</section>';
     }
     // Point of contact — the one detail that matters for a private event.
+    // A contact is a PERSON: a name or an email. `contact_info` is very often
+    // just the event's own domain ("ai4.io") or a registration URL, and the
+    // section rendered that as "Contact info: ai4.io" — a Contacts heading over
+    // something nobody can contact (Hurley 2026-07-30). opsContactText() is the
+    // same test the card's ✉ badge uses: it strips URLs and bare domains and
+    // returns what human-readable text is left, if any.
+    var _ct  = window.opsContactText   || function (v) { return String(v == null ? '' : v).trim(); };
+    var _ctp = window.opsContactPerson || _ct;
     var contactBits = [];
-    if (rec.poc_name)  contactBits.push(esc(rec.poc_name));
-    if (rec.poc_email) contactBits.push('<a href="mailto:' + esc(rec.poc_email) + '">' + esc(rec.poc_email) + '</a>');
+    if (_ct(rec.poc_name))  contactBits.push(esc(rec.poc_name));
+    if (rec.poc_email && String(rec.poc_email).indexOf('@') !== -1) {
+      contactBits.push('<a href="mailto:' + esc(rec.poc_email) + '">' + esc(rec.poc_email) + '</a>');
+    }
     if (rec.poc_linkedin) contactBits.push('<a href="' + esc(rec.poc_linkedin) + '" target="_blank" rel="noopener">LinkedIn ↗</a>');
     var pocHtml = (contactBits.length ? field('Point of contact', contactBits.join(' · '), true) : '') +
-                  field('Contact info', rec.contact_info);
+                  (_ctp(rec.contact_info) ? field('Contact info', rec.contact_info) : '');
 
     var v = '';
     // Notes lead the read view — right below "Chat with the team" (Angela). The
@@ -3903,7 +3913,7 @@
           var g = field('Price to attend', rec.pricing) + field('Venue', rec.venue);
           return g ? '<div class="modal-grid">' + g + '</div>' : '';
         })());
-      v += sec('Contacts', pocHtml + field('Additional contacts', rec.additional_contacts));
+      v += sec('Contacts', pocHtml + (_ctp(rec.additional_contacts) ? field('Additional contacts', rec.additional_contacts) : ''));
       // This zone only ever holds the one field, so under the one-field rule the
       // heading IS the label — which means it has to be the informative one.
       v += sec('Post-mortem (ROI)', field('Post-mortem (ROI)', rec.postmortem));
@@ -5098,6 +5108,24 @@
         .trim();
       return stripped.length >= 3 ? stripped : '';
     }
+    // Stricter test for the FREE-TEXT contact fields (contact_info,
+    // additional_contacts). _contactText() only strips URLs, so instructions
+    // like "Contact via the website" survived it and rendered under a Contacts
+    // heading — no name, no address, nobody to contact (Hurley 2026-07-30).
+    // Here a value must carry an email, or a person-shaped name: two
+    // consecutive capitalised words. poc_name keeps the looser test, since a
+    // one-word name in a field literally called "name" is still a name.
+    var _PERSON_RE = /[A-Z][a-z'’-]+(?:\s+[A-Z][a-z'’-]+)+/;   // NB: no \b — this template is a non-raw Python string, so a lone backslash-b would be emitted as a BACKSPACE character and silently break the pattern. The [A-Z] anchor makes it unnecessary anyway.
+    function _contactPerson(v) {
+      var t = _contactText(v);
+      if (!t) return '';
+      if (_EMAIL_RE.test(String(v))) return t;
+      return _PERSON_RE.test(String(v)) ? t : '';
+    }
+    // Shared with the Details modal so the Contacts section and the card's
+    // envelope badge agree on what counts as a contact.
+    window.opsContactText = function (v) { return _contactText(v); };
+    window.opsContactPerson = function (v) { return _contactPerson(v); };
     function hasEmailContact() {
       for (var i = 0; i < arguments.length; i++) {
         var o = arguments[i]; if (!o) continue;
@@ -5105,8 +5133,8 @@
         // A named point of contact counts on its own — no address required.
         if (_contactText(o.poc_name)) return true;
         if (String(o.poc_linkedin || '').trim()) return true;
-        if (_contactText(o.contact_info)) return true;
-        if (_contactText(o.additional_contacts)) return true;
+        if (_contactPerson(o.contact_info)) return true;
+        if (_contactPerson(o.additional_contacts)) return true;
       }
       return false;
     }
