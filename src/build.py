@@ -4298,8 +4298,17 @@ def build():
     // so both views get the identical divider treatment.
     // "Why it fits ArcticBlue" removed from the read view (Hurley 2026-07-09) —
     // still used by search/suggestions scoring.
+    // A zone holding exactly ONE field doesn't need the field's label — the
+    // heading is already naming that value, so printing both reads as two
+    // headings stacked on one line of content ("Who attends" / "Typical
+    // attendees", "About the event" / "About"). The heading wins: it carries
+    // the divider styling (Hurley 2026-07-29). Two or more fields keep their
+    // labels, since then the heading can't tell them apart.
     function sec(title, body) {{
       if (!body) return '';
+      if ((body.match(/class="modal-field"/g) || []).length === 1) {{
+        body = body.replace(/<span class="k">[\\s\\S]*?<\\/span>/, '');
+      }}
       return '<section class="me-sec"><h4 class="me-sec-h">' + esc(title) + '</h4>' + body + '</section>';
     }}
     // Point of contact — the one detail that matters for a private event.
@@ -4369,7 +4378,9 @@ def build():
           return g ? '<div class="modal-grid">' + g + '</div>' : '';
         }})());
       v += sec('Contacts', pocHtml + field('Additional contacts', rec.additional_contacts));
-      v += sec('After the event', field('Post-mortem (ROI)', rec.postmortem));
+      // This zone only ever holds the one field, so under the one-field rule the
+      // heading IS the label — which means it has to be the informative one.
+      v += sec('Post-mortem (ROI)', field('Post-mortem (ROI)', rec.postmortem));
     }}
 
     // "Updated Nd ago" now lives here (italic, at the bottom of the detail),
