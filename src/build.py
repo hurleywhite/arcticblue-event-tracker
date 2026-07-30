@@ -1673,6 +1673,15 @@ def build():
       transition: color 120ms ease;
     }}
     .ops-card .ops-link:hover {{ color: var(--ab-blue-light); }}
+    /* Small amber warning action in the queue — opens the conflict prompt. */
+    .q-btn-conflict {{
+      color: #9a3412; border-color: #fed7aa; background: #fff7ed;
+      font-size: 0.9rem; line-height: 1; padding: 0 10px;
+    }}
+    .q-btn-conflict:hover {{ background: #fde9d3; border-color: #f59e0b; }}
+    /* The whole queue row opens the event now that the Details pill is gone. */
+    .queue-row-open {{ cursor: pointer; }}
+    .queue-row-open:hover {{ background: var(--ab-bg-3); }}
     .ops-details-btn {{
       font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.07em;
       text-transform: uppercase; color: var(--ab-fg-3);
@@ -8260,14 +8269,19 @@ def build():
         var ints = window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).map(function (n) {{ return '<span class="q-int-chip">' + escapeHtml(n) + '</span>'; }}).join('');
         var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>' : '';
         var loc = [it.location].filter(Boolean).join(' &middot; ');
-        return '<div class="queue-row">' +
+        var _cf = String(it.conflict_note || '').trim();
+        return '<div class="queue-row queue-row-open" role="button" tabindex="0"' +
+               ' data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' +
             '<div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
-              '<button type="button" class="ops-details-btn" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">Details &rarr;</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
               '<div class="queue-chips">' + ints + qStagePills(it.stages) + dec + deadlineHtml(it) + '</div>' +
+              (_cf ? '<span class="ops-clash">&#9888; ' + escapeHtml(_cf) + '</span>' : '') +
             '</div>' +
-            '<div class="queue-actions">' + actions(it) + '</div>' +
+            '<div class="queue-actions">' +
+              '<button type="button" class="q-btn q-btn-conflict" data-act="conflict" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="' +
+                (_cf ? 'Edit the scheduling conflict' : 'Add a scheduling conflict') + '">&#9888;</button>' +
+              actions(it) + '</div>' +
           '</div>';
       }}
 
@@ -8331,6 +8345,24 @@ def build():
           var it = items.filter(function (x) {{ return x.kind === btn.getAttribute('data-k') && String(x.key) === btn.getAttribute('data-key'); }})[0];
           if (!it) return;
           var act = btn.getAttribute('data-act');
+          if (act === 'conflict') {{
+            // Add a conflict from where Angela is already working, instead of
+            // making her open Details -> Edit for it (Hurley 2026-07-30).
+            var cur = String(it.conflict_note || '').trim();
+            var add = window.prompt(
+              cur ? 'Scheduling conflict for "' + it.name + '"\\n\\nCurrently:\\n' + cur +
+                    '\\n\\nAdd another (leave blank to keep it as is):'
+                  : 'Scheduling conflict for "' + it.name + '"\\n\\ne.g. Thor is at the board offsite that week',
+              cur ? '' : '');
+            if (add === null) return;                 // cancelled
+            add = add.trim();
+            var next;
+            if (!add) next = cur ? '' : '';           // explicit empty clears it
+            else next = cur ? (cur.replace(/[;\s]+$/, '') + '; ' + add) : add;
+            it.conflict_note = next;
+            opsQuickWrite(it.kind, it.key, {{ conflict_note: next || null }});
+            return;
+          }}
           if (act === 'dismiss') {{ opsQuickWrite(it.kind, it.key, {{ queue_dismissed: true }}); }}
           else markStage(it, act === 'submitted' ? 'Submitted' : 'Booked');
         }});
