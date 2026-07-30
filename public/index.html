@@ -2724,7 +2724,7 @@
         <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
       </a>
       <h1 class="app-title">ArcticBlue Event Tracker</h1>
-      <div class="nav-meta">JULY 30, 2026 <span class="who">· <span class="who-switcher" id="who-switcher"></span></span></div>
+      <div class="nav-meta"><span id="ab-today">JULY 30, 2026</span> <span class="who">· <span class="who-switcher" id="who-switcher"></span></span></div>
     </div>
   </nav>
 
@@ -3014,6 +3014,47 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
+  // ── One clock for the whole app: New York ────────────────────────────
+  // "Today" was three different things — the build machine's UTC date baked
+  // into the header, and each viewer's own timezone client-side. The team is in
+  // New York, so that is the clock (Hurley 2026-07-30).
+  function abTodayIso() {
+    try {
+      // en-CA formats as YYYY-MM-DD, which is exactly the key we compare on.
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+    } catch (e) {
+      var d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+  }
+  window.abTodayIso = abTodayIso;
+  // "JULY 30, 2026" in New York, for the header stamp.
+  function abTodayLabel() {
+    try {
+      return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York',
+        month: 'long', day: 'numeric', year: 'numeric' }).format(new Date()).toUpperCase();
+    } catch (e) { return ''; }
+  }
+  // Paint it now, then keep it honest: a tab left open overnight rolls over on
+  // its own, and a re-render is fired so today/upcoming/past reclassify too.
+  function abPaintToday() {
+    var el = document.getElementById('ab-today');
+    var lbl = abTodayLabel();
+    if (el && lbl) el.textContent = lbl;
+  }
+  (function abClock() {
+    abPaintToday();
+    var last = abTodayIso();
+    setInterval(function () {
+      var now = abTodayIso();
+      if (now !== last) {
+        last = now;
+        abPaintToday();
+        if (window.opsRefresh) { try { window.opsRefresh(); } catch (e) {} }
+      }
+    }, 60000);
+  })();
+
   function priClass(p) {
     p = (p || '').toLowerCase();
     if (p.indexOf('high') === 0) return 'p-high';
@@ -4560,11 +4601,9 @@
       // so today's attended events still surface there.
       var iso = eventStartIso(o);
       if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return false;  // undated -> not past
-      var now = new Date();
-      var todayIso = now.getFullYear() + '-' +
-        String(now.getMonth() + 1).padStart(2, '0') + '-' +
-        String(now.getDate()).padStart(2, '0');
-      return iso <= todayIso;
+      // New York's date, not the viewer's — otherwise the same event reads
+      // "past" in London and "today" in San Francisco (Hurley 2026-07-30).
+      return iso <= (window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10));
     }
 
     // Normalize any event's messy/granular region (or country/city/location)

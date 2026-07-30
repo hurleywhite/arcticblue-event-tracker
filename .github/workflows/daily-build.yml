@@ -6,8 +6,11 @@ name: Daily auto-build
 
 on:
   schedule:
-    # 09:00 UTC daily (~ early morning San Francisco / late afternoon CET)
-    - cron: "0 9 * * *"
+    # 05:10 UTC daily = 00:10 EST / 01:10 EDT — just after midnight in New
+    # York, which is the clock the tracker runs on. At the old 09:00 UTC the
+    # rebuild landed mid-morning ET, so the "today" the page was built with
+    # lagged the real New York date for hours every day (Hurley 2026-07-30).
+    - cron: "10 5 * * *"
   workflow_dispatch: {}
 
 permissions:
