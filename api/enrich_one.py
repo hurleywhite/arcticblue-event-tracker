@@ -201,20 +201,27 @@ _PPLX_SYSTEM = (
     '  "typical_attendees": one short line on who attends (roles/seniority)\n'
     '  "attendee_count": approximate attendance, e.g. "5,000+"\n'
     '  "deadline": call-for-speakers deadline if published\n'
-    '  "about": what happens at this event and who it draws, in plain English. '
-    "TWO SENTENCES MAX, under 40 words. Hard rules, because the old wording "
-    "produced padding (Hurley 2026-07-29):\n"
-    "    - Never restate the name. \"World Health AI Forum is a World Health AI "
-    "conference\" says nothing; start with the substance instead.\n"
-    "    - Never repeat the date or the city. The card shows them directly "
+    '  "about": what this event IS — plain English, brief, and dense with '
+    "fact. Cover the INDUSTRIES it serves, the kind and SCALE of event, WHO it "
+    "draws, WHAT GETS DISCUSSED, and anything genuinely distinctive. Two to "
+    "three sentences, roughly 25-60 words.\n"
+    "    - THIS IS THE BAR (Hurley's own example): \"Ai4 is one of the largest "
+    "enterprise AI conferences, bringing together thousands of enterprise "
+    "leaders, practitioners, and vendors focused on real-world AI deployment.\" "
+    "Every clause there earns its place — scale, audience, angle.\n"
+    "    - Leading with the name is fine ONLY if what follows adds something. "
+    "\"World Health AI Forum is a World Health AI conference focused on the "
+    "intersection of healthcare and artificial intelligence\" defines the event "
+    "with its own words and is worthless.\n"
+    "    - Never repeat the date or the city — the card shows them directly "
     "above this text.\n"
-    "    - No \"focused on the intersection of\", \"centers on\", \"brings "
-    "together leaders to discuss\", \"cutting-edge\", \"premier\", \"leading\". "
-    "If a phrase would fit any conference, cut it.\n"
-    "    - Say the concrete thing: what actually takes place (keynotes, "
-    "workshops, hosted 1:1s, demos) and the specific audience. "
-    "Good: \"Clinicians and NHS digital leads present deployed AI tools; "
-    "two days of case-study talks and hosted supplier meetings.\"\n"
+    "    - Cut any phrase that would fit ANY conference: \"focused on the "
+    "intersection of\", \"centers on\", \"brings together leaders to discuss\", "
+    "\"innovation and data-driven models\", \"cutting-edge\", \"premier\", "
+    "\"leading\".\n"
+    "    - HOW PEOPLE MEET belongs in \"meeting_formats\", not here — the card "
+    "merges that in for you. Mention format here only when it defines the event "
+    "(invite-only assembly, hosted-buyer model, 1:1 matchmaking).\n"
     '  "focus_areas": the event\'s main themes / tracks / topics as a short '
     "comma-separated list (e.g. 'AI governance, agentic workflows, fintech')\n"
     '  "speaking_route": how a speaker gets on stage — a CFP / speaker-'

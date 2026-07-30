@@ -3846,6 +3846,15 @@
         (function () {
           var about = String(rec.about || '').trim();
           var fmt = briefClause(rec.meeting_formats);
+          // Don't say it twice — enrichment sometimes works the format into the
+          // overview prose as well, and repeating it is the padding we're
+          // trying to get rid of.
+          if (fmt && about) {
+            var aLow = about.toLowerCase();
+            var fw = fmt.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/)
+              .filter(function (w) { return w.length > 4; });
+            if (fw.length && fw.every(function (w) { return aLow.indexOf(w) !== -1; })) fmt = '';
+          }
           if (fmt) about = about ? (about.replace(/[.\s]+$/, '') + '. ' + fmt + '.') : (fmt + '.');
           return fieldBare(about);
         })() +
