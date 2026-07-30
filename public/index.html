@@ -670,6 +670,7 @@
     /* Rejected — same red as the card's status dot, so "they passed" reads the
        same wherever it appears. */
     .modal-note { color: var(--ab-fg-3); font-size: 0.94em; }
+    .me-apply { margin: 4px 0 18px; }
     /* "Also from this organiser" — the umbrella's members, or the family a
        member belongs to. Rows, not buttons: it's navigation, not an action. */
     .sib-list { display: flex; flex-direction: column; }
@@ -4546,7 +4547,13 @@
       // stands is already the bold status line on the card face and the pills
       // at the top of this modal, and the apply link is its own button, so for
       // everyone else this section only restated it (Hurley 2026-07-30).
-      var _spkSec = (window.isAngelaUser && window.isAngelaUser()) ? sec('Speaking & submission', _spkStatus) : '';
+      // Contacts fold in here rather than standing alone: who to approach is
+      // part of HOW we get on stage, and on most events it was one line under
+      // its own heading (Hurley 2026-07-30).
+      var _contactsHtml = pocHtml +
+        (_ctp(rec.additional_contacts) ? field('Additional contacts', rec.additional_contacts) : '');
+      var _spkSec = (window.isAngelaUser && window.isAngelaUser())
+        ? sec('Speaking & submission', _spkStatus + _contactsHtml) : '';
       // — Who's in the room: every audience fact in one place.
       // One merged list — the heading already says who it's about, so the value
       // goes in bare rather than under a second "Typical attendees" label.
@@ -4605,11 +4612,17 @@
       // then what the event IS, who's in the room, the submission detail and
       // the contacts. The organiser's other events go LAST — it's a way OUT of
       // this card, so it belongs at the bottom, not mid-read.
-      v += _ovSec + _whoSec + _spkSec;
-      v += sec('Contacts', pocHtml + (_ctp(rec.additional_contacts) ? field('Additional contacts', rec.additional_contacts) : ''));
+      v += _spkSec + _ovSec + _whoSec;
       // This zone only ever holds the one field, so under the one-field rule the
       // heading IS the label — which means it has to be the informative one.
       v += sec('Post-mortem (ROI)', field('Post-mortem (ROI)', rec.postmortem));
+      // Applying is the action this card exists for, so it sits at the end of
+      // the read — but ABOVE the way out to the organiser's other events.
+      var _apUrl = rec.apply_url || speakingRouteUrl(rec.speaking_route);
+      if (_apUrl && window.isAngelaUser && window.isAngelaUser()) {
+        v += '<div class="me-apply"><a class="modal-visit modal-apply" href="' + esc(_apUrl) +
+             '" target="_blank" rel="noopener">Apply to speak ↗</a></div>';
+      }
       v += _sibSec;
     }
 
@@ -4831,10 +4844,8 @@
     if (!rec.url) {
       actHtml += '<span class="modal-nolink">No verified website URL on file.</span>';
     }
-    var _applyUrl = rec.apply_url || speakingRouteUrl(rec.speaking_route);
-    if (_applyUrl && window.isAngelaUser && window.isAngelaUser()) {
-      actHtml += '<a class="modal-visit modal-apply" href="' + esc(_applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>';
-    }
+    // "Apply to speak" moved into the read view, above "Also from this
+    // organiser" (Hurley 2026-07-30) — the footer is now only the no-URL note.
     $actions.innerHTML = actHtml;
 
     lastFocus = document.activeElement;
