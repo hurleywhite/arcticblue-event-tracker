@@ -177,6 +177,15 @@ def _endish_iso(start_date, end_date, date_str):
         if v and re.match(r'^\d{4}-\d{2}-\d{2}', str(v)):
             return str(v)[:10]
     s = str(date_str or '')
+    # An ISO date inside the free text is exact — take it before guessing. The
+    # heuristics below look for a month NAME, so "2026-01-01" matched none, fell
+    # through to "year only" and came back 2026-12-31. That made every
+    # ISO-format CFP deadline read as still open until year end, so the
+    # assistant kept telling people to apply to closed CFPs (Hurley 2026-07-29).
+    # Last match wins, so a range ("2026-06-01 to 2026-06-04") gives the END.
+    _isos = re.findall(r'\b(?:19|20)\d{2}-\d{2}-\d{2}\b', s)
+    if _isos:
+        return _isos[-1]
     ym = re.search(r'(19|20)\d{2}', s)
     year = ym.group(0) if ym else None
     mo = None
@@ -224,26 +233,38 @@ def _deadline_state(deadline, today):
 
 
 def _derived_status(stages, speaker, deadline, endish, today):
-    """ONE authoritative human status string — matches the card face exactly.
-    e.g. 'Booked — Thor speaking' / 'Submitted to speak (CFP closed) · open to
-    attend' / 'Closed to speak · open to attend'. This is what the model must
-    answer status questions with — never re-derive from raw tags."""
+    """ONE authoritative human status string — mirrors the card face.
+
+    Deliberately kept in lockstep with cardStatusLine() in src/build.py. It had
+    drifted from the UI in three ways, and the assistant was repeating all
+    three back to people as fact (Hurley 2026-07-29):
+
+      * NO Rejected branch at all. A rejected event still carries its
+        'Submitted' tag, so it reported "Submitted to speak" — telling the team
+        an application was live when the organiser had already passed.
+      * "Submitted to speak" where the card says just "Submitted" (the card's
+        mic glyph already says it's the speaking track).
+      * "Open to speak" / "open to attend" — two states the card deliberately
+        stopped showing, because every fitting event is implicitly open to
+        both, so they carried no information.
+    """
     stages = stages or []
     past = bool(endish) and endish < today
     dl = _deadline_state(deadline, today)
     bits = []
     if 'Booked' in stages:
-        bits.append('Booked' + ((' — %s speaking' % speaker) if speaker else ' to speak'))
+        bits.append('Booked' + ((' — %s speaking' % speaker) if speaker else ''))
+    elif 'Rejected' in stages:
+        # Terminal. Checked BEFORE _is_submitted, because a rejected event
+        # keeps the Submitted tag that got it there.
+        bits.append('Rejected' + ((' — %s' % speaker) if speaker else ''))
     elif _is_submitted(stages):
-        bits.append('Submitted to speak' + (' (CFP now closed)' if dl == 'closed' else ''))
+        bits.append('Submitted' + ((' — %s' % speaker) if speaker else '')
+                    + (' (CFP closed)' if dl == 'closed' else ''))
     elif dl == 'closed':
         bits.append('Closed to speak')
-    elif dl == 'open':
-        bits.append('Open to speak')
     if 'Attending' in stages:
-        bits.append('attending')
-    elif not past and bits and 'Booked' not in stages:
-        bits.append('open to attend')
+        bits.append('Attending')
     if past:
         bits.append('event has passed')
     return ' · '.join(bits) if bits else None
@@ -439,17 +460,23 @@ _SYSTEM = (
     "passed; do NOT answer \"none booked\" when booked=true events exist in the "
     "data, even if all of them are in the past.\n"
     "- STATUS IS AUTHORITATIVE: each event carries 'status' — a derived, "
-    "always-true one-liner (e.g. 'Submitted to speak (CFP now closed) · open to "
-    "attend', 'Booked — Thor speaking', 'Closed to speak · open to attend'). "
-    "When asked the status of any event, ANSWER WITH THAT FIELD'S WORDING — "
-    "never re-derive it from stage tags, never say just 'submitted' when the "
-    "status says more. If status is null, say we have no status on file.\n"
+    "always-true one-liner matching what the card shows (e.g. 'Booked — Thor "
+    "speaking', 'Submitted — Thor (CFP closed)', 'Rejected — Thor', "
+    "'Closed to speak', 'Attending'). When asked the status of any event, "
+    "ANSWER WITH THAT FIELD'S WORDING VERBATIM — never re-derive it from stage "
+    "tags, never dress it up. If status is null we have NO speaking status on "
+    "file: say exactly that. Do NOT invent 'open to speak', 'open to attend' or "
+    "any other state — those are not statuses this tracker has, and a null "
+    "status does NOT mean an event is open, submitted or rejected. 'Rejected' "
+    "is terminal: the organiser passed, so never describe a rejected event as "
+    "submitted, pending or in flight.\n"
     "- ACT NOW: for \"what do we need to do right now / what needs action\", "
-    "return (a) events with status 'Open to speak' whose 'deadline' falls within "
-    "~30 days of today — applications to get in; (b) booked or attending events "
-    "whose 'starts' is within ~30 days — travel/prep; (c) submitted events whose "
-    "event 'starts' within ~21 days with no reply — chase. Order by 'starts'. "
-    "Say WHY each needs action in a few words.\n"
+    "return (a) events with NO speaking status yet (status null, or attending "
+    "only) whose 'deadline' falls within ~30 days of today — applications to "
+    "get in; (b) booked or attending events whose 'starts' is within ~30 days — "
+    "travel/prep; (c) submitted events whose 'starts' is within ~21 days with no "
+    "reply — chase. Never include rejected events: there is nothing to act on. "
+    "Order by 'starts'. Say WHY each needs action in a few words.\n"
     "- POC / ORGANISER CONTACT: each event may carry a 'poc' (the organiser "
     "point-of-contact — a name and/or email). When asked who the contact/POC is "
     "for an event, answer from 'poc'. When asked WHICH events a named person is "
@@ -637,6 +664,17 @@ def _ask_openai(question, history, events, user='', for_people=None):
                 'The person asking is signed in as "%s" (no specific coverage '
                 'territory). When they say "me"/"I"/"my", tailor to any matching TEAM '
                 'COVERAGE notes; otherwise answer neutrally over all events.' % user)})
+    # "Buyer-rich" is a targeting judgement, not a fact about the event. The
+    # Details card shows it only to Verma (regulated-industry board rooms are
+    # his signal) and to sales support for triage — so the assistant shouldn't
+    # be announcing it to everyone else either (Hurley 2026-07-29). It stays a
+    # RANKING input for everybody; this only governs whether it's said out loud.
+    if _first not in ('verma', 'angela', 'hurley'):
+        messages.append({'role': 'system', 'content': (
+            'Do NOT describe an event\'s audience as "buyer-rich" (or mention the '
+            'buyer-rich flag) in your answer — that label is only surfaced to Verma '
+            'and to sales support. Keep using it to ORDER results, but describe the '
+            'room in plain terms instead (who attends, seniority, industry).')})
     if _COMPANY_CONTEXT:
         messages.append({'role': 'system',
                          'content': 'ARCTICBLUE CONTEXT:\n' + _COMPANY_CONTEXT})

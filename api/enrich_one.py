@@ -201,8 +201,20 @@ _PPLX_SYSTEM = (
     '  "typical_attendees": one short line on who attends (roles/seniority)\n'
     '  "attendee_count": approximate attendance, e.g. "5,000+"\n'
     '  "deadline": call-for-speakers deadline if published\n'
-    '  "about": a factual 1-2 sentence description of what this event IS '
-    "(what it covers, who runs it) — the kind of summary on the official site\n"
+    '  "about": what happens at this event and who it draws, in plain English. '
+    "TWO SENTENCES MAX, under 40 words. Hard rules, because the old wording "
+    "produced padding (Hurley 2026-07-29):\n"
+    "    - Never restate the name. \"World Health AI Forum is a World Health AI "
+    "conference\" says nothing; start with the substance instead.\n"
+    "    - Never repeat the date or the city. The card shows them directly "
+    "above this text.\n"
+    "    - No \"focused on the intersection of\", \"centers on\", \"brings "
+    "together leaders to discuss\", \"cutting-edge\", \"premier\", \"leading\". "
+    "If a phrase would fit any conference, cut it.\n"
+    "    - Say the concrete thing: what actually takes place (keynotes, "
+    "workshops, hosted 1:1s, demos) and the specific audience. "
+    "Good: \"Clinicians and NHS digital leads present deployed AI tools; "
+    "two days of case-study talks and hosted supplier meetings.\"\n"
     '  "focus_areas": the event\'s main themes / tracks / topics as a short '
     "comma-separated list (e.g. 'AI governance, agentic workflows, fintech')\n"
     '  "speaking_route": how a speaker gets on stage — a CFP / speaker-'

@@ -12690,8 +12690,12 @@
       return h;
     }
     // Render the AI\u2019s ranked event recommendations as clickable mini cards.
-    function _askCardsHtml(cards) {
+    // ranked: show "#1, #2…". A conversational reply about ONE event puts its
+    // card below the prose purely as a reference — ranking a list of one is
+    // meaningless, and "#1" read as a stray character (Hurley 2026-07-29).
+    function _askCardsHtml(cards, ranked) {
       if (!cards || !cards.length) return '';
+      var showRank = ranked !== false && cards.length > 1;
       return '<div class="ask-cards">' + cards.map(function (c, i) {
         var meta = [c.date, c.location || c.region].filter(Boolean).map(escapeHtml).join(' \u00b7 ');
         var tags = [];
@@ -12708,7 +12712,7 @@
         if (c.mid !== null && c.mid !== undefined) idAttr += ' data-evmid="' + escapeHtml(String(c.mid)) + '"';
         idAttr += ' data-evname="' + escapeHtml(c.name || '') + '"';
         return '<button type="button" class="ask-card"' + idAttr + '>' +
-          '<span class="rank">#' + (i + 1) + '</span>' +
+          (showRank ? '<span class="rank">#' + (i + 1) + '</span>' : '') +
           '<span class="ac-name">' + escapeHtml(c.name || 'Untitled event') + '</span>' +
           (meta ? '<span class="ac-meta">' + meta + '</span>' : '') +
           (tags.length ? '<span class="ac-tags">' + tags.join('') + '</span>' : '') +
@@ -12727,11 +12731,12 @@
       // with the prose like a normal chatbot, and any single event card sits
       // below it as a reference.
       if ((mode === 'events' || !mode) && hasCards) {
-        return _askCardsHtml(cards) +
+        return _askCardsHtml(cards, true) +
           (txt ? '<div class="ask-note">' + _mdToHtml(txt) + '</div>' : '');
       }
       var out = txt ? '<div class="ask-prose">' + _mdToHtml(txt) + '</div>' : '';
-      if (hasCards) out += _askCardsHtml(cards);
+      // Conversational reply — the card is a reference, not a ranking.
+      if (hasCards) out += _askCardsHtml(cards, false);
       return out || _mdToHtml(txt);
     }
     // Click a recommended card \u2192 open that event\u2019s detail modal.
