@@ -4786,14 +4786,30 @@ def build():
     // zone heading already says "Notes", so the value goes in bare.
     v += sec('Notes', fieldBare(rec.notes));
     // Follow-up log — Angela's spreadsheet column, as a clean dated list.
-    // Hers to run, so hers to see.
-    if (window.isAngelaUser && window.isAngelaUser()) {{
+    // Angela always gets the section (she needs the log button even on an empty
+    // one). Everyone else sees it only once there IS something to read: the
+    // speakers want to know they've been chased for, not to be shown an empty
+    // heading (Hurley 2026-07-30). Read-only for them — it's hers to run.
+    var _fuMine = !!(window.isAngelaUser && window.isAngelaUser());
+    var _fuList = window.abFollowUps ? window.abFollowUps(rec) : [];
+    if (_fuMine || _fuList.length) {{
       var _fuSt = window.abFollowUpState
         ? window.abFollowUpState(rec, rec.stage_tags || [], '') : null;
-      var _fuList = window.abFollowUps ? window.abFollowUps(rec) : [];
       var _fuBody = '';
-      if (_fuSt) {{
-        _fuBody += '<div class="fu-state fu-' + _fuSt.state + '">' + esc(_fuSt.label) + '</div>';
+      // 'none' means no chase logged — that reads as noise on screen, so it
+      // stays blank here. The fact still travels: the assistant is told
+      // explicitly that nobody has chased it, so Thor gets it if he asks.
+      if (_fuSt && _fuSt.state !== 'none') {{
+        var _fuLab = _fuSt.label, _fuCls = _fuSt.state;
+        // "Follow up now — 6 days since Jul 24" is Angela's worklist talking.
+        // On a speaker's screen it reads as a job for HIM, so the chase-cadence
+        // states become a plain statement of fact. Where we stand with the
+        // ORGANISER (waiting on them, door closed) is his business and stays.
+        if (!_fuMine && (_fuCls === 'due' || _fuCls === 'ok')) {{
+          _fuLab = 'Last chased ' + _fuWhen(_fuSt.since || (_fuList[0] && _fuList[0].on));
+          _fuCls = 'ok';
+        }}
+        _fuBody += '<div class="fu-state fu-' + _fuCls + '">' + esc(_fuLab) + '</div>';
       }}
       if (_fuList.length) {{
         // Oldest entry is the FIRST contact; everything after it is a chase.
@@ -4806,10 +4822,10 @@ def build():
                  '<span class="fu-when">' + esc(_fuWhen(f.on)) + '</span>' +
                  '<span class="fu-kind">' + kind + '</span>' +
                  (f.by ? '<span class="fu-by">' + esc(f.by) + '</span>' : '') +
-                 '<span class="fu-acts">' +
+                 (_fuMine ? '<span class="fu-acts">' +
                    '<button type="button" class="fu-act" data-fu-edit="' + i + '" title="Edit this entry">edit</button>' +
                    '<button type="button" class="fu-act fu-act-del" data-fu-del="' + i + '" title="Delete this entry">delete</button>' +
-                 '</span>' +
+                 '</span>' : '') +
                  (f.note ? '<span class="fu-note">' + esc(f.note) + '</span>' : '') +
                  (f.edited ? '<span class="fu-edited">edited ' + esc(_fuWhen(f.edited)) + '</span>' : '') +
                  '</li>';
@@ -4820,7 +4836,7 @@ def build():
       // Today's date rides on the button, so the automatic stamp is visible
       // BEFORE you commit to it rather than being a surprise afterwards.
       var _fuToday = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
-      _fuBody += '<button type="button" class="ab-addbtn" id="fu-add-btn">' +
+      if (_fuMine) _fuBody += '<button type="button" class="ab-addbtn" id="fu-add-btn">' +
                  '<span class="ab-addbtn-ic" aria-hidden="true">+</span> Log a follow-up</button>' +
                  '<div class="ab-form" id="fu-add-form" hidden>' +
                    // Chases get written up after the fact, so the date has to be

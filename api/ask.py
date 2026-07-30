@@ -287,6 +287,9 @@ def _select_with_fallback(table, base_cols, optional_cols, headers, timeout=12):
     return _http_json('GET', url, headers=headers, timeout=timeout)
 
 
+_FU_NONE = 'none logged - nobody has chased this organiser yet'
+
+
 def _fu_summary(v):
     """Follow-up log -> a short, model-readable line, newest first."""
     if isinstance(v, str):
@@ -295,8 +298,10 @@ def _fu_summary(v):
         except (ValueError, json.JSONDecodeError):
             return ''
     if not isinstance(v, list) or not v:
-        return ''
+        return _FU_NONE
     rows = [e for e in v if isinstance(e, dict) and e.get('on')]
+    if not rows:
+        return _FU_NONE
     rows.sort(key=lambda e: str(e.get('on')), reverse=True)
     out = []
     for e in rows[:5]:
@@ -544,8 +549,9 @@ _SYSTEM = (
     "- FOLLOW-UPS: an event may carry 'follow_ups' — Angela's chase log, newest "
     "first, as date/who/what-came-back. Use it when asked whether we have "
     "chased someone, when we last did, or what they said. Quote the DATES; "
-    "they are the point. If it is absent there is no log to read, so say we "
-    "have nothing recorded rather than guessing. Never invent a follow-up.\n"
+    "they are the point. When it reads 'none logged' NOBODY HAS CHASED THIS "
+    "YET — say so plainly; that is a real, useful answer, not missing data. "
+    "Never invent a follow-up.\n"
     "- \"WHAT IS THIS EVENT?\" — when asked what an event IS, is about, or what happens there, LEAD WITH THE EVENT, not the bookkeeping. Build the answer from 'about', 'topics', 'attendees', 'attendee_count', 'formats', 'venue' and 'type': what it covers, the industries it serves, its scale, who it draws, and anything distinctive. Two or three sentences. Do NOT open with our pipeline status, and mention status, stage or speaker ONLY if they asked, or as one short closing line when it is clearly useful. Never list what is missing (\"no ticket price on file\") unless that is what they asked about — absent data is not an answer.\n"
     "- SAY ONLY WHAT YOU WERE GIVEN: an event's JSON is already filtered to what this person is allowed to see. If a field is absent, it is absent BY DESIGN — never guess at it, never refer to it, and never tell them a field is hidden. In particular do not attribute a priority, a CFP deadline or an audience rating to an event unless that key is present.\n"
     "- STATUS IS AUTHORITATIVE, BUT SAY IT LIKE A PERSON: each event carries "
