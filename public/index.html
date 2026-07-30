@@ -3097,9 +3097,21 @@
   // better than a row that says nothing.
   var _MODAL_JUNK = /^(unknown|tbd|tba|n\/?a|none|null|not\s+(verified|specified|published|available|listed|confirmed|known)|no\s+information|to\s+be\s+(confirmed|announced))\.?$/i;
   function _modalJunk(v) { return _MODAL_JUNK.test(String(v == null ? '' : v).trim()); }
+  // The audience rating also hides INSIDE other fields: a few events have it
+  // typed into their PRICE ("Buyer-rich tier: $2,500; Vendor tier: $5,000") or
+  // their blurb. Gating the Audience row alone still left Thor reading
+  // "Buyer-rich" (Hurley 2026-07-30), so the phrase is scrubbed from every
+  // value we render for someone who isn't allowed the rating.
+  function _deAudience(v) {
+    if (seesAudience()) return v;
+    return String(v == null ? '' : v)
+      .replace(/buyer[-\s]?rich/gi, function (m) { return m.charAt(0) === 'B' ? 'Buyer' : 'buyer'; })
+      .replace(/vendor[-\s]?heavy/gi, function (m) { return m.charAt(0) === 'V' ? 'Vendor' : 'vendor'; });
+  }
   function field(label, val, html) {
     if (val == null || String(val).trim() === '') return '';
     if (!html && _modalJunk(val)) return '';
+    if (!html) val = _deAudience(val);
     return '<div class="modal-field"><span class="k">' + esc(label) + '</span>' +
            '<span class="v">' + (html ? val : _linkifyEsc(esc(val))) + '</span></div>';
   }
@@ -3108,6 +3120,7 @@
   function fieldBare(val) {
     if (val == null || String(val).trim() === '') return '';
     if (_modalJunk(val)) return '';
+    val = _deAudience(val);
     return '<div class="modal-field"><span class="v">' + _linkifyEsc(esc(val)) + '</span></div>';
   }
 

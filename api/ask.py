@@ -640,6 +640,7 @@ _APP_GUIDE = (
 # for you" (Hurley 2026-07-29). Stripping them from the PAYLOAD rather than
 # asking the model not to mention them: what isn't sent can't leak.
 _OPS_ONLY = ('priority', 'deadline', 'attend', 'saved')
+_AUD_PHRASE = re.compile(r'buyer[-\s]?rich|vendor[-\s]?heavy', re.I)
 _SUPPORT = ('angela', 'hurley')
 
 
@@ -651,7 +652,16 @@ def _visible_events(events, asker):
     drop = set(_OPS_ONLY)
     if asker != 'verma':
         drop.add('audience')               # Verma's signal only, as on the card
-    return [{k: v for k, v in e.items() if k not in drop} for e in events]
+    out = [{k: v for k, v in e.items() if k not in drop} for e in events]
+    if 'audience' in drop:
+        # The rating is also typed INTO other fields on a few events ("Buyer-rich
+        # tier: $2,500" in price). Dropping the key isn't enough — scrub the
+        # phrase out of the free text too, or the model reads it straight back.
+        for e in out:
+            for k, v in list(e.items()):
+                if isinstance(v, str) and _AUD_PHRASE.search(v):
+                    e[k] = _AUD_PHRASE.sub(lambda m: m.group(0).split('-')[0].split(' ')[0], v)
+    return out
 
 
 def _ask_openai(question, history, events, user='', for_people=None):
