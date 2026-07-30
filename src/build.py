@@ -4659,6 +4659,9 @@ def build():
     // Roster used by the Planner's coverage-gap "Flag for X" action. (The modal
     // closure has its own AB_ROSTER; this closure needs its own copy.)
     var OPS_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
+    // People who don't want Plan Ahead's month-by-month suggestion list
+    // under Event Radar — the curated blocks above it are enough.
+    var _PLAN_SUGGESTIONS_OFF = {{ thor: 1 }};
 
     // ── English-language gate for Thor / Verma / Joe ──────────────────────
     // They work the room and take the stage in English, so an event RUN in
@@ -9491,13 +9494,19 @@ def build():
       }});
       order.sort(function (a, b) {{ return groups[a].sort - groups[b].sort; }});
       var html = intro + tripHtml + recHtml;
-      order.forEach(function (mkey) {{
-        var g = groups[mkey];
-        var list = g.items.slice().sort(function (a, b) {{ return a.it.sort - b.it.sort; }});
-        html += '<div class="queue-section"><div class="queue-sec-head"><span class="queue-sec-title">' + escapeHtml(g.label) + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
-        list.forEach(function (x) {{ html += sugRow(x.it, ''); }});
-        html += '</div>';
-      }});
+      // The month-by-month suggestion list that follows Event Radar is off for
+      // Thor (Hurley 2026-07-29). He gets the two curated blocks — trips he's
+      // already taking, and events like the ones the team flagged — and not the
+      // long tail underneath them, which is browsing, not a decision queue.
+      if (!_PLAN_SUGGESTIONS_OFF[(getCollabName() || '').trim().toLowerCase().split(/\\s+/)[0]]) {{
+        order.forEach(function (mkey) {{
+          var g = groups[mkey];
+          var list = g.items.slice().sort(function (a, b) {{ return a.it.sort - b.it.sort; }});
+          html += '<div class="queue-section"><div class="queue-sec-head"><span class="queue-sec-title">' + escapeHtml(g.label) + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
+          list.forEach(function (x) {{ html += sugRow(x.it, ''); }});
+          html += '</div>';
+        }});
+      }}
       host.innerHTML = html;
       // ONE delegated listener on the host instead of a listener per button.
       // Plan Ahead rewrites parts of itself after render (the AI area-search

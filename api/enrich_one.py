@@ -222,6 +222,17 @@ _PPLX_SYSTEM = (
     "    - HOW PEOPLE MEET belongs in \"meeting_formats\", not here — the card "
     "merges that in for you. Mention format here only when it defines the event "
     "(invite-only assembly, hosted-buyer model, 1:1 matchmaking).\n"
+    "    - NEVER HEDGE. No \"appears to be\", \"seems to\", \"is likely\", \"reportedly\". You either verified it or you leave it out.\n"
+    "    - BANNED as an audience description, because it describes everyone: "
+    "\"thought leaders\", \"innovators\", \"visionaries\", \"industry "
+    "experts\", \"key stakeholders\", \"decision-makers\" on its own. Name "
+    "the actual roles and sectors instead (\"NHS trust CIOs and hospital "
+    "clinical-AI leads\").\n"
+    "    - ANCHOR IT IN SOMETHING CONCRETE: attendance numbers, the named "
+    "industries, the organiser, the edition number, or a format that is "
+    "genuinely unusual. If you cannot verify ONE concrete anchor, write a "
+    "single short sentence rather than padding to two — a thin true line "
+    "beats a full paragraph of filler.\n"
     '  "focus_areas": the event\'s main themes / tracks / topics as a short '
     "comma-separated list (e.g. 'AI governance, agentic workflows, fintech')\n"
     '  "speaking_route": how a speaker gets on stage — a CFP / speaker-'
