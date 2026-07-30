@@ -45,12 +45,169 @@ PPLX_API_KEY = _env('PERPLEXITY_API_KEY')
 PPLX_MODEL   = _env('PERPLEXITY_MODEL', 'sonar')
 PPLX_BASE    = _env('PERPLEXITY_BASE_URL', 'https://api.perplexity.ai').rstrip('/')
 
+# Apollo — find the human who runs the speaking programme at the organiser.
+# Enrich is only ever pressed on events we're actually interested in, so this
+# runs on demand and never as a sweep (Hurley 2026-07-30).
+APOLLO_API_KEY = _env('APOLLO_API_KEY')
+APOLLO_BASE    = _env('APOLLO_BASE_URL', 'https://api.apollo.io').rstrip('/')
+
 # Columns we are allowed to write (exist on BOTH manual_events and, after the
 # enrich-columns migration, event_state).
 WRITABLE = ('url', 'venue', 'pay_to_play', 'speaking_route', 'pricing',
             'past_speakers', 'meeting_formats', 'audience_type',
             'typical_attendees', 'attendee_count', 'deadline',
-            'about', 'focus_areas')
+            'about', 'focus_areas', 'contact_info')
+# manual_events alone carries the structured POC pair; event_state has only the
+# free-text contact_info. Writing a column a table lacks makes PostgREST reject
+# the WHOLE patch, so the split is enforced at write time.
+WRITABLE_MANUAL = WRITABLE + ('poc_name', 'poc_email')
+
+
+# ── Apollo: the organiser's speaking contact ──────────────────────────
+#
+# What we want is the person who decides who gets on stage. Apollo's default
+# ranking for an events company surfaces PARTNERSHIPS and SPONSORSHIP sellers
+# first — precisely the dead end this team keeps hitting ("speaking slots are
+# reserved for end-user profiles; sponsorship packages available"). So the
+# titles are an explicit allow-list, with a deny-list over the top for the
+# sponsorship desk and for people who merely appear at the event.
+_APOLLO_TITLES = ['content', 'programming', 'programme', 'program director',
+                  'curator', 'speaker', 'producer', 'agenda', 'conference manager']
+_GOOD_TITLE = re.compile(
+    r'\b(content|programme|program|programming|agenda|curat|'
+    r'speaker|conference|editorial|production|producer)\b', re.I)
+_BAD_TITLE = re.compile(
+    r'\b(sponsor|sponsorship|partnership|partnerships|sales|account|'
+    r'business development|bd|commercial|revenue|'          # the paying-to-speak desk
+    r'technician|av|audio|visual|stage hand|crew|'           # the people who mic you up
+    r'intern|assistant|coordinator trainee|volunteer|'
+    r'attendee|delegate|ambassador)\b', re.I)
+# "Speaker" alone means someone SPEAKING at the event, not someone who books
+# speakers — a real trap in this data (Juan Mandelbaum, "Speaker", Web Summit).
+_BARE_SPEAKER = re.compile(r'^\s*speakers?\s*$', re.I)
+_NAME_OK = re.compile(r"^[A-Z][A-Za-z'\u2019.-]+(?: [A-Z][A-Za-z'\u2019.-]+)+$")
+# Company accounts masquerade as people in this data — Apollo lists an "Expo
+# Terrapinn, Conference Manager" at terrapinn.com. Two tells: a word from the
+# company name inside the person's name, or a front-desk word where a first
+# name should be.
+_NOT_A_PERSON = re.compile(
+    r'^(expo|event|events|info|team|admin|sales|marketing|support|office|'
+    r'conference|summit|group|media|the)$', re.I)
+
+
+def _looks_like_a_person(name, org_name):
+    parts = [x for x in re.split(r'\W+', str(name or '')) if x]
+    if len(parts) < 2 or not _NAME_OK.match(str(name or '')):
+        return False
+    if any(_NOT_A_PERSON.match(x) for x in parts):
+        return False
+    org_words = {w.lower() for w in re.split(r'\W+', str(org_name or '')) if len(w) > 3}
+    return not (org_words & {w.lower() for w in parts})
+
+
+def _domain_of(url):
+    """Bare registrable-ish host for a URL or an email address."""
+    t = str(url or '').strip().lower()
+    if not t:
+        return ''
+    if '@' in t and '://' not in t:
+        t = t.rsplit('@', 1)[-1]
+    t = re.sub(r'^[a-z]+://', '', t).split('/')[0].split('?')[0]
+    t = re.sub(r'^www\.', '', t)
+    return t.strip('.')
+
+
+def _same_org(a, b):
+    """Same outfit? Tolerates sub-domains and country suffixes on one side."""
+    a, b = _domain_of(a), _domain_of(b)
+    if not a or not b:
+        return False
+    if a == b:
+        return True
+    # events.acme.com vs acme.com, acme.co.uk vs acme.com
+    ah, bh = a.split('.'), b.split('.')
+    return ah[-2:] == bh[-2:] or a.endswith('.' + b) or b.endswith('.' + a)
+
+
+def _title_ok(title):
+    t = str(title or '').strip()
+    if not t or _BARE_SPEAKER.match(t):
+        return False
+    if _BAD_TITLE.search(t):
+        return False
+    return bool(_GOOD_TITLE.search(t))
+
+
+def _title_rank(title):
+    """Lower is better. Whoever books the speakers beats whoever makes the show."""
+    t = str(title or '').lower()
+    for i, pat in enumerate(['speaker', 'content', 'programme', 'program',
+                             'agenda', 'curat', 'editorial', 'conference', 'produc']):
+        if pat in t:
+            return i
+    return 99
+
+
+def apollo_contact(domain):
+    """One verified speaking contact at `domain`, or None.
+
+    Two calls: a free search to pick the right person, then a single enrichment
+    for their email (that one costs an Apollo credit, which is why we pick
+    first and enrich once rather than enriching a batch).
+    """
+    if not (APOLLO_API_KEY and domain):
+        return None
+    H = {'x-api-key': APOLLO_API_KEY, 'Content-Type': 'application/json',
+         'Cache-Control': 'no-cache'}
+    st, data = _http_json('POST', APOLLO_BASE + '/api/v1/mixed_people/search', headers=H, body={
+        'q_organization_domains_list': [domain],
+        'person_titles': _APOLLO_TITLES,
+        'per_page': 25,
+    })
+    if st != 200 or not isinstance(data, dict):
+        return None
+    people = [p for p in (data.get('people') or []) if isinstance(p, dict)]
+    cands = []
+    for p in people:
+        org = (p.get('organization') or {})
+        # They must actually work there — Apollo will happily return someone
+        # who once did, or a namesake at another company.
+        if not _same_org(org.get('domain'), domain):
+            continue
+        if not _title_ok(p.get('title')):
+            continue
+        name = ' '.join(x for x in [p.get('first_name'), p.get('last_name')] if x).strip()
+        if not _looks_like_a_person(name, org.get('name')):
+            continue
+        cands.append((_title_rank(p.get('title')), name, p))
+    if not cands:
+        return None
+    cands.sort(key=lambda c: c[0])
+    _, name, best = cands[0]
+
+    st2, d2 = _http_json('POST', APOLLO_BASE + '/api/v1/people/match', headers=H, body={
+        'id': best.get('id'),
+        'reveal_personal_emails': False,     # work address only; this is a work approach
+    })
+    if st2 != 200 or not isinstance(d2, dict):
+        return None
+    person = d2.get('person') or {}
+    email = str(person.get('email') or '').strip()
+    status = str(person.get('email_status') or '').strip().lower()
+    # LEGITIMACY GATE. Apollo returns guessed and catch-all addresses alongside
+    # verified ones; a guess that bounces is worse than no contact at all,
+    # because Angela would burn a real approach on it.
+    if not email or '@' not in email:
+        return None
+    if status != 'verified':
+        return None
+    if not _same_org(email, domain):          # no gmail, no unrelated employer
+        return None
+    title = str(person.get('title') or best.get('title') or '').strip()
+    if not _title_ok(title):
+        return None
+    return {'name': name, 'title': title, 'email': email,
+            'linkedin': str(person.get('linkedin_url') or '').strip()}
 
 
 def _http_json(method, url, headers=None, body=None, timeout=20):
@@ -453,6 +610,27 @@ def enrich_one(row, rewrite=None):
             # Perplexity fallback when the Exa speaker-page search finds nothing
             # (so Angela doesn't have to add the route by hand).
             patch['speaking_route'] = str(facts['speaking_route']).strip()[:300]
+
+    # Who to actually approach. Only when there's nothing on file — a name
+    # Angela put there by hand always beats a database, and this must never
+    # overwrite a real relationship (Hurley 2026-07-30).
+    have_contact = any(str(row.get(c) or '').strip()
+                       for c in ('poc_name', 'poc_email', 'contact_info'))
+    if not have_contact and APOLLO_API_KEY:
+        dom = _domain_of(home)
+        if dom:
+            try:
+                c = apollo_contact(dom)
+            except Exception:
+                c = None
+            if c:
+                # Flagged as Apollo's, not ours: it's a verified work address,
+                # not someone who has ever replied to us.
+                bits = c['name'] + (', ' + c['title'] if c['title'] else '')
+                patch['contact_info'] = (bits + ' \u2014 ' + c['email'] + ' (via Apollo)')[:300]
+                if row.get('_table') == 'manual_events':
+                    patch['poc_name'] = c['name'][:120]
+                    patch['poc_email'] = c['email'][:160]
     return patch
 
 
@@ -513,13 +691,15 @@ class handler(BaseHTTPRequestHandler):
                                               'and key are required'})
 
         patch = enrich_one(ev, rewrite=rewrite)
-        # Only keep columns we know exist on the table.
-        patch = {k: v for k, v in patch.items() if k in WRITABLE and v}
+        # Only keep columns we know exist on THIS table.
+        _cols = WRITABLE_MANUAL if table == 'manual_events' else WRITABLE
+        patch = {k: v for k, v in patch.items() if k in _cols and v}
         if not patch:
             return _send(self, 200, {
                 'ok': True, 'patch': {}, 'filled': [],
                 'note': 'nothing missing, or no new facts found',
-                'engines': {'perplexity': bool(PPLX_API_KEY), 'exa': bool(EXA_API_KEY)},
+                'engines': {'perplexity': bool(PPLX_API_KEY), 'exa': bool(EXA_API_KEY),
+                            'apollo': bool(APOLLO_API_KEY)},
             })
 
         write = dict(patch)
@@ -555,5 +735,6 @@ class handler(BaseHTTPRequestHandler):
             'table': table, 'key': key,
             'patch': patch,
             'filled': sorted(patch.keys()),
-            'engines': {'perplexity': bool(PPLX_API_KEY), 'exa': bool(EXA_API_KEY)},
+            'engines': {'perplexity': bool(PPLX_API_KEY), 'exa': bool(EXA_API_KEY),
+                            'apollo': bool(APOLLO_API_KEY)},
         })
