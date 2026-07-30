@@ -189,7 +189,7 @@ def apollo_contact(domain):
     people = []
     _diag = []
     for dom in tries:
-        st, data = _http_json('POST', APOLLO_BASE + '/api/v1/mixed_people/search', headers=H, body={
+        st, data = _http_json('POST', APOLLO_BASE + '/api/v1/mixed_people/api_search', headers=H, body={
             'q_organization_domains_list': [dom],
             'person_titles': _APOLLO_TITLES,
             'per_page': 25,
