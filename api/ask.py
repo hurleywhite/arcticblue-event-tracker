@@ -283,7 +283,9 @@ def _gather_events(host):
     by_num = {}
     st, rows = _http_json(
         'GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,status_tags,'
-        'status,speaker,attend_verdict,saved,hidden',
+        'status,speaker,attend_verdict,saved,hidden,priority_override,'
+        'about,focus_areas,typical_attendees,attendee_count,venue,'
+        'pricing,audience_type,deadline,meeting_formats',
         headers={'apikey': SUPABASE_PUBLISHABLE,
                  'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE}, timeout=12)
     if st == 200 and isinstance(rows, list):
@@ -313,12 +315,23 @@ def _gather_events(host):
                     # A per-event priority override (set in the Details editor)
                     # wins over the catalog's base priority — same as the cards.
                     'priority': ops.get('priority_override') or e.get('priority'),
-                    'audience': e.get('audience_type'), 'price': e.get('pricing'),
-                    'deadline': e.get('deadline'),
+                    'audience': ops.get('audience_type') or e.get('audience_type'),
+                    'price': ops.get('pricing') or e.get('pricing'),
+                    'deadline': ops.get('deadline') or e.get('deadline'),
+                    # What the event IS. Without these the assistant had only
+                    # ops metadata to work from, so "what is Ai4?" came back as
+                    # a status report (Hurley 2026-07-29).
+                    'about': _truncate(ops.get('about'), 400),
+                    'topics': _truncate(ops.get('focus_areas'), 200),
+                    'attendees': _truncate(ops.get('typical_attendees'), 220),
+                    'attendee_count': ops.get('attendee_count'),
+                    'venue': _truncate(ops.get('venue'), 120),
+                    'formats': _truncate(ops.get('meeting_formats'), 160),
                     'stage': ', '.join(stages) if stages else None,
                     # THE authoritative one-line status (same as the card face).
                     'status': _derived_status(stages, ops.get('speaker'),
-                                              e.get('deadline'), endish, today),
+                                              ops.get('deadline') or e.get('deadline'),
+                                              endish, today),
                     'starts': (str(e.get('start_date'))[:10]
                                if e.get('start_date') else endish),
                     # True only once a speaking application is actually IN.
@@ -344,7 +357,8 @@ def _gather_events(host):
     st, rows = _http_json(
         'GET', SUPABASE_URL + '/rest/v1/manual_events?select=id,name,date_str,location,'
         'region,type,priority,status_tags,speaker,attend_verdict,audience_type,'
-        'pricing,deadline,why,url,poc_name,poc_email,contact_info',
+        'pricing,deadline,why,url,poc_name,poc_email,contact_info,'
+        'about,focus_areas,typical_attendees,attendee_count,venue,meeting_formats',
         headers={'apikey': SUPABASE_PUBLISHABLE,
                  'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE}, timeout=12)
     if st == 200 and isinstance(rows, list):
@@ -366,6 +380,12 @@ def _gather_events(host):
                 'type': m.get('type'), 'priority': m.get('priority'),
                 'audience': m.get('audience_type'), 'price': m.get('pricing'),
                 'deadline': m.get('deadline'),
+                'about': _truncate(m.get('about'), 400),
+                'topics': _truncate(m.get('focus_areas'), 200),
+                'attendees': _truncate(m.get('typical_attendees'), 220),
+                'attendee_count': m.get('attendee_count'),
+                'venue': _truncate(m.get('venue'), 120),
+                'formats': _truncate(m.get('meeting_formats'), 160),
                 'stage': ', '.join(stages) if stages else None,
                 'status': _derived_status(stages, m.get('speaker'),
                                           m.get('deadline'), endish, today),
@@ -459,6 +479,8 @@ _SYSTEM = (
     "spoken\", INCLUDE past booked events (upcoming=false) too and note which have "
     "passed; do NOT answer \"none booked\" when booked=true events exist in the "
     "data, even if all of them are in the past.\n"
+    "- \"WHAT IS THIS EVENT?\" — when asked what an event IS, is about, or what happens there, LEAD WITH THE EVENT, not the bookkeeping. Build the answer from 'about', 'topics', 'attendees', 'attendee_count', 'formats', 'venue' and 'type': what it covers, the industries it serves, its scale, who it draws, and anything distinctive. Two or three sentences. Do NOT open with our pipeline status, and mention status, stage or speaker ONLY if they asked, or as one short closing line when it is clearly useful. Never list what is missing (\"no ticket price on file\") unless that is what they asked about — absent data is not an answer.\n"
+    "- SAY ONLY WHAT YOU WERE GIVEN: an event's JSON is already filtered to what this person is allowed to see. If a field is absent, it is absent BY DESIGN — never guess at it, never refer to it, and never tell them a field is hidden. In particular do not attribute a priority, a CFP deadline or an audience rating to an event unless that key is present.\n"
     "- STATUS IS AUTHORITATIVE: each event carries 'status' — a derived, "
     "always-true one-liner matching what the card shows (e.g. 'Booked — Thor "
     "speaking', 'Submitted — Thor (CFP closed)', 'Rejected — Thor', "
@@ -611,6 +633,27 @@ _APP_GUIDE = (
 )
 
 
+# Fields the UI deliberately does NOT show a speaker. Priority is Angela's
+# triage signal, the CFP deadline is hers to chase, buyer-rich is Verma's, and
+# Should-Attend / saved are internal triage. The assistant was handing all of it
+# to whoever asked — it told Thor an event was "marked as a High-priority fit
+# for you" (Hurley 2026-07-29). Stripping them from the PAYLOAD rather than
+# asking the model not to mention them: what isn't sent can't leak.
+_OPS_ONLY = ('priority', 'deadline', 'attend', 'saved')
+_SUPPORT = ('angela', 'hurley')
+
+
+def _visible_events(events, asker):
+    """The event list as this person is allowed to see it."""
+    asker = (asker or '').strip().lower()
+    if asker in _SUPPORT:
+        return events                      # they run the tracker; they see it all
+    drop = set(_OPS_ONLY)
+    if asker != 'verma':
+        drop.add('audience')               # Verma's signal only, as on the card
+    return [{k: v for k, v in e.items() if k not in drop} for e in events]
+
+
 def _ask_openai(question, history, events, user='', for_people=None):
     messages = [{'role': 'system',
                  'content': _SYSTEM.format(today=date.today().isoformat())}]
@@ -680,7 +723,8 @@ def _ask_openai(question, history, events, user='', for_people=None):
                          'content': 'ARCTICBLUE CONTEXT:\n' + _COMPANY_CONTEXT})
     messages.append({'role': 'system', 'content': _APP_GUIDE})
     messages.append({'role': 'system',
-                     'content': 'EVENTS (JSON):\n' + json.dumps(events, ensure_ascii=False)})
+                     'content': 'EVENTS (JSON):\n' + json.dumps(
+                         _visible_events(events, _first), ensure_ascii=False)})
     for h in (history or [])[-6:]:
         if isinstance(h, dict) and h.get('role') in ('user', 'assistant') and h.get('content'):
             messages.append({'role': h['role'], 'content': str(h['content'])[:2000]})
