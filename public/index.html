@@ -4385,7 +4385,15 @@
       // there's something the rows DON'T say — a second entry, a note to
       // summarise, or a state other than "chased recently" (overdue, waiting,
       // door closed), which is the whole point of having it.
-      var _fuOnlyEcho = (_fuSt && _fuSt.state === 'ok' && _fuList.length === 1 &&
+      // Restricting this to the 'ok' state was my own caveat and it was wrong:
+      // on an event a fortnight out the same single bare entry comes back as
+      // 'due' and the badge reappeared, which is what Hurley kept seeing. Any
+      // cadence state — chased recently OR overdue — is derived from the row
+      // itself, so with one bare entry it is pure repetition either way.
+      // 'closed' and 'hold' stay: they describe the ORGANISER, which no row
+      // says (Hurley 2026-07-30).
+      var _fuEcho = { ok: 1, due: 1 };
+      var _fuOnlyEcho = (_fuSt && _fuEcho[_fuSt.state] && _fuList.length === 1 &&
                          !String((_fuList[0] || {}).note || '').trim());
       if (_fuSt && _fuSt.state !== 'none' && !_fuOnlyEcho) {
         var _fuLab = _fuSt.label, _fuCls = _fuSt.state;
