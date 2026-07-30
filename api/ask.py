@@ -309,7 +309,7 @@ def _fu_summary(v):
     return '; '.join(out)
 
 
-def _gather_events(host):
+def _gather_events(host, question=''):
     """Compact, model-friendly list of every event: catalog (events.json) +
     manual (manual_events) merged with ops state (event_state). Each event is
     annotated with a canonical region, an 'upcoming' flag (vs today), and a
@@ -462,6 +462,21 @@ def _gather_events(host):
     past_untracked = [e for e in past if not e.get('stage')][:PAST_EVENTS_CONTEXT]
     room = max(0, MAX_EVENTS_CONTEXT - len(past_tracked))
     merged = (upcoming[:room] + past_tracked + past_untracked)[:MAX_EVENTS_CONTEXT]
+    # The cap means most of the catalog never reaches the model, so an event the
+    # question NAMES could be cut and come back as "I can't find that event" —
+    # which is exactly what the per-event chatbot asks about every time (it
+    # sends 'About the event "<name>": ...'). Pin any event whose full name
+    # appears in the question so a direct question is never answered from a
+    # truncated list (Hurley 2026-07-30).
+    if question:
+        qf = _fold(question)
+        pinned = [e for e in out
+                  if len(_fold(e.get('name') or '')) >= 6 and _fold(e['name']) in qf]
+        if pinned:
+            have = {id(x) for x in merged}
+            missing = [e for e in pinned if id(e) not in have]
+            if missing:
+                merged = missing + merged[:MAX_EVENTS_CONTEXT - len(missing)]
     for e in merged:
         e.pop('_sort', None)
     return merged
@@ -971,7 +986,7 @@ class handler(BaseHTTPRequestHandler):
         question = (body.get('question') or '').strip()
         if not question:
             return _send(self, 400, {'error': 'no question'})
-        events = _gather_events(self.headers.get('Host', ''))
+        events = _gather_events(self.headers.get('Host', ''), question)
         try:
             answer, names, mode, served = _ask_openai(question, body.get('history'), events, body.get('user'), body.get('for_people'))
         except Exception as e:  # noqa: BLE001
