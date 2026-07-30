@@ -634,6 +634,27 @@
     .modal-quickbar .qa[data-qa="saved"].on { background: var(--ab-blue); border-color: var(--ab-blue); }
     .modal-quickbar .qa[data-qa="archive"].on { background: var(--ab-fg-3); border-color: var(--ab-fg-3); }
     .modal-quickbar .qa[data-qa="go"].on { background: #1a8c54; border-color: #1a8c54; }
+    /* Should-Attend name picker — hover (or focus) the button to choose who
+       it's for. Sits above the quickbar so it can't be clipped by the row. */
+    .qa-sa-wrap { position: relative; display: inline-flex; }
+    .qa-sa-menu {
+      position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+      display: none; flex-direction: column; gap: 2px; min-width: 168px;
+      padding: 7px; background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
+      border-radius: 9px; box-shadow: 0 10px 26px rgba(0,0,0,0.16);
+    }
+    .qa-sa-wrap:hover .qa-sa-menu, .qa-sa-wrap:focus-within .qa-sa-menu { display: flex; }
+    .sa-menu-h {
+      font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--ab-fg-3); padding: 1px 5px 4px;
+    }
+    .sa-pick {
+      text-align: left; font-family: var(--ab-sans); font-size: 0.86rem;
+      padding: 6px 9px; border-radius: 6px; cursor: pointer;
+      border: 1px solid transparent; background: none; color: var(--ab-fg);
+    }
+    .sa-pick:hover { background: var(--ab-bg-3); }
+    .sa-pick.on { color: var(--ab-blue); font-weight: 650; }
     .qa-row-label {
       display: inline-flex; align-items: center; font-family: var(--ab-mono);
       font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
@@ -3274,6 +3295,8 @@
   // (rec._table + rec._key present). Each button writes a single field via
   // window.opsWrite (bridged from the ops closure). Save/Hide are catalog-
   // only (manual_events has no saved/hidden column).
+  // Who Angela flags Should-Attend for, in order of how often they go.
+  var SA_PEOPLE = ['Thor', 'Verma', 'Jerome', 'Joe'];
   function quickBarHtml(rec) {
     if (!rec || !rec._table || rec._key == null) return '';
     var stages = rec.stage_tags || [];
@@ -3297,9 +3320,30 @@
     // Should Attend is Angela's triage tool — only she sees/sets it here. For
     // everyone else, marking Interested funnels into her Should-Attend list.
     if (window.isAngelaUser && window.isAngelaUser()) {
-      bStage.push('<button type="button" class="qa' + (_saKind === 'human' ? ' on' : '') + '" data-qa="should-attend" title="' +
+      // Angela can flag Should-Attend FOR a named person (Hurley 2026-07-30).
+      // Operationally that IS the person saying "apply for me": it belongs in
+      // her Queue and should drop off that person's Planner. Both already
+      // happen for anyone on `interested` — queueItems() keys on it and
+      // _suggestionsFor() skips events you're already flagged on — so this
+      // writes the same list rather than inventing a parallel field.
+      // Order is how often they actually go on stage.
+      var _saOn = (rec.interested || []).filter(Boolean);
+      var _saHas = function (n) { return _saOn.some(function (x) { return String(x).toLowerCase() === n.toLowerCase(); }); };
+      var _saPicked = SA_PEOPLE.filter(_saHas);
+      var _saLabel = _saPicked.length
+        ? '✓ Should Attend — ' + esc(_saPicked.join(', '))
+        : (_saKind === 'human' ? '✓ Should Attend' : 'Should Attend');
+      var _saMenu = SA_PEOPLE.map(function (n) {
+        return '<button type="button" class="sa-pick' + (_saHas(n) ? ' on' : '') +
+               '" data-sa-for="' + esc(n) + '">' + (_saHas(n) ? '✓ ' : '') + esc(n) + '</button>';
+      }).join('');
+      bStage.push('<span class="qa-sa-wrap">' +
+        '<button type="button" class="qa' + ((_saKind === 'human' || _saPicked.length) ? ' on' : '') + '" data-qa="should-attend" title="' +
         (_saKind === 'ai' ? 'AI-suggested — click to confirm as a team Should-Attend' : 'Flag Should Attend — tentative but high on the radar') + '">' +
-        (_saKind === 'human' ? '✓ Should Attend' : 'Should Attend') + '</button>');
+        _saLabel + '</button>' +
+        '<span class="qa-sa-menu" role="group" aria-label="Flag Should Attend for">' +
+          '<span class="sa-menu-h">Should attend &mdash; for</span>' + _saMenu +
+        '</span></span>');
     }
     // "Interested" — the current teammate adds themselves to the list of people
     // who want Angela to apply for them. This feeds Angela's Queue.
@@ -3352,6 +3396,37 @@
     var bar = $body.querySelector('.modal-quickbar');
     if (!bar) return;
     bar.addEventListener('click', function (e) {
+      // Angela picked a NAME under Should Attend -> toggle them on `interested`,
+      // which is what puts it in her Queue and takes it off their Planner.
+      var pick = e.target.closest ? e.target.closest('[data-sa-for]') : null;
+      if (pick && window.opsWrite) {
+        e.stopPropagation();
+        var who = pick.getAttribute('data-sa-for') || '';
+        var list = (rec.interested || []).slice();
+        var at = -1;
+        for (var q = 0; q < list.length; q++) {
+          if (String(list[q]).toLowerCase() === who.toLowerCase()) { at = q; break; }
+        }
+        var p2 = {};
+        if (at === -1) {
+          list.push(who);
+          // Flagging someone revives it in the queue and counts as a confirmed,
+          // human Should-Attend — same as when the person flags themselves.
+          if (shouldAttendKind(rec.attend_verdict) !== 'human') {
+            rec.attend_verdict = 'Worth attending'; p2.attend_verdict = 'Worth attending';
+          }
+          rec.queue_dismissed = false; p2.queue_dismissed = false;
+        } else { list.splice(at, 1); }
+        if (window.abPlanOrder) list = window.abPlanOrder(list);
+        rec.interested = list; p2.interested = list;
+        window.opsWrite(rec._table, rec._key, p2);
+        var sc0 = overlay.querySelector('.modal-scroll');
+        var top0 = sc0 ? sc0.scrollTop : 0;
+        openEventModal(rec);
+        if (sc0) sc0.scrollTop = top0;
+        if (window.opsRefresh) window.opsRefresh();
+        return;
+      }
       var btn = e.target.closest ? e.target.closest('[data-qa]') : null;
       if (!btn || !window.opsWrite) return;
       var qa = btn.dataset.qa;
@@ -7464,6 +7539,11 @@
     // number never matched what Angela actually saw in the Queue.
     function queueItems() {
       return opsAllItems().filter(function (it) {
+        // Rejected leaves the queue entirely (Hurley 2026-07-30). The organiser
+        // passed, so there is nothing to apply to and nothing in flight — it was
+        // landing in "Submitted / in progress" because the Submitted tag that
+        // got it there survives the rejection.
+        if (it.stages.indexOf('Rejected') !== -1) return false;
         return window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).length &&
                !it.past && !it.queue_dismissed && !it.hidden;
       });
@@ -8684,11 +8764,24 @@
     // Whose lineup drives Plan Ahead. A named teammate sees their own; support
     // (Angela/Hurley) plan for everyone, so they get the whole team's — every
     // persona first name. Returns [] when there's no signed-in name.
+    // Who the team actually puts on stage, most often first — Thor leads
+    // (Hurley 2026-07-30). Support sees every persona, but in THIS order rather
+    // than whatever order personas.json happens to be written in.
+    var PLAN_ORDER = ['thor', 'verma', 'jerome', 'joe', 'carlos', 'jim', 'scott'];
+    function planSort(names) {
+      return names.slice().sort(function (a, b) {
+        var ia = PLAN_ORDER.indexOf(String(a).toLowerCase());
+        var ib = PLAN_ORDER.indexOf(String(b).toLowerCase());
+        if (ia === -1) ia = 99; if (ib === -1) ib = 99;
+        return ia - ib || String(a).localeCompare(String(b));
+      });
+    }
+    window.abPlanOrder = planSort;
     function _planOwners() {
       var me = getCollabName() || '';
       var first = abFold(me).split(/\s+/)[0];
       if (!first) return [];
-      if (isSupportPerson(me)) return Object.keys(window.AB_PERSONAS || {});
+      if (isSupportPerson(me)) return planSort(Object.keys(window.AB_PERSONAS || {}));
       return [first];
     }
     // The committed-travel role a given person has for an event (drives trip
