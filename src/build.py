@@ -1080,6 +1080,54 @@ def build():
     .modal-quickbar .qa[data-qa="saved"].on {{ background: var(--ab-blue); border-color: var(--ab-blue); }}
     .modal-quickbar .qa[data-qa="archive"].on {{ background: var(--ab-fg-3); border-color: var(--ab-fg-3); }}
     .modal-quickbar .qa[data-qa="go"].on {{ background: #1a8c54; border-color: #1a8c54; }}
+    .peek-clash {{
+      font-size: 0.82rem; font-weight: 600; color: #9a3412;
+      background: #fff7ed; border: 1px solid #fed7aa; border-radius: 7px;
+      padding: 6px 9px; margin-bottom: 10px;
+    }}
+    /* Card-face conflict chip — amber, so it reads as "check this", not "error". */
+    .ops-clash {{
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: var(--ab-sans); font-size: 0.74rem; font-weight: 600;
+      color: #9a3412; background: #fff7ed; border: 1px solid #fed7aa;
+      border-radius: 999px; padding: 2px 9px; margin-top: 6px;
+    }}
+    /* ── Hover peek: conversation + notes without opening the card ────── */
+    .card-peek {{
+      position: fixed; z-index: 900; width: 340px; max-width: 92vw;
+      display: none; pointer-events: none;   /* read-only: nothing to cross */
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
+      border-radius: 11px; padding: 12px 13px;
+      box-shadow: 0 14px 38px rgba(0,0,0,0.17);
+    }}
+    .card-peek.on {{ display: block; }}
+    .peek-sec + .peek-sec {{ margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--ab-rule); }}
+    .peek-h {{
+      display: block; font-family: var(--ab-mono); font-size: 0.58rem; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase; color: var(--ab-fg-3); margin-bottom: 6px;
+    }}
+    .peek-msg + .peek-msg {{ margin-top: 7px; }}
+    .peek-who {{ font-size: 0.82rem; font-weight: 650; color: var(--ab-fg); }}
+    .peek-when {{ font-family: var(--ab-mono); font-size: 0.62rem; color: var(--ab-fg-3); margin-left: 6px; }}
+    .peek-body {{
+      font-size: 0.86rem; color: var(--ab-fg-2); line-height: 1.42; margin-top: 1px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }}
+    .peek-more {{ font-size: 0.74rem; color: var(--ab-fg-3); margin-top: 5px; }}
+    /* Notes cap at FOUR lines — some are very long, and the rest is one click
+       away in the card itself (Hurley 2026-07-30). */
+    .peek-notes {{
+      font-size: 0.86rem; color: var(--ab-fg); line-height: 1.45; white-space: pre-wrap;
+      display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+    }}
+    .peek-cta {{
+      margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--ab-rule);
+      font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--ab-fg-3);
+    }}
+    /* Touch has no hover — never show it there. */
+    @media (hover: none) {{ .card-peek {{ display: none !important; }} }}
+
     /* Should-Attend name picker — hover (or focus) the button to choose who
        it's for. Sits above the quickbar so it can't be clipped by the row. */
     .qa-sa-wrap {{ position: relative; display: inline-flex; }}
@@ -4246,7 +4294,11 @@ def build():
         return '<label class="me-int' + (on ? ' on' : '') + '"><input type="checkbox" data-outreach="' + esc(n.toLowerCase()) + '"' + (on ? ' checked' : '') + '>' + esc(n) + '</label>';
       }}).join('');
       sTeam += ef('Ask a teammate to reach out \\u2014 they may have a connection', '<div class="me-ints">' + outrChips + '</div>');
-      sTeam += ef('Who to reach / why them (optional)', inp('outreach_note', rec.outreach_note, 'e.g. you know their Head of Events'));
+      sTeam += ef('Who to reach / why them (optional)', inp('outreach_note', 'conflict_note', rec.outreach_note, 'e.g. you know their Head of Events'));
+      // A conflict the DATES can't reveal — a board meeting, a holiday, a
+      // trip that makes this unreachable. Overlapping events are detected
+      // automatically; this is for everything else (Hurley 2026-07-30).
+      sTeam += ef('Scheduling conflict (optional)', inp('conflict_note', rec.conflict_note, 'e.g. Thor is at the board offsite that week'));
     }}
     h += sec('Attending & team', sTeam);
 
@@ -6003,6 +6055,7 @@ def build():
         if (st.attendees && st.attendees.length) rec.attendees = st.attendees;
         if (st.outreach_assignees && st.outreach_assignees.length) rec.outreach_assignees = st.outreach_assignees;
         if (st.outreach_note) rec.outreach_note = st.outreach_note;
+        if (st.conflict_note) rec.conflict_note = st.conflict_note;
         if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
         if (st.decision) rec.decision = st.decision;
         if (st.is_private != null) rec.is_private = !!st.is_private;
@@ -6015,6 +6068,28 @@ def build():
       rec._table = 'event_state'; rec._key = ev.num;
       rec.region = canonicalRegion(ev);
       card._modalRec = rec;
+      // Scheduling conflict: derived (same person, overlapping dates) plus any
+      // note Angela typed. Stamped on the card so the face and the hover peek
+      // agree without recomputing.
+      (function () {{
+        var _r = card._modalRec || {{}};
+        var _it = {{ kind: card.dataset.kind || (_r._table === 'manual_events' ? 'manual' : 'catalog'),
+                    key: _r._key, name: _r.name, speaker: _r.speaker,
+                    attendees: _r.attendees, start_date: _r.start_date, end_date: _r.end_date,
+                    date_str: _r.date_str, startObj: _r, past: false, hidden: false }};
+        var _cl = [];
+        try {{ _cl = visibleClashes(_it); }} catch (e) {{}}
+        var _lbl = _cl.length ? clashLabel(_cl) : '';
+        card.dataset.clash = _lbl;
+        var _note = String(_r.conflict_note || '').trim();
+        if (_lbl || _note) {{
+          var _host = card.querySelector('.ops-status-line') || card.querySelector('.ops-meta');
+          var _chip = '<span class="ops-clash" title="Scheduling conflict">&#9888; ' +
+            (_note ? escapeHtml(_note) : _lbl) + '</span>';
+          if (_host) _host.insertAdjacentHTML('afterend', _chip);
+          else card.insertAdjacentHTML('beforeend', _chip);
+        }}
+      }})();
       return card;
     }}
 
@@ -6205,6 +6280,28 @@ def build():
       mrec._table = 'manual_events'; mrec._key = mev.id;
       mrec.region = canonicalRegion(mev);
       card._modalRec = mrec;
+      // Scheduling conflict: derived (same person, overlapping dates) plus any
+      // note Angela typed. Stamped on the card so the face and the hover peek
+      // agree without recomputing.
+      (function () {{
+        var _r = card._modalRec || {{}};
+        var _it = {{ kind: card.dataset.kind || (_r._table === 'manual_events' ? 'manual' : 'catalog'),
+                    key: _r._key, name: _r.name, speaker: _r.speaker,
+                    attendees: _r.attendees, start_date: _r.start_date, end_date: _r.end_date,
+                    date_str: _r.date_str, startObj: _r, past: false, hidden: false }};
+        var _cl = [];
+        try {{ _cl = visibleClashes(_it); }} catch (e) {{}}
+        var _lbl = _cl.length ? clashLabel(_cl) : '';
+        card.dataset.clash = _lbl;
+        var _note = String(_r.conflict_note || '').trim();
+        if (_lbl || _note) {{
+          var _host = card.querySelector('.ops-status-line') || card.querySelector('.ops-meta');
+          var _chip = '<span class="ops-clash" title="Scheduling conflict">&#9888; ' +
+            (_note ? escapeHtml(_note) : _lbl) + '</span>';
+          if (_host) _host.insertAdjacentHTML('afterend', _chip);
+          else card.insertAdjacentHTML('beforeend', _chip);
+        }}
+      }})();
 
       if (_isArchivedForMe(true, mev.id, mev.hidden === true)) card.classList.add('is-archived');
       if (mev.saved)  card.classList.add('is-saved');
@@ -7031,6 +7128,8 @@ def build():
         frag.appendChild(card);
       }});
       $opsGrid.appendChild(frag);
+      _buildClashIndex();
+      wireCardPeek();
       buildMonthsFilter();
     }}
 
@@ -10778,6 +10877,194 @@ def build():
     // name+city+year key, keep the richest card, mark the rest dupHidden so they
     // drop out of the grid, count, calendar-view + filters. Non-destructive
     // (nothing deleted; a re-render re-evaluates from fresh data).
+    // ── Scheduling conflicts ─────────────────────────────────────────
+    // STATUS 2026-07-30: the MANUAL conflict_note path below is live and
+    // renders. The automatic same-person/overlapping-date detection is
+    // written but is NOT matching yet — clashesFor() returns [] against
+    // real data even though a standalone pass over the same rows finds 99
+    // pairs, so the item shape it reads is still wrong somewhere. Do not
+    // treat the absence of a chip as 'no conflicts'.
+    // Most of these are already implied by data we hold: the same person is
+    // down for two events whose dates overlap. 99 such pairs exist right now
+    // (Thor is on three separate things on 3 Nov), so this is detected rather
+    // than typed (Hurley 2026-07-30). Angela can still record a conflict the
+    // data can't see — a board meeting, a holiday — in `conflict_note`.
+    //
+    // Built ONCE per render into a person -> [event] index; doing it pairwise
+    // per card would be ~700^2.
+    var _clashIdx = null;
+    function _clashPeople(it) {{
+      var out = {{}};
+      (it.attendees || []).forEach(function (a) {{
+        var f = abFold(a).split(/\s+/)[0]; if (f) out[f] = 1;
+      }});
+      String(it.speaker || '').split(/[,;/&]| and /).forEach(function (t) {{
+        var f = abFold(t).split(/\s+/)[0]; if (f) out[f] = 1;
+      }});
+      return Object.keys(out);
+    }}
+    function _clashRange(it) {{
+      // Use the SAME resolver the rest of the grid uses. Reading start_date off
+      // the record directly worked for manual rows but silently returned null
+      // for catalog ones — their dates live on the catalog entry, not the ops
+      // record — so nothing ever matched (Hurley 2026-07-30).
+      var s0 = null;
+      try {{ s0 = eventStartIso(it) || eventStartIso(it.startObj || {{}}); }} catch (e) {{}}
+      if (!s0 || !/^\d{{4}}-\d{{2}}-\d{{2}}/.test(String(s0))) return null;
+      s0 = String(s0).slice(0, 10);
+      var o = it.startObj || it;
+      var e0 = o.end_date || it.end_date;
+      e0 = (e0 && /^\d{{4}}-\d{{2}}-\d{{2}}/.test(String(e0))) ? String(e0).slice(0, 10) : s0;
+      return [s0, e0 < s0 ? s0 : e0];
+    }}
+    function _buildClashIndex() {{
+      var idx = {{}};
+      opsAllItems().forEach(function (it) {{
+        if (it.past || it.hidden) return;
+        // Items carry a numeric `sort` key, not start_date — the same thing
+        // _tripClusters() reads. Going via the record's start_date worked for
+        // the card but left this index empty, so nothing ever matched.
+        var sd = null, ed = null;
+        try {{ sd = _sortToDate(it.sort); ed = _sortToDate(_endSortOf(it)); }} catch (e) {{}}
+        if (!sd || isNaN(sd)) return;
+        if (!ed || isNaN(ed)) ed = sd;
+        var iso = function (d) {{
+          return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
+                 '-' + String(d.getDate()).padStart(2, '0');
+        }};
+        var s0 = iso(sd), e0 = iso(ed);
+        if (e0 < s0) e0 = s0;
+        _clashPeople(it).forEach(function (who) {{
+          (idx[who] = idx[who] || []).push({{ key: it.kind + ':' + it.key, name: it.name, s: s0, e: e0 }});
+        }});
+      }});
+      _clashIdx = idx;
+      return idx;
+    }}
+    // [{{ who, name, s }}] — everyone double-booked against THIS event.
+    function clashesFor(it) {{
+      var r = _clashRange(it); if (!r) return [];
+      var idx = _clashIdx || _buildClashIndex();
+      var me = it.kind + ':' + it.key, out = [];
+      _clashPeople(it).forEach(function (who) {{
+        (idx[who] || []).forEach(function (o) {{
+          if (o.key === me) return;
+          if (r[0] <= o.e && o.s <= r[1]) out.push({{ who: who, name: o.name, s: o.s }});
+        }});
+      }});
+      return out;
+    }}
+    // Angela sees every clash (she does the scheduling); everyone else sees
+    // only the ones that are theirs to resolve.
+    function visibleClashes(it) {{
+      var all = clashesFor(it);
+      if (!all.length) return [];
+      if (isSupportPerson(getCollabName() || '')) return all;
+      var me = abFold(getCollabName() || '').split(/\s+/)[0];
+      return me ? all.filter(function (c) {{ return c.who === me; }}) : [];
+    }}
+    function clashLabel(list) {{
+      if (!list.length) return '';
+      var who = [];
+      list.forEach(function (c) {{ if (who.indexOf(c.who) === -1) who.push(c.who); }});
+      var cap = function (n) {{ return n.charAt(0).toUpperCase() + n.slice(1); }};
+      var names = (window.abPlanOrder ? window.abPlanOrder(who) : who).map(cap);
+      return names.join(' & ') + ' also on ' + escapeHtml(list[0].name) +
+             (list.length > 1 ? ' +' + (list.length - 1) + ' more' : '');
+    }}
+
+    // ── Hover peek: the conversation + notes, without opening the card ──
+    // One shared popover, not one per card (there are ~700). It is
+    // pointer-events:none on purpose — you only ever READ it, so there is no
+    // gap to cross and no way to lose it mid-move, which is what made the
+    // Should-Attend menu fragile. Click the card for the full thing.
+    var _peekEl = null, _peekTimer = null, _peekFor = null;
+    function _peekNode() {{
+      if (_peekEl) return _peekEl;
+      _peekEl = document.createElement('div');
+      _peekEl.className = 'card-peek';
+      _peekEl.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(_peekEl);
+      return _peekEl;
+    }}
+    function _peekHide() {{
+      if (_peekTimer) {{ clearTimeout(_peekTimer); _peekTimer = null; }}
+      _peekFor = null;
+      if (_peekEl) _peekEl.classList.remove('on');
+    }}
+    function _peekHtml(card) {{
+      var rec = card._modalRec || {{}};
+      var notes = String(rec.notes || '').trim();
+      var ck = (card.querySelector('.chat-count[data-chatkey]') || {{}}).getAttribute
+             ? card.querySelector('.chat-count[data-chatkey]').getAttribute('data-chatkey') : null;
+      var meta = (ck && _chatMeta[ck]) || null;
+      var msgs = (meta && meta.msgs ? meta.msgs.slice() : []);
+      msgs.sort(function (a2, b2) {{ return (a2.at || '') < (b2.at || '') ? 1 : -1; }});
+      msgs = msgs.slice(0, 3);
+      var _hasClash = !!(card.dataset.clash || String(rec.conflict_note || '').trim());
+      if (!notes && !msgs.length && !_hasClash) return '';
+      var h = '';
+      if (msgs.length) {{
+        h += '<div class="peek-sec"><span class="peek-h">Conversation</span>';
+        msgs.forEach(function (m) {{
+          h += '<div class="peek-msg"><span class="peek-who">' + escapeHtml(String(m.author || 'Someone').split(/\s+/)[0]) +
+               '</span><span class="peek-when">' + escapeHtml(_relTime(m.at)) + '</span>' +
+               '<div class="peek-body">' + escapeHtml(m.body || '') + '</div></div>';
+        }});
+        if (meta && meta.count > msgs.length) {{
+          h += '<div class="peek-more">+' + (meta.count - msgs.length) + ' more</div>';
+        }}
+        h += '</div>';
+      }}
+      if (notes) {{
+        h += '<div class="peek-sec"><span class="peek-h">Notes</span>' +
+             '<div class="peek-notes">' + escapeHtml(notes) + '</div></div>';
+      }}
+      // A double-booking is the single most useful thing to see before opening.
+      var _pk = card.dataset.clash || '';
+      if (_pk) h = '<div class="peek-clash">&#9888; ' + _pk + '</div>' + h;
+      var _pcn = String(rec.conflict_note || '').trim();
+      if (_pcn) h = '<div class="peek-clash">&#9888; ' + escapeHtml(_pcn) + '</div>' + h;
+      h += '<div class="peek-cta">Click the card to open it</div>';
+      return h;
+    }}
+    function _peekShow(card) {{
+      var html = _peekHtml(card);
+      if (!html) return;
+      var el = _peekNode();
+      el.innerHTML = html;
+      el.classList.add('on');
+      // Place it beside the card, flipping to the left / above when it would
+      // otherwise run off the viewport.
+      var r = card.getBoundingClientRect();
+      var w = el.offsetWidth, h = el.offsetHeight;
+      var left = r.right + 12;
+      if (left + w > window.innerWidth - 8) left = Math.max(8, r.left - w - 12);
+      var top = r.top;
+      if (top + h > window.innerHeight - 8) top = Math.max(8, window.innerHeight - h - 8);
+      el.style.left = Math.round(left) + 'px';
+      el.style.top  = Math.round(top) + 'px';
+    }}
+    function wireCardPeek() {{
+      if (!$opsGrid || $opsGrid.dataset.peekWired) return;
+      $opsGrid.dataset.peekWired = '1';
+      $opsGrid.addEventListener('mouseover', function (e) {{
+        var card = e.target.closest ? e.target.closest('.ops-card') : null;
+        if (!card || card === _peekFor) return;
+        _peekHide();
+        _peekFor = card;
+        // A short delay so sweeping the pointer across the grid doesn't strobe.
+        _peekTimer = setTimeout(function () {{ if (_peekFor === card) _peekShow(card); }}, 320);
+      }});
+      $opsGrid.addEventListener('mouseout', function (e) {{
+        var to = e.relatedTarget;
+        if (to && to.closest && to.closest('.ops-card') === _peekFor) return;
+        _peekHide();
+      }});
+      window.addEventListener('scroll', _peekHide, true);
+      $opsGrid.addEventListener('click', _peekHide);
+    }}
+
     function dedupeOpsCards() {{
       if (!$opsGrid) return 0;
       // Reviewing / revealing possible duplicates is Angela's job — for everyone
