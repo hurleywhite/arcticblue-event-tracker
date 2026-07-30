@@ -638,12 +638,26 @@
        it's for. Sits above the quickbar so it can't be clipped by the row. */
     .qa-sa-wrap { position: relative; display: inline-flex; }
     .qa-sa-menu {
-      position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
-      display: none; flex-direction: column; gap: 2px; min-width: 168px;
+      position: absolute; top: 100%; left: 0; z-index: 40;
+      display: none; flex-direction: column; gap: 2px; min-width: 178px;
+      margin-top: 8px;
       padding: 7px; background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
       border-radius: 9px; box-shadow: 0 10px 26px rgba(0,0,0,0.16);
     }
-    .qa-sa-wrap:hover .qa-sa-menu, .qa-sa-wrap:focus-within .qa-sa-menu { display: flex; }
+    /* Bridge the 8px gap between button and menu. Without it, moving the mouse
+       down to pick a name left .qa-sa-wrap, :hover dropped, and the menu closed
+       before the click landed (Hurley 2026-07-30). The bridge is part of the
+       menu, so the pointer never leaves the hover target. */
+    .qa-sa-menu::before {
+      content: ''; position: absolute; left: 0; right: 0; top: -10px; height: 10px;
+    }
+    .qa-sa-wrap:hover .qa-sa-menu,
+    .qa-sa-wrap:focus-within .qa-sa-menu,
+    .qa-sa-wrap.is-open .qa-sa-menu { display: flex; }
+    /* Clicking the button PINS the menu open, so it doesn't depend on keeping
+       the pointer inside a small target at all. */
+    .qa-sa-wrap.is-open > .qa { border-color: var(--ab-blue); }
+    .sa-pick-team { margin-top: 3px; padding-top: 7px; border-top: 1px solid var(--ab-rule); }
     .sa-menu-h {
       font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.08em;
       text-transform: uppercase; color: var(--ab-fg-3); padding: 1px 5px 4px;
@@ -3343,6 +3357,9 @@
         _saLabel + '</button>' +
         '<span class="qa-sa-menu" role="group" aria-label="Flag Should Attend for">' +
           '<span class="sa-menu-h">Should attend &mdash; for</span>' + _saMenu +
+          // The old blanket flag, kept for "worth attending, nobody named yet".
+          '<button type="button" class="sa-pick sa-pick-team' + (_saKind === 'human' ? ' on' : '') +
+            '" data-sa-team="1">' + (_saKind === 'human' ? '✓ ' : '') + 'Team &mdash; no one specific</button>' +
         '</span></span>');
     }
     // "Interested" — the current teammate adds themselves to the list of people
@@ -3392,6 +3409,16 @@
     var head = names.slice(0, -1).map(esc).join(', ');
     return head + ' &amp; ' + esc(last) + ' are interested';
   }
+  // Bound once: a pinned Should-Attend picker closes when you click away.
+  if (!window._saOutsideWired) {
+    window._saOutsideWired = 1;
+    document.addEventListener('click', function (e) {
+      var inside = e.target.closest ? e.target.closest('.qa-sa-wrap') : null;
+      document.querySelectorAll('.qa-sa-wrap.is-open').forEach(function (w) {
+        if (w !== inside) w.classList.remove('is-open');
+      });
+    });
+  }
   function wireQuickBar(rec) {
     var bar = $body.querySelector('.modal-quickbar');
     if (!bar) return;
@@ -3420,14 +3447,43 @@
         if (window.abPlanOrder) list = window.abPlanOrder(list);
         rec.interested = list; p2.interested = list;
         window.opsWrite(rec._table, rec._key, p2);
+        var wasOpen = !!(pick.closest('.qa-sa-wrap') || {}).classList;
         var sc0 = overlay.querySelector('.modal-scroll');
         var top0 = sc0 ? sc0.scrollTop : 0;
         openEventModal(rec);
         if (sc0) sc0.scrollTop = top0;
+        // Re-pin it: flagging two people in a row shouldn't mean re-opening
+        // the menu between each one.
+        if (wasOpen) {
+          var w2 = $body.querySelector('.qa-sa-wrap');
+          if (w2) w2.classList.add('is-open');
+        }
         if (window.opsRefresh) window.opsRefresh();
         return;
       }
       var btn = e.target.closest ? e.target.closest('[data-qa]') : null;
+      // The Should-Attend button's job is to OPEN the picker. It used to write
+      // attend_verdict and re-render, which tore the menu down mid-click.
+      if (btn && btn.getAttribute('data-qa') === 'should-attend') {
+        e.stopPropagation();
+        var wrap = btn.closest('.qa-sa-wrap');
+        if (wrap) wrap.classList.toggle('is-open');
+        return;
+      }
+      // "Team — no one specific" keeps the old blanket flag available.
+      var teamBtn = e.target.closest ? e.target.closest('[data-sa-team]') : null;
+      if (teamBtn && window.opsWrite) {
+        e.stopPropagation();
+        var _k2 = shouldAttendKind(rec.attend_verdict);
+        rec.attend_verdict = (_k2 === 'human') ? '' : 'Worth attending';
+        window.opsWrite(rec._table, rec._key, { attend_verdict: rec.attend_verdict || null });
+        var scT = overlay.querySelector('.modal-scroll');
+        var topT = scT ? scT.scrollTop : 0;
+        openEventModal(rec);
+        if (scT) scT.scrollTop = topT;
+        if (window.opsRefresh) window.opsRefresh();
+        return;
+      }
       if (!btn || !window.opsWrite) return;
       var qa = btn.dataset.qa;
       var patch = {};
