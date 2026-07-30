@@ -164,6 +164,9 @@ def _title_rank(title):
     return 99
 
 
+APOLLO_WHY = {'reason': None}
+
+
 def apollo_contact(domain):
     """One verified speaking contact at `domain`, or None.
 
@@ -171,7 +174,9 @@ def apollo_contact(domain):
     for their email (that one costs an Apollo credit, which is why we pick
     first and enrich once rather than enriching a batch).
     """
+    APOLLO_WHY['reason'] = None
     if not (APOLLO_API_KEY and domain):
+        APOLLO_WHY['reason'] = 'no api key or domain'
         return None
     H = {'x-api-key': APOLLO_API_KEY, 'Content-Type': 'application/json',
          'Cache-Control': 'no-cache'}
@@ -194,6 +199,7 @@ def apollo_contact(domain):
             domain = dom          # validate against the domain that matched
             break
     if not people:
+        APOLLO_WHY['reason'] = 'no people at %s with those titles' % ' / '.join(tries)
         return None
     cands = []
     for p in people:
@@ -209,6 +215,7 @@ def apollo_contact(domain):
             continue
         cands.append((_title_rank(p.get('title')), name, p))
     if not cands:
+        APOLLO_WHY['reason'] = 'found %d people, none passed the title/name checks' % len(people)
         return None
     cands.sort(key=lambda c: c[0])
     _, name, best = cands[0]
@@ -218,6 +225,7 @@ def apollo_contact(domain):
         'reveal_personal_emails': False,     # work address only; this is a work approach
     })
     if st2 != 200 or not isinstance(d2, dict):
+        APOLLO_WHY['reason'] = 'enrichment call failed (HTTP %s)' % st2
         return None
     person = d2.get('person') or {}
     email = str(person.get('email') or '').strip()
@@ -226,13 +234,17 @@ def apollo_contact(domain):
     # verified ones; a guess that bounces is worse than no contact at all,
     # because Angela would burn a real approach on it.
     if not email or '@' not in email:
+        APOLLO_WHY['reason'] = 'no email returned for %s' % name
         return None
     if status != 'verified':
+        APOLLO_WHY['reason'] = 'email for %s is "%s", not verified' % (name, status or 'unknown')
         return None
     if not _same_org(email, domain):          # no gmail, no unrelated employer
+        APOLLO_WHY['reason'] = 'email domain does not match the organiser'
         return None
     title = str(person.get('title') or best.get('title') or '').strip()
     if not _title_ok(title):
+        APOLLO_WHY['reason'] = 'enriched title no longer passes: %s' % title
         return None
     return {'name': name, 'title': title, 'email': email,
             'linkedin': str(person.get('linkedin_url') or '').strip()}
@@ -728,6 +740,7 @@ class handler(BaseHTTPRequestHandler):
                 'note': 'nothing missing, or no new facts found',
                 'engines': {'perplexity': bool(PPLX_API_KEY), 'exa': bool(EXA_API_KEY),
                             'apollo': bool(APOLLO_API_KEY)},
+                'contact_note': APOLLO_WHY.get('reason'),
             })
 
         write = dict(patch)
@@ -765,4 +778,5 @@ class handler(BaseHTTPRequestHandler):
             'filled': sorted(patch.keys()),
             'engines': {'perplexity': bool(PPLX_API_KEY), 'exa': bool(EXA_API_KEY),
                             'apollo': bool(APOLLO_API_KEY)},
+                'contact_note': APOLLO_WHY.get('reason'),
         })
