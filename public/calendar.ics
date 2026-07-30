@@ -1245,16 +1245,6 @@ DESCRIPTION:Gartner's EMEA flagship for CROs\, CAEs\, and compliance leaders nav
 URL:https://www.gartner.com/en/conferences/emea/enterprise-risk-audit-compliance-uk
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-505@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20260924
-DTEND;VALUE=DATE:20260925
-SUMMARY:EANE HR Connect 2026
-LOCATION:Springfield\, MA
-DESCRIPTION:EANE's annual New England HR conference at MGM Springfield — theme 'The Shift Starts Here' covering AI & HR\, workforce transformation\, leadership development\, and talent strategy — 300+ New England HR and business leaders\, contact route open.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.eane.org/learning-development/training/conferences-special-events/hr-connect-2026/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-504@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20260914

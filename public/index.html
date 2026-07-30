@@ -1410,12 +1410,6 @@
       transition: color 120ms ease;
     }
     .ops-card .ops-link:hover { color: var(--ab-blue-light); }
-    /* Small amber warning action in the queue — opens the conflict prompt. */
-    .q-btn-conflict {
-      color: #9a3412; border-color: #fed7aa; background: #fff7ed;
-      font-size: 0.9rem; line-height: 1; padding: 0 10px;
-    }
-    .q-btn-conflict:hover { background: #fde9d3; border-color: #f59e0b; }
     /* The whole queue row opens the event now that the Details pill is gone. */
     .queue-row-open { cursor: pointer; }
     .queue-row-open:hover { background: var(--ab-bg-3); }
@@ -8373,10 +8367,11 @@
               '<div class="queue-chips">' + ints + qStagePills(it.stages) + dec + deadlineHtml(it) + '</div>' +
               (_cf ? '<span class="ops-clash">&#9888; ' + escapeHtml(_cf) + '</span>' : '') +
             '</div>' +
-            '<div class="queue-actions">' +
-              '<button type="button" class="q-btn q-btn-conflict" data-act="conflict" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '" title="' +
-                (_cf ? 'Edit the scheduling conflict' : 'Add a scheduling conflict') + '">&#9888;</button>' +
-              actions(it) + '</div>' +
+            // No conflict button here (Hurley 2026-07-30). A conflict is set
+            // from the planner or Details -> Edit; on a queue row it was an
+            // unexplained warning triangle repeated down the whole list. Any
+            // conflict already recorded still SHOWS above, as a warning line.
+            '<div class="queue-actions">' + actions(it) + '</div>' +
           '</div>';
       }
 
@@ -8440,44 +8435,6 @@
           var it = items.filter(function (x) { return x.kind === btn.getAttribute('data-k') && String(x.key) === btn.getAttribute('data-key'); })[0];
           if (!it) return;
           var act = btn.getAttribute('data-act');
-          if (act === 'conflict') {
-            // Add a conflict from where Angela is already working, instead of
-            // making her open Details -> Edit for it (Hurley 2026-07-29) — and
-            // in the row itself rather than a prompt at the top of the window
-            // (Hurley 2026-07-30).
-            var host2 = btn.parentNode && btn.parentNode.parentNode &&
-                        btn.parentNode.parentNode.querySelector('.queue-main');
-            if (!host2 || host2.querySelector('.ab-form')) return;
-            var cur = String(it.conflict_note || '').trim();
-            var w = document.createElement('div');
-            w.className = 'ab-form';
-            w.innerHTML = '<textarea class="ab-input" rows="2" ' +
-                'placeholder="What’s the clash? e.g. Thor is at the board offsite that week"></textarea>' +
-              '<div class="ab-form-actions">' +
-                '<button type="button" class="ab-btn-primary" data-go>Save</button>' +
-                '<button type="button" class="ab-btn-ghost" data-cancel>Cancel</button>' +
-                (cur ? '<button type="button" class="cf-edit" data-clear style="margin-left:auto;">Remove</button>' : '') +
-              '</div>';
-            // The row itself opens the card — keep clicks in the form local.
-            w.addEventListener('click', function (ev) { ev.stopPropagation(); });
-            w.addEventListener('keydown', function (ev) { ev.stopPropagation(); });
-            host2.appendChild(w);
-            var ta2 = w.querySelector('textarea');
-            ta2.value = cur; ta2.focus(); ta2.setSelectionRange(cur.length, cur.length);
-            function cfDone(val) {
-              it.conflict_note = val || '';
-              opsQuickWrite(it.kind, it.key, { conflict_note: val || null });
-            }
-            w.querySelector('[data-go]').addEventListener('click', function () { cfDone(ta2.value.trim()); });
-            var clr = w.querySelector('[data-clear]');
-            if (clr) clr.addEventListener('click', function () { cfDone(''); });
-            w.querySelector('[data-cancel]').addEventListener('click', function () { w.remove(); });
-            ta2.addEventListener('keydown', function (ev) {
-              if (ev.key === 'Escape') { ev.preventDefault(); w.remove(); }
-              if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); cfDone(ta2.value.trim()); }
-            });
-            return;
-          }
           if (act === 'dismiss') { opsQuickWrite(it.kind, it.key, { queue_dismissed: true }); }
           else markStage(it, act === 'submitted' ? 'Submitted' : 'Booked');
         });
