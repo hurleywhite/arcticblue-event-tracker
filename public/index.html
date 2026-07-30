@@ -671,7 +671,7 @@
       width: 8px; height: 8px; border-radius: 50%;
       background: var(--ab-bg); border: 2px solid var(--ab-rule-strong);
     }
-    .fu-log li:first-child::before { border-color: var(--ab-blue); }
+    .fu-log li:last-child::before { border-color: var(--ab-blue); }
     .fu-when { font-family: var(--ab-mono); font-size: 0.76rem; color: var(--ab-fg); font-weight: 700; }
     .fu-kind {
       font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
@@ -688,11 +688,13 @@
     .fu-log li:hover .fu-acts, .fu-log li:focus-within .fu-acts { opacity: 1; }
     @media (hover: none) { .fu-acts { opacity: 1; } }
     .fu-act {
-      font-family: var(--ab-sans); font-size: 0.72rem; color: var(--ab-fg-3);
-      background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--ab-fg-3); background: none; border: 0;
+      padding: 2px; border-radius: 5px; cursor: pointer; line-height: 0;
     }
-    .fu-act:hover { color: var(--ab-blue); }
-    .fu-act-del:hover { color: var(--ab-red); }
+    .fu-act svg { width: 14px; height: 14px; display: block; }
+    .fu-act:hover { color: var(--ab-blue); background: var(--ab-bg-2); }
+    .fu-act-del:hover { color: var(--ab-red); background: var(--ab-bg-2); }
     /* ── Shared inline form ───────────────────────────────────────────
        ONE look for every "add something" in the tool. Nothing is typed into
        a browser prompt() any more: those float at the top of the window,
@@ -4201,6 +4203,7 @@
 
   // Trash can for the top-left Delete (same glyph as the profile file-delete).
   var MD_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+  var MD_PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 
   function openEventModal(rec) {
     if (!rec) return;
@@ -4309,15 +4312,19 @@
         // Naming them that way is the whole point — Angela wants to see when
         // she reached out and when she followed up (Hurley 2026-07-30).
         var _fuOldest = _fuList.length - 1;
-        _fuBody += '<ol class="fu-log">' + _fuList.map(function (f, i) {
+        // Read top-to-bottom as it happened: first contact at the top, latest
+        // chase at the bottom (Hurley 2026-07-30).
+        var _fuRows = _fuList.map(function (f, i) { return { f: f, i: i }; }).reverse();
+        _fuBody += '<ol class="fu-log">' + _fuRows.map(function (row) {
+          var f = row.f, i = row.i;
           var kind = (i === _fuOldest) ? 'Reached out' : 'Followed up';
           return '<li data-fu-i="' + i + '">' +
                  '<span class="fu-when">' + esc(_fuWhen(f.on)) + '</span>' +
                  '<span class="fu-kind">' + kind + '</span>' +
                  (f.by ? '<span class="fu-by">' + esc(f.by) + '</span>' : '') +
                  (_fuMine ? '<span class="fu-acts">' +
-                   '<button type="button" class="fu-act" data-fu-edit="' + i + '" title="Edit this entry">edit</button>' +
-                   '<button type="button" class="fu-act fu-act-del" data-fu-del="' + i + '" title="Delete this entry">delete</button>' +
+                   '<button type="button" class="fu-act" data-fu-edit="' + i + '" title="Edit this entry" aria-label="Edit this entry">' + MD_PENCIL + '</button>' +
+                   '<button type="button" class="fu-act fu-act-del" data-fu-del="' + i + '" title="Delete this entry" aria-label="Delete this entry">' + MD_TRASH + '</button>' +
                  '</span>' : '') +
                  (f.note ? '<span class="fu-note">' + esc(f.note) + '</span>' : '') +
                  (f.edited ? '<span class="fu-edited">edited ' + esc(_fuWhen(f.edited)) + '</span>' : '') +
