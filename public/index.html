@@ -727,6 +727,12 @@
       box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
     }
     .ab-input + .ab-input { margin-top: 7px; }
+    /* The row is a wrapping flex line, so an editor dropped into it becomes a
+       flex ITEM and gets squeezed into whatever space is left — a two-inch
+       textarea beside the date (Hurley 2026-07-30). Force it onto its own
+       full-width line so you edit at the width you read at. */
+    .fu-log li .ab-form { flex: 1 1 100%; width: 100%; margin: 8px 0 2px; }
+    .fu-log li .ab-form textarea { min-height: 62px; }
     .fu-when-row { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
     .fu-when-lab {
       font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
@@ -5097,6 +5103,30 @@
     // data). Falling back on empty-array made cleared checkboxes "revert":
     // un-check -> save [] -> re-render re-derived the stage from the legacy
     // status string ("Attending?" even re-derived as Booked).
+    // Engagement beats scoring. Once we've actually applied, chased, held a
+    // meeting, booked or are attending, that event belongs on the named
+    // person's list whatever the fit heuristic makes of it — they need to see
+    // the thing they're in the middle of (Hurley 2026-07-30). Rejected is NOT
+    // engagement: the door is shut, so it never pulls an event onto a list.
+    // 'Identified' isn't either — it's a bookmark, not an approach.
+    var _LIVE_STAGES = { 'Submitted': 1, 'Followed up': 1, 'Meeting held': 1, 'Booked': 1, 'Attending': 1 };
+    window.abLiveStage = function (tags) {
+      tags = tags || [];
+      // Stages accumulate, so a rejected event still carries the 'Submitted'
+      // it earned on the way in — 30 of them do. Rejected is terminal and wins
+      // over anything else present.
+      if (tags.some(function (t) { return String(t) === 'Rejected'; })) return false;
+      return tags.some(function (t) { return _LIVE_STAGES[String(t)] === 1; });
+    };
+    // Engagement only counts for the people actually ON it — otherwise a
+    // submission with nobody named would land in everyone's fits.
+    window.abNamedAmong = function (names, meFirst) {
+      if (!meFirst) return false;
+      return (names || []).some(function (n) {
+        n = String(n || '').trim(); if (!n) return false;
+        return abFold(n).split(/\s+/)[0] === meFirst;
+      });
+    };
     function stageTagsOf(st) {
       if (!st) return [];
       if (st.status_tags == null) return legacyToStages(st.status);
@@ -7296,10 +7326,21 @@
             // Fits my profile OR I flagged interested (interest = a fit). Mirrors
             // the count in renderStats and the Fits-dropdown rule.
             var _mfInt = (card.dataset.interestedNames || '').split('|').filter(Boolean).some(function (n) { return abFold(n).split(/\s+/)[0] === _attMe; });
+            // Already in flight for me -> mine, whatever the profile says.
+            var _mfLive = window.abLiveStage((card.dataset.statusTags || '').split('|').filter(Boolean)) &&
+                          window.abNamedAmong(
+                            (card.dataset.interestedNames || '').split('|')
+                              .concat((card.dataset.attendeeNames || '').split('|'))
+                              .concat([card.dataset.speaker || '']), _attMe);
+            // A rejected event is not a fit — the organiser said no. It only
+            // stays if I flagged interest myself, since that's my own call to
+            // reverse (Hurley 2026-07-30).
+            var _mfRej = (card.dataset.statusTags || '').split('|').indexOf('Rejected') !== -1;
+            if (_mfRej && !_mfInt) on = false;
             // A learned "Not for me" pattern narrows MY fits — but never drops an
-            // event I've actively flagged interest in.
-            if (!_mfInt && _vetoedCard(card)) on = false;
-            else if (!(_mfInt || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1')))) on = false;
+            // event I've flagged interest in, or one we're already engaged on.
+            else if (!_mfInt && !_mfLive && _vetoedCard(card)) on = false;
+            else if (!(_mfInt || _mfLive || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1')))) on = false;
           }
         }
         if (activeStages.length > 0) {
@@ -7528,16 +7569,31 @@
         return abFold([o.name, o.about, o.focus_areas, o.typical_attendees, o.location, o.city, o.country, o.type, o.past_speakers, aud].join(' '));
       }
       function _mineInterest(list) { return (list || []).some(function (n) { return abFold(n).split(/\s+/)[0] === meFirst; }); }
+      // The same "already in flight for me" test the filter uses, so the tile
+      // number can't drift from the list it opens.
+      function _mineRejected(o, st2) {
+        return stageTagsOf(st2 || o).indexOf('Rejected') !== -1;
+      }
+      function _mineLive(o, st2, interested) {
+        if (!window.abLiveStage(stageTagsOf(st2 || o))) return false;
+        return window.abNamedAmong(
+          (interested || []).concat(((st2 && st2.attendees) || o.attendees || []))
+            .concat([(st2 && st2.speaker) || o.speaker || '']), meFirst);
+      }
       (evs || []).forEach(function (ev) {
         if (isPastEvent(ev)) return;
         var st2 = stByNum[ev.num] || {};
         var _int = (st2.interested && st2.interested.length) ? st2.interested : (ev.interested || []);
         if (_mineInterest(_int)) myFits++;
+        else if (_mineRejected(ev, st2)) return;
+        else if (_mineLive(ev, st2, _int)) myFits++;
         else if (!_vetoedItem(ev) && _myPf && profileFits(_myPf, _fitBlob(ev, st2), canonicalRegion(ev), priceNumOf((st2 && st2.pricing) || ev.pricing), _isForeignLangEvent(ev))) myFits++;
       });
       (manualRows || []).forEach(function (m) {
         if (isPastEvent(m)) return;
         if (_mineInterest(m.interested)) myFits++;
+        else if (_mineRejected(m, m)) return;
+        else if (_mineLive(m, m, m.interested)) myFits++;
         else if (!_vetoedItem(m) && _myPf && profileFits(_myPf, _fitBlob(m, m), canonicalRegion(m), priceNumOf(m.pricing), _isForeignLangEvent(m))) myFits++;
       });
       // A cut-and-dry segmented status filter (data-stat). 'All' clears the
