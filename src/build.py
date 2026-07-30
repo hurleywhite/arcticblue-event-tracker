@@ -12348,6 +12348,12 @@ def build():
       if (!$opsGrid || $opsGrid.dataset.peekWired) return;
       $opsGrid.dataset.peekWired = '1';
       $opsGrid.addEventListener('mouseover', function (e) {{
+        // The peek is a triage tool: it exists so Angela can sweep the grid and
+        // see which events carry a conversation or a note without opening each
+        // one. For a speaker, hovering their own cards just pops their own
+        // notes back at them (Hurley 2026-07-30). Checked HERE, not at wiring
+        // time, so switching account takes effect without a reload.
+        if (!isSupportPerson(getCollabName() || '')) return;
         var card = e.target.closest ? e.target.closest('.ops-card') : null;
         if (!card || card === _peekFor) return;
         _peekHide();
