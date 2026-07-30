@@ -670,6 +670,23 @@
     /* Rejected — same red as the card's status dot, so "they passed" reads the
        same wherever it appears. */
     .modal-note { color: var(--ab-fg-3); font-size: 0.94em; }
+    /* "Also from this organiser" — the umbrella's members, or the family a
+       member belongs to. Rows, not buttons: it's navigation, not an action. */
+    .sib-list { display: flex; flex-direction: column; }
+    .sib-row {
+      display: flex; align-items: baseline; gap: 10px; width: 100%;
+      text-align: left; background: none; border: 0; cursor: pointer;
+      padding: 7px 0; border-bottom: 1px solid var(--ab-rule);
+      font-family: var(--ab-sans); color: var(--ab-fg);
+    }
+    .sib-row:last-of-type { border-bottom: 0; }
+    .sib-row:hover .sib-name { color: var(--ab-blue); text-decoration: underline; }
+    .sib-name { font-size: 0.9rem; font-weight: 600; }
+    .sib-when {
+      margin-left: auto; white-space: nowrap;
+      font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3);
+    }
+    .sib-more { margin: 7px 0 0; font-size: 0.8rem; color: var(--ab-fg-3); }
     .fu-state.fu-rejected { color: #b91c1c; }
     .fu-state.fu-rejected::before { background: #b91c1c; }
     .fu-state.fu-none { font-weight: 500; color: var(--ab-fg-3); }
@@ -4540,6 +4557,23 @@
         })());
       // — Overview of the event itself. The meeting/networking format rides
       //   along here as one clause instead of claiming its own labelled row.
+      // Same organiser, other events. On an umbrella this is the list it
+      // covers; on a member it's the family it belongs to (Hurley 2026-07-30).
+      v += (function () {
+        var sibs = window.abSiblingEvents ? window.abSiblingEvents(rec) : [];
+        if (!sibs.length) return '';
+        var live = sibs.filter(function (x) { return !x.past; });
+        var use = live.length ? live : sibs;
+        var rowsH = use.slice(0, 12).map(function (x) {
+          return '<button type="button" class="sib-row" data-sib-kind="' + esc(x.kind) +
+                 '" data-sib-key="' + esc(String(x.key)) + '">' +
+                 '<span class="sib-name">' + esc(x.name) + '</span>' +
+                 (x.date ? '<span class="sib-when">' + esc(x.date) + '</span>' : '') +
+                 '</button>';
+        }).join('');
+        var more = use.length > 12 ? '<p class="sib-more">+ ' + (use.length - 12) + ' more</p>' : '';
+        return sec('Also from this organiser', '<div class="sib-list">' + rowsH + more + '</div>');
+      })();
       v += sec('Overview',
         (function () {
           var about = String(rec.about || '').trim();
@@ -4577,6 +4611,12 @@
 
     $body.innerHTML = html;
     wireQuickBar(rec);
+    // Clicking a sibling opens THAT event's card.
+    $body.querySelectorAll('[data-sib-kind]').forEach(function (b3) {
+      b3.addEventListener('click', function () {
+        if (window.abOpenRef) window.abOpenRef(b3.getAttribute('data-sib-kind'), b3.getAttribute('data-sib-key'));
+      });
+    });
     wireEditForm(rec);
     if (window.opsRenderChat) window.opsRenderChat(rec);
 
@@ -7968,6 +8008,26 @@
       return keys;
     }
 
+    // Events run by the SAME organiser, for the detail card. The umbrella
+    // records made this worth surfacing: standing on "Terrapinn — Ongoing
+    // Events" you want the three it covers, and standing on Connected Britain
+    // you want to know it's one of a family (Hurley 2026-07-30).
+    window.abSiblingEvents = function (rec) {
+      var me = _urlOrg((rec && rec.url) || '');
+      if (!me) return [];
+      var mine = String((rec && rec._key) != null ? rec._key : '');
+      var mineT = String((rec && rec._table) || '');
+      return opsAllItems().filter(function (it) {
+        var o = it.startObj || it;
+        if (_urlOrg(o.url || '') !== me) return false;
+        var t = it.kind === 'manual' ? 'manual_events' : 'event_state';
+        return !(t === mineT && String(it.key) === mine);      // not myself
+      }).map(function (it) {
+        return { kind: it.kind, key: it.key, name: it.name,
+                 date: (it.startObj || it).date_str || '', sort: it.sort || 0,
+                 past: !!it.past };
+      }).sort(function (a2, b2) { return (a2.sort || 0) - (b2.sort || 0); });
+    };
     function opsAllItems() {
       var items = [];
       (_lastEvs || []).forEach(function (ev) { items.push(opsItem('catalog', ev, _lastStateMap[ev.num] || {})); });
@@ -7977,6 +8037,7 @@
 
     // Open the rich modal for a queue/planner row by reusing the grid card's
     // stashed _modalRec (which carries full edit context), so editing works.
+    window.abOpenRef = function (kind, key) { opsOpenRef(kind, key); };
     function opsOpenRef(kind, key) {
       var sel = (kind === 'manual')
         ? '.ops-card[data-manual-id="' + key + '"]'
