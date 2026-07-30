@@ -725,6 +725,12 @@
       box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
     }
     .ab-input + .ab-input { margin-top: 7px; }
+    .fu-when-row { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+    .fu-when-lab {
+      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.07em; text-transform: uppercase; color: var(--ab-fg-3);
+    }
+    .ab-input-date { width: auto; padding: 6px 10px; font-size: 0.82rem; }
     .ab-form-actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
     .ab-btn-primary, .ab-btn-ghost {
       font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
@@ -4285,6 +4291,15 @@
       _fuBody += '<button type="button" class="ab-addbtn" id="fu-add-btn">' +
                  '<span class="ab-addbtn-ic" aria-hidden="true">+</span> Log a follow-up</button>' +
                  '<div class="ab-form" id="fu-add-form" hidden>' +
+                   // Chases get written up after the fact, so the date has to be
+                   // editable — you followed up on the 24th and log it on the
+                   // 30th (Hurley 2026-07-30). Defaults to today; capped at
+                   // today, because a follow-up you haven't made isn't one.
+                   '<div class="fu-when-row">' +
+                     '<label class="fu-when-lab" for="fu-add-on">When</label>' +
+                     '<input type="date" class="ab-input ab-input-date" id="fu-add-on" ' +
+                       'value="' + esc(_fuToday) + '" max="' + esc(_fuToday) + '">' +
+                   '</div>' +
                    '<textarea class="ab-input" id="fu-add-note" rows="2" ' +
                      'placeholder="What you sent, or what came back (optional)"></textarea>' +
                    '<div class="ab-form-actions">' +
@@ -4408,12 +4423,17 @@
         var cur = (window.abFollowUps ? window.abFollowUps(rec) : [])[i];
         var li = b2.parentNode && b2.parentNode.parentNode;
         if (!cur || !li) return;
+        var _today = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
         var w = _fuRowForm(li,
+          '<div class="fu-when-row">' +
+            '<label class="fu-when-lab">When</label>' +
+            '<input type="date" class="ab-input ab-input-date" data-on ' +
+              'value="' + esc(String(cur.on || '').slice(0, 10)) + '" max="' + esc(_today) + '">' +
+          '</div>' +
           '<textarea class="ab-input" rows="2" placeholder="What you sent, or what came back"></textarea>' +
           '<div class="ab-form-actions">' +
             '<button type="button" class="ab-btn-primary" data-go>Save</button>' +
             '<button type="button" class="ab-btn-ghost" data-cancel>Cancel</button>' +
-            '<span class="ab-form-hint">' + esc(_fuWhen(cur.on)) + ' kept</span>' +
           '</div>');
         if (!w) return;
         var ta = w.querySelector('textarea');
@@ -4423,9 +4443,13 @@
           var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
           if (!list[i]) return;
           var today = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
-          // The original date is WHEN IT HAPPENED and never moves; the edit is
-          // stamped separately so the history can't quietly rewrite itself.
-          list[i] = { on: list[i].on, by: list[i].by, note: ta.value.trim(), edited: today };
+          // The date is WHEN IT HAPPENED — it stays put unless she corrects it,
+          // and the edit is stamped separately so the history can't quietly
+          // rewrite itself.
+          var onEl = w.querySelector('[data-on]');
+          var onVal = (onEl && /^\d{4}-\d{2}-\d{2}$/.test(onEl.value)) ? onEl.value : list[i].on;
+          if (onVal > today) onVal = today;
+          list[i] = { on: onVal, by: list[i].by, note: ta.value.trim(), edited: today };
           _fuSave(list);
         }
         w.querySelector('[data-go]').addEventListener('click', commit);
@@ -4466,9 +4490,21 @@
     var _fuForm = document.getElementById('fu-add-form');
     if (_fuBtn && _fuForm) {
       var _fuTa = document.getElementById('fu-add-note');
+      var _fuOn = document.getElementById('fu-add-on');
       function _fuAddClose() {
-        _fuForm.hidden = true; _fuBtn.hidden = false; if (_fuTa) _fuTa.value = '';
+        _fuForm.hidden = true; _fuBtn.hidden = false;
+        if (_fuTa) _fuTa.value = '';
+        if (_fuOn) _fuOn.value = _fuToday;
+        var g0 = document.getElementById('fu-add-save');
+        if (g0) g0.textContent = 'Log for ' + _fuWhen(_fuToday);
       }
+      // The button always names the date it will actually write.
+      if (_fuOn) _fuOn.addEventListener('change', function () {
+        var g1 = document.getElementById('fu-add-save');
+        var v = _fuOn.value || _fuToday;
+        if (v > _fuToday) { v = _fuToday; _fuOn.value = v; }
+        if (g1) g1.textContent = 'Log for ' + _fuWhen(v);
+      });
       _fuBtn.addEventListener('click', function () {
         _fuForm.hidden = false; _fuBtn.hidden = true;
         if (_fuTa) _fuTa.focus();
@@ -4479,10 +4515,13 @@
         // The date is never typed — it's today's, in New York, taken at the
         // moment of logging and written straight through to Supabase.
         var today = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
+        // Whatever day it happened on — never later than today.
+        var on = (_fuOn && /^\d{4}-\d{2}-\d{2}$/.test(_fuOn.value)) ? _fuOn.value : today;
+        if (on > today) on = today;
         var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
-        list.unshift({ on: today, by: (window.opsCurrentUser ? window.opsCurrentUser() : '') || 'Angela',
+        list.unshift({ on: on, by: (window.opsCurrentUser ? window.opsCurrentUser() : '') || 'Angela',
                        note: _fuTa ? _fuTa.value.trim() : '' });
-        _fuSave(list);
+        _fuSave(list);            // the list re-sorts by date, so it lands in order
       }
       var _fuGo = document.getElementById('fu-add-save');
       if (_fuGo) _fuGo.addEventListener('click', _fuAddSave);
