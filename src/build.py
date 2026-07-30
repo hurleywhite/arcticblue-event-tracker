@@ -11721,23 +11721,55 @@ def build():
     }}
 
     var _opsMap = null, _opsMapLayer = null;
+    // ── One world, exactly once ──────────────────────────────────────────
+    // The map used to repeat: zoomed out, you got five side-by-side copies of
+    // Earth with the pins scattered across all of them (Hurley 2026-07-29).
+    // Three things together fix it:
+    //   noWrap        — the tile layer stops painting copies either side.
+    //   maxBounds     — you can't drag off into the void where copies lived.
+    //   a floor zoom  — computed below, so you can never zoom out past the
+    //                   point where one world stops filling the viewport.
+    // worldCopyJump is OFF: it exists to move markers to the nearest world
+    // COPY, which is meaningless once there's only one.
+    var MAP_WORLD = null;   // set once L is loaded
+    // Smallest zoom at which a single world still covers the full width. Below
+    // this Leaflet has nothing to show either side — which is what produced the
+    // repeats. Recomputed on resize, since it depends on the container width.
+    function _applyMapMinZoom() {{
+      if (!_opsMap) return;
+      var w = _opsMap.getSize().x;
+      if (!w) return;
+      var minZ = Math.ceil(Math.log(w / 256) / Math.LN2 * 100) / 100;
+      if (!isFinite(minZ)) return;
+      _opsMap.setMinZoom(minZ);
+      if (_opsMap.getZoom() < minZ) _opsMap.setZoom(minZ);
+    }}
     function openOpsMap() {{
       loadLeaflet().then(function () {{
         if (!_opsMap) {{
-          _opsMap = L.map('ops-map-canvas', {{ worldCopyJump: true }})
-            .setView([30, -20], 2);
+          // ±85 is the Mercator limit — past it the projection runs to infinity.
+          MAP_WORLD = L.latLngBounds([[-85, -180], [85, 180]]);
+          _opsMap = L.map('ops-map-canvas', {{
+            worldCopyJump: false,
+            maxBounds: MAP_WORLD,
+            maxBoundsViscosity: 1.0,   // hard edge, no rubber-banding past it
+            zoomSnap: 0.25             // so the floor zoom can be exact, not rounded up
+          }}).setView([30, -20], 2);
           L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
-            attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
+            attribution: '&copy; OpenStreetMap contributors', maxZoom: 18,
+            noWrap: true, bounds: MAP_WORLD
           }}).addTo(_opsMap);
           _opsMapLayer = L.layerGroup().addTo(_opsMap);
+          _opsMap.on('resize', _applyMapMinZoom);
           // Sidebar close button + clicking empty map dismisses the panel.
           var sbClose = document.getElementById('msb-close');
           if (sbClose) sbClose.addEventListener('click', closeMapSidebar);
           _opsMap.on('click', closeMapSidebar);
         }}
         renderOpsMap();
-        // The container was display:none at init — force a size recalc.
-        setTimeout(function () {{ _opsMap.invalidateSize(); }}, 50);
+        // The container was display:none at init — force a size recalc, then
+        // set the zoom floor from the real width.
+        setTimeout(function () {{ _opsMap.invalidateSize(); _applyMapMinZoom(); }}, 50);
       }}).catch(function () {{
         var note = document.getElementById('ops-map-note');
         if (note) note.textContent = 'Map could not load (offline or blocked CDN). Use Grid or Calendar instead.';
