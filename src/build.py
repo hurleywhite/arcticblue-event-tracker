@@ -7920,13 +7920,25 @@ def build():
             // names and job titles, so searching for a contact matched dozens of
             // events that merely list someone with that name in their audience or
             // past-speaker blurb, burying the event you actually wanted (Angela).
+            // The ORGANISER, from the event's own link. Searching "terrapinn"
+            // found only events with it in the title — not Connected Britain or
+            // Seamless Saudi, which Terrapinn runs but never names
+            // (Hurley 2026-07-30). The domain goes in whole and split, so
+            // "isg" finds isg-one.com and "websummit" finds websummit.com.
+            var _dom = _urlOrg(_r.url || card.dataset.evUrl || '');
             _blob = card._searchBlob = ((card.textContent || '') + ' ' +
               [_r.poc_name, _r.poc_email, _r.poc_linkedin, _r.contact_info,
                _r.additional_contacts, _r.notes, _r.outreach_note,
                _r.speaker, _r.speaker_topic,
-               _r.about, _r.focus_areas].filter(Boolean).join(' ')).toLowerCase();
+               _r.about, _r.focus_areas,
+               _r.url, _dom, _dom.replace(/[.-]/g, ' ')].filter(Boolean).join(' ')).toLowerCase();
+            // A squeezed copy — doubled letters collapsed — so "terrapin"
+            // finds Terrapinn. One dropped or doubled letter is the typo people
+            // actually make on a brand name.
+            card._searchSqz = _blob.replace(/([a-z])\\1+/g, '$1');
           }}
-          if (_blob.indexOf(q) === -1) on = false;
+          if (_blob.indexOf(q) === -1 &&
+              !(q.length >= 4 && (card._searchSqz || '').indexOf(q.replace(/([a-z])\\1+/g, '$1')) !== -1)) on = false;
         }}
         if (activeRegions.length && activeRegions.indexOf(card.dataset.region) === -1) on = false;
         if (activeMonths.length && activeMonths.indexOf(card.dataset.month) === -1) on = false;
