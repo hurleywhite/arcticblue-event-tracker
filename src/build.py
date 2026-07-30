@@ -4823,7 +4823,16 @@ def build():
     function sec(title, body) {{
       if (!body) return '';
       if ((body.match(/class="modal-field"/g) || []).length === 1) {{
-        body = body.replace(/<span class="k">[\\s\\S]*?<\\/span>/, '');
+        var _m = body.match(/<span class="k">([\\s\\S]*?)<\\/span>/);
+        var _lab = _m ? _m[1].replace(/<[^>]*>/g, '').trim().toLowerCase() : '';
+        var _ttl = String(title || '').trim().toLowerCase();
+        // The rule is one field WHOSE LABEL IS THE SECTION NAME — not any lone
+        // field. Collapsing unconditionally stranded values under headings that
+        // don't name them: "Speaking & submission / No" for pay-to-play
+        // (Hurley 2026-07-30).
+        if (_lab && (_lab === _ttl || _lab === _ttl.replace(/s$/, ''))) {{
+          body = body.replace(/<span class="k">[\\s\\S]*?<\\/span>/, '');
+        }}
       }}
       return '<section class="me-sec"><h4 class="me-sec-h">' + esc(title) + '</h4>' + body + '</section>';
     }}
@@ -4950,8 +4959,7 @@ def build():
       // — Speaking & submission: how we'd get on stage, and where we stand.
       //   The legacy status marker (e.g. "Sponsorship Only") is kept OFF the card
       //   face by design but belongs here so a saved marker is visible.
-      v += sec('Speaking & submission',
-        speakerLine() +
+      var _spkStatus = speakerLine() +
         field('Status marker', (function () {{
           var ws = rec.workflow_status;
           if (!ws || ws === '__deleted__') return '';
@@ -4962,9 +4970,15 @@ def build():
         }})()) +
         field('Speaking route', rec.speaking_route) +
         field('Deadline', (window.opsDeadlineUsable && window.opsDeadlineUsable(rec.deadline, rec)) ? rec.deadline : '') +
-        field('Pay-to-play', rec.pay_to_play) +
-        field('Submission status', rec.submission_status) +
-        field('Speaking fee', rec.speaking_fee));
+        field('Submission status', rec.submission_status);
+      // Pay-to-play and the fee are footnotes to a status, not a status. On
+      // their own they aren't worth a heading — and the stage buttons at the
+      // top of the card already say where we stand (Hurley 2026-07-30).
+      if (_spkStatus) {{
+        _spkStatus += field('Pay-to-play', rec.pay_to_play) +
+                      field('Speaking fee', rec.speaking_fee);
+      }}
+      v += sec('Speaking & submission', _spkStatus);
       // — Who's in the room: every audience fact in one place.
       // One merged list — the heading already says who it's about, so the value
       // goes in bare rather than under a second "Typical attendees" label.
