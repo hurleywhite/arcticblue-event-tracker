@@ -6945,8 +6945,8 @@ def build():
               ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
               : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — for you only; teammates still see it" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
             decBadge + saBadge +
-            window.abStageIcon(st, ev) +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
+            window.abStageIcon(st, ev) +
           '</div>' +
         '</div>' +
         '<p class="event-meta">' + (_cdate ? '<span class="em-date">' + _cdate + '</span>' : '') + ((_cdate && _cloc) ? ' \\u00b7 ' : '') + (_cloc || '') + '</p>' +
@@ -7197,8 +7197,8 @@ def build():
               ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
               : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — for you only; teammates still see it" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
-            window.abStageIcon(mev, mev) +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
+            window.abStageIcon(mev, mev) +
           '</div>' +
         '</div>' +
         '<p class="event-meta">' + (_mdate ? '<span class="em-date">' + _mdate + '</span>' : '') + ((_mdate && _mloc) ? ' \\u00b7 ' : '') + (_mloc || '') + '</p>' +
