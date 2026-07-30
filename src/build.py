@@ -1085,40 +1085,68 @@ def build():
       background: none; border: 0; border-left: 2px solid #f59e0b; border-radius: 0;
       padding: 1px 0 1px 9px; margin-bottom: 11px;
     }}
-    /* Follow-up log — a dated list, not a spreadsheet row. */
+    /* ── Follow-up log ──────────────────────────────────────────────
+       A timeline, not a spreadsheet row: state up top, entries down a rule,
+       each one saying whether it was the first contact or a chase. */
     .fu-state {{
-      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
-      padding: 5px 0 5px 9px; border-left: 2px solid var(--ab-rule-strong); margin-bottom: 9px;
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--ab-sans); font-size: 0.84rem; font-weight: 600;
+      padding: 6px 12px; border-radius: 8px; margin-bottom: 12px;
+      background: var(--ab-bg-2); color: var(--ab-fg-2);
     }}
-    .fu-state.fu-due {{ color: #9a3412; border-left-color: #f59e0b; }}
-    .fu-state.fu-ok {{ color: #15803d; border-left-color: #86efac; }}
-    .fu-state.fu-hold {{ color: var(--ab-fg-2); border-left-color: var(--ab-rule-strong); }}
-    .fu-state.fu-closed {{ color: var(--ab-fg-3); border-left-color: var(--ab-rule); }}
-    .fu-state.fu-none {{ color: var(--ab-fg-3); border-left-color: var(--ab-rule); font-weight: 500; }}
-    .fu-log {{ list-style: none; margin: 0 0 10px; padding: 0; }}
+    .fu-state::before {{
+      content: ''; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--ab-fg-3); flex: 0 0 auto;
+    }}
+    .fu-state.fu-due {{ background: #fff7ed; color: #9a3412; }}
+    .fu-state.fu-due::before {{ background: #f59e0b; }}
+    .fu-state.fu-ok {{ background: #f0fdf4; color: #15803d; }}
+    .fu-state.fu-ok::before {{ background: #22c55e; }}
+    .fu-state.fu-hold::before {{ background: #94a3b8; }}
+    .fu-state.fu-closed {{ color: var(--ab-fg-3); }}
+    .fu-state.fu-closed::before {{ background: var(--ab-rule-strong); }}
+    .fu-state.fu-none {{ font-weight: 500; color: var(--ab-fg-3); }}
+    .fu-log {{ list-style: none; margin: 0 0 12px; padding: 0; }}
     .fu-log li {{
-      display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
-      padding: 5px 0; border-top: 1px solid var(--ab-rule);
+      position: relative; display: flex; flex-wrap: wrap; align-items: baseline;
+      gap: 3px 9px; padding: 9px 0 9px 15px; border-left: 2px solid var(--ab-rule);
     }}
-    .fu-log li:first-child {{ border-top: 0; }}
-    .fu-when {{ font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg); font-weight: 600; }}
-    .fu-by {{ font-size: 0.74rem; color: var(--ab-fg-3); }}
-    .fu-note {{ flex: 1 1 100%; font-size: 0.86rem; color: var(--ab-fg-2); line-height: 1.4; }}
-    .cf-add {{
-      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600; color: var(--ab-blue);
-      background: none; border: 0; padding: 6px 0 0; cursor: pointer;
+    /* One dot per entry; the newest picked out so "where are we" reads at a glance. */
+    .fu-log li::before {{
+      content: ''; position: absolute; left: -5px; top: 14px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--ab-bg); border: 2px solid var(--ab-rule-strong);
     }}
-    .cf-add:hover {{ text-decoration: underline; }}
-    .cf-edit {{
-      font-family: var(--ab-sans); font-size: 0.74rem; color: var(--ab-fg-3);
-      background: none; border: 0; padding: 0 2px; cursor: pointer; text-decoration: underline;
+    .fu-log li:first-child::before {{ border-color: var(--ab-blue); }}
+    .fu-when {{ font-family: var(--ab-mono); font-size: 0.76rem; color: var(--ab-fg); font-weight: 700; }}
+    .fu-kind {{
+      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0.07em; text-transform: uppercase; color: var(--ab-fg-3);
     }}
-    .cf-edit:hover {{ color: var(--ab-blue); }}
+    .fu-by {{ font-size: 0.76rem; color: var(--ab-fg-3); }}
+    .fu-note {{ flex: 1 1 100%; font-size: 0.87rem; color: var(--ab-fg-2); line-height: 1.45; }}
+    .fu-edited {{
+      flex: 1 1 100%; font-family: var(--ab-mono); font-size: 0.62rem;
+      color: var(--ab-fg-3); font-style: italic;
+    }}
+    /* Edit / delete stay out of the way until you're on the row. */
+    .fu-acts {{ margin-left: auto; display: flex; gap: 9px; opacity: 0; transition: opacity 120ms; }}
+    .fu-log li:hover .fu-acts, .fu-log li:focus-within .fu-acts {{ opacity: 1; }}
+    @media (hover: none) {{ .fu-acts {{ opacity: 1; }} }}
+    .fu-act {{
+      font-family: var(--ab-sans); font-size: 0.72rem; color: var(--ab-fg-3);
+      background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline;
+    }}
+    .fu-act:hover {{ color: var(--ab-blue); }}
+    .fu-act-del:hover {{ color: var(--ab-red); }}
+    .fu-empty {{ font-size: 0.86rem; color: var(--ab-fg-3); margin: 0 0 12px; }}
     .fu-add {{
-      font-family: var(--ab-sans); font-size: 0.8rem; font-weight: 600; color: var(--ab-blue);
-      background: none; border: 0; padding: 3px 0; cursor: pointer;
+      display: inline-block; font-family: var(--ab-sans); font-size: 0.82rem;
+      font-weight: 600; color: var(--ab-blue); background: none;
+      border: 1px solid var(--ab-rule-strong); border-radius: 999px;
+      padding: 6px 14px; cursor: pointer;
     }}
-    .fu-add:hover {{ text-decoration: underline; }}
+    .fu-add:hover {{ border-color: var(--ab-blue); background: var(--ab-bg-2); }}
     /* Card-face conflict warning. NOT a pill and NOT bordered — a rounded
        chip read as a button people expected to click (Hurley 2026-07-30). It's
        a warning LINE: amber rule down the left, no background, no border. */
@@ -4693,10 +4721,23 @@ def build():
         _fuBody += '<div class="fu-state fu-' + _fuSt.state + '">' + esc(_fuSt.label) + '</div>';
       }}
       if (_fuList.length) {{
-        _fuBody += '<ol class="fu-log">' + _fuList.map(function (f) {{
-          return '<li><span class="fu-when">' + esc(_fuWhen(f.on)) + '</span>' +
+        // Oldest entry is the FIRST contact; everything after it is a chase.
+        // Naming them that way is the whole point — Angela wants to see when
+        // she reached out and when she followed up (Hurley 2026-07-30).
+        var _fuOldest = _fuList.length - 1;
+        _fuBody += '<ol class="fu-log">' + _fuList.map(function (f, i) {{
+          var kind = (i === _fuOldest) ? 'Reached out' : 'Followed up';
+          return '<li data-fu-i="' + i + '">' +
+                 '<span class="fu-when">' + esc(_fuWhen(f.on)) + '</span>' +
+                 '<span class="fu-kind">' + kind + '</span>' +
                  (f.by ? '<span class="fu-by">' + esc(f.by) + '</span>' : '') +
-                 (f.note ? '<span class="fu-note">' + esc(f.note) + '</span>' : '') + '</li>';
+                 '<span class="fu-acts">' +
+                   '<button type="button" class="fu-act" data-fu-edit="' + i + '" title="Edit this entry">edit</button>' +
+                   '<button type="button" class="fu-act fu-act-del" data-fu-del="' + i + '" title="Delete this entry">delete</button>' +
+                 '</span>' +
+                 (f.note ? '<span class="fu-note">' + esc(f.note) + '</span>' : '') +
+                 (f.edited ? '<span class="fu-edited">edited ' + esc(_fuWhen(f.edited)) + '</span>' : '') +
+                 '</li>';
         }}).join('') + '</ol>';
       }}
       if (!_fuList.length) {{
@@ -4783,6 +4824,45 @@ def build():
     wireQuickBar(rec);
     wireEditForm(rec);
     if (window.opsRenderChat) window.opsRenderChat(rec);
+
+    // Edit / delete a single entry. Editing keeps the ORIGINAL date — that's
+    // when the contact actually happened — and stamps an `edited` date beside
+    // it, so the history stays honest rather than silently rewriting itself
+    // (Hurley 2026-07-30).
+    function _fuSave(list) {{
+      rec.follow_ups = list;
+      if (window.opsWrite) window.opsWrite(rec._table, rec._key, {{ follow_ups: list }});
+      var sc = overlay.querySelector('.modal-scroll');
+      var top = sc ? sc.scrollTop : 0;
+      openEventModal(rec);
+      if (sc) sc.scrollTop = top;
+      if (window.opsRefresh) window.opsRefresh();
+    }}
+    $body.querySelectorAll('[data-fu-edit]').forEach(function (b2) {{
+      b2.addEventListener('click', function () {{
+        var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
+        var i = parseInt(b2.getAttribute('data-fu-edit'), 10);
+        var cur = list[i]; if (!cur) return;
+        var next = window.prompt(
+          'Edit this follow-up (' + _fuWhen(cur.on) + ')\\n\\n' +
+          'The original date is kept — an edit is stamped separately.',
+          cur.note || '');
+        if (next === null) return;
+        var today = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
+        list[i] = {{ on: cur.on, by: cur.by, note: String(next).trim(), edited: today }};
+        _fuSave(list);
+      }});
+    }});
+    $body.querySelectorAll('[data-fu-del]').forEach(function (b2) {{
+      b2.addEventListener('click', function () {{
+        var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
+        var i = parseInt(b2.getAttribute('data-fu-del'), 10);
+        var cur = list[i]; if (!cur) return;
+        if (!window.confirm('Delete the follow-up logged ' + _fuWhen(cur.on) + '?')) return;
+        list.splice(i, 1);
+        _fuSave(list);
+      }});
+    }});
 
     // "+ Log a follow-up" — records today's date against the signed-in name,
     // with an optional line on what came back. Appends; never replaces.

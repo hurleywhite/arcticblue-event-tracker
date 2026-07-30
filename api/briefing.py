@@ -602,11 +602,30 @@ def cache_brief(kind, key, brief, when):
     return _http_json('PATCH', url, headers=h, body=patch)
 
 
+# Everything the tracker knows about an event that could inform a brief. The
+# merge used to carry seven keys, so the description, the topics, who attends,
+# the organiser contact, Angela's notes, her follow-up log and any scheduling
+# conflict were all dropped before the model ever saw them (Hurley 2026-07-30).
+# This widens the INPUT only — SECTIONS is untouched, so the brief comes out
+# in exactly the same shape; it is simply better informed.
+_BRIEF_STATE_KEYS = (
+    # who's going / what we're doing there
+    'speaker', 'speaker_topic', 'status_tags', 'status', 'attendees',
+    # what the event IS
+    'venue', 'past_speakers', 'about', 'focus_areas', 'typical_attendees',
+    'attendee_count', 'audience_type', 'pricing', 'meeting_formats',
+    'speaking_route', 'deadline', 'pay_to_play', 'url', 'apply_url',
+    # who we know there, and where the relationship stands
+    'poc_name', 'poc_email', 'contact_info', 'additional_contacts',
+    'notes', 'follow_ups', 'conflict_note', 'workflow_status', 'postmortem',
+)
+
+
 def event_facts_for(kind, facts, state):
     """Flatten event facts + tracking into the dict handed to the model."""
     e = dict(facts or {})
     s = state or {}
-    for k in ('speaker', 'speaker_topic', 'status_tags', 'status', 'attendees', 'venue', 'past_speakers'):
+    for k in _BRIEF_STATE_KEYS:
         if s.get(k) not in (None, '', []):
             e[k] = s[k]
     return e
