@@ -352,10 +352,18 @@ def _deadline_sane(deadline, start_iso):
         return True
 
 
-def merge_missing(row, facts):
+def merge_missing(row, facts, rewrite=None):
+    """Fill blanks. `rewrite` names columns that may be REPLACED even when they
+    already hold something — used to re-do a weak description without having to
+    clear the field by hand first (Hurley 2026-07-29). Default stays fill-only,
+    so the normal Enrich button can never overwrite someone's typing.
+    """
     patch = {}
+    rewrite = {str(c).strip() for c in (rewrite or []) if str(c).strip()}
 
     def empty(col):
+        if col in rewrite:
+            return True
         v = row.get(col)
         return v is None or str(v).strip() == ''
 
@@ -403,9 +411,9 @@ def merge_missing(row, facts):
     return patch
 
 
-def enrich_one(row):
+def enrich_one(row, rewrite=None):
     facts = perplexity_facts(row)
-    patch = merge_missing(row, facts)
+    patch = merge_missing(row, facts, rewrite=rewrite)
     home = row.get('url') or patch.get('url')
     if not home:
         try:
@@ -470,13 +478,23 @@ class handler(BaseHTTPRequestHandler):
         ev = body.get('event')
         table = body.get('table')
         key = body.get('key')
+        # Columns the caller explicitly wants REDONE even though they already
+        # hold something. The Enrich button never sends this, so a click can
+        # still only fill blanks; it exists so a weak description can be
+        # rewritten without clearing the field by hand (Hurley 2026-07-29).
+        rewrite = body.get('rewrite') or []
+        if rewrite is True:
+            rewrite = ['about']
+        if isinstance(rewrite, str):
+            rewrite = [rewrite]
+        rewrite = [c for c in rewrite if c in WRITABLE]
         if not isinstance(ev, dict) or not (ev.get('name') or '').strip():
             return _send(self, 400, {'error': 'event with a name is required'})
         if table not in ('event_state', 'manual_events') or key in (None, ''):
             return _send(self, 400, {'error': 'table (event_state|manual_events) '
                                               'and key are required'})
 
-        patch = enrich_one(ev)
+        patch = enrich_one(ev, rewrite=rewrite)
         # Only keep columns we know exist on the table.
         patch = {k: v for k, v in patch.items() if k in WRITABLE and v}
         if not patch:

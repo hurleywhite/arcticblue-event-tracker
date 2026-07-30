@@ -3627,6 +3627,17 @@ def build():
     return '<div class="modal-field"><span class="v">' + _linkifyEsc(esc(val)) + '</span></div>';
   }}
 
+  // Buyer-rich / audience mix is a targeting judgement, not a fact about the
+  // event: it's Verma's signal (regulated-industry board rooms) and Angela's
+  // triage tool. Nobody else sees it — in the read view OR the editor, which is
+  // where it was still leaking to Thor (Hurley 2026-07-29). The assistant is
+  // held to the same rule server-side in api/ask.py.
+  function seesAudience() {{
+    var me = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '')
+      .trim().toLowerCase().split(/\\s+/)[0];
+    return me === 'verma' || !!(window.isAngelaUser && window.isAngelaUser());
+  }}
+
   // ── Who attends: one list, not two overlapping ones ──────────────────
   // "Typical attendees" and "Past / announced speakers" described the same room
   // from two angles and repeated each other — the same CIOs and CDOs listed
@@ -4043,7 +4054,7 @@ def build():
       sDet += ef('Topics', ta('focus_areas', rec.focus_areas, 2));
       sDet += ef('Typical attendees', ta('typical_attendees', rec.typical_attendees, 2));
       sDet += ef('Type', inp('type', rec.type, 'e.g. Enterprise'));
-      sDet += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) {{ return opt(v, rec.audience_type); }}).join('') + '</select>');
+      if (seesAudience()) sDet += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) {{ return opt(v, rec.audience_type); }}).join('') + '</select>');
       sDet += ef('Meetings & networking (1:1s)', inp('meeting_formats', rec.meeting_formats, 'e.g. Hosted 1:1 meetings; roundtables'));
       sDet += ef('Price to attend', inp('pricing', rec.pricing, 'e.g. $1,995 delegate pass; free for buyers'));
       sDet += ef('Attendee count', inp('attendee_count', rec.attendee_count, 'e.g. 1,500+'));
@@ -4356,11 +4367,8 @@ def build():
           // the event — it's Verma's signal (regulated-industry board rooms) and
           // Angela's for triage. Everyone else was reading a label that didn't
           // change what they'd do (Hurley 2026-07-29).
-          var _me = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '')
-            .trim().toLowerCase().split(/\\s+/)[0];
-          var _seesAudience = _me === 'verma' || !!(window.isAngelaUser && window.isAngelaUser());
           var g = field('Attendee count', rec.attendee_count) +
-                  (_seesAudience ? field('Audience', rec.audience_type) : '');
+                  (seesAudience() ? field('Audience', rec.audience_type) : '');
           return g ? '<div class="modal-grid">' + g + '</div>' : '';
         }})());
       // — Overview of the event itself. The meeting/networking format rides
