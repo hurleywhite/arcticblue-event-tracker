@@ -1121,7 +1121,7 @@ def build():
       width: 8px; height: 8px; border-radius: 50%;
       background: var(--ab-bg); border: 2px solid var(--ab-rule-strong);
     }}
-    .fu-log li:last-child::before {{ border-color: var(--ab-blue); }}
+    .fu-log li:last-child::before {{ border-color: var(--ab-blue); background: var(--ab-blue); }}
     .fu-when {{ font-family: var(--ab-mono); font-size: 0.76rem; color: var(--ab-fg); font-weight: 700; }}
     .fu-kind {{
       font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
@@ -1163,6 +1163,7 @@ def build():
       transition: border-color 120ms, color 120ms, background 120ms;
     }}
     .ab-addbtn:hover {{ border-color: var(--ab-blue); color: var(--ab-blue); background: var(--ab-bg); }}
+    .ab-addbtn[hidden] {{ display: none; }}
     .ab-addbtn .ab-addbtn-ic {{ font-size: 1rem; line-height: 1; font-weight: 400; }}
     .ab-form {{ margin: 2px 0 12px; }}
     .ab-input {{
