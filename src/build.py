@@ -1768,12 +1768,14 @@ def build():
       box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
     }}
     .ask1-go {{
+      display: inline-flex; align-items: center; gap: 6px;
       padding: 0 16px; border-radius: 9px; cursor: pointer;
       font-family: var(--ab-sans); font-size: 0.85rem; font-weight: 600;
       white-space: nowrap;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg-2); color: var(--ab-fg-2);
     }}
     .ask1-go:hover {{ border-color: var(--ab-blue); background: var(--ab-bg); color: var(--ab-blue); }}
+    .ask1-ic {{ color: #7c3aed; font-size: 0.9rem; line-height: 1; }}
     .ask1-answer {{
       margin-top: 7px; padding: 9px 11px; font-size: 0.85rem; line-height: 1.45;
       color: var(--ab-fg); background: var(--ab-bg-2); border-radius: 8px;
@@ -15435,8 +15437,8 @@ def build():
         // Every question is also posted into the thread, so Angela can see what
         // Thor asked without anyone having to tell her.
         '<form class="ask1-form" id="ask1-form">' +
-          '<input class="ask1-input" id="ask1-input" placeholder="Ask AI about this event — status, follow-ups, who to contact…" autocomplete="off" maxlength="300">' +
-          '<button type="submit" class="ask1-go">Ask AI</button>' +
+          '<input class="ask1-input" id="ask1-input" placeholder="Ask AIngela about this event \u2014 status, follow-ups, who to contact\u2026" autocomplete="off" maxlength="300">' +
+          '<button type="submit" class="ask1-go"><span class="ask1-ic" aria-hidden="true">\u2726</span> Ask AIngela</button>' +
         '</form>' +
         '<div class="ask1-answer" id="ask1-answer" hidden></div>' +
         '';
