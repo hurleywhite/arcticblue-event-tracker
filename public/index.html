@@ -663,6 +663,17 @@
     /* Rejected — same red as the card's status dot, so "they passed" reads the
        same wherever it appears. */
     .modal-note { color: var(--ab-fg-3); font-size: 0.94em; }
+    /* Interested + Archive in the modal header — the same star and struck
+       eye the card face uses, so both surfaces read the same. */
+    .mh-ico {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; margin-right: 4px; padding: 0;
+      border: 1px solid var(--ab-rule-strong); border-radius: 8px;
+      background: var(--ab-bg); color: var(--ab-fg-3); cursor: pointer;
+    }
+    .mh-ico svg { width: 16px; height: 16px; display: block; }
+    .mh-ico:hover { border-color: var(--ab-blue); color: var(--ab-blue); }
+    .mh-ico.is-on { border-color: var(--ab-blue); color: var(--ab-blue); background: rgba(39,115,194,0.08); }
     .me-apply { margin: 4px 0 18px; }
     /* "Also from this organiser" — the umbrella's members, or the family a
        member belongs to. Rows, not buttons: it's navigation, not an action. */
@@ -1358,33 +1369,6 @@
     /* Who reacted, shown next to the emoji. */
     .chat-react-who { font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 600; }
     .chat-react.is-mine { border-color: var(--ab-blue); color: var(--ab-blue); background: rgba(31,160,220,0.10); }
-    /* Mini per-event assistant — deliberately smaller than the chat composer
-       so it reads as a utility, not the main action. */
-    .ask1-form { display: flex; gap: 8px; margin: 18px 0 0; align-items: stretch; }
-    .ask1-input {
-      flex: 1; padding: 9px 13px; font: inherit; font-size: 0.87rem;
-      border: 1px solid var(--ab-rule-strong); border-radius: 9px;
-      background: var(--ab-bg); color: var(--ab-fg);
-    }
-    .ask1-input::placeholder { color: var(--ab-fg-3); }
-    .ask1-input:focus {
-      border-color: var(--ab-blue); outline: none;
-      box-shadow: 0 0 0 3px rgba(39,115,194,0.12);
-    }
-    .ask1-go {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 0 16px; border-radius: 9px; cursor: pointer;
-      font-family: var(--ab-sans); font-size: 0.85rem; font-weight: 600;
-      white-space: nowrap;
-      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg-2); color: var(--ab-fg-2);
-    }
-    .ask1-go:hover { border-color: var(--ab-blue); background: var(--ab-bg); color: var(--ab-blue); }
-    .ask1-ic { color: #7c3aed; font-size: 0.9rem; line-height: 1; }
-    .ask1-answer {
-      margin-top: 7px; padding: 9px 11px; font-size: 0.85rem; line-height: 1.45;
-      color: var(--ab-fg); background: var(--ab-bg-2); border-radius: 8px;
-      border-left: 2px solid var(--ab-blue); white-space: pre-wrap;
-    }
     .chat-form { display: flex; gap: 8px; }
     .chat-input { flex: 1; padding: 9px 12px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font: inherit; font-size: 0.9rem; }
     .chat-send { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ab-blue); background: var(--ab-blue); color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -3127,10 +3111,6 @@
             <span class="tf-dot" id="tf-active-count" hidden></span>
           </button>
           <input type="search" id="ops-search" placeholder="Search events" aria-label="Search events">
-          <button class="ab-btn ab-btn--ask" id="ask-ai-btn" title="Ask the AI to analyse and rank the events currently in view — e.g. 'which of these should I attend in September?'">
-            <svg class="ab-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
-            Ask Anything
-          </button>
         </div>
         <div class="tf-drawer" id="tf-drawer" hidden>
           <div class="filter-dd" id="filter-pipeline" title="Pipeline stage — where each event stands (pick several to combine)">
@@ -3714,8 +3694,8 @@
     // normal state of most events, so the row now shows only the button.
     var summary = formatInterested(rec.interested);
     var _qbAngela = !!(window.isAngelaUser && window.isAngelaUser());
-    var intBtn =
-      '<button type="button" class="qa' + (iAmIn ? ' on' : '') + '" data-qa="interested">' + (iAmIn ? '✓ Interested' : "I'm interested") + '</button>';
+    // Header icons need these two facts; the buttons themselves live up there now.
+    window.__mqIn = iAmIn;
     var intSummary = summary
       ? '<span class="qa-int-summary">' + summary + '</span>'
       : (_qbAngela ? '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>' : '');
@@ -3725,15 +3705,18 @@
     // in the edit form.
     var _qbMan = rec._table === 'manual_events';
     var _qbArchivedMe = (window.opsIsArchivedForMe ? window.opsIsArchivedForMe(_qbMan, rec._key, rec.hidden === true) : !!rec.hidden);
-    var hideBtn =
-        '<button type="button" class="qa' + (_qbArchivedMe ? ' on' : '') + '" data-qa="archive" title="Archived for you only — teammates still see it">' + (_qbArchivedMe ? 'Unarchive' : 'Archive') + '</button>';
+    window.__mqArch = _qbArchivedMe;
     // The "Status:" / "Interested:" / "Hide:" row labels are gone (Hurley
     // 2026-07-29) — the buttons say what they do, and the labels were reading as
     // a wall of headings. The rows stay on SEPARATE lines, with "I'm interested"
     // and Archive sharing the second one.
+    // "I'm interested" and Archive moved OUT of this row and into the modal's
+    // top-right, as the same star and eye icons the card face uses — one place
+    // to look for them, one visual language (Hurley 2026-07-30). Only the
+    // who-flagged-it summary stays on the line.
     return '<div class="modal-quickbar">' +
            '<div class="qa-row qa-row--status" style="align-items:center;">' + bStage.join('') + '</div>' +
-           '<div class="qa-row qa-row--me" style="margin-top:6px;align-items:center;">' + intBtn + hideBtn + intSummary + '</div>' +
+           (intSummary ? '<div class="qa-row qa-row--me" style="margin-top:6px;align-items:center;">' + intSummary + '</div>' : '') +
            '</div>';
   }
   // Natural-language list of who's interested: "Joe is interested" /
@@ -3759,7 +3742,9 @@
   function wireQuickBar(rec) {
     var bar = $body.querySelector('.modal-quickbar');
     if (!bar) return;
-    bar.addEventListener('click', function (e) {
+    // Named + shared: the Interested / Archive icons now live in the modal
+    // HEADER, outside this bar, and must run the identical logic.
+    window.__qaClick = function (e) {
       // Angela picked a NAME under Should Attend -> toggle them on `interested`,
       // which is what puts it in her Queue and takes it off their Planner.
       var pick = e.target.closest ? e.target.closest('[data-sa-for]') : null;
@@ -3915,7 +3900,8 @@
       // Archive lives in localStorage (no realtime echo), so re-render the grid
       // ourselves to move the card into / out of the per-person Hidden section.
       if (qa === 'archive' && window.opsRefresh) window.opsRefresh();
-    });
+    };
+    bar.addEventListener('click', window.__qaClick);
   }
 
   // Edit form — mirrors the READ-ONLY field layout (same .modal-field rows /
@@ -4841,9 +4827,34 @@
       var enrichBtn = (rec._table && rec._key != null)
         ? '<button type="button" class="qa-edit qa-enrich" id="modal-enrich-btn" title="Search the web to fill in missing details for this event"><span class="qa-edit-ic" aria-hidden="true">✦</span> Enrich</button>'
         : '';
-      $side.innerHTML = enrichBtn + (editForm
+      // Interested + Archive as ICONS, same star and struck-eye the card face
+      // uses, so the two surfaces speak the same language (Hurley 2026-07-30).
+      var _hIn   = !!window.__mqIn, _hArch = !!window.__mqArch;
+      var _starD = 'M12 2.6l2.72 5.51 6.08.88-4.4 4.29 1.04 6.06L12 16.48 6.56 19.34l1.04-6.06-4.4-4.29 6.08-.88z';
+      var meIco =
+        '<button type="button" class="mh-ico' + (_hIn ? ' is-on' : '') + '" data-qa="interested" ' +
+        'title="' + (_hIn ? "You're interested — click to clear" : "I'm interested") + '" ' +
+        'aria-pressed="' + (_hIn ? 'true' : 'false') + '" aria-label="I am interested">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true" fill="' + (_hIn ? 'currentColor' : 'none') +
+        '" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="' + _starD + '"/></svg>' +
+        '</button>';
+      var archIco =
+        '<button type="button" class="mh-ico' + (_hArch ? ' is-on' : '') + '" data-qa="archive" ' +
+        'title="' + (_hArch ? 'Archived for you — click to bring it back' : 'Archive — for you only; teammates still see it') + '" ' +
+        'aria-pressed="' + (_hArch ? 'true' : 'false') + '" aria-label="Archive for me">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>' +
+        '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>' +
+        '<path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>' +
+        '<path d="m2 2 20 20"/></svg></button>';
+      $side.innerHTML = meIco + archIco + enrichBtn + (editForm
         ? '<button type="button" class="qa-edit" id="modal-edit-toggle" aria-expanded="false"><span class="qa-edit-ic" aria-hidden="true">✎</span> Edit</button>'
         : '');
+      // They drive the SAME handler the quickbar buttons did.
+      $side.querySelectorAll('[data-qa]').forEach(function (b4) {
+        b4.addEventListener('click', window.__qaClick);
+      });
       wireEnrichButton(rec);
       var et = document.getElementById('modal-edit-toggle');
       if (et) et.addEventListener('click', function () {
@@ -6245,15 +6256,18 @@
               ? '<a class="event-name-link" href="' + escapeHtml(_cardUrl) + '" target="_blank" rel="noopener" aria-label="Open website for ' + escapeHtml(ev.name) + '">' + escapeHtml(ev.name) + '<span class="event-link-arrow" aria-hidden="true">↗</span></a>'
               : escapeHtml(ev.name)) +
           '</h3>' +
-          // Top-right cluster (shown on every card): star · hide · chat.
+          // Top-right cluster, in priority order LEFT to RIGHT: the things that
+          // only appear on hover sit furthest left, then the permanent status
+          // mic, then the message count beside it. Status first, messages
+          // second — that's the reading order that matters (Hurley 2026-07-30).
           '<div class="ops-chips">' +
-            window.abStageIcon(st, ev) +
             starButtonHtml(st.interested, st.attend_verdict) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (_catArchivedMe
               ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
               : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — for you only; teammates still see it" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
             decBadge + saBadge +
+            window.abStageIcon(st, ev) +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
         '</div>' +
@@ -6500,13 +6514,13 @@
           '</h3>' +
           // Top-right cluster (shown on every card): star · hide · chat.
           '<div class="ops-chips">' +
-            window.abStageIcon(mev, mev) +
             starButtonHtml(mev.interested, mev.attend_verdict) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (_isArchivedForMe(true, mev.id, mev.hidden === true)
               ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
               : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — for you only; teammates still see it" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
+            window.abStageIcon(mev, mev) +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
           '</div>' +
         '</div>' +
@@ -15478,15 +15492,6 @@
           '<input class="chat-input" id="chat-input" placeholder="Message the team about this event…" autocomplete="off" maxlength="1000">' +
           '<button type="submit" class="chat-send">Send</button>' +
         '</form>' +
-        // Per-event mini assistant. Small, one line, under the thread — you ask
-        // about THIS event and the answer lands right here (Hurley 2026-07-30).
-        // Every question is also posted into the thread, so Angela can see what
-        // Thor asked without anyone having to tell her.
-        '<form class="ask1-form" id="ask1-form">' +
-          '<input class="ask1-input" id="ask1-input" placeholder="Ask AIngela about this event — status, follow-ups, who to contact…" autocomplete="off" maxlength="300">' +
-          '<button type="submit" class="ask1-go"><span class="ask1-ic" aria-hidden="true">✦</span> Ask AIngela</button>' +
-        '</form>' +
-        '<div class="ask1-answer" id="ask1-answer" hidden></div>' +
         '';
       sb.from('event_chat').select('*').eq(col, rec._key).order('created_at', { ascending: true }).then(function (resp) {
         var list = document.getElementById('chat-list'); if (!list) return;
@@ -15499,47 +15504,6 @@
         // so opening an event to look at it can't quietly empty your feed.
       });
       // ── Mini per-event assistant ──────────────────────────────────
-      var a1 = document.getElementById('ask1-form');
-      if (a1) a1.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var inp = document.getElementById('ask1-input');
-        var box = document.getElementById('ask1-answer');
-        var q = (inp.value || '').trim();
-        if (!q) return;
-        var who = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || 'Someone';
-        inp.value = '';
-        box.removeAttribute('hidden');
-        box.textContent = 'Thinking…';
-        // Scope the question to THIS event by name so the assistant answers
-        // about it rather than searching the catalog.
-        fetch('/api/ask', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            question: 'About the event "' + (rec.name || '') + '": ' + q,
-            // This box is one line under the thread — the answer has to fit it.
-            // The server turns this into a hard two-sentence brief that also
-            // bans padding a status with a description of the event, which is
-            // what made these answers read long (Hurley 2026-07-30).
-            brief: true,
-            history: [], user: who, for_people: []
-          })
-        }).then(function (r) { return r.json(); }).then(function (j) {
-          var _ans = (j && j.answer) ? j.answer : 'No answer available right now.';
-          // Same renderer the main assistant uses (escapes first, then bold and
-          // links) — this box used to print raw text, so every **bold** run
-          // arrived as literal asterisks (Hurley 2026-07-30).
-          if (window.abMdToHtml) box.innerHTML = window.abMdToHtml(_ans);
-          else box.textContent = _ans;
-          // Recorded, but NOT as a chat message — it never renders in the
-          // thread. It surfaces once, bunched per person, in Angela's "In the
-          // last week" ("Thor · 3 questions to AI"), so she can see what
-          // he's circling without wading through each one (Hurley 2026-07-30).
-          var _askRow = { author: who, body: '❓ Asked AI: ' + q };
-          _askRow[col] = rec._key;
-          sb.from('event_chat').insert(_askRow).then(function () {}, function () {});
-        }).catch(function () { box.textContent = 'Could not reach the assistant.'; });
-      });
-
       var form = document.getElementById('chat-form');
       if (form) form.addEventListener('submit', function (e) {
         e.preventDefault();

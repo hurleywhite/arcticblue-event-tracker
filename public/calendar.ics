@@ -115,16 +115,6 @@ DESCRIPTION:Focused on core banking transformation\, AI & agentic AI\, and regul
 URL:https://digitalfinanceconference.eu/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-633@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261109
-DTEND;VALUE=DATE:20261111
-SUMMARY:ABHI UK HealthTech Conference 2026
-LOCATION:London\, UK
-DESCRIPTION:Association of British HealthTech Industries' flagship conference connects ArcticBlue with regulated healthcare technology decision-makers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.abhi.org.uk/events/abhi-events/the-abhi-uk-healthtech-conference-2026/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-632@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20261001
@@ -3972,16 +3962,6 @@ SUMMARY:CDO Vision Buenos Aires 2026
 LOCATION:Buenos Aires\, Argentina
 DESCRIPTION:Invite-only CDO and AI/data leadership summit in Buenos Aires attracting 30+ enterprise data and AI leaders from Argentina and the Southern Cone — strategic entry point for ArcticBlue's LatAm enterprise pipeline.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://cdovision.aim.media/events/cdo-vision-buenos-aires-2026
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-118@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20260917
-DTEND;VALUE=DATE:20260919
-SUMMARY:AI Horizons 2026 Pittsburgh
-LOCATION:Pittsburgh\, PA\, USA
-DESCRIPTION:Pittsburgh's premier AI summit (CMU-affiliated) covering AI in healthcare\, manufacturing\, finance\, robotics\, and defense — emerging enterprise AI hub with cross-sector coverage for ArcticBlue's verticals.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://aihorizonspgh.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-115@arcticblue-event-tracker
