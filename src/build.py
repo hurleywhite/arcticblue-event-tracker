@@ -1885,10 +1885,11 @@ def build():
       margin-left: 3px; font-family: var(--ab-mono); font-size: 0.72em;
       font-weight: 700; opacity: 0.85;
     }}
-    /* in flight — yellow, matching the mic. A shade darker than the icon's
-       #ca8a04 because this one carries white TEXT: #ca8a04 behind white is
-       3.1:1, under the 4.5:1 a label needs, while an icon only needs 3:1. */
-    .qa-step.qa-flight.is-on {{ background: #a16207; border-color: #a16207; color: #fff; }}
+    /* in flight — actually yellow. Darkening the yellow until WHITE text was
+       legible is what produced the brownish orange; yellow is a light hue and
+       won't carry white. So the fill stays a true yellow and the text goes
+       dark instead (#713f12 on #facc15 is 8.6:1). */
+    .qa-step.qa-flight.is-on {{ background: #facc15; border-color: #eab308; color: #713f12; }}
     /* landed */
     .qa-step.qa-good.is-on {{ background: #15803d; border-color: #15803d; color: #fff; }}
     /* closed */
@@ -4254,15 +4255,10 @@ def build():
     // 2026-07-30). Colours match the corner mark exactly: amber in flight,
     // green landed, red closed.
     var _fuN = (window.abFollowUps ? window.abFollowUps(rec) : []).length;
-    // An OUTCOME retires the in-flight steps. The route shows where the event
-    // IS, not everywhere it has been — otherwise a booked event still reads as
-    // "chasing them", which is what Booked was clicked to say it isn't
-    // (Hurley 2026-07-30). The ×N count stays visible: the chases happened,
-    // and the log below is the history.
-    var _outcome = has('Booked') || has('Rejected');
     // A logged follow-up IS a follow-up, even without the stage tag — Angela
-    // could log three chases and still see the step unlit.
-    var _fuOn = !_outcome && (has('Followed up') || !!_fuN);
+    // could log three chases and still see the step unlit. An outcome does NOT
+    // dim it: the row is the path taken, not just the current position.
+    var _fuOn = has('Followed up') || !!_fuN;
     function _step(qa, label, on, cls, extra) {{
       return '<button type="button" class="qa-step' + (on ? ' is-on' : '') + (cls ? ' ' + cls : '') +
              '" data-qa="' + qa + '"' + (extra || '') + '>' +
@@ -4277,10 +4273,9 @@ def build():
     // lit and the button looked dead (Hurley 2026-07-30). Clicking again undoes
     // the last such quick entry; chases you typed a note against are real
     // history and are removed from their own row below, not from here.
-    var _fuTip = _outcome
-      ? 'Retired \u2014 this event has an outcome. ' + _fuN + ' chase' + (_fuN === 1 ? '' : 's') + ' logged below.'
-      : (_fuOn ? 'Click to log another chase dated today (click again to undo it)'
-               : 'Click to log a chase dated today');
+    var _fuTip = _fuOn
+      ? 'Click to log another chase dated today (click again to undo it)'
+      : 'Click to log a chase dated today';
     bStage.push(_step('followed-up',
       'Followed up' + (_fuN ? '<span class="qa-n">\u00d7' + _fuN + '</span>' : ''),
       _fuOn, 'qa-flight', ' title="' + esc(_fuTip) + '"'));
@@ -4574,17 +4569,13 @@ def build():
         var tags = (rec.stage_tags || []).slice();
         var idx = tags.indexOf(stage);
         if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
-        // Marking an OUTCOME retires every in-flight stage, so the stored row
-        // matches what everyone reads (Hurley 2026-07-30). Booked used to clear
-        // Submitted but leave "Followed up" lit, which read as still chasing an
-        // organiser who had already said yes. Turning the outcome back OFF
-        // doesn't restore them — that'd be guessing at history; the buttons are
-        // right there if they should come back.
+        // Booked and Rejected are the SAME question answered two ways, so
+        // turning one on turns the other off (Hurley 2026-07-30). The in-flight
+        // stages are left alone: the row is the path the application took, and
+        // an event that was submitted, chased, then booked should say so.
         if ((stage === 'Booked' || stage === 'Rejected') && idx === -1) {{
-          ['Submitted', 'Followed up', 'Meeting held'].forEach(function (s) {{
-            var _k = tags.indexOf(s);
-            if (_k !== -1) tags.splice(_k, 1);
-          }});
+          var _other = tags.indexOf(stage === 'Booked' ? 'Rejected' : 'Booked');
+          if (_other !== -1) tags.splice(_other, 1);
         }}
         var order = window.opsStageOrder || [];
         if (order.length) tags = order.filter(function (s) {{ return tags.indexOf(s) !== -1; }});
@@ -6056,12 +6047,12 @@ def build():
         var k = (v == null ? '' : String(v)).trim();
         if (STAGE_BY_KEY[k]) seen[k] = true;
       }});
-      // An OUTCOME ends the application: once they've said yes or no, "we've
-      // submitted" is history, not a current state. Booked and Rejected clear
-      // Submitted (Hurley 2026-07-30). Done here, in the one accessor every
-      // read goes through, so the 28 events already carrying both read right
-      // without rewriting stored rows.
-      if (seen['Booked'] || seen['Rejected']) delete seen['Submitted'];
+      // Booked/Rejected used to clear Submitted here. Reversed on Hurley's
+      // call (2026-07-30): the row is the PATH the application took, so
+      // "submitted, chased, then booked" should read as all three. Because it
+      // sat in the one accessor every read passes through, it also stripped
+      // Submitted straight back off after a click — the stored row was right
+      // and the screen still disagreed.
       return STAGE_TAGS.filter(function (s) {{ return seen[s.key]; }}).map(function (s) {{ return s.key; }});
     }}
 
