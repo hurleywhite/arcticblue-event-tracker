@@ -4412,9 +4412,15 @@
       // itself, so with one bare entry it is pure repetition either way.
       // 'closed' and 'hold' stay: they describe the ORGANISER, which no row
       // says (Hurley 2026-07-30).
+      // Count-based, plainly: ONE entry needs no badge — the row already says
+      // the date, and if there's a note the row shows that too. From TWO the
+      // badge earns its place, because "where are we across all of these" is
+      // no longer readable at a glance. (This drops the earlier
+      // one-entry-with-a-note exception — Hurley restated the rule on count
+      // alone, 2026-07-30.) Closed and waiting-on-them always show: they
+      // describe the ORGANISER, which no row states.
       var _fuEcho = { ok: 1, due: 1 };
-      var _fuOnlyEcho = (_fuSt && _fuEcho[_fuSt.state] && _fuList.length === 1 &&
-                         !String((_fuList[0] || {}).note || '').trim());
+      var _fuOnlyEcho = (_fuSt && _fuEcho[_fuSt.state] && _fuList.length === 1);
       if (_fuSt && _fuSt.state !== 'none' && !_fuOnlyEcho) {
         var _fuLab = _fuSt.label, _fuCls = _fuSt.state;
         // "Follow up now — 6 days since Jul 24" is Angela's worklist talking.
