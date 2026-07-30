@@ -10874,6 +10874,26 @@
     // {on, by, note}. Everything about WHEN to chase again is derived, never
     // stored, so it can't go stale when a note changes (Hurley 2026-07-30).
     var FOLLOW_UP_DAYS = 14;
+    // A fortnight's silence is fine three months out and useless three weeks
+    // out — the cadence tightens as the event approaches (Hurley 2026-07-30).
+    var FOLLOW_UP_NEAR_DAYS = 7, FOLLOW_UP_IMMINENT_DAYS = 3;
+    function _fuStartIso(o) {
+      var v = (o && (o.start_date || o.startObj && o.startObj.start_date)) || '';
+      v = String(v).slice(0, 10);
+      return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+    }
+    function _fuDaysToEvent(o, today) {
+      var iso = _fuStartIso(o);
+      return iso ? _fuDaysSince(today, iso) : null;      // negative once it's past
+    }
+    // How long we let silence run before it counts as due.
+    function followUpEvery(o, today) {
+      var d = _fuDaysToEvent(o, today);
+      if (d == null || d < 0) return FOLLOW_UP_DAYS;
+      if (d <= 10) return FOLLOW_UP_IMMINENT_DAYS;
+      if (d <= 35) return FOLLOW_UP_NEAR_DAYS;
+      return FOLLOW_UP_DAYS;
+    }
     function followUps(o) {
       var v = (o && o.follow_ups) || [];
       if (typeof v === 'string') { try { v = JSON.parse(v); } catch (e) { v = []; } }
@@ -10909,6 +10929,20 @@
       jan:1, feb:2, mar:3, apr:4, jun:6, jul:7, aug:8, sep:9, sept:9, oct:10, nov:11, dec:12 };
     // "unless she says something" — read her own words before nagging her.
     // Returns { hold:true, until, why } when the notes say to wait.
+    // A bare month name is almost always the EVENT'S OWN DATE restated in the
+    // notes ("(Sep 9-10)", "Postponed from April 13 to Aug 31", a URL slug
+    // ".../assembly-august-2026/", "Wave 1 acceptances: Aug 15") — or the plain
+    // English word "may" ("Thor may not attend"). Treating any of those as
+    // "wait until then" silences the follow-up nudge on events that need
+    // chasing most, which is exactly what it did (Hurley 2026-07-30). A month
+    // now only means WAIT when a phrase in front of it says so.
+    var _FU_WAIT_LEAD = '(?:until|till|back (?:to us )?in|come[sn]? back in|'
+      + 'reach(?:ing)? out in|be in touch in|hear(?:ing)? (?:back )?in|'
+      + 'decisions? in|deciding in|review(?:ing)? in|announce(?:d|ment)?s? in|'
+      + 'opens? (?:again )?in|not before|revisit in|circle back in|'
+      + 'follow(?:ing)? up in|check back in|try again in|resubmit in|reapply in)';
+    var _FU_MONTH_ALT = '(january|february|march|april|may|june|july|august|september|october|' +
+      'november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)';
     function followUpHold(text) {
       var t = String(text || '').toLowerCase();
       if (!t.trim()) return null;
@@ -10921,18 +10955,22 @@
       // month it's fair to nudge again.
       var waiting = /(will|they.?ll|we.?ll|is|are)\s+(be\s+in\s+touch|reach\s+out|come\s+back|let\s+us\s+know|follow\s+up|connect|connecting|introduc|keep\s+(you|us)\s+(in\s+the\s+loop|posted))/.test(t)
                  || /(keep\s+(you|us)\s+in\s+the\s+loop|on\s+hold|waiting\s+on|awaiting|have\s+everything\s+(they|we)\s+need|going\s+through\s+applications)/.test(t);
-      // A named future month — "back to us in September", "reviewing in Q4".
+      // A named future month, but ONLY behind a phrase that means waiting —
+      // "back to us in September", "decisions in October", "not before March".
       var until = null;
       var today = (window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10));
-      var m = t.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b/g);
-      if (m) {
-        var yr = parseInt(today.slice(0, 4), 10), mo = parseInt(today.slice(5, 7), 10);
-        m.forEach(function (name) {
-          var n = _FU_MONTHS[name]; if (!n) return;
-          var y = n >= mo ? yr : yr + 1;                      // next occurrence
-          var iso = y + '-' + String(n).padStart(2, '0') + '-01';
-          if (iso > today && (!until || iso < until)) until = iso;
-        });
+      // Links carry month names in their slugs; they are never a promise.
+      var tw = t.replace(/https?:\/\/\S+/g, ' ')
+                .replace(/\S+\.(?:com|org|net|io|ai|co)\S*/g, ' ')
+                .replace(/[\s ]+/g, ' ');
+      var re = new RegExp(_FU_WAIT_LEAD + ' ' + _FU_MONTH_ALT + '(?![a-z])', 'g');
+      var yr = parseInt(today.slice(0, 4), 10), mo = parseInt(today.slice(5, 7), 10);
+      var hit;
+      while ((hit = re.exec(tw)) !== null) {
+        var n = _FU_MONTHS[hit[1]]; if (!n) continue;
+        var y = n >= mo ? yr : yr + 1;                        // next occurrence
+        var iso = y + '-' + String(n).padStart(2, '0') + '-01';
+        if (iso > today && (!until || iso < until)) until = iso;
       }
       if (never) return { hold: true, until: null, permanent: true, why: 'they contact us' };
       if (until) return { hold: true, until: until, why: 'their timing' };
@@ -10969,6 +11007,10 @@
       var hold = followUpHold(notes);
       var today = (window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10));
       var last = lastFollowUp(o);
+      // However firm the wait, an event two weeks out overrides it: if we're
+      // still not on the programme by then, waiting quietly is not a plan.
+      var toEvent = _fuDaysToEvent(o, today);
+      if (hold && toEvent != null && toEvent >= 0 && toEvent <= 14) hold = null;
       // Their timing beats our clock.
       if (hold && hold.until && hold.until > today) {
         return { state: 'hold', until: hold.until, label: 'Waiting until ' + _fuNice(hold.until) };
@@ -10992,7 +11034,7 @@
       }
       if (!lastOn) return { state: 'none', label: 'Not contacted yet' };
       var days = _fuDaysSince(lastOn, today);
-      if (days >= FOLLOW_UP_DAYS) {
+      if (days >= followUpEvery(o, today)) {
         return { state: 'due', days: days, since: lastOn,
                  label: 'Follow up now — ' + days + ' days since ' + _fuNice(lastOn) };
       }
