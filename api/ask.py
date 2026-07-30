@@ -572,7 +572,9 @@ _SYSTEM = (
     "hear back.\" Bad: \"Status: Submitted — Thor. The current stage is "
     "Submitted, Followed up.\" Two or three sentences, cut and dry, no "
     "hedging, and only bring up the date and venue if they asked or it "
-    "matters. If status is null we have NO speaking status on file: say "
+    "matters. NEVER pad a status answer with a description of the event — "
+    "its size, its audience, its tracks, why it is worth doing. That is not "
+    "what was asked and it buries the answer. If status is null we have NO speaking status on file: say "
     "exactly that. Do NOT invent 'open to speak', 'open to attend' or any "
     "other state — those are not statuses this tracker has, and a null status "
     "does NOT mean an event is open, submitted or rejected. 'Rejected' is "
@@ -750,10 +752,28 @@ def _visible_events(events, asker):
     return out
 
 
-def _ask_openai(question, history, events, user='', for_people=None):
+_BRIEF = (
+    "THIS ANSWER APPEARS IN A SMALL BOX ON ONE EVENT'S CARD. The reader is "
+    "looking at that event already, so answer the question and nothing else, "
+    "in AT MOST TWO SHORT SENTENCES.\n"
+    "- Lead with where we stand and what has been done about it.\n"
+    "- Dates and city are fine in a few words ('Aug 31-Sep 3 in Riyadh'). "
+    "Never give the full venue name unless they asked where it is.\n"
+    "- CUT every clause that describes or sells the event — how big it is, "
+    "who it draws, what its tracks are called, why it matters. They know what "
+    "the event is; it is on the screen in front of them.\n"
+    "- Say each thing once. If you have said nothing is booked, do not also "
+    "say it is 'in progress' or 'on file as in flight'.\n"
+    "- No preamble, no sign-off, no offers of further help."
+)
+
+
+def _ask_openai(question, history, events, user='', for_people=None, brief=False):
     messages = [{'role': 'system',
                  'content': _SYSTEM.format(today=date.today().isoformat())}]
     messages.append({'role': 'system', 'content': _TEAM_CONTEXT})
+    if brief:
+        messages.append({'role': 'system', 'content': _BRIEF})
     user = (user or '').strip()
     _first = user.split()[0].lower() if user.split() else ''
     _forp = [str(x).strip() for x in (for_people or []) if str(x).strip()]
@@ -996,7 +1016,9 @@ class handler(BaseHTTPRequestHandler):
             return _send(self, 400, {'error': 'no question'})
         events = _gather_events(self.headers.get('Host', ''), question)
         try:
-            answer, names, mode, served = _ask_openai(question, body.get('history'), events, body.get('user'), body.get('for_people'))
+            answer, names, mode, served = _ask_openai(
+                question, body.get('history'), events, body.get('user'),
+                body.get('for_people'), bool(body.get('brief')))
         except Exception as e:  # noqa: BLE001
             return _send(self, 502, {'error': 'assistant failed: %s' % str(e)[:300]})
         cards = _dedupe_cards(_match_cards(names, events))

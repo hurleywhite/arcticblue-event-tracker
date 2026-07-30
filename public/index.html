@@ -15035,6 +15035,11 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             question: 'About the event "' + (rec.name || '') + '": ' + q,
+            // This box is one line under the thread — the answer has to fit it.
+            // The server turns this into a hard two-sentence brief that also
+            // bans padding a status with a description of the event, which is
+            // what made these answers read long (Hurley 2026-07-30).
+            brief: true,
             history: [], user: who, for_people: []
           })
         }).then(function (r) { return r.json(); }).then(function (j) {
