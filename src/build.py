@@ -4256,29 +4256,44 @@ def build():
     // green landed, red closed.
     var _fuN = (window.abFollowUps ? window.abFollowUps(rec) : []).length;
     // A logged follow-up IS a follow-up, even without the stage tag — Angela
-    // could log three chases and still see the step unlit. An outcome does NOT
-    // dim it: the row is the path taken, not just the current position.
-    var _fuOn = has('Followed up') || !!_fuN;
+    // could log three chases and still see the step unlit. But an END STATE
+    // dims it regardless of the log: without this the log re-lights the step
+    // the instant the tag is cleared, and clicking Booked looks like it did
+    // nothing at all.
+    var _endState = has('Booked') || has('Rejected') || has('Attending');
+    var _fuOn = !_endState && (has('Followed up') || !!_fuN);
     function _step(qa, label, on, cls, extra) {{
       return '<button type="button" class="qa-step' + (on ? ' is-on' : '') + (cls ? ' ' + cls : '') +
              '" data-qa="' + qa + '"' + (extra || '') + '>' +
              (on ? '<span class="qa-tick" aria-hidden="true">\u2713</span>' : '') + label + '</button>';
     }}
+    // Once an end state is set, the in-flight steps are spent: they read dark
+    // and stop taking clicks. Leaving them live meant clicking "Followed up" on
+    // a booked event wrote a chase to the log that the step then refused to
+    // light \u2014 a dead button by another route.
+    function _spentStep(label, tip) {{
+      return '<span class="qa-step qa-flight qa-static" title="' + esc(tip) + '">' + label + '</span>';
+    }}
     var bStage = [];
     bStage.push('<div class="qa-flow">');
-    bStage.push(_step('submitted', 'Submitted', has('Submitted'), 'qa-flight'));
+    bStage.push(_endState
+      ? _spentStep('Submitted', 'Retired \u2014 this event has reached an outcome')
+      : _step('submitted', 'Submitted', has('Submitted'), 'qa-flight'));
     bStage.push('<span class="qa-arrow" aria-hidden="true">\u2192</span>');
     // Clicking this LOGS a chase dated today rather than flipping a bare tag:
     // the \u00d7N count comes from the log, so a tag-only toggle left the step stuck
     // lit and the button looked dead (Hurley 2026-07-30). Clicking again undoes
     // the last such quick entry; chases you typed a note against are real
     // history and are removed from their own row below, not from here.
+    var _fuLabel = 'Followed up' + (_fuN ? '<span class="qa-n">\u00d7' + _fuN + '</span>' : '');
     var _fuTip = _fuOn
       ? 'Click to log another chase dated today (click again to undo it)'
       : 'Click to log a chase dated today';
-    bStage.push(_step('followed-up',
-      'Followed up' + (_fuN ? '<span class="qa-n">\u00d7' + _fuN + '</span>' : ''),
-      _fuOn, 'qa-flight', ' title="' + esc(_fuTip) + '"'));
+    bStage.push(_endState
+      ? _spentStep(_fuLabel, 'Retired \u2014 this event has reached an outcome. ' +
+          (_fuN ? _fuN + ' chase' + (_fuN === 1 ? '' : 's') + ' still logged below.'
+                : 'No chases were logged.'))
+      : _step('followed-up', _fuLabel, _fuOn, 'qa-flight', ' title="' + esc(_fuTip) + '"'));
     bStage.push('<span class="qa-arrow" aria-hidden="true">\u2192</span>');
     bStage.push('<span class="qa-branch">');
     bStage.push(_step('booked', 'Booked', has('Booked'), 'qa-good'));
@@ -4406,6 +4421,13 @@ def build():
     if (!bar) return;
     // Named + shared: the Interested / Archive icons now live in the modal
     // HEADER, outside this bar, and must run the identical logic.
+    // Booked / Rejected / Attending all end the application, so each clears the
+    // in-flight stages (Hurley 2026-07-30). The follow-up LOG is left alone —
+    // those chases happened, and the log below the route is the history; only
+    // the route step goes dark.
+    function _abRetireInFlight(tags) {{
+      return tags.filter(function (s) {{ return s !== 'Submitted' && s !== 'Followed up'; }});
+    }}
     window.__qaClick = function (e) {{
       // Angela picked a NAME under Should Attend -> toggle them on `interested`,
       // which is what puts it in her Queue and takes it off their Planner.
@@ -4518,7 +4540,9 @@ def build():
         patch.attendees = att;
         var atags = (rec.stage_tags || []).slice();
         var hadAtt = atags.indexOf('Attending') !== -1;
-        if (att.length && !hadAtt) atags.push('Attending');
+        // Attending is an end state too, so it retires the in-flight stages the
+        // same way Booked and Rejected do.
+        if (att.length && !hadAtt) {{ atags.push('Attending'); atags = _abRetireInFlight(atags); }}
         else if (!att.length && hadAtt) atags.splice(atags.indexOf('Attending'), 1);
         var aOrder = window.opsStageOrder || [];
         if (aOrder.length) atags = aOrder.filter(function (s) {{ return atags.indexOf(s) !== -1; }});
@@ -4569,13 +4593,14 @@ def build():
         var tags = (rec.stage_tags || []).slice();
         var idx = tags.indexOf(stage);
         if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
-        // Booked and Rejected are the SAME question answered two ways, so
-        // turning one on turns the other off (Hurley 2026-07-30). The in-flight
-        // stages are left alone: the row is the path the application took, and
-        // an event that was submitted, chased, then booked should say so.
+        // Reaching an END STATE retires the in-flight ones: Booked, Rejected
+        // and Attending each clear Submitted and Followed up (Hurley
+        // 2026-07-30). Booked and Rejected are also the same question answered
+        // two ways, so turning one on turns the other off.
         if ((stage === 'Booked' || stage === 'Rejected') && idx === -1) {{
           var _other = tags.indexOf(stage === 'Booked' ? 'Rejected' : 'Booked');
           if (_other !== -1) tags.splice(_other, 1);
+          tags = _abRetireInFlight(tags);
         }}
         var order = window.opsStageOrder || [];
         if (order.length) tags = order.filter(function (s) {{ return tags.indexOf(s) !== -1; }});
