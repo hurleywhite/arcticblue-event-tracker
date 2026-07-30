@@ -4040,7 +4040,7 @@ def build():
     if (!priv) {{
       if (!isCat) sDet += ef('Region', '<select class="me-input" data-edit="region">' + ['', 'US & Canada', 'Latin America', 'Europe', 'Africa', 'MENA', 'Asia-Pacific', 'Global'].map(function (v) {{ return opt(v, rec.region); }}).join('') + '</select>');
       sDet += ef('Overview', ta('about', rec.about));
-      sDet += ef('Focus areas', ta('focus_areas', rec.focus_areas, 2));
+      sDet += ef('Topics', ta('focus_areas', rec.focus_areas, 2));
       sDet += ef('Typical attendees', ta('typical_attendees', rec.typical_attendees, 2));
       sDet += ef('Type', inp('type', rec.type, 'e.g. Enterprise'));
       sDet += ef('Audience (buyers vs sellers)', '<select class="me-input" data-edit="audience_type">' + ['', 'Buyer-rich', 'Mixed', 'Vendor-heavy'].map(function (v) {{ return opt(v, rec.audience_type); }}).join('') + '</select>');
@@ -4372,7 +4372,7 @@ def build():
           if (fmt) about = about ? (about.replace(/[.\\s]+$/, '') + '. ' + fmt + '.') : (fmt + '.');
           return fieldBare(about);
         }})() +
-        field('Focus areas', rec.focus_areas) +
+        field('Topics', rec.focus_areas) +
         (function () {{
           var g = field('Price to attend', rec.pricing) + field('Venue', rec.venue);
           return g ? '<div class="modal-grid">' + g + '</div>' : '';
@@ -5796,7 +5796,7 @@ def build():
       }}
       return '' +
         '<label><span class="key">About</span><textarea name="about">' + v('about') + '</textarea></label>' +
-        '<label><span class="key">Focus areas</span><textarea name="focus_areas">' + v('focus_areas') + '</textarea></label>' +
+        '<label><span class="key">Topics</span><textarea name="focus_areas">' + v('focus_areas') + '</textarea></label>' +
         '<label><span class="key">Typical attendees</span><input type="text" name="typical_attendees" value="' + v('typical_attendees') + '"></label>' +
         '<label><span class="key">Speaking route</span><textarea name="speaking_route">' + v('speaking_route') + '</textarea></label>' +
         '<label><span class="key">Contact info</span><textarea name="contact_info">' + v('contact_info') + '</textarea></label>' +
