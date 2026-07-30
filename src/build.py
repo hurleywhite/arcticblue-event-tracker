@@ -804,13 +804,6 @@ def build():
     .st-no   {{ background: #b91c1c; }}
     .st-sep  {{ color: var(--ab-fg-3); font-weight: 400; }}
     .st-sub-date {{ color: var(--ab-fg-3); font-weight: 500; }}
-    /* Emoji between the status word and the "— Name": 🎤 = speaking
-       (Booked / Submitted / Rejected), 🎟 = attending. No opacity — it just
-       washes emoji out — and a hair under 1em so they sit with the text. */
-    .st-mic {{
-      display: inline-block; margin: 0 3px 0 5px; font-size: 0.92em; line-height: 1;
-      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-    }}
     /* Whisper-quiet data-freshness cue from updated_at. Deliberately faint —
        it's a background reassurance / nudge, not a headline. */
     .ops-fresh-line {{ margin: -4px 0 10px; }}
@@ -6533,10 +6526,10 @@ def build():
       // speak" and "attending" reads "Attending … · Submitted to speak …".
       var bits = [];   // {{ p: priority, h: html }}
       if (stages.indexOf('Booked') !== -1 && _spkShow) {{
-        bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + ST_MIC + (speaker ? ' \\u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>' }});
+        bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Booked' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) + ' speaking' : '') + '</span>' }});
       }} else if (stages.indexOf('Rejected') !== -1 && _spkShow) {{
         // Rejected to speak — a terminal "no" that wins over a pending Submitted.
-        bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + ST_MIC + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + '</span>' }});
+        bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + '</span>' }});
       }} else if (_spkShow && (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1)) {{
         // Angela records WHEN the application went out (event_state/manual
         // .submitted_at) — surface it on her status line only.
@@ -6545,9 +6538,9 @@ def build():
         // Just "Submitted" — the mic already says it's the speaking track, so
         // "to speak" was redundant (Angela). (Closed carries the mic too now, so it
         // reads the same way — Hurley 2026-07-30.)
-        bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted' + ST_MIC + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + _subDate + (closed ? ' (CFP closed)' : '') + '</span>' }});
+        bits.push({{ p: 2, h: '<span class="st-bit"><span class="st-dot st-wait"></span>Submitted' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + _subDate + (closed ? ' (CFP closed)' : '') + '</span>' }});
       }} else if (closed) {{
-        bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed' + ST_MIC + '</span>' }});
+        bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Closed</span>' }});
       }}
       // NOTE: no "Open to speak" / "Open to attend" bits. This is primarily a
       // SPEAKING tracker: every fitting event is implicitly open to speak, and
@@ -6556,11 +6549,11 @@ def build():
       // The status line only shows a committed/pending/closed speak state + who's
       // actually attending.
       if (att.length) {{
-        bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending' + ST_TICKET + ' \\u2014 ' + escapeHtml(att.join(', ')) + '</span>' }});
+        bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending \\u2014 ' + escapeHtml(att.join(', ')) + '</span>' }});
       // The Attending STAGE is set but no attendee is named yet — still show it,
       // so ticking "Attending" on the add form holds visibly (add who in Edit).
       }} else if (_atShow && stages.indexOf('Attending') !== -1 && !past) {{
-        bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending' + ST_TICKET + '</span>' }});
+        bits.push({{ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending</span>' }});
       }}
       if (!bits.length) return '';
       bits.sort(function (a, b) {{ return a.p - b.p; }});   // committed presence leads (stable within a tier)
@@ -6607,8 +6600,6 @@ def build():
     // Real emoji, not hairline SVGs — the thin outline icons rendered as faint
     // smudges at 11px on the card (Angela). \\uD83C\\uDFA4 = 🎤,
     // \\uD83C\\uDF9F\\uFE0F = 🎟 (the VS16 forces emoji, not text, presentation).
-    var ST_MIC    = '<span class="st-mic" role="img" title="Speaking" aria-label="speaking">\\uD83C\\uDFA4</span>';
-    var ST_TICKET = '<span class="st-mic st-ticket" role="img" title="Attending" aria-label="attending">\\uD83C\\uDF9F\\uFE0F</span>';
 
     // "Contact found" = we have a real email to reach this event's organizer,
     // in the structured poc_email or embedded in the free-text contact_info.
