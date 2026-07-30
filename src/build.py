@@ -4926,16 +4926,32 @@ def build():
                  '</div>';
       v += sec('Follow-ups', _fuBody);
     }}
+    // "ArcticBlue speaker: Thor" read as settled fact on events where all we'd
+    // done was put him forward (Hurley 2026-07-30). The line now says where we
+    // actually stand: plain when he's booked, parenthesised while it's only a
+    // submission, and "Attending" when he's going but not speaking.
+    function speakerLine() {{
+      var who = String(rec.speaker || '').trim();
+      if (!who) return field('ArcticBlue speaker', rec.speaker);
+      var _sst = rec.stage_tags || [];
+      function _sHas(x) {{ return _sst.indexOf(x) !== -1; }}
+      if (_sHas('Booked')) return field('ArcticBlue speaker', who);
+      if (_sHas('Rejected')) return field('ArcticBlue speaker', who + ' (rejected)');
+      // Followed up presupposes a submission, so both read the same.
+      if (_sHas('Submitted') || _sHas('Followed up')) return field('ArcticBlue speaker', who + ' (submitted)');
+      if (_sHas('Attending')) return field('Attending', who);
+      return field('ArcticBlue speaker', who);
+    }}
     if (rec.is_private) {{
       // Private / invite-only: just the speaker + POC (link is the title, chat above).
-      v += sec('Speaking', field('ArcticBlue speaker', rec.speaker));
+      v += sec('Speaking', speakerLine());
       v += sec('Contacts', pocHtml);
     }} else {{
       // — Speaking & submission: how we'd get on stage, and where we stand.
       //   The legacy status marker (e.g. "Sponsorship Only") is kept OFF the card
       //   face by design but belongs here so a saved marker is visible.
       v += sec('Speaking & submission',
-        field('ArcticBlue speaker', rec.speaker) +
+        speakerLine() +
         field('Status marker', (function () {{
           var ws = rec.workflow_status;
           if (!ws || ws === '__deleted__') return '';
