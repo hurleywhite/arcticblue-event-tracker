@@ -1085,6 +1085,30 @@ def build():
       background: none; border: 0; border-left: 2px solid #f59e0b; border-radius: 0;
       padding: 1px 0 1px 9px; margin-bottom: 11px;
     }}
+    /* Follow-up log — a dated list, not a spreadsheet row. */
+    .fu-state {{
+      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
+      padding: 5px 0 5px 9px; border-left: 2px solid var(--ab-rule-strong); margin-bottom: 9px;
+    }}
+    .fu-state.fu-due {{ color: #9a3412; border-left-color: #f59e0b; }}
+    .fu-state.fu-ok {{ color: #15803d; border-left-color: #86efac; }}
+    .fu-state.fu-hold {{ color: var(--ab-fg-2); border-left-color: var(--ab-rule-strong); }}
+    .fu-state.fu-closed {{ color: var(--ab-fg-3); border-left-color: var(--ab-rule); }}
+    .fu-state.fu-none {{ color: var(--ab-fg-3); border-left-color: var(--ab-rule); font-weight: 500; }}
+    .fu-log {{ list-style: none; margin: 0 0 10px; padding: 0; }}
+    .fu-log li {{
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+      padding: 5px 0; border-top: 1px solid var(--ab-rule);
+    }}
+    .fu-log li:first-child {{ border-top: 0; }}
+    .fu-when {{ font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg); font-weight: 600; }}
+    .fu-by {{ font-size: 0.74rem; color: var(--ab-fg-3); }}
+    .fu-note {{ flex: 1 1 100%; font-size: 0.86rem; color: var(--ab-fg-2); line-height: 1.4; }}
+    .fu-add {{
+      font-family: var(--ab-sans); font-size: 0.8rem; font-weight: 600; color: var(--ab-blue);
+      background: none; border: 0; padding: 3px 0; cursor: pointer;
+    }}
+    .fu-add:hover {{ text-decoration: underline; }}
     /* Card-face conflict warning. NOT a pill and NOT bordered — a rounded
        chip read as a button people expected to click (Hurley 2026-07-30). It's
        a warning LINE: amber rule down the left, no background, no border. */
@@ -1630,6 +1654,26 @@ def build():
     /* Who reacted, shown next to the emoji. */
     .chat-react-who {{ font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 600; }}
     .chat-react.is-mine {{ border-color: var(--ab-blue); color: var(--ab-blue); background: rgba(31,160,220,0.10); }}
+    /* Mini per-event assistant — deliberately smaller than the chat composer
+       so it reads as a utility, not the main action. */
+    .ask1-form {{ display: flex; gap: 6px; margin: 10px 0 0; }}
+    .ask1-input {{
+      flex: 1; padding: 6px 10px; font: inherit; font-size: 0.8rem;
+      border: 1px dashed var(--ab-rule-strong); border-radius: 7px;
+      background: var(--ab-bg-2); color: var(--ab-fg);
+    }}
+    .ask1-input::placeholder {{ color: var(--ab-fg-3); }}
+    .ask1-input:focus {{ border-style: solid; border-color: var(--ab-blue); background: var(--ab-bg); outline: none; }}
+    .ask1-go {{
+      padding: 0 11px; border-radius: 7px; cursor: pointer; font-size: 0.85rem;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2);
+    }}
+    .ask1-go:hover {{ border-color: var(--ab-blue); color: var(--ab-blue); }}
+    .ask1-answer {{
+      margin-top: 7px; padding: 9px 11px; font-size: 0.85rem; line-height: 1.45;
+      color: var(--ab-fg); background: var(--ab-bg-2); border-radius: 8px;
+      border-left: 2px solid var(--ab-blue); white-space: pre-wrap;
+    }}
     .chat-form {{ display: flex; gap: 8px; }}
     .chat-input {{ flex: 1; padding: 9px 12px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font: inherit; font-size: 0.9rem; }}
     .chat-send {{ padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ab-blue); background: var(--ab-blue); color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }}
@@ -4542,6 +4586,13 @@ def build():
     }});
   }}
 
+  function _fuWhen(iso) {{
+    try {{
+      return new Date(String(iso).slice(0, 10) + 'T00:00:00')
+        .toLocaleDateString('en-US', {{ month: 'short', day: 'numeric', year: 'numeric' }});
+    }} catch (e) {{ return String(iso || ''); }}
+  }}
+
   // Trash can for the top-left Delete (same glyph as the profile file-delete).
   var MD_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 
@@ -4681,6 +4732,26 @@ def build():
           var g = field('Price to attend', rec.pricing) + field('Venue', rec.venue);
           return g ? '<div class="modal-grid">' + g + '</div>' : '';
         }})());
+      // Follow-up log — Angela's spreadsheet column, as a clean dated list.
+      // Hers to run, so hers to see.
+      if (window.isAngelaUser && window.isAngelaUser()) {{
+        var _fuSt = window.abFollowUpState
+          ? window.abFollowUpState(rec, rec.stage_tags || [], '') : null;
+        var _fuList = window.abFollowUps ? window.abFollowUps(rec) : [];
+        var _fuBody = '';
+        if (_fuSt) {{
+          _fuBody += '<div class="fu-state fu-' + _fuSt.state + '">' + esc(_fuSt.label) + '</div>';
+        }}
+        if (_fuList.length) {{
+          _fuBody += '<ol class="fu-log">' + _fuList.map(function (f) {{
+            return '<li><span class="fu-when">' + esc(_fuWhen(f.on)) + '</span>' +
+                   (f.by ? '<span class="fu-by">' + esc(f.by) + '</span>' : '') +
+                   (f.note ? '<span class="fu-note">' + esc(f.note) + '</span>' : '') + '</li>';
+          }}).join('') + '</ol>';
+        }}
+        _fuBody += '<button type="button" class="fu-add" id="fu-add-btn">+ Log a follow-up</button>';
+        v += sec('Follow-ups', _fuBody);
+      }}
       v += sec('Contacts', pocHtml + (_ctp(rec.additional_contacts) ? field('Additional contacts', rec.additional_contacts) : ''));
       // This zone only ever holds the one field, so under the one-field rule the
       // heading IS the label — which means it has to be the informative one.
@@ -4699,6 +4770,27 @@ def build():
     wireQuickBar(rec);
     wireEditForm(rec);
     if (window.opsRenderChat) window.opsRenderChat(rec);
+
+    // "+ Log a follow-up" — records today's date against the signed-in name,
+    // with an optional line on what came back. Appends; never replaces.
+    var _fuBtn = document.getElementById('fu-add-btn');
+    if (_fuBtn) _fuBtn.addEventListener('click', function () {{
+      var note = window.prompt(
+        'Log a follow-up for "' + (rec.name || 'this event') + '"\\n\\n' +
+        'Anything to record? (optional — what you sent, or what came back)', '');
+      if (note === null) return;   // cancelled
+      var today = window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10);
+      var list = (window.abFollowUps ? window.abFollowUps(rec) : []).slice();
+      list.unshift({{ on: today, by: (window.opsCurrentUser ? window.opsCurrentUser() : '') || 'Angela',
+                     note: String(note || '').trim() }});
+      rec.follow_ups = list;
+      if (window.opsWrite) window.opsWrite(rec._table, rec._key, {{ follow_ups: list }});
+      var scF = overlay.querySelector('.modal-scroll');
+      var topF = scF ? scF.scrollTop : 0;
+      openEventModal(rec);
+      if (scF) scF.scrollTop = topF;
+      if (window.opsRefresh) window.opsRefresh();
+    }});
 
     // "Edit event" toggle — header top-right, same spot for every event. It
     // swaps the read-only view for the (identically-laid-out) edit form.
@@ -10914,6 +11006,143 @@ def build():
     // name+city+year key, keep the richest card, mark the rest dupHidden so they
     // drop out of the grid, count, calendar-view + filters. Non-destructive
     // (nothing deleted; a re-render re-evaluates from fresh data).
+    // ── Follow-up log ────────────────────────────────────────────────
+    // Angela's spreadsheet column ("6/24, 7/20") as real data. Each entry is
+    // {{on, by, note}}. Everything about WHEN to chase again is derived, never
+    // stored, so it can't go stale when a note changes (Hurley 2026-07-30).
+    var FOLLOW_UP_DAYS = 14;
+    function followUps(o) {{
+      var v = (o && o.follow_ups) || [];
+      if (typeof v === 'string') {{ try {{ v = JSON.parse(v); }} catch (e) {{ v = []; }} }}
+      if (!Array.isArray(v)) return [];
+      return v.filter(Boolean).slice().sort(function (a2, b2) {{
+        return String(a2.on || '') < String(b2.on || '') ? 1 : -1;   // newest first
+      }});
+    }}
+    function lastFollowUp(o) {{
+      var f = followUps(o);
+      return f.length ? f[0] : null;
+    }}
+    // A door that is shut needs no chasing. Both signals already exist — a
+    // Rejected stage, or a workflow_status the taxonomy files under "Closed"
+    // (that's where "Sponsorship Only" lives) — so no new column.
+    function doorClosed(o, stages) {{
+      if ((stages || []).indexOf('Rejected') !== -1) return true;
+      var ws = String((o && o.workflow_status) || '').trim();
+      if (!ws || ws === '__deleted__') return false;
+      var g = STATUS_GROUP_BY_KEY[ws];
+      if (g === 'Closed') return true;
+      return /sponsorship only|declin|not accepting|no opening|passed on us/i.test(ws);
+    }}
+    var _FU_MONTHS = {{ january:1, february:2, march:3, april:4, may:5, june:6, july:7,
+      august:8, september:9, october:10, november:11, december:12,
+      jan:1, feb:2, mar:3, apr:4, jun:6, jul:7, aug:8, sep:9, sept:9, oct:10, nov:11, dec:12 }};
+    // "unless she says something" — read her own words before nagging her.
+    // Returns {{ hold:true, until, why }} when the notes say to wait.
+    function followUpHold(text) {{
+      var t = String(text || '').toLowerCase();
+      if (!t.trim()) return null;
+      // An explicit "they'll come back / we're waiting" state.
+      // PERMANENT dead end: they've told us not to chase. A form submission
+      // answered only if you're picked is never worth a nudge, so time never
+      // releases this one.
+      var never = /(only\s+(reach\s+out|contact|be\s+in\s+touch)\s+if|if\s+(you.?re\s+)?(selected|chosen|successful)|do\s+not\s+contact|no\s+need\s+to\s+follow)/.test(t);
+      // SOFT wait: the ball is with them for now, but not forever — after a
+      // month it's fair to nudge again.
+      var waiting = /(will|they.?ll|we.?ll|is|are)\s+(be\s+in\s+touch|reach\s+out|come\s+back|let\s+us\s+know|follow\s+up|connect|connecting|introduc|keep\s+(you|us)\s+(in\s+the\s+loop|posted))/.test(t)
+                 || /(keep\s+(you|us)\s+in\s+the\s+loop|on\s+hold|waiting\s+on|awaiting|have\s+everything\s+(they|we)\s+need|going\s+through\s+applications)/.test(t);
+      // A named future month — "back to us in September", "reviewing in Q4".
+      var until = null;
+      var today = (window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10));
+      var m = t.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b/g);
+      if (m) {{
+        var yr = parseInt(today.slice(0, 4), 10), mo = parseInt(today.slice(5, 7), 10);
+        m.forEach(function (name) {{
+          var n = _FU_MONTHS[name]; if (!n) return;
+          var y = n >= mo ? yr : yr + 1;                      // next occurrence
+          var iso = y + '-' + String(n).padStart(2, '0') + '-01';
+          if (iso > today && (!until || iso < until)) until = iso;
+        }});
+      }}
+      if (never) return {{ hold: true, until: null, permanent: true, why: 'they contact us' }};
+      if (until) return {{ hold: true, until: until, why: 'their timing' }};
+      if (waiting) return {{ hold: true, until: null, why: 'waiting on them' }};
+      return null;
+    }}
+    // Events run by the SAME outfit share a follow-up. Chasing Ciara once
+    // shouldn't leave four other Web Summit events nagging (Hurley 2026-07-30).
+    var _fuByOrg = null;
+    function _fuOrgKey(o) {{
+      var d = _urlOrg((o && (o.url || (o.startObj && o.startObj.url))) || '');
+      return d ? 'd:' + d : '';
+    }}
+    function _buildFollowUpOrgIndex() {{
+      var idx = {{}};
+      opsAllItems().forEach(function (it) {{
+        var k = _fuOrgKey(it.startObj || it); if (!k) return;
+        var f = lastFollowUp(it.startObj || it); if (!f || !f.on) return;
+        if (!idx[k] || String(f.on) > String(idx[k].on)) idx[k] = {{ on: f.on, name: it.name }};
+      }});
+      _fuByOrg = idx;
+      return idx;
+    }}
+    // THE state machine. One of:
+    //   closed   - door shut, never chase
+    //   hold     - her notes say wait (until a date, or on them)
+    //   none     - nothing logged yet
+    //   ok       - chased recently
+    //   due      - 14+ days since the last chase
+    function followUpState(o, stages, extraNotes) {{
+      if (doorClosed(o, stages)) return {{ state: 'closed', label: 'Door closed' }};
+      var notes = [ (o && o.notes) || '', extraNotes || '' ].join(' ');
+      var hold = followUpHold(notes);
+      var today = (window.abTodayIso ? window.abTodayIso() : new Date().toISOString().slice(0, 10));
+      var last = lastFollowUp(o);
+      // Their timing beats our clock.
+      if (hold && hold.until && hold.until > today) {{
+        return {{ state: 'hold', until: hold.until, label: 'Waiting — ' + _fuNice(hold.until) }};
+      }}
+      // A permanent hold is never released by the passage of time.
+      if (hold && hold.permanent) {{
+        return {{ state: 'hold', permanent: true, label: 'They come back to us' }};
+      }}
+      // A soft wait expires after a month — then it's fair to nudge again.
+      if (hold && !hold.until && (!last || _fuDaysSince(last.on, today) < 30)) {{
+        return {{ state: 'hold', label: 'Waiting on them' }};
+      }}
+      var lastOn = last && last.on;
+      // Anyone else chasing the same organiser counts.
+      var org = _fuOrgKey(o);
+      if (org) {{
+        var shared = (_fuByOrg || _buildFollowUpOrgIndex())[org];
+        if (shared && shared.on && (!lastOn || String(shared.on) > String(lastOn))) {{
+          lastOn = shared.on;
+        }}
+      }}
+      if (!lastOn) return {{ state: 'none', label: 'No follow-up logged' }};
+      var days = _fuDaysSince(lastOn, today);
+      if (days >= FOLLOW_UP_DAYS) {{
+        return {{ state: 'due', days: days, since: lastOn,
+                 label: 'Follow up — ' + days + ' days since ' + _fuNice(lastOn) }};
+      }}
+      return {{ state: 'ok', days: days, since: lastOn, label: 'Followed up ' + _fuNice(lastOn) }};
+    }}
+    function _fuDaysSince(iso, today) {{
+      try {{
+        var a2 = new Date(String(iso).slice(0, 10) + 'T00:00:00');
+        var b2 = new Date(String(today).slice(0, 10) + 'T00:00:00');
+        return Math.floor((b2 - a2) / 86400000);
+      }} catch (e) {{ return 0; }}
+    }}
+    function _fuNice(iso) {{
+      try {{
+        return new Date(String(iso).slice(0, 10) + 'T00:00:00')
+          .toLocaleDateString('en-US', {{ month: 'short', day: 'numeric' }});
+      }} catch (e) {{ return String(iso || ''); }}
+    }}
+    window.abFollowUpState = followUpState;
+    window.abFollowUps = followUps;
+
     // ── Scheduling conflicts ─────────────────────────────────────────
     // STATUS 2026-07-30: the MANUAL conflict_note path below is live and
     // renders. The automatic same-person/overlapping-date detection is
@@ -14785,6 +15014,15 @@ def build():
       panel.innerHTML =
         '<h4 class="chat-h">Chat with the team</h4>' +
         '<div class="chat-list" id="chat-list"><p class="chat-empty">Loading…</p></div>' +
+        // Per-event mini assistant. Small, one line, under the thread — you ask
+        // about THIS event and the answer lands right here (Hurley 2026-07-30).
+        // Every question is also posted into the thread, so Angela can see what
+        // Thor asked without anyone having to tell her.
+        '<form class="ask1-form" id="ask1-form">' +
+          '<input class="ask1-input" id="ask1-input" placeholder="Ask AI about this event — status, follow-ups, who to contact…" autocomplete="off" maxlength="300">' +
+          '<button type="submit" class="ask1-go" title="Ask">&#10142;</button>' +
+        '</form>' +
+        '<div class="ask1-answer" id="ask1-answer" hidden></div>' +
         '<form class="chat-form" id="chat-form">' +
           '<input class="chat-input" id="chat-input" placeholder="Message the team about this event…" autocomplete="off" maxlength="1000">' +
           '<button type="submit" class="chat-send">Send</button>' +
@@ -14799,6 +15037,38 @@ def build():
         // (Hurley 2026-07-29) — that row comes down only when it's checked off,
         // so opening an event to look at it can't quietly empty your feed.
       }});
+      // ── Mini per-event assistant ──────────────────────────────────
+      var a1 = document.getElementById('ask1-form');
+      if (a1) a1.addEventListener('submit', function (e) {{
+        e.preventDefault();
+        var inp = document.getElementById('ask1-input');
+        var box = document.getElementById('ask1-answer');
+        var q = (inp.value || '').trim();
+        if (!q) return;
+        var who = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || 'Someone';
+        inp.value = '';
+        box.removeAttribute('hidden');
+        box.textContent = 'Thinking…';
+        // Scope the question to THIS event by name so the assistant answers
+        // about it rather than searching the catalog.
+        fetch('/api/ask', {{
+          method: 'POST', headers: {{ 'Content-Type': 'application/json' }},
+          body: JSON.stringify({{
+            question: 'About the event "' + (rec.name || '') + '": ' + q,
+            history: [], user: who, for_people: []
+          }})
+        }}).then(function (r) {{ return r.json(); }}).then(function (j) {{
+          box.textContent = (j && j.answer) ? j.answer : 'No answer available right now.';
+          // Post the QUESTION into the thread so Angela sees it was asked. The
+          // answer isn't posted — it's derived, and would just add noise.
+          var row = {{ author: who, body: '\\u2753 Asked AI: ' + q }};
+          row[col] = rec._key;
+          sb.from('event_chat').insert(row).then(function () {{
+            if (typeof loadChatCounts === 'function') loadChatCounts();
+          }}, function () {{}});
+        }}).catch(function () {{ box.textContent = 'Could not reach the assistant.'; }});
+      }});
+
       var form = document.getElementById('chat-form');
       if (form) form.addEventListener('submit', function (e) {{
         e.preventDefault();

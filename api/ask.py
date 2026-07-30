@@ -270,6 +270,28 @@ def _derived_status(stages, speaker, deadline, endish, today):
     return ' · '.join(bits) if bits else None
 
 
+def _fu_summary(v):
+    """Follow-up log -> a short, model-readable line, newest first."""
+    if isinstance(v, str):
+        try:
+            v = json.loads(v)
+        except (ValueError, json.JSONDecodeError):
+            return ''
+    if not isinstance(v, list) or not v:
+        return ''
+    rows = [e for e in v if isinstance(e, dict) and e.get('on')]
+    rows.sort(key=lambda e: str(e.get('on')), reverse=True)
+    out = []
+    for e in rows[:5]:
+        bit = str(e.get('on'))[:10]
+        if e.get('by'):
+            bit += ' by ' + str(e['by'])
+        if e.get('note'):
+            bit += ' - ' + str(e['note'])[:120]
+        out.append(bit)
+    return '; '.join(out)
+
+
 def _gather_events(host):
     """Compact, model-friendly list of every event: catalog (events.json) +
     manual (manual_events) merged with ops state (event_state). Each event is
@@ -285,7 +307,7 @@ def _gather_events(host):
         'GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,status_tags,'
         'status,speaker,attend_verdict,saved,hidden,priority_override,'
         'about,focus_areas,typical_attendees,attendee_count,venue,'
-        'pricing,audience_type,deadline,meeting_formats',
+        'pricing,audience_type,deadline,meeting_formats,follow_ups,conflict_note,notes',
         headers={'apikey': SUPABASE_PUBLISHABLE,
                  'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE}, timeout=12)
     if st == 200 and isinstance(rows, list):
@@ -327,6 +349,9 @@ def _gather_events(host):
                     'attendee_count': ops.get('attendee_count'),
                     'venue': _truncate(ops.get('venue'), 120),
                     'formats': _truncate(ops.get('meeting_formats'), 160),
+                    'follow_ups': _fu_summary(ops.get('follow_ups')),
+                    'notes': _truncate(ops.get('notes'), 300),
+                    'conflict': _truncate(ops.get('conflict_note'), 160),
                     'stage': ', '.join(stages) if stages else None,
                     # THE authoritative one-line status (same as the card face).
                     'status': _derived_status(stages, ops.get('speaker'),
@@ -358,7 +383,8 @@ def _gather_events(host):
         'GET', SUPABASE_URL + '/rest/v1/manual_events?select=id,name,date_str,location,'
         'region,type,priority,status_tags,speaker,attend_verdict,audience_type,'
         'pricing,deadline,why,url,poc_name,poc_email,contact_info,'
-        'about,focus_areas,typical_attendees,attendee_count,venue,meeting_formats',
+        'about,focus_areas,typical_attendees,attendee_count,venue,meeting_formats,'
+        'follow_ups,conflict_note,notes',
         headers={'apikey': SUPABASE_PUBLISHABLE,
                  'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE}, timeout=12)
     if st == 200 and isinstance(rows, list):
@@ -386,6 +412,9 @@ def _gather_events(host):
                 'attendee_count': m.get('attendee_count'),
                 'venue': _truncate(m.get('venue'), 120),
                 'formats': _truncate(m.get('meeting_formats'), 160),
+                'follow_ups': _fu_summary(m.get('follow_ups')),
+                'notes': _truncate(m.get('notes'), 300),
+                'conflict': _truncate(m.get('conflict_note'), 160),
                 'stage': ', '.join(stages) if stages else None,
                 'status': _derived_status(stages, m.get('speaker'),
                                           m.get('deadline'), endish, today),
@@ -479,6 +508,11 @@ _SYSTEM = (
     "spoken\", INCLUDE past booked events (upcoming=false) too and note which have "
     "passed; do NOT answer \"none booked\" when booked=true events exist in the "
     "data, even if all of them are in the past.\n"
+    "- FOLLOW-UPS: an event may carry 'follow_ups' — Angela's chase log, newest "
+    "first, as date/who/what-came-back. Use it when asked whether we have "
+    "chased someone, when we last did, or what they said. Quote the DATES; "
+    "they are the point. If it is absent there is no log to read, so say we "
+    "have nothing recorded rather than guessing. Never invent a follow-up.\n"
     "- \"WHAT IS THIS EVENT?\" — when asked what an event IS, is about, or what happens there, LEAD WITH THE EVENT, not the bookkeeping. Build the answer from 'about', 'topics', 'attendees', 'attendee_count', 'formats', 'venue' and 'type': what it covers, the industries it serves, its scale, who it draws, and anything distinctive. Two or three sentences. Do NOT open with our pipeline status, and mention status, stage or speaker ONLY if they asked, or as one short closing line when it is clearly useful. Never list what is missing (\"no ticket price on file\") unless that is what they asked about — absent data is not an answer.\n"
     "- SAY ONLY WHAT YOU WERE GIVEN: an event's JSON is already filtered to what this person is allowed to see. If a field is absent, it is absent BY DESIGN — never guess at it, never refer to it, and never tell them a field is hidden. In particular do not attribute a priority, a CFP deadline or an audience rating to an event unless that key is present.\n"
     "- STATUS IS AUTHORITATIVE: each event carries 'status' — a derived, "
