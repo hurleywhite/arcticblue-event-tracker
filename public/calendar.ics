@@ -2114,16 +2114,6 @@ DESCRIPTION:The largest SHRM-affiliated state conference in the Southeast\, draw
 URL:https://shrmflorida.org/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-393@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261207
-DTEND;VALUE=DATE:20261209
-SUMMARY:GIANT Health Event London 2026
-LOCATION:London\, UK
-DESCRIPTION:UK's largest NHS innovation and health-tech festival at Business Design Centre\, London\; FT-recognised event\; public speaker application — strong healthcare AI vertical play for ArcticBlue's NHS digital transformation positioning.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.giant.health/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-392@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20261201

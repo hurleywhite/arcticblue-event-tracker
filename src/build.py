@@ -3951,7 +3951,7 @@ def build():
   // provided results", "Unknown (delegate pricing not published)", "CFP deadline
   // not specified". 77 such lines were on screen — half of every price shown.
   // A line that only says we don't know isn't worth the row (Hurley 2026-07-30).
-  var _JUNK_WHOLE = /^(?:[a-z ]{{0,24}}\b)?(?:not\s+(?:verifiable|published|specified|disclosed|listed|available|confirmed|stated|provided)|unknown|undisclosed|unclear|unspecified|no\s+(?:information|pricing|details?)\b)[^.]*\.?$/i;
+  var _JUNK_WHOLE = /^(?:[a-z ]{{0,24}}\\b)?(?:not\s+(?:verifiable|published|specified|disclosed|listed|available|confirmed|stated|provided)|unknown|undisclosed|unclear|unspecified|no\s+(?:information|pricing|details?)\\b)[^.]*\.?$/i;
   function _modalJunk(v) {{
     var t = String(v == null ? '' : v).trim().replace(/^[\s\u2014-]+|[\s.;,]+$/g, '');
     if (!t) return true;
@@ -6534,6 +6534,10 @@ def build():
       card.dataset.attendeeNames = ((st.attendees || ev.attendees) || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       card.dataset.briefReady = (st.briefing_json ? '1' : '');   // Day-Of brief pre-generated?
       card.dataset.fitText = abFold([ev.name, ev.about, ev.focus_areas, ev.typical_attendees, ev.location, ev.city, ev.country, ev.type, ev.past_speakers, _aud].join(' '));
+      // Name + host kept separate from the blob: the HR gate judges the
+      // EVENT, and an AI summit that merely mentions workforce is not one.
+      card.dataset.evName = ev.name || '';
+      card.dataset.evUrl  = ev.url || '';
       // Non-English event title -> off Thor's / Verma's / Joe's fit lists.
       card.dataset.foreignLang = _isForeignLangEvent(ev) ? '1' : '';
       // Signals the per-person "Not for me" veto scores against (see _vetoScore).
@@ -6781,6 +6785,10 @@ def build():
       card.dataset.attendeeNames = (mev.attendees || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       card.dataset.briefReady = (mev.briefing_json ? '1' : '');   // Day-Of brief pre-generated?
       card.dataset.fitText = abFold([mev.name, mev.about, mev.focus_areas, mev.typical_attendees, mev.location, mev.city, mev.country, mev.type, mev.past_speakers, mev.audience_type].join(' '));
+      // Name + host kept separate from the blob: the HR gate judges the
+      // EVENT, and an AI summit that merely mentions workforce is not one.
+      card.dataset.evName = mev.name || '';
+      card.dataset.evUrl  = mev.url || '';
       // Non-English event title -> off Thor's / Verma's / Joe's fit lists.
       card.dataset.foreignLang = _isForeignLangEvent(mev) ? '1' : '';
       // Signals the per-person "Not for me" veto scores against (see _vetoScore).
@@ -7932,7 +7940,7 @@ def build():
           var _intNames = (card.dataset.interestedNames || '').split('|').filter(Boolean);
           var _fitHit = activeFits.some(function (k) {{
             var pf = AB_PROFILE_BY_KEY[k]; if (!pf) return false;
-            if (profileFits(pf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1')) return true;
+            if (profileFits(pf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1', card.dataset.evName, card.dataset.evUrl)) return true;
             // If that person flagged "I'm interested", the event fits THEM —
             // keep it in their Fits filter even when the keywords don't match.
             var kf = abFold(pf.key);
@@ -8015,7 +8023,7 @@ def build():
             // A learned "Not for me" pattern narrows MY fits — but never drops an
             // event I've flagged interest in, or one we're already engaged on.
             else if (!_mfInt && !_mfLive && _vetoedCard(card)) on = false;
-            else if (!(_mfInt || _mfLive || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1')))) on = false;
+            else if (!(_mfInt || _mfLive || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1', card.dataset.evName, card.dataset.evUrl)))) on = false;
           }}
         }}
         if (activeStages.length > 0) {{
@@ -8262,14 +8270,14 @@ def build():
         if (_mineInterest(_int)) myFits++;
         else if (_mineRejected(ev, st2)) return;
         else if (_mineLive(ev, st2, _int)) myFits++;
-        else if (!_vetoedItem(ev) && _myPf && profileFits(_myPf, _fitBlob(ev, st2), canonicalRegion(ev), priceNumOf((st2 && st2.pricing) || ev.pricing), _isForeignLangEvent(ev))) myFits++;
+        else if (!_vetoedItem(ev) && _myPf && profileFits(_myPf, _fitBlob(ev, st2), canonicalRegion(ev), priceNumOf((st2 && st2.pricing) || ev.pricing), _isForeignLangEvent(ev), ev.name, (st2 && st2.url) || ev.url)) myFits++;
       }});
       (manualRows || []).forEach(function (m) {{
         if (isPastEvent(m)) return;
         if (_mineInterest(m.interested)) myFits++;
         else if (_mineRejected(m, m)) return;
         else if (_mineLive(m, m, m.interested)) myFits++;
-        else if (!_vetoedItem(m) && _myPf && profileFits(_myPf, _fitBlob(m, m), canonicalRegion(m), priceNumOf(m.pricing), _isForeignLangEvent(m))) myFits++;
+        else if (!_vetoedItem(m) && _myPf && profileFits(_myPf, _fitBlob(m, m), canonicalRegion(m), priceNumOf(m.pricing), _isForeignLangEvent(m), m.name, m.url)) myFits++;
       }});
       // A cut-and-dry segmented status filter (data-stat). 'All' clears the
       // status filter; the rest are one-click chips. Other filters (region,
@@ -11197,7 +11205,16 @@ def build():
     // Joe present and sell in English, so a Spanish/Portuguese/French/German/
     // Italian-language event is never their fit (Hurley 2026-07-29) — it stays
     // available to Jerome and Carlos, whose territories it belongs to.
-    function profileFits(p, blob, region, priceNum, isForeign) {{
+    var _HR_BLOB = /\\bchro\\b|shrm|chief (human resources|people)|people officer|\\bhr (summit|conference|forum|assembly|exchange|congress|leaders)\\b/;
+    // Title words that make HR/L&D the SUBJECT of the event, not a topic in it.
+    var _HR_NAME = /\\b(hr|chro|shrm|pshra|hrci|clo|cupa)\\b|human resources?|chief (human resources|people|learning) officer|people (officer|analytics)|talent (management|acquisition|strategy|forum)|workforce (summit|forum|conference|institute)|learning (futures|technologies)|\\bl&d\\b|employee experience|total rewards|compensation (and|&) benefits/i;
+    // Organisers whose whole business is HR / L&D / people events.
+    var _HR_HOST = /\\b(shrm\.org|eane\.org|pshra\.org|hrci\.org|cupahr\.org|iventiv\.com|joshbersin\.com|unleash\.ai|td\.org|corporatelearningnetwork\.com|hrexchangenetwork\.com|hrtechnologyconference\.com)\\b/i;
+    function _isHrEvent(name, url) {{
+      return _HR_NAME.test(String(name || '')) || _HR_HOST.test(String(url || ''));
+    }}
+    window.abIsHrEvent = _isHrEvent;
+    function profileFits(p, blob, region, priceNum, isForeign, evName, evUrl) {{
       if (!p) return false;
       if (isForeign && _ENGLISH_ONLY_PEOPLE[String(p.key || '').toLowerCase()]) return false;
       // (Australia used to be carved out as Verma's exclusive territory. It was
@@ -11208,7 +11225,17 @@ def build():
       // HR / CHRO / people events are JOE'S audience only — keep them off everyone
       // else's fit (a CHRO summit whose attendees span industries was matching
       // Thor on a stray "healthcare"). Matched on the strong HR event signals.
-      if (p.key !== 'Joe' && /\\bchro\\b|shrm|chief (human resources|people)|people officer|\\bhr (summit|conference|forum|assembly|exchange|congress|leaders)\\b/.test(String(blob || ''))) return false;
+      // Two ways an event is an HR event, and it needs both. The blob test
+      // catches the ones whose BLURB gives them away (CultureCon, From Day One,
+      // People Leaders Summit — nothing in the title says HR). The name/host
+      // test catches the ones whose blurb talks about AI while the event itself
+      // is squarely HR or L&D: "EANE HR Connect", "CLO Exchange", "iVentiv
+      // Learning Futures", "PSHRA Annual Conference". 72 of those were reaching
+      // Thor (Hurley 2026-07-30). Deliberately on the NAME and the organiser's
+      // domain, never the blurb — an AI summit that merely mentions workforce
+      // is still his.
+      if (p.key !== 'Joe' && (_HR_BLOB.test(String(blob || '')) ||
+                              _isHrEvent(evName, evUrl))) return false;
       // AND-profile (Hurley): every keyword group must hit, and a freeOnly
       // profile additionally requires a price we KNOW is zero — an unknown price
       // is not "free", so it stays out rather than pretending.
@@ -11237,7 +11264,7 @@ def build():
 
     // Planner coverage-gap territories, derived from the profiles above.
     var AB_TERRITORIES = AB_PROFILES.filter(function (p) {{ return !p.support; }}).map(function (p) {{
-      return {{ who: p.key, label: p.label, test: function (it) {{ return profileFits(p, it.text, it.region, null, _isForeignLangEvent(it)); }} }};
+      return {{ who: p.key, label: p.label, test: function (it) {{ return profileFits(p, it.text, it.region, null, _isForeignLangEvent(it), it.name, it.url); }} }};
     }});
     // Thor leads the coverage gaps — he's the priority, and this list was in
     // whatever order AB_PROFILES happened to be written (Hurley 2026-07-30).
