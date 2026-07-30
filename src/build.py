@@ -1111,6 +1111,25 @@ def build():
     .modal-note {{ color: var(--ab-fg-3); font-size: 0.94em; }}
     /* Interested + Archive in the modal header — the same star and struck
        eye the card face uses, so both surfaces read the same. */
+    /* Beside the event name, revealed on hover — the card face's behaviour. */
+    .mt-acts {{
+      display: inline-flex; align-items: center; gap: 2px; margin-left: 8px;
+      vertical-align: middle; opacity: 0; transition: opacity 130ms;
+    }}
+    .modal-title:hover .mt-acts,
+    .modal-title:focus-within .mt-acts,
+    .mt-acts:focus-within {{ opacity: 1; }}
+    .mt-acts .mt-ico.is-on {{ opacity: 1; }}
+    .modal-title:hover .mt-ico, .mt-acts .mt-ico.is-on {{ opacity: 1; }}
+    @media (hover: none) {{ .mt-acts {{ opacity: 1; }} }}
+    .mt-ico {{
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; padding: 0; border: 0; border-radius: 7px;
+      background: none; color: var(--ab-fg-3); cursor: pointer;
+    }}
+    .mt-ico svg {{ width: 15px; height: 15px; display: block; }}
+    .mt-ico:hover {{ color: var(--ab-blue); background: var(--ab-bg-2); }}
+    .mt-ico.is-on {{ color: var(--ab-blue); }}
     .mh-ico {{
       display: inline-flex; align-items: center; justify-content: center;
       width: 30px; height: 30px; margin-right: 4px; padding: 0;
@@ -1837,6 +1856,38 @@ def build():
     }}
     .ops-stage-ico svg {{ width: 17px; height: 17px; display: block; }}
     .ops-stage-ico {{ gap: 3px; width: auto; min-width: 20px; }}
+    /* The pipeline as a ROUTE, not a row of switches. Colours match the corner
+       mark exactly: amber = in flight, green = landed, red = closed. */
+    .qa-flow {{ display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }}
+    .qa-arrow {{ color: var(--ab-fg-3); font-size: 0.95rem; line-height: 1; }}
+    .qa-branch {{
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 6px; border-radius: 10px;
+      background: var(--ab-bg-2); border: 1px dashed var(--ab-rule-strong);
+    }}
+    .qa-step {{
+      display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
+      padding: 6px 12px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--ab-rule-strong);
+      background: var(--ab-bg); color: var(--ab-fg-2);
+      transition: border-color 120ms, background 120ms, color 120ms;
+    }}
+    .qa-step:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
+    .qa-tick {{ font-size: 0.8em; line-height: 1; }}
+    .qa-n {{
+      margin-left: 3px; font-family: var(--ab-mono); font-size: 0.72em;
+      font-weight: 700; opacity: 0.85;
+    }}
+    /* in flight */
+    .qa-step.qa-flight.is-on {{ background: #b45309; border-color: #b45309; color: #fff; }}
+    /* landed */
+    .qa-step.qa-good.is-on {{ background: #15803d; border-color: #15803d; color: #fff; }}
+    /* closed */
+    .qa-step.qa-bad.is-on {{ background: #b91c1c; border-color: #b91c1c; color: #fff; }}
+    .qa-step.qa-static {{ cursor: default; }}
+    .qa-step.qa-static:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg-2); }}
+    .qa-step.qa-good.qa-static.is-on:hover {{ color: #fff; border-color: #15803d; }}
     /* Team roll-ups: one block per person, their events beneath. */
     .tp-section {{ margin-top: 18px; }}
     .tp-person {{ padding: 8px 0; border-bottom: 1px solid var(--ab-rule); }}
@@ -4176,18 +4227,34 @@ def build():
     // Card actions (Save / Hide) sit on their own row; the pipeline + verdict
     // toggles are grouped under a "Status:" label so the modal reads as labeled
     // groups, not a wall of buttons (Thor's feedback).
+    // These aren't six independent switches — they're a ROUTE:
+    //   Submitted -> Followed up -> Booked / Rejected / Attending
+    // laid out that way so the shape of the row tells you where the event has
+    // got to, and the branch shows the three ways it can end (Hurley
+    // 2026-07-30). Colours match the corner mark exactly: amber in flight,
+    // green landed, red closed.
+    var _fuN = (window.abFollowUps ? window.abFollowUps(rec) : []).length;
+    // A logged follow-up IS a follow-up, even without the stage tag — Angela
+    // could log three chases and still see the step unlit.
+    var _fuOn = has('Followed up') || !!_fuN;
+    function _step(qa, label, on, cls, extra) {{
+      return '<button type="button" class="qa-step' + (on ? ' is-on' : '') + (cls ? ' ' + cls : '') +
+             '" data-qa="' + qa + '"' + (extra || '') + '>' +
+             (on ? '<span class="qa-tick" aria-hidden="true">\u2713</span>' : '') + label + '</button>';
+    }}
     var bStage = [];
-    bStage.push('<button type="button" class="qa' + (has('Submitted') ? ' on' : '') + '" data-qa="submitted">' + (has('Submitted') ? '✓ Submitted' : 'Submitted') + '</button>');
-    // A logged follow-up IS a follow-up. The pill only read the stage tag, so
-    // Angela could log three chases and still see it unticked (Hurley
-    // 2026-07-30). The log is the stronger evidence of the two.
-    var _fuLogged = !!((window.abFollowUps ? window.abFollowUps(rec) : []).length);
-    var _fuOn = has('Followed up') || _fuLogged;
-    bStage.push('<button type="button" class="qa' + (_fuOn ? ' on' : '') + '" data-qa="followed-up"' +
-      (_fuLogged && !has('Followed up') ? ' title="A follow-up is logged below"' : '') + '>' +
-      (_fuOn ? '✓ Followed up' : 'Followed up') + '</button>');
-    bStage.push('<button type="button" class="qa' + (has('Booked') ? ' on' : '') + '" data-qa="booked">' + (has('Booked') ? '✓ Booked' : 'Booked') + '</button>');
-    bStage.push('<button type="button" class="qa qa-neg' + (has('Rejected') ? ' on' : '') + '" data-qa="rejected" title="Rejected to speak — the organizer passed. Angela can flag it so the team can opt to just attend.">' + (has('Rejected') ? '✓ Rejected' : 'Rejected') + '</button>');
+    bStage.push('<div class="qa-flow">');
+    bStage.push(_step('submitted', 'Submitted', has('Submitted'), 'qa-flight'));
+    bStage.push('<span class="qa-arrow" aria-hidden="true">\u2192</span>');
+    bStage.push(_step('followed-up',
+      'Followed up' + (_fuN ? '<span class="qa-n">\u00d7' + _fuN + '</span>' : ''),
+      _fuOn, 'qa-flight',
+      (_fuN && !has('Followed up')) ? ' title="' + _fuN + ' follow-up' + (_fuN > 1 ? 's' : '') + ' logged below"' : ''));
+    bStage.push('<span class="qa-arrow" aria-hidden="true">\u2192</span>');
+    bStage.push('<span class="qa-branch">');
+    bStage.push(_step('booked', 'Booked', has('Booked'), 'qa-good'));
+    bStage.push(_step('rejected', 'Rejected', has('Rejected'), 'qa-bad',
+      ' title="The organiser passed \u2014 flag it so the team can still opt to attend."'));
     // "Attending" is PER-PERSON: it reflects whether the signed-in person is in
     // the attendees list (Thor sees it off when only Jerome attends). Clicking it
     // adds/removes YOU. Angela assigns anyone via the edit-form Attending bubbles.
@@ -4204,13 +4271,16 @@ def build():
         return a ? a.charAt(0).toUpperCase() + a.slice(1) : '';
       }}).filter(Boolean);
       var _attOn = has('Attending') || _attWho.length > 0;
-      bStage.push('<span class="qa qa-static' + (_attOn ? ' on' : '') + '" title="' +
+      bStage.push('<span class="qa-step qa-good qa-static' + (_attOn ? ' is-on' : '') + '" title="' +
         (_attWho.length ? 'Attending: ' + esc(_attWho.join(', ')) + ' \u2014 set who in Edit'
-                        : 'Nobody marked as attending yet \u2014 set who in Edit') +
-        '">' + (_attOn ? '✓ Attending' : 'Attending') + '</span>');
+                        : 'Nobody marked as attending yet \u2014 set who in Edit') + '">' +
+        (_attOn ? '<span class="qa-tick" aria-hidden="true">\u2713</span>' : '') + 'Attending</span>');
     }} else {{
-      bStage.push('<button type="button" class="qa' + (_iAmAttending ? ' on' : '') + '" data-qa="attending" title="Attending is per-person — this marks whether YOU are going">' + (_iAmAttending ? '✓ Attending' : 'Attending') + '</button>');
+      bStage.push(_step('attending', 'Attending', _iAmAttending, 'qa-good',
+        ' title="Attending is per-person \u2014 this marks whether YOU are going"'));
     }}
+    bStage.push('</span>');   // /qa-branch
+    bStage.push('</div>');    // /qa-flow
     // Should Attend is Angela's triage tool — only she sees/sets it here. For
     // everyone else, marking Interested funnels into her Should-Attend list.
     if (window.isAngelaUser && window.isAngelaUser()) {{
@@ -4888,6 +4958,36 @@ def build():
     }} else {{
       $title.textContent = rec.name || 'Event';
     }}
+    // Star + archive sit beside the NAME and appear on hover, exactly as they
+    // do on the card face — same icons, same behaviour, so the modal isn't a
+    // second language to learn (Hurley 2026-07-30).
+    (function () {{
+      var _tIn = !!(rec.interested || []).some(function (n) {{
+        var me = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '').trim().split(/\s+/)[0].toLowerCase();
+        return me && String(n).toLowerCase().split(/\s+/)[0] === me;
+      }});
+      var _tMan  = rec._table === 'manual_events';
+      var _tArch = (window.opsIsArchivedForMe ? window.opsIsArchivedForMe(_tMan, rec._key, rec.hidden === true) : !!rec.hidden);
+      var starD = 'M12 2.6l2.72 5.51 6.08.88-4.4 4.29 1.04 6.06L12 16.48 6.56 19.34l1.04-6.06-4.4-4.29 6.08-.88z';
+      var wrap = document.createElement('span');
+      wrap.className = 'mt-acts';
+      wrap.innerHTML =
+        '<button type="button" class="mt-ico' + (_tIn ? ' is-on' : '') + '" data-qa="interested" ' +
+          'title="' + (_tIn ? "You're interested \u2014 click to clear" : "I'm interested") + '" aria-label="I am interested">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true" fill="' + (_tIn ? 'currentColor' : 'none') +
+          '" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="' + starD + '"/></svg></button>' +
+        '<button type="button" class="mt-ico' + (_tArch ? ' is-on' : '') + '" data-qa="archive" ' +
+          'title="' + (_tArch ? 'Archived for you \u2014 click to bring it back' : 'Archive \u2014 for you only; teammates still see it') + '" aria-label="Archive for me">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>' +
+          '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>' +
+          '<path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>' +
+          '<path d="m2 2 20 20"/></svg></button>';
+      $title.appendChild(wrap);
+      wrap.querySelectorAll('[data-qa]').forEach(function (b5) {{
+        b5.addEventListener('click', window.__qaClick);
+      }});
+    }})();
     // Just the city/venue — the region (MENA / Europe / …) is redundant next
     // to it and adds nothing a reader needs.
     $loc.innerHTML = esc(rec.location || '');
@@ -5411,7 +5511,7 @@ def build():
         '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>' +
         '<path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>' +
         '<path d="m2 2 20 20"/></svg></button>';
-      $side.innerHTML = meIco + archIco + enrichBtn + (editForm
+      $side.innerHTML = enrichBtn + (editForm
         ? '<button type="button" class="qa-edit" id="modal-edit-toggle" aria-expanded="false"><span class="qa-edit-ic" aria-hidden="true">✎</span> Edit</button>'
         : '');
       // They drive the SAME handler the quickbar buttons did.
