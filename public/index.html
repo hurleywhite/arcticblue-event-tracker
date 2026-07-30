@@ -3504,6 +3504,31 @@
     }
     if (!pick) return '';
     if (pick.length > 140) pick = pick.slice(0, 137).replace(/\s\S*$/, '') + '…';
+    // The value is a bare noun phrase ("Panel discussions, fireside chats"),
+    // which reads as a dangling fragment once it's sitting at the end of the
+    // overview. Give it a verb (Hurley 2026-07-30). Anything already written
+    // as a sentence is left alone.
+    if (!/\b(is|are|was|were|include|includes|offer|offers|feature|features|run|runs|host|hosts|provide|provides|guarantee|guarantees|use|uses|has|have|allow|allows|unlock|unlocks|cover|covers|grant|grants|combine|combines|admit|admits|give|gives|bring|brings|enable|enables|let|lets|mean|means|apply|applies|work|works|take|takes|require|requires|consist|consists|comprise|comprises|span|spans|award|awards|pair|pairs|connect|connects)\b/i.test(pick)) {
+      var _lst = pick.replace(/,\s*([^,]+)$/, ' and $1');       // last comma -> "and"
+      // Don't lowercase a brand — "Reuters Events app" must not become
+      // "reuters". A second capitalised word is the tell that we're in a
+      // proper name rather than an ordinary noun phrase.
+      if (!/^[A-Z][a-z]+.*\s[A-Z][a-z]/.test(_lst)) {
+        _lst = _lst.charAt(0).toLowerCase() + _lst.slice(1);
+      }
+      // "includes attendee app for pre-booking" wants an article. The head noun
+      // sits before the first preposition, so test THAT for a plural rather
+      // than the last word of the whole phrase.
+      var _cut = _lst.search(/\s(?:for|with|via|in|on|at|to|during|across|from|and)\s|,/i);
+      var _head = (_cut > 0 ? _lst.slice(0, _cut) : _lst).trim().split(/\s+/).pop()
+                    .replace(/[^A-Za-z-]+$/, '');            // drop trailing "(", ")", ":"
+      // A gerund is a mass noun — "a matchmaking" / "a networking" are wrong.
+      if (_head && !/s$/i.test(_head) && !/ing$/i.test(_head) &&
+          !/^(?:a|an|the|some|several|multiple|\d)\b/i.test(_lst)) {
+        _lst = (/^[aeiou]/i.test(_lst) ? 'an ' : 'a ') + _lst;
+      }
+      pick = 'The format includes ' + _lst;
+    }
     return pick;
   }
 
@@ -15049,13 +15074,9 @@
           // arrived as literal asterisks (Hurley 2026-07-30).
           if (window.abMdToHtml) box.innerHTML = window.abMdToHtml(_ans);
           else box.textContent = _ans;
-          // Post the QUESTION into the thread so Angela sees it was asked. The
-          // answer isn't posted — it's derived, and would just add noise.
-          var row = { author: who, body: '\u2753 Asked AI: ' + q };
-          row[col] = rec._key;
-          sb.from('event_chat').insert(row).then(function () {
-            if (typeof loadChatCounts === 'function') loadChatCounts();
-          }, function () {});
+          // Nothing is written. Asking the assistant is a private lookup, not a
+          // message to the team — posting it turned every question into a chat
+          // row in a thread meant for actual conversation (Hurley 2026-07-30).
         }).catch(function () { box.textContent = 'Could not reach the assistant.'; });
       });
 
