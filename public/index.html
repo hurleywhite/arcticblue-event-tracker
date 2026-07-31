@@ -3902,6 +3902,54 @@
     // in-flight stages (Hurley 2026-07-30). The follow-up LOG is left alone —
     // those chases happened, and the log below the route is the history; only
     // the route step goes dark.
+    // Repaint the minimum after a quickbar click, so the row stays responsive
+    // and — for the follow-up pill — the button you just clicked survives to be
+    // clicked again (Hurley 2026-07-30).
+    var _qaFullTimer = null;
+    function _qaLightRefresh(rec, qa) {
+      if (qa === 'followed-up' || qa === 'followed-up-minus') {
+        // Nothing STRUCTURAL changes when a chase is logged — only the count and
+        // whether there's a quick entry left to undo. Patch those two in place:
+        // replacing the node would drop the :hover that is revealing the "−",
+        // so a second click would need the mouse jiggled first.
+        var _n = (window.abFollowUps ? window.abFollowUps(rec) : []).length;
+        var _pill = $body.querySelector('[data-qa="followed-up"]');
+        if (_pill) {
+          var _cnt = _pill.querySelector('.qa-n');
+          if (_n && !_cnt) {
+            _pill.insertAdjacentHTML('beforeend', '<span class="qa-n">\u00d7' + _n + '</span>');
+          } else if (_n && _cnt) {
+            _cnt.textContent = '\u00d7' + _n;
+          } else if (!_n && _cnt) {
+            _cnt.remove();
+          }
+          _pill.classList.toggle('is-on', !!_n);
+          if (_n && !_pill.querySelector('.qa-tick')) {
+            _pill.insertAdjacentHTML('afterbegin', '<span class="qa-tick" aria-hidden="true">\u2713</span>');
+          } else if (!_n) {
+            var _tk = _pill.querySelector('.qa-tick');
+            if (_tk) _tk.remove();
+          }
+        }
+        var _minus = $body.querySelector('[data-qa="followed-up-minus"]');
+        if (_minus) {
+          var _undoable = (window.abFollowUps ? window.abFollowUps(rec) : [])
+            .filter(function (f) { return !String((f || {}).note || '').trim(); }).length;
+          _minus.disabled = !_undoable;
+        }
+        return;
+      }
+      // A stage toggle DOES change the row's shape — an outcome retires and
+      // locks the in-flight steps — so rebuild just the bar, not the modal.
+      var _bar = $body.querySelector('.modal-quickbar');
+      if (!_bar) return;
+      var _tmp = document.createElement('div');
+      _tmp.innerHTML = quickBarHtml(rec);
+      var _fresh = _tmp.firstElementChild;
+      if (!_fresh) return;
+      _bar.parentNode.replaceChild(_fresh, _bar);
+      wireQuickBar(rec);
+    }
     function _abRetireInFlight(tags) {
       return tags.filter(function (s) { return s !== 'Submitted' && s !== 'Followed up'; });
     }
@@ -4093,14 +4141,28 @@
         patch.attend_verdict = rec.attend_verdict || null;
       }
       else { return; }
-      // Optimistic: re-render the modal with the updated rec, preserving the
-      // scroll position so quick edits don't jump the reader.
-      var scEl = overlay.querySelector('.modal-scroll');
-      var sc = scEl ? scEl.scrollTop : 0;
       // A personal archive toggle writes no DB patch — skip the empty upsert.
       if (Object.keys(patch).length) window.opsWrite(rec._table, rec._key, patch);
-      openEventModal(rec);
-      if (scEl) scEl.scrollTop = sc;
+      // Every click used to rebuild the WHOLE modal — 50ms of synchronous work
+      // plus a chat re-render — which is why the pipeline felt sluggish and why
+      // clicking the follow-up pill twice in a row often lost the second one: a
+      // real mouse click needs mousedown and mouseup on the SAME element, and
+      // the rebuild replaced that element underneath the cursor
+      // (Hurley 2026-07-30).
+      //
+      // So the click now repaints only what it changed, and the full rebuild is
+      // deferred until the clicking stops.
+      _qaLightRefresh(rec, qa);
+      if (_qaFullTimer) clearTimeout(_qaFullTimer);
+      _qaFullTimer = setTimeout(function () {
+        _qaFullTimer = null;
+        var _sc0 = overlay.querySelector('.modal-scroll');
+        var _top = _sc0 ? _sc0.scrollTop : 0;
+        openEventModal(rec);
+        // openEventModal rewrites $body, so the old node is stale — re-query.
+        var _sc1 = overlay.querySelector('.modal-scroll');
+        if (_sc1) _sc1.scrollTop = _top;
+      }, 500);
       // Archive lives in localStorage (no realtime echo), so re-render the grid
       // ourselves to move the card into / out of the per-person Hidden section.
       if (qa === 'archive' && window.opsRefresh) window.opsRefresh();
