@@ -1897,12 +1897,16 @@ def build():
     /* "Followed up" plus its correction control. The "−" stays out of the way
        until you go near the pill, so the normal path (click to log a chase) is
        the only thing on screen. */
-    .qa-fu {{ display: inline-flex; align-items: center; gap: 4px; }}
-    /* Same pattern as the hover icons beside the modal title (.mt-acts): the
-       button keeps its box and only fades. Animating width instead kept
-       collapsing it back to its 2px border inside the wrapping route row. */
+    /* position:relative so the "−" can be taken OUT of the flow. Keeping it in
+       the flow reserved 22px + a gap even while invisible, which showed up as a
+       wider space before the second arrow than before the first — the route
+       looked broken (Hurley 2026-07-31). Absolute costs no layout, so every
+       step is evenly spaced whether or not the control exists. */
+    .qa-fu {{ display: inline-flex; align-items: center; position: relative; }}
     .qa-fu-minus {{
-      box-sizing: border-box; flex: none;
+      box-sizing: border-box;
+      position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
+      margin-left: 3px; z-index: 2;
       width: 22px; height: 22px; padding: 0;
       display: inline-flex; align-items: center; justify-content: center;
       border: 1px solid var(--ab-rule-strong); border-radius: 999px;
