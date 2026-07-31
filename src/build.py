@@ -1182,7 +1182,25 @@ def build():
     @media (hover: none) {{ .sib-unlink {{ opacity: 1; }} }}
     .sib-more {{ margin: 7px 0 0; font-size: 0.8rem; color: var(--ab-fg-3); }}
     /* Angela's organiser-linking controls under the sibling list. */
-    .sib-add {{ display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }}
+    .sib-add {{ display: flex; flex-direction: column; gap: 6px; margin-top: 10px; align-items: flex-start; }}
+    .sib-addwrap {{ position: relative; display: inline-block; }}
+    .sib-addwrap[hidden] {{ display: none; }}
+    .sib-caret {{ margin-left: 5px; font-size: 0.7em; opacity: 0.7; }}
+    .sib-menu {{
+      position: absolute; top: calc(100% + 5px); left: 0; z-index: 30;
+      min-width: 262px; max-width: min(300px, calc(100vw - 24px)); padding: 5px;
+      background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
+      border-radius: 10px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.14);
+      display: flex; flex-direction: column; gap: 2px;
+    }}
+    .sib-menu[hidden] {{ display: none; }}
+    .sib-menu-item {{
+      width: 100%; padding: 8px 10px; border: 0; border-radius: 7px;
+      background: transparent; cursor: pointer; text-align: left;
+      font-family: var(--ab-sans); font-size: 0.82rem; color: var(--ab-fg-2);
+    }}
+    .sib-menu-item strong {{ color: var(--ab-fg); }}
+    .sib-menu-item:hover {{ background: var(--ab-bg-3); }}
     .sib-results {{ display: flex; flex-direction: column; max-height: 220px; overflow-y: auto; margin: 6px 0 2px; }}
     .sib-hit {{
       display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left;
@@ -1797,6 +1815,9 @@ def build():
     .ops-card.is-recent {{ border-color: #eab308; }}
     .ops-card.is-saved {{ border-color: var(--ab-blue); }}
     .ops-card.is-mine  {{ border-color: var(--ab-blue); }}   /* the signed-in person starred it */
+    /* Same signal on the pop-up, so "this one is mine" doesn't need saying in
+       words once you've opened it. */
+    .modal-card.is-mine {{ border-color: var(--ab-blue); box-shadow: 0 24px 60px rgba(31,160,220,0.22); }}
     .ops-card.is-sa    {{ border-color: var(--ab-blue); }}   /* Angela flagged Should Attend (blue outline, like an interested card) */
     /* Hover-only card controls (star + archive/hide): hidden until you hover/focus the card. */
     .ops-hover {{ opacity: 0; pointer-events: none; transition: opacity 120ms ease; }}
@@ -2869,6 +2890,17 @@ def build():
     /* Who's on it — initials on the right of a Team's Upcoming Events row.
        Overlapped slightly so four of them still read as one cluster. */
     .qrow-who-wrap {{ align-self: center; }}
+    /* Right-hand column of a Lineup row: who it's for, and the brief under
+       them. Small and quiet — the event name is the headline, not this. */
+    .qrow-side {{ align-self: center; align-items: flex-end; gap: 5px; }}
+    .qrow-brief {{
+      font-family: var(--ab-mono); font-size: 0.64rem; letter-spacing: 0.03em;
+      padding: 3px 8px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-3);
+      transition: border-color 120ms, color 120ms;
+    }}
+    .qrow-brief:hover {{ border-color: #1fa0dc; color: #1271a8; }}
+    .qrow-brief.is-ready {{ border-color: #15803d; color: #15803d; }}
     .qrow-who {{ display: inline-flex; align-items: center; }}
     /* Brand blue, not the --sm grey. Grey is for secondary chrome like the
        activity feed; here the person IS the information on the row, and at
@@ -3455,8 +3487,8 @@ def build():
     .ab-btn__caret {{ width: 14px; height: 14px; flex-shrink: 0; margin-left: -2px; opacity: 0.85; }}
     #add-menu-btn[aria-expanded="true"] .ab-btn__caret {{ transform: rotate(180deg); }}
     .ops-add-menu {{
-      position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
-      min-width: 248px; padding: 6px;
+      position: absolute; top: calc(100% + 6px); right: 0; left: auto; z-index: 40;
+      min-width: 248px; max-width: min(320px, calc(100vw - 24px)); padding: 6px;
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong);
       border-radius: 12px; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
       display: flex; flex-direction: column; gap: 2px;
@@ -3828,7 +3860,7 @@ def build():
                   <svg class="ops-add-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
                   <span class="ops-add-item__txt"><span class="ops-add-item__t">Find new events</span><span class="ops-add-item__d">Let AI suggest events to add</span></span>
                 </button>
-                <button class="ops-add-item" id="paste-email-btn" role="menuitem" type="button">
+                <button class="ops-add-item" id="paste-email-btn" role="menuitem" type="button" hidden>
                   <svg class="ops-add-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
                   <span class="ops-add-item__txt"><span class="ops-add-item__t">Paste email</span><span class="ops-add-item__d">Pre-fill from an event email</span></span>
                 </button>
@@ -4558,9 +4590,11 @@ def build():
     var _qbAngela = !!(window.isAngelaUser && window.isAngelaUser());
     // Header icons need these two facts; the buttons themselves live up there now.
     window.__mqIn = iAmIn;
-    var intSummary = summary
-      ? '<span class="qa-int-summary">' + summary + '</span>'
-      : (_qbAngela ? '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>' : '');
+    // Only Angela's "nobody flagged this" prompt survives — that one is a gap
+    // she acts on. Whose event it is now reads off the pop-up's blue border,
+    // the same signal the card face uses.
+    var intSummary = (!summary && _qbAngela)
+      ? '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>' : '';
     // Archiving happens ONLY in this pop-up (the card face just shows an
     // "Archived" label), so the control is here for BOTH catalog and manual
     // events. Manual events also keep their separate "Delete this event" button
@@ -4817,8 +4851,7 @@ def build():
         else if (!_fuList.length && _fuHad !== -1) _fuTags.splice(_fuHad, 1);
         rec.follow_ups = _fuList;
         patch.follow_ups = _fuList;
-        var _fuOrd = window.opsStageOrder || [];
-        if (_fuOrd.length) _fuTags = _fuOrd.filter(function (s) {{ return _fuTags.indexOf(s) !== -1; }});
+        _fuTags = window.abStageImply(_fuTags);
         rec.stage_tags = _fuTags;
         patch.status_tags = _fuTags;
       }}
@@ -4838,8 +4871,7 @@ def build():
           if (_other !== -1) tags.splice(_other, 1);
           tags = _abRetireInFlight(tags);
         }}
-        var order = window.opsStageOrder || [];
-        if (order.length) tags = order.filter(function (s) {{ return tags.indexOf(s) !== -1; }});
+        tags = window.abStageImply(tags);
         rec.stage_tags = tags;
         patch.status_tags = tags;
       }}
@@ -5296,6 +5328,11 @@ def build():
 
   function openEventModal(rec) {{
     if (!rec) return;
+    // Blue border when it's yours, exactly as the card face reads — this
+    // replaces the "<Name> is interested" sentence that used to sit in the
+    // quickbar saying the same thing in words (Hurley 2026-07-31).
+    var _mCard = document.querySelector('.modal-card');
+    if (_mCard) _mCard.classList.toggle('is-mine', !!(window.meInInterested && window.meInInterested(rec.interested)));
     // Top labels: NONE (Hurley 2026-07-30). Priority, event type, the pipeline
     // stages, Pay-to-play, Seed and Private all repeated something the reader
     // already has — the stages are the workflow route right below, and the rest
@@ -5667,10 +5704,17 @@ def build():
       function _sibAdd() {{
         if (!(window.isAngelaUser && window.isAngelaUser())) return '';
         return '<div class="sib-add">' +
-          '<button type="button" class="ab-addbtn" id="sib-link-btn">' +
-            '<span class="ab-addbtn-ic" aria-hidden="true">+</span> Link an event we already track</button>' +
-          '<button type="button" class="ab-addbtn" id="sib-new-btn">' +
-            '<span class="ab-addbtn-ic" aria-hidden="true">+</span> Add an event not in the tracker</button>' +
+          '<div class="sib-addwrap">' +
+            '<button type="button" class="ab-addbtn" id="sib-add-btn" aria-haspopup="menu" aria-expanded="false">' +
+              '<span class="ab-addbtn-ic" aria-hidden="true">+</span> Add event' +
+              '<span class="sib-caret" aria-hidden="true">&#9662;</span></button>' +
+            '<div class="sib-menu" id="sib-menu" role="menu" hidden>' +
+              '<button type="button" class="sib-menu-item" id="sib-link-btn" role="menuitem">' +
+                'Add an event we <strong>already</strong> track</button>' +
+              '<button type="button" class="sib-menu-item" id="sib-new-btn" role="menuitem">' +
+                'Add an event <strong>not</strong> in the tracker</button>' +
+            '</div>' +
+          '</div>' +
           // search-and-link
           '<div class="ab-form" id="sib-link-form" hidden>' +
             '<input type="text" class="ab-input" id="sib-search" autocomplete="off" ' +
@@ -5795,9 +5839,24 @@ def build():
       if (!linkBtn && !newBtn) return;
       var linkForm = $body.querySelector('#sib-link-form');
       var newForm  = $body.querySelector('#sib-new-form');
+      var addWrap  = $body.querySelector('.sib-addwrap');
+      var addBtn   = $body.querySelector('#sib-add-btn');
+      var addMenu  = $body.querySelector('#sib-menu');
+      function closeMenu() {{
+        if (addMenu) addMenu.hidden = true;
+        if (addBtn) addBtn.setAttribute('aria-expanded', 'false');
+      }}
+      if (addBtn) addBtn.addEventListener('click', function (e) {{
+        e.stopPropagation();
+        var open = addMenu.hidden;
+        addMenu.hidden = !open;
+        addBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }});
+      document.addEventListener('click', closeMenu);
       function show(form) {{
+        closeMenu();
         [linkForm, newForm].forEach(function (f) {{ if (f) f.hidden = (f !== form); }});
-        [linkBtn, newBtn].forEach(function (b) {{ if (b) b.hidden = !!form; }});
+        if (addWrap) addWrap.hidden = !!form;
       }}
       function reset() {{ show(null); }}
       if (linkBtn) linkBtn.addEventListener('click', function () {{
@@ -6663,11 +6722,25 @@ def build():
         return abFold(n).split(/\s+/)[0] === meFirst;
       }});
     }};
-    function stageTagsOf(st) {{
+    // Predecessors a stage cannot logically be reached without.
+    function _stageImply(tags) {{
+      tags = (tags || []).slice();
+      if (tags.indexOf('Followed up') !== -1 && tags.indexOf('Initial outreach') === -1) {{
+        tags.push('Initial outreach');
+      }}
+      var ord = window.opsStageOrder || _STAGE_ORDER;
+      return ord.length ? ord.filter(function (x) {{ return tags.indexOf(x) !== -1; }}) : tags;
+    }}
+    // Raw, un-implied — for anything that must compare what is literally
+    // stored (the activity feed's change detection), so switching this on
+    // doesn't read as 23 people suddenly doing outreach.
+    function stageTagsRaw(st) {{
       if (!st) return [];
       if (st.status_tags == null) return legacyToStages(st.status);
       return normalizeStageTags(st.status_tags);
     }}
+    function stageTagsOf(st) {{ return _stageImply(stageTagsRaw(st)); }}
+    window.abStageImply = _stageImply;
 
     // Pick the single most meaningful stage (for the calendar tint).
     function mostAdvancedStage(tags) {{
@@ -6969,6 +7042,9 @@ def build():
       if (!me) return false;
       return (list || []).some(function (n) {{ return String(n).toLowerCase() === me; }});
     }}
+    // The modal lives in a different closure and needs the same test to
+    // decide whether the pop-up gets the blue "this is yours" border.
+    window.meInInterested = meInInterested;
     function toggleMyInterest(kind, key, list, saVerdict) {{
       var me = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || '';
       if (!me) return;   // no name -> nothing to flag
@@ -10027,7 +10103,7 @@ def build():
       function markStage(it, stage) {{
         var tags = it.stages.slice();
         if (tags.indexOf(stage) === -1) tags.push(stage);
-        tags = order.filter(function (s) {{ return tags.indexOf(s) !== -1; }});
+        tags = window.abStageImply(order.filter(function (s) {{ return tags.indexOf(s) !== -1; }}));
         opsQuickWrite(it.kind, it.key, {{ status_tags: tags }});
       }}
 
@@ -10214,7 +10290,7 @@ def build():
       {{ k: 'conflict_note', f: 'clash'   }}
     ];
     function _wnSig(row) {{
-      var s = {{ _s: stageTagsOf(row).join('|') }};
+      var s = {{ _s: stageTagsRaw(row).join('|') }};
       _WN_FIELDS.forEach(function (fd) {{
         var v = row[fd.k];
         s[fd.k] = fd.list
@@ -10936,8 +11012,9 @@ def build():
         // so no brief button (see `briefable`). Briefs are Angela's tool — only
         // her view shows the button (everyone else's lineup rows have no brief).
         var brief = (it._past || !it.briefable || !(window.isAngelaUser && window.isAngelaUser())) ? '' :
-          (it.briefReady ? '<span class="dayof-ready">&#10003; brief ready</span>' : '') +
-          '<button type="button" class="q-btn primary" data-brief-kind="' + it.kind + '" data-brief-key="' + escapeHtml(String(it.key)) + '">Open brief &rarr;</button>';
+          '<button type="button" class="qrow-brief' + (it.briefReady ? ' is-ready' : '') + '" data-brief-kind="' + it.kind + '" data-brief-key="' + escapeHtml(String(it.key)) + '" title="' +
+          (it.briefReady ? 'Brief ready' : 'Build the day-of brief') + '">' +
+          (it.briefReady ? '&#10003; Brief' : 'Brief &rarr;') + '</button>';
         // The whole row opens the event details on click (like the grid cards) —
         // no separate "Details" button. The brief button stops propagation so it
         // still fires its own action.
@@ -10958,8 +11035,9 @@ def build():
             '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
             statusHtml +
           '</div>' +
-          (whoHtml ? '<div class="queue-actions qrow-who-wrap">' + whoHtml + '</div>' : '') +
-          (brief ? '<div class="queue-actions">' + brief + '</div>' : '') +
+          ((whoHtml || brief)
+            ? '<div class="queue-actions qrow-side">' + whoHtml + brief + '</div>'
+            : '') +
           '</div>';
       }}
       function section(title, list, emptyMsg, collapsible, collapsed, showWho) {{
