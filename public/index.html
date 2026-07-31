@@ -9685,14 +9685,23 @@
           next[k] = sig;
           if (bootstrap) return;
           var prev = snap[k]; if (!prev) return;   // brand new row — the "added" feed row covers it
-          var ts = r.updated_at || r.created_at || '';
-          if (!ts || ts < cutoff) return;
+          // No updated_at (manual_events, pre-migration) -> date it from
+          // detection. The diff is against YOUR last load, so the change
+          // provably happened between then and now; created_at would date an
+          // edit from when the event was first added and drop it out of the
+          // 7-day window entirely.
+          var ts = r.updated_at || new Date().toISOString();
+          if (ts < cutoff) return;
           _wnDiff(prev, sig).forEach(function (d) {
             var id = 'd:' + k + ':' + ts + ':' + d.f;
             if (have[id]) return;
             have[id] = 1;
             log.push({ id: id, ts: ts, kind: kind, key: key, f: d.f, txt: d.txt,
-                       who: firstNameFromEmail(r.updated_by || r.created_by || '') || '' });
+                       // updated_by ONLY. Falling back to created_by would
+                       // credit every manual-event edit to whoever first added
+                       // it, which is a plausible-looking lie; an unattributed
+                       // row renders under "Someone" instead.
+                       who: firstNameFromEmail(r.updated_by || '') || '' });
           });
         });
       }
@@ -15872,8 +15881,15 @@
       var who = getCollabName() || 'Team';
       var run;
       if (table === 'manual_events') {
-        // manual_events has no updated_by column (it tracks created_by on
-        // insert), so don't stamp it — doing so failed the whole save.
+        // Stamp the edit trail here too (Hurley 2026-07-31). manual_events
+        // recorded only created_at / created_by, so once a row existed there
+        // was no record it had ever changed — and "In the last week" had
+        // nothing to date a manual-event edit from, which is why those edits
+        // never surfaced. Until scripts/2026-07-31_manual_events_updated_at.sql
+        // runs, sbWriteRetry strips both columns silently (SILENT_STRIP_COLS)
+        // and the save behaves exactly as it did before.
+        patch.updated_by = who;
+        patch.updated_at = new Date().toISOString();
         run = sbWriteRetry(patch, function (p) { return sb.from('manual_events').update(p).eq('id', key); });
       } else {
         patch.updated_by = who;
