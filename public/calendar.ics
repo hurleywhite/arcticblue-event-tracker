@@ -265,16 +265,6 @@ DESCRIPTION:Bahrain's longest-running ICT conference and exhibition\, with AI as
 URL:https://meetict.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-617@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261020
-DTEND;VALUE=DATE:20261023
-SUMMARY:Abu Dhabi Future Health Summit
-LOCATION:Abu Dhabi\, UAE
-DESCRIPTION:Major Gulf healthcare leadership and health-tech summit at ADNEC exploring digital health and AI-enabled care delivery.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.adnec.ae/en/eventlisting/abu-dhabi-future-health-summit
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-616@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20261014
@@ -443,16 +433,6 @@ SUMMARY:New York CISO Community Inner Circle Summer 2026
 LOCATION:New York\, USA
 DESCRIPTION:AI governance and cyber-risk are core CISO priorities relevant to ArcticBlue's enterprise AI governance theme.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.evanta.com/ciso/new-york/new-york-ciso-inner-circle-9332
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-599@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20270222
-DTEND;VALUE=DATE:20270225
-SUMMARY:AHLA Winter Institute — The Complexities of AI in Health Care Track
-LOCATION:Las Vegas\, NV
-DESCRIPTION:American Health Law Association's Winter Institute dedicates a full track to AI in health care governance\, legal\, and compliance complexity — directly aligned with Verma's regulated-industry (healthcare) AI governance and board-oversight focus\, with an official open call-for-speakers.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.americanhealthlaw.org/education-events/call-for-educational-content/call-for-speakers
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-598@arcticblue-event-tracker
@@ -1115,16 +1095,6 @@ DESCRIPTION:AIAI's three co-located London summits (Agentic AI\, Generative AI\,
 URL:https://world.aiacceleratorinstitute.com/location/agenticailondon
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-519@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261123
-DTEND;VALUE=DATE:20261125
-SUMMARY:Digital Health World Congress 2026
-LOCATION:Kensington Conference and Events Centre\, London\, UK
-DESCRIPTION:Annual London AI health tech conference (200+ delegates) with NHS\, AstraZeneca\, Oracle\, Capgemini\, and UBS representation — direct entry into Jerome's healthcare vertical with AI transformation and digital health deployment themes.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://digitalhealthcareworldcongress.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-518@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20261001
@@ -1133,16 +1103,6 @@ SUMMARY:AI Assurance & Governance Summit 2026
 LOCATION:Palo Alto\, CA\, USA
 DESCRIPTION:Invite-only summit at Stanford Faculty Club bringing together frontier AI labs\, venture capital\, regulated industry leaders (insurance underwriting\, healthcare diagnostics)\, and academics to build trustworthy AI frameworks — exact intersection of Verma's de-risk AI governance thesis and ArcticBlue's regulated-industry mandate.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://trustmodel.ai/summit2026
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-517@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20260922
-DTEND;VALUE=DATE:20260923
-SUMMARY:World Health AI Forum London 2026
-LOCATION:ME Hotel London\, London\, UK
-DESCRIPTION:One-day healthcare AI forum at ME London with NHS England\, Bupa\, Nuffield Health\, and Microsoft as institutional attendees — targets Jerome's healthcare vertical with AI governance and scaling-beyond-pilot themes.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.worldhealth.ai/london
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-516@arcticblue-event-tracker
@@ -1325,16 +1285,6 @@ DESCRIPTION:The US life insurance industry’s premier annual event — 1\,000+ 
 URL:https://www.limra.com/en/events/conferences/2026-conference-series/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-494@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261208
-DTEND;VALUE=DATE:20261209
-SUMMARY:GIANT Health NHS National AI Conference 2026
-LOCATION:London\, UK
-DESCRIPTION:UK's premier NHS AI conference — clinicians\, digital transformation leads and hospital administrators focused on practical AI implementation\; directly covers ArcticBlue's healthcare regulated-industry vertical in London.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.giant.health/ai-healthcare
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-493@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20261013
@@ -1343,16 +1293,6 @@ SUMMARY:Open Banking Expo UK & Europe 2026
 LOCATION:London\, UK
 DESCRIPTION:The UK’s only dedicated Open Banking and Open Finance event — 1\,800+ attendees\, 200+ speakers from banks\, regulators\, and fintechs — platforms ArcticBlue’s regulated-finance AI narrative directly at the data and AI infrastructure decision-makers building the next generation of financial services.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.openbankingexpo.com/uk/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-492@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261004
-DTEND;VALUE=DATE:20261008
-SUMMARY:NCQA Health Innovation Summit 2026
-LOCATION:Atlanta\, GA\, USA
-DESCRIPTION:The National Committee for Quality Assurance’s flagship summit draws 1\,400+ health plan executives\, quality directors\, and digital health leaders from the US’s most regulated healthcare payers and providers — Verma’s de-risking AI message maps directly to NCQA’s 2026 digital quality and AI measurement track.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.ncqa.org/summit2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-491@arcticblue-event-tracker
@@ -1533,16 +1473,6 @@ SUMMARY:FIMA Europe 2026
 LOCATION:London\, UK
 DESCRIPTION:Europe’s premier financial data management and AI event with 350+ senior buy-side and sell-side leaders — AI-ready data foundations\, agentic AI in FSI\, and real decision-making power in the room.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://fimaeurope.wbresearch.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-466@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261029
-DTEND;VALUE=DATE:20261031
-SUMMARY:BMJ Future Health Europe 2026
-LOCATION:London\, UK
-DESCRIPTION:BMJ-branded healthcare AI conference at The Brewery London with real-problem-focused format and 41% Director+ audience — access to health system leaders driving AI adoption in regulated care.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://futurehealth.bmj.com/bmj-future-health-europe
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-465@arcticblue-event-tracker
@@ -1862,16 +1792,6 @@ SUMMARY:RISE AI Latin America Summit 2026
 LOCATION:Santiago\, Chile
 DESCRIPTION:Co-created by Universidad de los Andes and University of Notre Dame\; bilingual enterprise AI governance summit with 330+ leaders from 16 countries — ArcticBlue's top opportunity to lead responsible AI narrative in Tier 2 LatAm markets.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.riseaisummit.ai/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-424@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261104
-DTEND;VALUE=DATE:20261105
-SUMMARY:2nd Annual AI in Health Summit 2026
-LOCATION:London\, UK
-DESCRIPTION:Economist Group's curated AI-in-healthcare summit co-located with Future of Health Europe\; 41% Director+ attendees including UK's Chief Executive MHRA and National Data Guardian — ideal for Verma's regulated-healthcare AI governance narrative at a prestigious media brand stage.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.economistenterprise.com/ai-health-summit/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-423@arcticblue-event-tracker
@@ -2314,16 +2234,6 @@ DESCRIPTION:Peer-led CIO community event at Convene 30 Hudson Yard with senior I
 URL:https://www.evanta.com/cio/new-york/new-york-cio-executive-summit-8497
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-369@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261111
-DTEND;VALUE=DATE:20261114
-SUMMARY:AIMed26
-LOCATION:Orlando\, USA
-DESCRIPTION:Premier healthcare AI conference with 1\,000+ attendees from 500+ hospitals\; dedicated Chief AI Officer track and open abstract competition (deadline September 25) — direct earned speaking route to healthcare enterprise AI buyers.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://aimed26.com
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-368@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20261104
@@ -2622,16 +2532,6 @@ SUMMARY:Africa Fintech Summit Kigali 2026
 LOCATION:Kigali Convention Center\, Kigali\, Rwanda
 DESCRIPTION:Africa's premier fintech conference with strong regulatory and government participation from across the continent — Verma's AI governance and financial services transformation narrative speaks to African central banks and fintech C-suite.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://africafintechsummit.com/events/africa-fintech-summit-kigali-2026
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-328@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261104
-DTEND;VALUE=DATE:20261105
-SUMMARY:AI in Health Summit 2026
-LOCATION:London\, UK
-DESCRIPTION:Economist Impact's flagship AI-in-healthcare event with 41% director-level attendees from 271 organisations — Verma's message on responsible AI scale-up in regulated health systems\, governance\, and evidence-based AI adoption is perfectly matched.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://events.economistenterprise.com/ai-health-summit/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-324@arcticblue-event-tracker
@@ -3092,16 +2992,6 @@ SUMMARY:FTT AI Transformation 2026
 LOCATION:London\, UK
 DESCRIPTION:Fintech Talents' dedicated AI transformation event for financial services — 2\,000+ fintech and FS leaders with hosted 1:1 meetings\, co-located with the UK's largest fintech festival\; Call for Speakers openly available\; directly addresses banking and insurance AI ROI.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://www.fintechtalents.com/events/europe/ftt-ai-transformation/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-260@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261103
-DTEND;VALUE=DATE:20261105
-SUMMARY:Economist AI in Health Summit / Future of Health Europe 2026
-LOCATION:London\, UK
-DESCRIPTION:Economist Enterprise's co-located AI in Health and Future of Health Europe summits bring 300+ healthcare C-suite leaders together in London — key platform for ArcticBlue's healthcare AI transformation narrative with NHS leaders\, pharma\, and payers.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.economistenterprise.com/future-of-health-europe/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-258@arcticblue-event-tracker
@@ -3684,16 +3574,6 @@ DESCRIPTION:SWIFT's 10\,000+ global banking and financial industry flagship at M
 URL:https://www.sibos.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-171@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20260923
-DTEND;VALUE=DATE:20260924
-SUMMARY:Newsweek AI Health Summit NYC 2026
-LOCATION:New York City\, NY\, USA
-DESCRIPTION:Newsweek-branded healthcare AI event at One World Trade Center drawing CAIOs and CDIOs from Sutter Health\, Cleveland Clinic\, Labcorp\, Jefferson Health — premier US health system executive audience for ArcticBlue's healthcare AI de-risking message.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://events.newsweek.com/ai-health-nyc-2026
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-170@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20260909
@@ -3804,16 +3684,6 @@ DESCRIPTION:Focused enterprise AI conference where speakers share real-world AI 
 URL:https://www.aibusinessconference.co.uk/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-149@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20260630
-DTEND;VALUE=DATE:20260701
-SUMMARY:King's Fund Digital Health and AI Conference 2026
-LOCATION:London\, UK
-DESCRIPTION:Top UK healthcare AI conference focused on scaling AI in health systems responsibly — directly relevant to ArcticBlue's regulated-industry healthcare ICP including NHS and private health operators.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.kingsfund.org.uk/events/digital-health-ai-conference-2026
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-145@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20260909
@@ -3914,16 +3784,6 @@ DESCRIPTION:Europe's most senior insurer-led conference at Business Design Centr
 URL:https://insurance-innovators.com/events/summit/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-129@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261022
-DTEND;VALUE=DATE:20261024
-SUMMARY:HIMSS AI in Healthcare Forum San Diego 2026
-LOCATION:San Diego\, CA\, USA
-DESCRIPTION:HIMSS's dedicated AI-in-healthcare forum for senior healthcare executives and clinicians — AI leadership strategy\, governance\, and real-world AI implementation in regulated health systems\; Verma's regulated-healthcare/AI-at-scale narrative fits this audience perfectly.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.himss.org/events-overview/ai-in-healthcare-forum-san-diego/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-125@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20260914
@@ -3964,16 +3824,6 @@ DESCRIPTION:Invite-only CDO and AI/data leadership summit in Buenos Aires attrac
 URL:https://cdovision.aim.media/events/cdo-vision-buenos-aires-2026
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-115@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261208
-DTEND;VALUE=DATE:20261210
-SUMMARY:Millennium Alliance Healthcare Technology & AI Transformation Assembly December 2026
-LOCATION:Austin\, TX\, USA
-DESCRIPTION:Millennium Alliance’s year-end Healthcare Technology & AI Assembly at The Line Austin — healthcare CIOs\, CMIOs\, and digital transformation leaders\; AI in healthcare workflows is a key ArcticBlue enterprise use case vertical\; invite-only peer format.\nPriority: Low\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/healthcare-technology-ai-transformation-assembly-december-2026/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-113@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20260601
@@ -4012,16 +3862,6 @@ SUMMARY:FinovateFall 2026
 LOCATION:New York\, NY\, USA
 DESCRIPTION:Flagship fintech and AI innovation conference at Marriott Marquis Times Square (2\,000+ attendees)\; AI & Innovation stage with Agentic Commerce track — direct access to Financial Services enterprise buyers who are ArcticBlue's core ICP.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://informaconnect.com/finovatefall/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-105@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:AI in Healthcare & Pharma Summit 2026 — Boston
-LOCATION:Boston\, MA\, USA
-DESCRIPTION:RE:WORK's dedicated enterprise AI healthcare summit in Boston with Merck\, AstraZeneca\, Intermountain Health speakers — excellent vertical access for ArcticBlue's Healthcare AI capability-building offering.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://boston-ai-healthcare.re-work.co/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-104@arcticblue-event-tracker
