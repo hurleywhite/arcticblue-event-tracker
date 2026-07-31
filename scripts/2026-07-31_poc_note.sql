@@ -28,6 +28,17 @@
 -- ====================================================================
 
 alter table public.event_state   add column if not exists poc_note text;
+-- The structured pair manual_events has always had. Without these on
+-- event_state, a contact found for a CATALOG event could only be written to
+-- the free-text contact_info blob — which the outreach composer cannot read,
+-- so those drafts opened "Hello there," even when we knew the name.
+alter table public.event_state   add column if not exists poc_name text;
+alter table public.event_state   add column if not exists poc_email text;
+alter table public.event_state   add column if not exists poc_linkedin text;
+-- When we last went looking, so a failed lookup is not retried forever and a
+-- successful one is not repeated. Null = never tried.
+alter table public.event_state   add column if not exists poc_lookup_at timestamptz;
+alter table public.manual_events add column if not exists poc_lookup_at timestamptz;
 alter table public.manual_events add column if not exists poc_note text;
 
 -- Sanity: confirm the column exists on both tables.

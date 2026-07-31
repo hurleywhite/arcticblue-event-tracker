@@ -22,6 +22,7 @@ NOTE: helper functions are duplicated from api/enrich.py because Vercel bundles
 each function in isolation — keep them in sync.
 """
 from http.server import BaseHTTPRequestHandler
+import datetime
 import json
 import os
 import re
@@ -60,7 +61,12 @@ WRITABLE = ('url', 'venue', 'pay_to_play', 'speaking_route', 'pricing',
 # manual_events alone carries the structured POC pair; event_state has only the
 # free-text contact_info. Writing a column a table lacks makes PostgREST reject
 # the WHOLE patch, so the split is enforced at write time.
-WRITABLE_MANUAL = WRITABLE + ('poc_name', 'poc_email')
+# Both tables carry the structured pair once the 2026-07-31 poc migration has
+# run. A patch naming a column the table lacks is rejected WHOLE by PostgREST,
+# so the write below retries without them rather than losing the enrichment.
+CONTACT_COLS = ('poc_name', 'poc_email', 'poc_linkedin', 'poc_note', 'poc_lookup_at')
+WRITABLE_MANUAL = WRITABLE + CONTACT_COLS
+WRITABLE_STATE = WRITABLE + CONTACT_COLS
 
 
 # ── Apollo: the organiser's speaking contact ──────────────────────────
@@ -684,13 +690,57 @@ def enrich_one(row, rewrite=None):
                 # not someone who has ever replied to us.
                 bits = c['name'] + (', ' + c['title'] if c['title'] else '')
                 patch['contact_info'] = (bits + ' \u2014 ' + c['email'] + ' (via Apollo)')[:300]
-                if row.get('_table') == 'manual_events':
-                    patch['poc_name'] = c['name'][:120]
-                    patch['poc_email'] = c['email'][:160]
+                # Structured too, on BOTH tables. contact_info is a display
+                # blob; the outreach composer needs the name and address as
+                # fields or it greets the organiser with "Hello there,".
+                patch['poc_name'] = c['name'][:120]
+                patch['poc_email'] = c['email'][:160]
+                if c.get('title'):
+                    # What they actually do, so the composer can warn when the
+                    # only contact we found sells sponsorship.
+                    patch['poc_note'] = (c['title'] + ' (found via Apollo)')[:300]
     return patch
 
 
 # ── HTTP plumbing ────────────────────────────────────────────────────
+def _now_iso():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def contact_only(row):
+    """Just find who to approach. No Perplexity, no Exa fact sweep — the
+    automatic trigger fires on every flag of interest, so it does the one thing
+    it is there for and nothing that costs a research call."""
+    patch = {}
+    have = any(str(row.get(c) or '').strip()
+               for c in ('poc_name', 'poc_email', 'contact_info'))
+    if have or not APOLLO_API_KEY:
+        return patch
+    home = str(row.get('url') or '').strip()
+    if not home:
+        try:
+            home = find_homepage(row.get('name'), row.get('location'))
+        except Exception:
+            home = ''
+    dom = _domain_of(home) if home else ''
+    if not dom:
+        APOLLO_WHY['reason'] = 'no organiser domain to search'
+        return patch
+    try:
+        c = apollo_contact(dom)
+    except Exception:
+        c = None
+    if not c:
+        return patch
+    bits = c['name'] + (', ' + c['title'] if c['title'] else '')
+    patch['contact_info'] = (bits + ' \u2014 ' + c['email'] + ' (via Apollo)')[:300]
+    patch['poc_name'] = c['name'][:120]
+    patch['poc_email'] = c['email'][:160]
+    if c.get('title'):
+        patch['poc_note'] = (c['title'] + ' (found via Apollo)')[:300]
+    return patch
+
+
 def _send(handler, status, payload):
     body = json.dumps(payload).encode('utf-8')
     handler.send_response(status)
@@ -746,9 +796,13 @@ class handler(BaseHTTPRequestHandler):
             return _send(self, 400, {'error': 'table (event_state|manual_events) '
                                               'and key are required'})
 
-        patch = enrich_one(ev, rewrite=rewrite)
+        only = str(body.get('only') or '').strip().lower()
+        if only == 'contact':
+            patch = contact_only(ev)
+        else:
+            patch = enrich_one(ev, rewrite=rewrite)
         # Only keep columns we know exist on THIS table.
-        _cols = WRITABLE_MANUAL if table == 'manual_events' else WRITABLE
+        _cols = WRITABLE_MANUAL if table == 'manual_events' else WRITABLE_STATE
         patch = {k: v for k, v in patch.items() if k in _cols and v}
         if not patch:
             return _send(self, 200, {
@@ -760,26 +814,39 @@ class handler(BaseHTTPRequestHandler):
             })
 
         write = dict(patch)
-        if table == 'manual_events':
-            # manual_events has NO updated_by column (it tracks created_by) —
-            # writing one makes PostgREST reject the whole patch (PGRST204).
-            # Just write the enriched fields.
-            st, data = _http_json(
-                'PATCH',
-                SUPABASE_URL + '/rest/v1/manual_events?id=eq.%s' % urllib.parse.quote(str(key)),
-                headers=dict(_svc_headers(), **{'Prefer': 'return=minimal'}),
-                body=write, timeout=20)
-            ok = st in (200, 204)
-        else:
-            write['updated_by'] = 'Enrichment'   # event_state has this column
-            write['event_num'] = key
-            st, data = _http_json(
+        # Stamp when we looked, so a lookup that found nothing is not retried
+        # on every future click and a found contact is never re-bought.
+        if only == 'contact':
+            write['poc_lookup_at'] = _now_iso()
+
+        def _patch_rows(payload):
+            if table == 'manual_events':
+                return _http_json(
+                    'PATCH',
+                    SUPABASE_URL + '/rest/v1/manual_events?id=eq.%s' % urllib.parse.quote(str(key)),
+                    headers=dict(_svc_headers(), **{'Prefer': 'return=minimal'}),
+                    body=payload, timeout=20)
+            p2 = dict(payload)
+            p2['updated_by'] = 'Enrichment'
+            p2['event_num'] = key
+            return _http_json(
                 'POST',
                 SUPABASE_URL + '/rest/v1/event_state?on_conflict=event_num',
                 headers=dict(_svc_headers(), **{
                     'Prefer': 'resolution=merge-duplicates,return=minimal'}),
-                body=write, timeout=20)
-            ok = st in (200, 201, 204)
+                body=p2, timeout=20)
+
+        st, data = _patch_rows(write)
+        # Pre-migration: the poc_* columns may not exist yet, and PostgREST
+        # rejects the WHOLE patch for one unknown column. Drop them and keep
+        # the rest rather than losing the enrichment entirely.
+        if st not in (200, 204) and any(c in write for c in CONTACT_COLS):
+            _slim = {k: v for k, v in write.items() if k not in CONTACT_COLS}
+            if _slim:
+                st, data = _patch_rows(_slim)
+                if st in (200, 204):
+                    patch = {k: v for k, v in patch.items() if k not in CONTACT_COLS}
+        ok = st in (200, 204)
 
         if not ok:
             return _send(self, 502, {

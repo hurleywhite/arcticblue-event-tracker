@@ -4747,6 +4747,9 @@ def build():
           if (w2) w2.classList.add('is-open');
         }}
         if (window.opsRefresh) window.opsRefresh();
+        // Someone is now expected to apply for this — start looking for who
+        // to write to, in the background.
+        if (at === -1 && window.abFindContact) window.abFindContact(rec);
         return;
       }}
       var btn = e.target.closest ? e.target.closest('[data-qa]') : null;
@@ -4807,6 +4810,8 @@ def build():
         }} else {{ ilist.splice(hit, 1); }}
         rec.interested = ilist;
         patch.interested = ilist;
+        // Flagging in (not out) is the signal that this one matters.
+        if (hit === -1 && window.abFindContact) window.abFindContact(rec);
       }}
       else if (qa === 'attending') {{
         // Per-person: toggle the signed-in person in the attendees list, then
@@ -4889,6 +4894,8 @@ def build():
         tags = window.abStageImply(tags);
         rec.stage_tags = tags;
         patch.status_tags = tags;
+        // Submitted means the outreach email is next — have the contact ready.
+        if (stage === 'Submitted' && idx === -1 && window.abFindContact) window.abFindContact(rec);
       }}
       else if (qa === 'mail-open') {{
         var _mh = document.getElementById('qa-mail');
@@ -6727,6 +6734,68 @@ def build():
     window.abPersonChip = function (name) {{
       var c = window.abPersonColor(name);
       return 'background:' + c + '1f;color:' + c + ';';
+    }};
+    // ── Automatic contact discovery ─────────────────────────────────
+    // The moment an event becomes something we intend to act on — someone
+    // flags interest, or Angela marks it Submitted — go and find who to
+    // approach, so the outreach draft has a name and an address in it by the
+    // time she opens it (Hurley 2026-07-31).
+    //
+    // Deliberately narrow. It runs ONLY when there is no contact on file, at
+    // most once a week per event, and it calls the contact-only path rather
+    // than a full enrichment — every Apollo lookup costs a credit and this
+    // fires off a click anyone on the team can make.
+    var _POC_TRIED = 'ab.poc.tried';
+    var _POC_TTL = 7 * 24 * 3600 * 1000;
+    function _pocTriedMap() {{
+      try {{ return JSON.parse(localStorage.getItem(_POC_TRIED) || '{{}}'); }} catch (e) {{ return {{}}; }}
+    }}
+    // localStorage, not the DB, so the throttle also works before the
+    // poc_lookup_at migration has run. Server-side poc_lookup_at is the
+    // durable record; this just stops one browser hammering it.
+    function _pocMarkTried(id) {{
+      var m = _pocTriedMap();
+      m[id] = Date.now();
+      var cutoff = Date.now() - _POC_TTL;
+      Object.keys(m).forEach(function (k) {{ if (m[k] < cutoff) delete m[k]; }});
+      try {{ localStorage.setItem(_POC_TRIED, JSON.stringify(m)); }} catch (e) {{}}
+    }}
+    window.abFindContact = function (rec, onDone) {{
+      if (!rec || !rec._table || !rec._key) return;
+      // Never go looking when we already know, and never overwrite: a name
+      // Angela put there by hand beats any database.
+      var have = ['poc_name', 'poc_email', 'contact_info'].some(function (k) {{
+        return String(rec[k] || '').trim();
+      }});
+      if (have) return;
+      var id = rec._table + ':' + rec._key;
+      var m = _pocTriedMap();
+      if (m[id] && (Date.now() - m[id]) < _POC_TTL) return;
+      // A lookup we already made server-side, on a previous visit.
+      if (rec.poc_lookup_at) {{
+        var when = Date.parse(rec.poc_lookup_at);
+        if (when && (Date.now() - when) < _POC_TTL) return;
+      }}
+      _pocMarkTried(id);
+      fetch('/api/enrich_one', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{
+          only: 'contact', table: rec._table, key: rec._key,
+          event: {{ name: rec.name, url: rec.url, location: rec.location,
+                   poc_name: rec.poc_name, poc_email: rec.poc_email,
+                   contact_info: rec.contact_info }}
+        }})
+      }}).then(function (r) {{ return r.ok ? r.json() : null; }})
+        .then(function (j) {{
+          if (!j || !j.patch) return;
+          var got = false;
+          Object.keys(j.patch).forEach(function (k) {{ rec[k] = j.patch[k]; got = true; }});
+          if (!got) return;
+          if (window.opsRefresh) window.opsRefresh();
+          if (onDone) onDone(j.patch);
+        }})
+        .catch(function () {{}});   // best effort — never block the click
     }};
     window.abLiveStage = function (tags) {{
       tags = tags || [];
@@ -9530,6 +9599,15 @@ def build():
         attendees: ((st && st.attendees) || base.attendees || []).slice ? ((st && st.attendees) || base.attendees || []).slice() : [],
         outreach_assignees: (outr && outr.slice) ? outr.slice() : [],
         outreach_note: (st && st.outreach_note) || base.outreach_note || '',
+        // Contact fields: the Queue's Mark applied triggers the automatic
+        // contact lookup, which needs the organiser URL to find a domain and
+        // needs to see an existing contact so it never overwrites one.
+        url:           (st && st.url) || base.url || '',
+        poc_name:      (st && st.poc_name) || base.poc_name || '',
+        poc_email:     (st && st.poc_email) || base.poc_email || '',
+        poc_note:      (st && st.poc_note) || base.poc_note || '',
+        contact_info:  (st && st.contact_info) || base.contact_info || '',
+        poc_lookup_at: (st && st.poc_lookup_at) || base.poc_lookup_at || '',
         // Drives the \u00d7N chase count on the Queue's stage pills. Explicit
         // whitelist \u2014 a field missing here is invisible to every Queue surface.
         follow_ups: (st && st.follow_ups) || base.follow_ups || [],
@@ -10128,6 +10206,16 @@ def build():
         if (tags.indexOf(stage) === -1) tags.push(stage);
         tags = window.abStageImply(order.filter(function (s) {{ return tags.indexOf(s) !== -1; }}));
         opsQuickWrite(it.kind, it.key, {{ status_tags: tags }});
+        // Marking applied from the Queue is the same signal as ticking
+        // Submitted in the modal — go find who to write to. Queue items carry
+        // kind/key, so shape them into what abFindContact expects.
+        if (stage === 'Submitted' && window.abFindContact) {{
+          window.abFindContact({{
+            _table: it.kind === 'manual' ? 'manual_events' : 'event_state',
+            _key: it.key, name: it.name, url: it.url, location: it.location,
+            poc_name: it.poc_name, poc_email: it.poc_email, contact_info: it.contact_info
+          }});
+        }}
       }}
 
       var html = '<p class="queue-intro"><strong>Angela&#39;s application queue:</strong> Every event a teammate marked as interested, grouped by event dates; followed by events that are in progress.</p>';
