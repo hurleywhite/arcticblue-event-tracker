@@ -3088,6 +3088,12 @@ def build():
     .pf-input {{ width: 100%; box-sizing: border-box; font-family: var(--ab-sans); font-size: 0.9rem; line-height: 1.5; color: var(--ab-fg); padding: 8px 11px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; background: var(--ab-bg); }}
     .pf-input:focus {{ outline: none; border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.1); }}
     textarea.pf-input {{ resize: vertical; min-height: 70px; }}
+    /* Auto-growing fields: start at one line, wrap onto the next as they fill.
+       These were single-line <input>s, so a long note scrolled sideways as one
+       string with the start of it out of sight (Hurley 2026-07-31). */
+    textarea.pf-input.pf-grow {{
+      min-height: 0; resize: none; overflow: hidden; white-space: pre-wrap; word-break: break-word;
+    }}
     .pf-edit-actions {{ display: flex; gap: 8px; margin-top: 8px; }}
     .pf-saved {{ position: relative; border: 1px solid var(--ab-rule); border-radius: 8px; padding: 12px 42px 12px 14px; background: var(--ab-bg); }}
     .pf-saved-text {{ font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }}
@@ -6817,8 +6823,15 @@ def build():
     // Predecessors a stage cannot logically be reached without.
     function _stageImply(tags) {{
       tags = (tags || []).slice();
-      if (tags.indexOf('Followed up') !== -1 && tags.indexOf('Initial outreach') === -1) {{
-        tags.push('Initial outreach');
+      // The route is a chain, so every step implies the ones before it: you
+      // cannot chase someone you never contacted, and you do not approach an
+      // organiser about a slot you never applied for (Hurley 2026-07-31).
+      // Walked backwards so one click at any point fills in the whole run.
+      var CHAIN = ['Submitted', 'Initial outreach', 'Followed up'];
+      var deepest = -1;
+      CHAIN.forEach(function (st, i) {{ if (tags.indexOf(st) !== -1) deepest = i; }});
+      for (var c = 0; c < deepest; c++) {{
+        if (tags.indexOf(CHAIN[c]) === -1) tags.push(CHAIN[c]);
       }}
       var ord = window.opsStageOrder || _STAGE_ORDER;
       return ord.length ? ord.filter(function (x) {{ return tags.indexOf(x) !== -1; }}) : tags;
@@ -12840,7 +12853,7 @@ def build():
       var v = _pfMy.bio || '';
       if (_pfEdit.field === 'bio') {{
         return '<div class="pf-field">' + head +
-          '<textarea class="pf-input" id="pf-bio-input" rows="5" data-pf-focus placeholder="Two or three sentences an organizer could drop straight into an agenda.">' + escapeHtml(v) + '</textarea>' +
+          '<textarea class="pf-input pf-grow" id="pf-bio-input" rows="2" data-pf-focus placeholder="Two or three sentences an organizer could drop straight into an agenda.">' + escapeHtml(v) + '</textarea>' +
           '<div class="pf-edit-actions"><button type="button" class="q-btn primary" data-pf="bio-save">Save</button><button type="button" class="q-btn" data-pf="bio-cancel">Cancel</button></div></div>';
       }}
       if (!v) return '<div class="pf-field">' + head + '<button type="button" class="pf-add-btn" data-pf="bio-edit">+ Add a short bio</button></div>';
@@ -12860,15 +12873,30 @@ def build():
           '<button type="button" class="pf-item-btn" data-pf="list-edit" data-key="' + key + '" data-i="' + i + '" title="Edit" aria-label="Edit">' + PF_PENCIL + '</button>' +
           '<button type="button" class="pf-item-btn pf-del" data-pf="list-del" data-key="' + key + '" data-i="' + i + '" title="Delete" aria-label="Delete">' + PF_TRASH + '</button></div>';
       }}).join('');
-      var add = '<div class="pf-additem"><input class="pf-input" id="pf-add-' + key + '" data-addkey="' + key + '" placeholder="' + escapeHtml(addPh) + '">' +
+      var add = '<div class="pf-additem"><textarea class="pf-input pf-grow" rows="1" id="pf-add-' + key + '" data-addkey="' + key + '" placeholder="' + escapeHtml(addPh) + '"></textarea>' +
         '<button type="button" class="q-btn pf-add" data-pf="list-add" data-key="' + key + '">Add</button></div>';
       return '<div class="pf-field">' + head + rows + add + '</div>';
+    }}
+    function _pfGrow(el) {{
+      if (!el) return;
+      // Never size against a box that has no layout yet — hidden, or a
+      // collapsed container. At ~zero width the text wraps into a hundred
+      // lines and we would bake a 3000px height into the style attribute.
+      if (!el.offsetParent && el.offsetHeight === 0) return;
+      if (el.clientWidth < 40) return;
+      el.style.height = 'auto';
+      // +2 for the border, or the last line clips and it scrolls by a pixel.
+      el.style.height = (el.scrollHeight + 2) + 'px';
+    }}
+    function _pfGrowAll(host) {{
+      (host || document).querySelectorAll('.pf-grow').forEach(_pfGrow);
     }}
     function _pfRenderAbout() {{
       var host = document.getElementById('pf-about'); if (!host) return;
       host.innerHTML = _pfBioHtml() +
         _pfListHtml('notes', 'Targeting notes', 'events you want', 'Add a note \\u2014 an event, region, or type you want') +
         _pfListHtml('topics', 'Talks & topics', 'what you speak on', 'Add a talk title, theme, or signature angle');
+      _pfGrowAll(host);
       var f = host.querySelector('[data-pf-focus]');
       if (f) {{ f.focus(); try {{ f.selectionStart = f.selectionEnd = f.value.length; }} catch (e) {{}} }}
     }}
@@ -12895,7 +12923,12 @@ def build():
         else if (act === 'list-del') {{ var ls = _pfLines(key); ls.splice(i, 1); _pfMy[key] = ls.join('\\n'); _pfPersist(); _pfRenderAbout(); }}
         else if (act === 'list-add') {{ var ai = document.getElementById('pf-add-' + key); _pfCommitAdd(key, ai ? ai.value : ''); }}
       }});
+      host.addEventListener('input', function (e) {{
+        if (e.target && e.target.classList && e.target.classList.contains('pf-grow')) _pfGrow(e.target);
+      }});
       host.addEventListener('keydown', function (e) {{
+        // Enter still commits — these read as one-line fields even though they
+        // are textareas now. Shift+Enter is the deliberate line break.
         if (e.key !== 'Enter' || e.shiftKey) return;
         var t = e.target; if (!t || !t.hasAttribute) return;
         if (t.hasAttribute('data-addkey')) {{ e.preventDefault(); _pfCommitAdd(t.getAttribute('data-addkey'), t.value); return; }}
