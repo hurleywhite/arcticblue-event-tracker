@@ -64,7 +64,8 @@ WRITABLE = ('url', 'venue', 'pay_to_play', 'speaking_route', 'pricing',
 # Both tables carry the structured pair once the 2026-07-31 poc migration has
 # run. A patch naming a column the table lacks is rejected WHOLE by PostgREST,
 # so the write below retries without them rather than losing the enrichment.
-CONTACT_COLS = ('poc_name', 'poc_email', 'poc_linkedin', 'poc_note', 'poc_lookup_at')
+CONTACT_COLS = ('poc_name', 'poc_email', 'poc_linkedin', 'poc_note',
+                'poc_lookup_at', 'additional_contacts')
 WRITABLE_MANUAL = WRITABLE + CONTACT_COLS
 WRITABLE_STATE = WRITABLE + CONTACT_COLS
 
@@ -78,7 +79,12 @@ WRITABLE_STATE = WRITABLE + CONTACT_COLS
 # titles are an explicit allow-list, with a deny-list over the top for the
 # sponsorship desk and for people who merely appear at the event.
 _APOLLO_TITLES = ['content', 'programming', 'programme', 'program director',
-                  'curator', 'speaker', 'producer', 'agenda', 'conference manager']
+                  'curator', 'speaker', 'producer', 'agenda', 'conference manager',
+                  'head of content', 'content director', 'director of content',
+                  'head of programming', 'programme manager', 'program manager',
+                  'conference director', 'conference producer', 'event director',
+                  'editorial director', 'editor', 'speaker acquisition',
+                  'head of events', 'event content', 'chair']
 _GOOD_TITLE = re.compile(
     r'\b(content|programme|program|programming|agenda|curat|'
     r'speaker|conference|editorial|production|producer)\b', re.I)
@@ -173,17 +179,9 @@ def _title_rank(title):
 APOLLO_WHY = {'reason': None}
 
 
-def apollo_contact(domain):
-    """One verified speaking contact at `domain`, or None.
-
-    Two calls: a free search to pick the right person, then a single enrichment
-    for their email (that one costs an Apollo credit, which is why we pick
-    first and enrich once rather than enriching a batch).
-    """
-    APOLLO_WHY['reason'] = None
-    if not (APOLLO_API_KEY and domain):
-        APOLLO_WHY['reason'] = 'no api key or domain'
-        return None
+def _apollo_candidates(domain):
+    """Ranked, un-enriched candidates at `domain`. The search itself is free —
+    only the per-person enrichment below costs a credit."""
     H = {'x-api-key': APOLLO_API_KEY, 'Content-Type': 'application/json',
          'Cache-Control': 'no-cache'}
     # Try the host as given, then its root — event sites are very often a
@@ -192,8 +190,7 @@ def apollo_contact(domain):
     root = _root_domain(domain)
     if root and root != domain:
         tries.append(root)
-    people = []
-    _diag = []
+    people, _diag, matched = [], [], domain
     for dom in tries:
         st, data = _http_json('POST', APOLLO_BASE + '/api/v1/mixed_people/api_search', headers=H, body={
             'q_organization_domains_list': [dom],
@@ -207,19 +204,19 @@ def apollo_contact(domain):
             err = data if isinstance(data, str) else json.dumps(data)[:160]
             _diag.append('%s: HTTP %s %s' % (dom, st, err))
         if people:
-            domain = dom          # validate against the domain that matched
+            matched = dom
             break
     if not people:
         APOLLO_WHY['reason'] = 'search found nobody \u2014 ' + '; '.join(_diag)
-        return None
+        return [], matched
     # Search results can arrive with the organisation omitted and the surname
-    # masked, depending on the Apollo plan — so the search pass filters on the
-    # TITLE only (the domain was the query, so employer is already constrained),
-    # and the identity checks run after enrichment, which returns the real name.
+    # masked, depending on the Apollo plan — so this pass filters on the TITLE
+    # only (the domain was the query, so employer is already constrained), and
+    # the identity checks run after enrichment, which returns the real name.
     cands, _why = [], {'title': 0, 'org': 0}
     for q in people:
         org = (q.get('organization') or {})
-        if org.get('domain') and not _same_org(org.get('domain'), domain):
+        if org.get('domain') and not _same_org(org.get('domain'), matched):
             _why['org'] += 1
             continue
         if not _title_ok(q.get('title')):
@@ -230,46 +227,85 @@ def apollo_contact(domain):
     if not cands:
         APOLLO_WHY['reason'] = ('found %d people; %d failed the title check, '
                                 '%d the employer check' % (len(people), _why['title'], _why['org']))
-        return None
     cands.sort(key=lambda c: c[0])
-    _, name, best = cands[0]
+    return cands, matched
 
+
+def _apollo_enrich(cand, domain):
+    """Enrich ONE candidate. Returns (contact, reason_it_failed). Costs a credit."""
+    rank, name, best = cand
+    H = {'x-api-key': APOLLO_API_KEY, 'Content-Type': 'application/json',
+         'Cache-Control': 'no-cache'}
     st2, d2 = _http_json('POST', APOLLO_BASE + '/api/v1/people/match', headers=H, body={
         'id': best.get('id'),
         'reveal_personal_emails': False,     # work address only; this is a work approach
     })
     if st2 != 200 or not isinstance(d2, dict):
-        APOLLO_WHY['reason'] = 'enrichment call failed (HTTP %s)' % st2
-        return None
+        return None, 'enrichment call failed (HTTP %s)' % st2
     person = d2.get('person') or {}
     # Identity check on the ENRICHED record — the search copy may have been
     # masked. A company account ("Expo Terrapinn") dies here.
     full = ' '.join(x for x in [person.get('first_name'), person.get('last_name')] if x).strip() or name
     org2 = (person.get('organization') or {})
     if not _looks_like_a_person(full, org2.get('name') or ''):
-        APOLLO_WHY['reason'] = 'top match is not a person: %s' % (full or '(no name)')
-        return None
-    name = full
+        return None, 'not a person: %s' % (full or '(no name)')
     email = str(person.get('email') or '').strip()
     status = str(person.get('email_status') or '').strip().lower()
     # LEGITIMACY GATE. Apollo returns guessed and catch-all addresses alongside
     # verified ones; a guess that bounces is worse than no contact at all,
     # because Angela would burn a real approach on it.
     if not email or '@' not in email:
-        APOLLO_WHY['reason'] = 'no email returned for %s' % name
-        return None
+        return None, 'no email for %s' % full
     if status != 'verified':
-        APOLLO_WHY['reason'] = 'email for %s is "%s", not verified' % (name, status or 'unknown')
-        return None
+        return None, 'email for %s is "%s", not verified' % (full, status or 'unknown')
     if not _same_org(email, domain):          # no gmail, no unrelated employer
-        APOLLO_WHY['reason'] = 'email domain does not match the organiser'
-        return None
+        return None, 'email domain does not match the organiser'
     title = str(person.get('title') or best.get('title') or '').strip()
     if not _title_ok(title):
-        APOLLO_WHY['reason'] = 'enriched title no longer passes: %s' % title
-        return None
-    return {'name': name, 'title': title, 'email': email,
-            'linkedin': str(person.get('linkedin_url') or '').strip()}
+        return None, 'enriched title no longer passes: %s' % title
+    return {'name': full, 'title': title, 'email': email,
+            'linkedin': str(person.get('linkedin_url') or '').strip(),
+            'rank': rank}, None
+
+
+def apollo_contacts(domain, want=1, max_tries=6):
+    """Up to `want` verified speaking contacts at `domain`, best first.
+
+    Walks DOWN the ranked list instead of standing or falling on the top match.
+    Five checks run after enrichment — not a person, no email, unverified,
+    wrong email domain, title no longer passes — and any one of them used to
+    abandon the whole lookup while perfectly good candidates sat behind it
+    (Hurley 2026-07-31). Each enrichment costs a credit, hence max_tries.
+    """
+    APOLLO_WHY['reason'] = None
+    if not (APOLLO_API_KEY and domain):
+        APOLLO_WHY['reason'] = 'no api key or domain'
+        return []
+    cands, matched = _apollo_candidates(domain)
+    if not cands:
+        return []
+    out, skipped, tries = [], [], 0
+    for c in cands:
+        if len(out) >= want or tries >= max_tries:
+            break
+        tries += 1
+        hit, why = _apollo_enrich(c, matched)
+        if hit:
+            out.append(hit)
+        elif why:
+            skipped.append(why)
+    if not out:
+        APOLLO_WHY['reason'] = ('tried %d of %d candidates, none usable \u2014 %s'
+                                % (tries, len(cands), '; '.join(skipped[:3])))
+    elif skipped:
+        APOLLO_WHY['reason'] = 'skipped %d before a usable one: %s' % (len(skipped), skipped[0])
+    return out
+
+
+def apollo_contact(domain):
+    """The single best speaking contact at `domain`, or None."""
+    hits = apollo_contacts(domain, want=1)
+    return hits[0] if hits else None
 
 
 def _http_json(method, url, headers=None, body=None, timeout=20):
@@ -707,7 +743,7 @@ def _now_iso():
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 
-def contact_only(row):
+def contact_only(row, want=1):
     """Just find who to approach. No Perplexity, no Exa fact sweep — the
     automatic trigger fires on every flag of interest, so it does the one thing
     it is there for and nothing that costs a research call."""
@@ -727,11 +763,19 @@ def contact_only(row):
         APOLLO_WHY['reason'] = 'no organiser domain to search'
         return patch
     try:
-        c = apollo_contact(dom)
+        hits = apollo_contacts(dom, want=max(1, int(want or 1)))
     except Exception:
-        c = None
-    if not c:
+        hits = []
+    if not hits:
         return patch
+    c = hits[0]
+    # Everyone else we verified, so Angela can see who else is worth a try
+    # rather than taking the top match on faith.
+    if len(hits) > 1:
+        patch['additional_contacts'] = json.dumps([
+            {'name': h['name'], 'title': h['title'], 'email': h['email'],
+             'linkedin': h.get('linkedin') or ''} for h in hits[1:]
+        ])[:4000]
     bits = c['name'] + (', ' + c['title'] if c['title'] else '')
     patch['contact_info'] = (bits + ' \u2014 ' + c['email'] + ' (via Apollo)')[:300]
     patch['poc_name'] = c['name'][:120]
@@ -798,7 +842,7 @@ class handler(BaseHTTPRequestHandler):
 
         only = str(body.get('only') or '').strip().lower()
         if only == 'contact':
-            patch = contact_only(ev)
+            patch = contact_only(ev, want=body.get('want') or 1)
         else:
             patch = enrich_one(ev, rewrite=rewrite)
         # Only keep columns we know exist on THIS table.

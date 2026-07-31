@@ -560,6 +560,19 @@
       text-transform: uppercase; color: var(--ab-fg-2); font-weight: 700;
     }
     .modal-field .v { font-size: 0.92rem; color: var(--ab-fg); line-height: 1.55; white-space: pre-wrap; }
+    /* Runners-up from the contact lookup — who else is worth a try. */
+    .poc-alts { display: flex; flex-direction: column; gap: 6px; }
+    .poc-alt {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 10px; border: 1px solid var(--ab-rule); border-radius: 8px;
+      background: var(--ab-bg-2);
+    }
+    .poc-alt-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+    .poc-alt-name { font-family: var(--ab-sans); font-size: 0.86rem; font-weight: 650; color: var(--ab-fg); }
+    .poc-alt-title { font-size: 0.76rem; color: var(--ab-fg-3); }
+    .poc-alt-mail { font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); word-break: break-all; }
+    .poc-alt-use { flex: 0 0 auto; }
+    .poc-more { margin-top: 8px; align-self: flex-start; }
     .modal-field .v a { color: var(--ab-blue); }
     .modal-fresh { font-style: italic; color: var(--ab-fg-3); font-size: 0.82rem; margin: 14px 0 0; }
     .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
@@ -5171,7 +5184,34 @@
         _spkStatus += field('Pay-to-play', rec.pay_to_play) +
                       field('Speaking fee', rec.speaking_fee);
       }
-      // Speaking & submission is Angela's working record of the application —
+      // The runners-up from the same Apollo lookup. Stored as JSON so they can
+    // be listed and promoted; older hand-typed values are plain text and still
+    // render as-is (Hurley 2026-07-31).
+    function _altContactsHtml(rec) {
+      var raw = String(rec.additional_contacts || '').trim();
+      if (!raw) return '';
+      var list = null;
+      if (raw.charAt(0) === '[') { try { list = JSON.parse(raw); } catch (e) { list = null; } }
+      if (!Array.isArray(list) || !list.length) {
+        return '<div class="modal-field"><div class="k">Additional contacts</div>' +
+               '<div class="v">' + esc(raw) + '</div></div>';
+      }
+      var rows = list.map(function (c, i) {
+        var who = String(c.name || '').trim();
+        var ttl = String(c.title || '').trim();
+        var em  = String(c.email || '').trim();
+        return '<div class="poc-alt">' +
+          '<div class="poc-alt-main"><span class="poc-alt-name">' + esc(who) + '</span>' +
+            (ttl ? '<span class="poc-alt-title">' + esc(ttl) + '</span>' : '') +
+            (em ? '<span class="poc-alt-mail">' + esc(em) + '</span>' : '') + '</div>' +
+          '<button type="button" class="q-btn poc-alt-use" data-poc-use="' + i + '" ' +
+            'title="Make this the point of contact for the outreach draft">Use</button>' +
+        '</div>';
+      }).join('');
+      return '<div class="modal-field"><div class="k">Others we found</div>' +
+             '<div class="poc-alts">' + rows + '</div></div>';
+    }
+    // Speaking & submission is Angela's working record of the application —
       // the marker, the route, the deadline, pay-to-play. Where a speaker
       // stands is already the bold status line on the card face and the pills
       // at the top of this modal, and the apply link is its own button, so for
@@ -5179,8 +5219,10 @@
       // Contacts fold in here rather than standing alone: who to approach is
       // part of HOW we get on stage, and on most events it was one line under
       // its own heading (Hurley 2026-07-30).
-      var _contactsHtml = pocHtml +
-        (_ctp(rec.additional_contacts) ? field('Additional contacts', rec.additional_contacts) : '');
+      var _contactsHtml = pocHtml + _altContactsHtml(rec) +
+        '<button type="button" class="q-btn poc-more" data-poc-more="1">' +
+          (String(rec.poc_name || '').trim() ? '&#128269; Find more people' : '&#128269; Find someone to contact') +
+        '</button>';
       var _spkSec = (window.isAngelaUser && window.isAngelaUser())
         ? sec('Speaking & submission', _spkStatus + _contactsHtml) : '';
       // — Who's in the room: every audience fact in one place.
@@ -5331,12 +5373,61 @@
     });
     wireEditForm(rec);
     wireSiblingAdd(rec);
+    wirePocActions(rec);
     if (window.opsRenderChat) window.opsRenderChat(rec);
 
     // ── Organiser grouping (Angela) ───────────────────────────────────
     // Two ways in: link an event we already track, or add one we don't have.
     // Both write the same org_group key on BOTH sides, so the link is explicit
     // on each event and survives either being edited (Hurley 2026-07-31).
+    function wirePocActions(rec) {
+      var host = $body;
+      if (!host || host.dataset.pocWired === String(rec._key)) return;
+      host.dataset.pocWired = String(rec._key);
+      host.addEventListener('click', function (e) {
+        var use = e.target.closest ? e.target.closest('[data-poc-use]') : null;
+        if (use) {
+          e.stopPropagation();
+          var list = [];
+          try { list = JSON.parse(rec.additional_contacts || '[]'); } catch (x) { return; }
+          var pick = list[parseInt(use.getAttribute('data-poc-use'), 10)];
+          if (!pick) return;
+          // Promote them, and demote whoever was primary into the list so the
+          // swap is reversible — nothing is thrown away.
+          var demoted = { name: rec.poc_name || '', title: String(rec.poc_note || '').replace(/ \(found via Apollo\)$/, ''),
+                          email: rec.poc_email || '', linkedin: rec.poc_linkedin || '' };
+          var rest = list.filter(function (c) { return c !== pick; });
+          if (demoted.name || demoted.email) rest.unshift(demoted);
+          rec.poc_name = pick.name || '';
+          rec.poc_email = pick.email || '';
+          rec.poc_linkedin = pick.linkedin || '';
+          rec.poc_note = pick.title ? pick.title + ' (found via Apollo)' : '';
+          rec.additional_contacts = JSON.stringify(rest);
+          if (window.opsWrite) window.opsWrite(rec._table, rec._key, {
+            poc_name: rec.poc_name, poc_email: rec.poc_email,
+            poc_linkedin: rec.poc_linkedin, poc_note: rec.poc_note,
+            additional_contacts: rec.additional_contacts
+          });
+          openEventModal(rec);
+          return;
+        }
+        var more = e.target.closest ? e.target.closest('[data-poc-more]') : null;
+        if (more) {
+          e.stopPropagation();
+          if (more.getAttribute('aria-busy')) return;
+          more.setAttribute('aria-busy', '1');
+          more.textContent = 'Looking…';
+          window.abFindContact(rec, function () { openEventModal(rec); },
+                               { force: true, want: 4 });
+          // No callback fires when nothing new turns up, so say so either way.
+          setTimeout(function () {
+            if (!more.isConnected) return;
+            more.removeAttribute('aria-busy');
+            more.textContent = 'No one new found — try again';
+          }, 9000);
+        }
+      });
+    }
     function wireSiblingAdd(rec) {
       var linkBtn = $body.querySelector('#sib-link-btn');
       var newBtn  = $body.querySelector('#sib-new-btn');
@@ -6234,19 +6325,22 @@
       Object.keys(m).forEach(function (k) { if (m[k] < cutoff) delete m[k]; });
       try { localStorage.setItem(_POC_TRIED, JSON.stringify(m)); } catch (e) {}
     }
-    window.abFindContact = function (rec, onDone) {
+    window.abFindContact = function (rec, onDone, opts) {
+      opts = opts || {};
       if (!rec || !rec._table || !rec._key) return;
       // Never go looking when we already know, and never overwrite: a name
       // Angela put there by hand beats any database.
       var have = ['poc_name', 'poc_email', 'contact_info'].some(function (k) {
         return String(rec[k] || '').trim();
       });
-      if (have) return;
+      // force = Angela pressed "Find more people". She knows there's a contact;
+      // she wants the others.
+      if (have && !opts.force) return;
       var id = rec._table + ':' + rec._key;
       var m = _pocTriedMap();
-      if (m[id] && (Date.now() - m[id]) < _POC_TTL) return;
+      if (!opts.force && m[id] && (Date.now() - m[id]) < _POC_TTL) return;
       // A lookup we already made server-side, on a previous visit.
-      if (rec.poc_lookup_at) {
+      if (!opts.force && rec.poc_lookup_at) {
         var when = Date.parse(rec.poc_lookup_at);
         if (when && (Date.now() - when) < _POC_TTL) return;
       }
@@ -6255,10 +6349,13 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          only: 'contact', table: rec._table, key: rec._key,
-          event: { name: rec.name, url: rec.url, location: rec.location,
-                   poc_name: rec.poc_name, poc_email: rec.poc_email,
-                   contact_info: rec.contact_info }
+          only: 'contact', want: opts.want || 1,
+          table: rec._table, key: rec._key,
+          event: opts.force
+            ? { name: rec.name, url: rec.url, location: rec.location }
+            : { name: rec.name, url: rec.url, location: rec.location,
+                poc_name: rec.poc_name, poc_email: rec.poc_email,
+                contact_info: rec.contact_info }
         })
       }).then(function (r) { return r.ok ? r.json() : null; })
         .then(function (j) {

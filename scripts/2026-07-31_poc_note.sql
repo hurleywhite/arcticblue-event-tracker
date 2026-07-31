@@ -38,6 +38,10 @@ alter table public.event_state   add column if not exists poc_linkedin text;
 -- When we last went looking, so a failed lookup is not retried forever and a
 -- successful one is not repeated. Null = never tried.
 alter table public.event_state   add column if not exists poc_lookup_at timestamptz;
+-- Runners-up from the same lookup, as JSON: [{name,title,email,linkedin}].
+-- manual_events already has this column; event_state never did, so on a
+-- catalog event the only contact Angela could see was the top match.
+alter table public.event_state   add column if not exists additional_contacts text;
 alter table public.manual_events add column if not exists poc_lookup_at timestamptz;
 alter table public.manual_events add column if not exists poc_note text;
 
