@@ -716,6 +716,19 @@
       margin-left: auto; white-space: nowrap;
       font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3);
     }
+    .sib-line { display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--ab-rule); }
+    .sib-line:last-of-type { border-bottom: 0; }
+    .sib-line .sib-row { border-bottom: 0; flex: 1 1 auto; min-width: 0; }
+    .sib-list { max-height: 340px; overflow-y: auto; }
+    /* Unlink: hover-revealed, same restraint as the archive X on a card. */
+    .sib-unlink {
+      flex: none; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px;
+      background: none; color: var(--ab-fg-3); cursor: pointer; font-size: 1rem; line-height: 1;
+      opacity: 0; transition: opacity 130ms;
+    }
+    .sib-line:hover .sib-unlink, .sib-unlink:focus-visible { opacity: 1; }
+    .sib-unlink:hover { background: #fee2e2; color: #991b1b; }
+    @media (hover: none) { .sib-unlink { opacity: 1; } }
     .sib-more { margin: 7px 0 0; font-size: 0.8rem; color: var(--ab-fg-3); }
     /* Angela's organiser-linking controls under the sibling list. */
     .sib-add { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
@@ -5035,14 +5048,27 @@
           '<p class="sib-more">Nothing else from this organiser yet.</p>' + _sibAdd());
         var live = sibs.filter(function (x) { return !x.past; });
         var use = live.length ? live : sibs;
-        var rowsH = use.slice(0, 12).map(function (x) {
-          return '<button type="button" class="sib-row" data-sib-kind="' + esc(x.kind) +
+        // No cap: the point of this section is that the organiser's events are
+        // all in ONE place, so quietly hiding the 13th defeats it. Long lists
+        // scroll instead (Hurley 2026-07-31).
+        var _sibMine2 = !!(window.isAngelaUser && window.isAngelaUser());
+        var rowsH = use.map(function (x) {
+          return '<div class="sib-line">' +
+                 '<button type="button" class="sib-row" data-sib-kind="' + esc(x.kind) +
                  '" data-sib-key="' + esc(String(x.key)) + '">' +
                  '<span class="sib-name">' + esc(x.name) + '</span>' +
                  (x.date ? '<span class="sib-when">' + esc(x.date) + '</span>' : '') +
-                 '</button>';
+                 '</button>' +
+                 // Only hand-linked rows can be unlinked — a shared domain is a
+                 // fact about the events, not a choice Angela made.
+                 ((_sibMine2 && x.manual)
+                   ? '<button type="button" class="sib-unlink" data-unlink-kind="' + esc(x.kind) +
+                     '" data-unlink-key="' + esc(String(x.key)) +
+                     '" title="Remove from this organiser" aria-label="Remove from this organiser">&times;</button>'
+                   : '') +
+                 '</div>';
         }).join('');
-        var more = use.length > 12 ? '<p class="sib-more">+ ' + (use.length - 12) + ' more</p>' : '';
+        var more = '';
         return sec('Also from this organiser', '<div class="sib-list">' + rowsH + more + '</div>' + _sibAdd());
       })();
       var _ovSec = sec('Overview',
@@ -5169,6 +5195,19 @@
       }
       var sq = $body.querySelector('#sib-search');
       if (sq) sq.addEventListener('input', function () { renderHits(sq.value); });
+
+      // Unlink — clear the group on the row that was linked by hand. The
+      // anchor keeps its own group so the rest of the family is untouched.
+      Array.prototype.forEach.call($body.querySelectorAll('.sib-unlink'), function (b) {
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();                      // don't open the event
+          if (!window.opsWrite) return;
+          var kind = b.dataset.unlinkKind, key = b.dataset.unlinkKey;
+          var tbl = (kind === 'manual') ? 'manual_events' : 'event_state';
+          window.opsWrite(tbl, (kind === 'manual') ? key : parseInt(key, 10), { org_group: null });
+          afterChange();
+        });
+      });
 
       function linkExisting(kind, key) {
         var g = groupKey();
@@ -8686,6 +8725,10 @@
         outreach_assignees: (outr && outr.slice) ? outr.slice() : [],
         outreach_note: (st && st.outreach_note) || base.outreach_note || '',
         speaker_topic: (st && st.speaker_topic) || base.speaker_topic || '',
+        // Manual organiser group. On a CATALOG event this lives on the
+        // event_state row, so reading base.* alone made every hand-linked
+        // catalog event invisible to the sibling scan (Hurley 2026-07-31).
+        org_group: (st && st.org_group) || base.org_group || '',
         // Notes + legacy status marker, so the "has anyone already worked this
         // event?" test (opsHandled) can see them. '__cleared__' is an explicit
         // blank; '__deleted__' is the soft-delete sentinel — neither is content.
@@ -8781,24 +8824,51 @@
       });
       return out;
     };
+    // Every event carries a SET of organiser keys — its own domain, and any
+    // group it was linked into. Two events are siblings when those sets
+    // OVERLAP.
+    //
+    // Matching domain-to-domain and group-to-group separately looked right and
+    // was not: linking Money20/20 (money2020.com) into the Terrapinn family
+    // stamps org_group on the two events involved, but the OTHER Terrapinn
+    // events belong by domain alone and carry no group — so Money20/20 saw only
+    // the anchor, and they never saw Money20/20 at all. Overlap closes both
+    // directions (Hurley 2026-07-31).
+    function _orgKeysOf(o) {
+      var ks = [];
+      var d = _urlOrg((o && o.url) || '');
+      if (d) ks.push(d);
+      var g = String((o && o.org_group) || '').trim();
+      if (g && ks.indexOf(g) === -1) ks.push(g);
+      return ks;
+    }
     window.abSiblingEvents = function (rec) {
-      var meDom = _urlOrg((rec && rec.url) || '');
-      var meGrp = String((rec && rec.org_group) || '').trim();
-      if (!meDom && !meGrp) return [];
+      var meKeys = _orgKeysOf(rec);
+      if (!meKeys.length) return [];
       var mine = String((rec && rec._key) != null ? rec._key : '');
       var mineT = String((rec && rec._table) || '');
       return opsAllItems().filter(function (it) {
         var o = it.startObj || it;
-        var dom = _urlOrg(o.url || '');
-        var grp = String(o.org_group || '').trim();
-        var hit = (meDom && dom === meDom) || (meGrp && grp === meGrp);
+        // org_group comes off the ITEM (opsItem merges state over base); the url
+        // off the underlying row.
+        var ks = _orgKeysOf({ url: o.url || '', org_group: it.org_group || o.org_group || '' });
+        var hit = false;
+        for (var i = 0; i < ks.length && !hit; i++) {
+          if (meKeys.indexOf(ks[i]) !== -1) hit = true;
+        }
         if (!hit) return false;
         var t = it.kind === 'manual' ? 'manual_events' : 'event_state';
         return !(t === mineT && String(it.key) === mine);      // not myself
       }).map(function (it) {
+        var o = it.startObj || it;
+        // Linked BY HAND (its group matches mine) rather than by shared domain —
+        // only those can be unlinked, since a domain match isn't ours to undo.
+        var _g = String(it.org_group || o.org_group || '').trim();
+        var byGroup = !!_g && meKeys.indexOf(_g) !== -1 &&
+                      _urlOrg(o.url || '') !== _urlOrg((rec && rec.url) || '');
         return { kind: it.kind, key: it.key, name: it.name,
-                 date: (it.startObj || it).date_str || '', sort: it.sort || 0,
-                 past: !!it.past };
+                 date: o.date_str || '', sort: it.sort || 0,
+                 past: !!it.past, manual: byGroup };
       }).sort(function (a2, b2) { return (a2.sort || 0) - (b2.sort || 0); });
     };
     function opsAllItems() {
