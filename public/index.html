@@ -2309,6 +2309,15 @@
       background: #1271a8; color: #fff; font-family: var(--ab-sans); font-weight: 700; font-size: 0.8rem;
     }
     .wn-avatar--sm { width: 26px; height: 26px; font-size: 0.7rem; background: var(--ab-fg-3); }
+    /* Who's on it — initials on the right of a Team's Upcoming Events row.
+       Overlapped slightly so four of them still read as one cluster. */
+    .qrow-who-wrap { align-self: center; }
+    .qrow-who { display: inline-flex; align-items: center; }
+    .qrow-who .wn-avatar--sm { margin-left: -6px; border: 2px solid var(--ab-bg); }
+    .qrow-who .wn-avatar--sm:first-child { margin-left: 0; }
+    .qrow-who-more {
+      margin-left: 4px; font-family: var(--ab-mono); font-size: 0.68rem; color: var(--ab-fg-3);
+    }
     /* Little chat-bubble badge on a comment card's avatar — signals "chat". */
     .wn-avatar-wrap { position: relative; flex: 0 0 auto; display: inline-flex; }
     .wn-chat-badge { position: absolute; right: -3px; bottom: -3px; width: 16px; height: 16px; border-radius: 50%; background: #1271a8; color: #fff; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--ab-bg); }
@@ -3085,7 +3094,7 @@
         <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
       </a>
       <h1 class="app-title">ArcticBlue Event Tracker</h1>
-      <div class="nav-meta"><span id="ab-today">JULY 30, 2026</span> <span class="who">· <span class="who-switcher" id="who-switcher"></span></span></div>
+      <div class="nav-meta"><span id="ab-today">JULY 31, 2026</span> <span class="who">· <span class="who-switcher" id="who-switcher"></span></span></div>
     </div>
   </nav>
 
@@ -3138,7 +3147,7 @@
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
-          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">My lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
+          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">Lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
           <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Events</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
@@ -7533,7 +7542,7 @@
       if ($myTab) {
         var _teamView = isSupportPerson(getCollabName() || '');
         var _badge = $myTab.querySelector('.vt-count');
-        $myTab.textContent = _teamView ? 'Team lineup' : 'My lineup';
+        $myTab.textContent = 'Lineup';   // one name for everyone (Hurley 2026-07-31)
         if (_badge) $myTab.appendChild(_badge);   // re-attach the count badge
       }
       // Sync/export (Calendar sync + Spreadsheet) is Angela-only.
@@ -9091,7 +9100,11 @@
       // stays accurate even when the event's Attending stage wasn't synced — and
       // it covers BOTH past and upcoming events. Support (Angela/Hurley) see the
       // whole team's.
-      var upcoming = [], past = [];
+      // Three buckets now (Hurley 2026-07-31): what's coming up for ME, what's
+      // coming up for the REST of the team, and everything past. Support has no
+      // events of their own, so their "mine" is empty by design and the section
+      // is skipped for them.
+      var upcoming = [], team = [], past = [];
       // Derive from the rendered CARDS (the same merged source as the stat +
       // filter), so My events, the Attending tile, and the grid always agree —
       // opsItem() read attendees inconsistently for some past catalog events.
@@ -9100,10 +9113,13 @@
           if (c.dataset.dupHidden === '1' || c.classList.contains('is-archived')) return;
           var r = c._modalRec; if (!r) return;
           var atts = (c.dataset.attendeeNames || '').split('|').filter(Boolean);
-          var isAtt = support ? (atts.length > 0) : (atts.indexOf(meFold) !== -1);
           var stages = (c.dataset.statusTags || '').split('|');
-          var isSpk = stages.indexOf('Booked') !== -1 && (support || speakerTokens(c.dataset.speaker || r.speaker || '').indexOf(meFold) !== -1);
-          if (!isAtt && !isSpk) return;
+          var spks = (stages.indexOf('Booked') !== -1)
+            ? speakerTokens(c.dataset.speaker || r.speaker || '').filter(Boolean) : [];
+          // Is anyone from the team on this at all, and is one of them me?
+          var everyone = atts.concat(spks).filter(function (x, i, a) { return x && a.indexOf(x) === i; });
+          if (!everyone.length) return;
+          var iAmOn = !!meFold && everyone.indexOf(meFold) !== -1;
           var _pastFlag = c.dataset.past === '1';
           // Use the SAME derived status the card already rendered, so My Lineup
           // reads identically to the grid ("Submitted to speak — Thor ·
@@ -9119,14 +9135,24 @@
             // A Day-Of brief researches the event online. A PRIVATE / invite-only
             // event (GDN, GBS …) has no web footprint — no url, no about, no
             // focus areas — so there's nothing to brief from. Skip those.
-            briefable: !r.is_private && !!(String(r.url || '').trim() || String(r.about || '').trim() || String(r.focus_areas || '').trim())
+            briefable: !r.is_private && !!(String(r.url || '').trim() || String(r.about || '').trim() || String(r.focus_areas || '').trim()),
+            // Who from the team is on it, for the initials on team rows. Folded
+            // names are lower-case, so give them a capital back for the tooltip.
+            who: everyone.map(function (n) { return n.charAt(0).toUpperCase() + n.slice(1); })
           };
-          (_pastFlag ? past : upcoming).push(item);
+          if (_pastFlag) {
+            if (support || iAmOn) past.push(item);
+          } else if (iAmOn) {
+            upcoming.push(item);
+          } else {
+            team.push(item);
+          }
         });
         upcoming.sort(function (a, b) { return a.sort - b.sort; });   // soonest first
+        team.sort(function (a, b) { return a.sort - b.sort; });
         past.sort(function (a, b) { return b.sort - a.sort; });       // most recent first
       }
-      return { me: me, support: support, named: named, upcoming: upcoming, past: past };
+      return { me: me, support: support, named: named, upcoming: upcoming, team: team, past: past };
     }
 
     // ── "In the last week" + "Suggested for you" (My Events) ─────────
@@ -9749,7 +9775,7 @@
         host.innerHTML = '<p class="queue-intro myev-intro"><strong>My Lineup.</strong> Set your name (top-right avatar &rarr; Someone else) to see the events you&#39;re booked to speak at or attending.</p>';
         return;
       }
-      function rowHtml(it) {
+      function rowHtml(it, showWho) {
         var loc = [it.location].filter(Boolean).join(' &middot; ');
         // Same derived status the grid card shows — one vocabulary everywhere.
         var statusHtml = it.statusHtml || '';
@@ -9763,25 +9789,41 @@
         // The whole row opens the event details on click (like the grid cards) —
         // no separate "Details" button. The brief button stops propagation so it
         // still fires its own action.
+        // Whose event is it — initials beside the name, same avatar the team
+        // roll-ups and "In the last week" use. Only on TEAM rows: on your own
+        // rows it would spell out your own initials on every line.
+        var whoHtml = '';
+        if (showWho && it.who && it.who.length) {
+          whoHtml = '<span class="qrow-who" title="' + escapeHtml(it.who.join(', ')) + '">' +
+            it.who.slice(0, 4).map(function (n) {
+              return '<span class="wn-avatar wn-avatar--sm">' + escapeHtml(_wnInitials(n)) + '</span>';
+            }).join('') +
+            (it.who.length > 4 ? '<span class="qrow-who-more">+' + (it.who.length - 4) + '</span>' : '') +
+            '</span>';
+        }
         return '<div class="queue-row queue-row-open" role="button" tabindex="0" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '"><div class="queue-main">' +
             '<span class="queue-name">' + escapeHtml(it.name) + '</span>' +
             '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
             statusHtml +
           '</div>' +
+          (whoHtml ? '<div class="queue-actions qrow-who-wrap">' + whoHtml + '</div>' : '') +
           (brief ? '<div class="queue-actions">' + brief + '</div>' : '') +
           '</div>';
       }
-      function section(title, list, emptyMsg, collapsible, collapsed) {
+      function section(title, list, emptyMsg, collapsible, collapsed, showWho) {
         var caret = collapsible ? '<span class="qsec-caret" aria-hidden="true">&#9662;</span>' : '';
         var head = '<div class="queue-sec-head"' + (collapsible ? ' role="button" tabindex="0"' : '') + '>' + caret +
           '<span class="queue-sec-title">' + title + '</span><span class="queue-sec-count">' + list.length + '</span></div>';
-        var body = list.length ? list.map(rowHtml).join('') : '<div class="queue-empty">' + emptyMsg + '</div>';
+        var body = list.length ? list.map(function (it) { return rowHtml(it, showWho); }).join('')
+                               : '<div class="queue-empty">' + emptyMsg + '</div>';
         return '<div class="queue-section' + (collapsible ? ' collapsible' : '') + (collapsed ? ' collapsed' : '') + '">' + head + body + '</div>';
       }
       var intro = b.support
         ? '<p class="queue-intro myev-intro"><strong>Team events:</strong> Everyone the team is booked to speak at or attending &mdash; upcoming first, past below.</p>'
         : '<p class="queue-intro myev-intro"><strong>' + escapeHtml(b.me) + '&#39;s events:</strong> Events you&#39;re booked to speak at or attending &mdash; upcoming first, past below.</p>';
-      var upTitle = b.support ? 'Attending &amp; speaking' : 'You&#39;re attending';
+      // Named to say WHOSE events these are, with the team's set directly
+      // below (Hurley 2026-07-31).
+      var upTitle = 'My Upcoming Events';
       // Past events collapse into a dropdown, hidden by default (like the grid's
       // month groups). _myEventsPastOpen remembers if the reader expanded them.
       // "In the last week" — teammates' updates + new comments. A row comes down
@@ -9977,7 +10019,9 @@
       // same idea (trips + interest recs + monthly picks). renderPlanAhead()
       // fills the embed below; its own intro is the divider between the two.
       host.innerHTML = intro + outHtml + wnHtml + teamHtml +
-        section(upTitle, b.upcoming, 'Nothing upcoming yet.') +
+        ((b.support && !b.upcoming.length) ? '' : section(upTitle, b.upcoming, 'Nothing upcoming yet.')) +
+        section("Team&#39;s Upcoming Events", b.team,
+                'Nobody else is down for anything upcoming.', false, false, true) +
         (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen) : '') +
         '<div id="ops-planahead" class="ops-planahead-embed"></div>';
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {
