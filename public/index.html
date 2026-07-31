@@ -4443,18 +4443,14 @@
 
   function openEventModal(rec) {
     if (!rec) return;
-    // Top labels: cleared out (Hurley 2026-07-29). Priority, event type, the
-    // pipeline stages, Pay-to-play, Seed and Private all repeated something the
-    // reader already has — the stages are the Status buttons right below, and
-    // priority / type / pay-to-play / private are on the card face they just
-    // clicked through. The ONE exception is the legacy "Sponsorship Only"
-    // marker: it's a real closed-stage outcome ("they'll take our money, not our
-    // speaker") with no button of its own, so it still earns a label up top.
-    var badges = [];
-    if (/sponsorship\s*only/i.test(String(rec.workflow_status || ''))) {
-      badges.push('<span class="badge p-low">' + esc(rec.workflow_status) + '</span>');
-    }
-    $badges.innerHTML = badges.join('');
+    // Top labels: NONE (Hurley 2026-07-30). Priority, event type, the pipeline
+    // stages, Pay-to-play, Seed and Private all repeated something the reader
+    // already has — the stages are the workflow route right below, and the rest
+    // are on the card face they just clicked through. "Sponsorship Only" was
+    // held back as the last exception; it's gone too now. The status marker is
+    // still stored and still editable in Edit, and the door-closed reason
+    // ("paid slots only") already carries it where it matters.
+    $badges.innerHTML = '';
 
     $date.textContent  = rec.date_str || '';
     // A private / invite-only event has no public page — a scraped URL is almost
