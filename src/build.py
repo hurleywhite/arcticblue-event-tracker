@@ -2015,6 +2015,14 @@ def build():
     }}
     .qa-mail-to {{ font-family: var(--ab-mono); font-size: 0.68rem; color: var(--ab-fg-3); }}
     .qa-mail-to--none {{ color: #b45309; }}
+    .qa-mail-modes {{ margin-left: auto; display: inline-flex; gap: 4px; }}
+    .qa-mail-mode {{
+      font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.03em;
+      padding: 3px 8px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-3);
+    }}
+    .qa-mail-mode:hover {{ border-color: #1fa0dc; color: #1271a8; }}
+    .qa-mail-mode.is-on {{ background: #1fa0dc; border-color: #1fa0dc; color: #fff; }}
     /* The one thing to check before sending. Amber, because it is a nudge, not
        an error — the draft is still perfectly sendable. */
     .qa-mail-advice {{
@@ -12189,25 +12197,67 @@ def build():
       linkedin: 'https://www.linkedin.com/in/thorernstsson/',
       site:     'https://www.arcticblue.ai/'
     }};
-    // The two session topics, verbatim from Angela's doc.
-    var AB_MAIL_TOPICS = [
-      'Possible session topics',
-      '',
-      '1) Leadership Frameworks for AI Experimentation',
-      'As AI accelerates the tempo of business, governance must evolve from static control to adaptive orchestration. Thor explores leadership models that balance experimentation and accountability — showing how to define decision rights, manage risk, and measure learning velocity. Drawing on ArcticBlue’s experience operating at the frontier of AI experimentation, he outlines how modern leaders can create confidence, not just compliance, in how their teams innovate.',
-      'Key takeaways:',
-      '  • Shifting from “compliance” to “confidence” in AI governance',
-      '  • Structuring compliance for adaptive, AI-augmented teams',
-      '  • Metrics that capture learning velocity, not just output',
-      '',
-      '2) Fail or Scale: What’s the difference between Experiments and Pilots?',
-      'Most teams lump “experiments” and “pilots” together, and that’s exactly how they get stuck in endless proofs-of-concept that never scale. Thor draws a sharp, practical line between the two: experiments as cheap, disposable learning vehicles, and pilots as pre-scale dress rehearsals for reality. He walks through how companies move from idea to experiment to pilot to scale without getting trapped in “pilot purgatory” or burning trust with stakeholders.',
-      'Key takeaways:',
-      '  • How to distinguish experiments from pilots in design, stakes, and success criteria',
-      '  • A simple progression model: experiment → pilot → scale, without “pilot purgatory”',
-      '  • Signals that an experiment is ready to graduate — and when you should stop instead',
-      '  • Governance, risk, and communication patterns that keep stakeholders aligned at every stage'
-    ].join('\\n');
+    // The two session topics. Blurbs and key takeaways are verbatim from
+    // Angela's doc; `concise` is the one-line form the editorial pitch uses.
+    // Hers for Fail or Scale is verbatim too — the Leadership one is condensed
+    // from her own blurb, in her words, since the doc has no short version.
+    var AB_MAIL_SESSIONS = [
+      {{
+        title: 'Leadership Frameworks for AI Experimentation',
+        match: 'governance leadership risk compliance decision rights operating model culture change management',
+        concise: 'How leadership and governance evolve from static control to adaptive orchestration — defining decision rights, managing risk, and measuring learning velocity, so teams innovate with confidence rather than just compliance.',
+        blurb: 'As AI accelerates the tempo of business, governance must evolve from static control to adaptive orchestration. Thor explores leadership models that balance experimentation and accountability — showing how to define decision rights, manage risk, and measure learning velocity. Drawing on ArcticBlue’s experience operating at the frontier of AI experimentation, he outlines how modern leaders can create confidence, not just compliance, in how their teams innovate.',
+        takeaways: [
+          'Shifting from “compliance” to “confidence” in AI governance',
+          'Structuring compliance for adaptive, AI-augmented teams',
+          'Metrics that capture learning velocity, not just output'
+        ]
+      }},
+      {{
+        title: 'Fail or Scale: What’s the Difference Between Experiments and Pilots?',
+        match: 'roi scale scaling pilot experiment poc proof of concept measurable impact adoption transformation value',
+        concise: 'How enterprises can distinguish AI initiatives worth scaling from those that should be stopped, and how to build the governance and decision-making frameworks needed to move from experimentation to sustainable business impact.',
+        blurb: 'Most teams lump “experiments” and “pilots” together, and that’s exactly how they get stuck in endless proofs-of-concept that never scale. Thor draws a sharp, practical line between the two: experiments as cheap, disposable learning vehicles, and pilots as pre-scale dress rehearsals for reality. He walks through how companies move from idea to experiment to pilot to scale without getting trapped in “pilot purgatory” or burning trust with stakeholders.',
+        takeaways: [
+          'How to distinguish experiments from pilots in design, stakes, and success criteria',
+          'A simple progression model: experiment → pilot → scale, without “pilot purgatory”',
+          'Signals that an experiment is ready to graduate — and when you should stop instead',
+          'Governance, risk, and communication patterns that keep stakeholders aligned at every stage'
+        ]
+      }}
+    ];
+    // Which single session to lead with when we're only naming one. Whichever
+    // of the two the event's own words point at; Fail or Scale is the default
+    // because it is the one Angela leads with most.
+    function _mailPickSession(rec) {{
+      var blob = [ (rec && rec.name) || '', (rec && rec.focus_areas) || '',
+                   (rec && rec.about) || '', (rec && rec.speaker_topic) || '' ].join(' ').toLowerCase();
+      var best = AB_MAIL_SESSIONS[1], bestScore = 0;
+      AB_MAIL_SESSIONS.forEach(function (t) {{
+        var score = t.match.split(' ').filter(function (w) {{
+          return w.length > 3 && blob.indexOf(w) !== -1;
+        }}).length;
+        if (score > bestScore) {{ bestScore = score; best = t; }}
+      }});
+      return best;
+    }}
+    // FULL: both sessions with blurbs and takeaways, as an appendix.
+    function _mailTopicsFull() {{
+      var out = ['Possible session topics', ''];
+      AB_MAIL_SESSIONS.forEach(function (t, i) {{
+        out.push((i + 1) + ') ' + t.title);
+        out.push(t.blurb);
+        out.push('Key takeaways:');
+        t.takeaways.forEach(function (k) {{ out.push('  • ' + k); }});
+        if (i < AB_MAIL_SESSIONS.length - 1) out.push('');
+      }});
+      return out.join('\\n');
+    }}
+    // CONCISE: one session, title and a single sentence, inline in the body.
+    function _mailTopicConcise(rec) {{
+      var t = _mailPickSession(rec);
+      return t.title + ': ' + t.concise;
+    }}
     var AB_MAIL_DEFAULTS = {{
       global: {{
         subject: 'Speaker Proposal: Thor Ernstsson (ArcticBlue AI)',
@@ -12247,20 +12297,18 @@ def build():
           '[focus_sentence]',
           'One session he could contribute is:',
           '',
-          'Fail or Scale: What’s the Difference Between Experiments and Pilots?: How enterprises can distinguish AI initiatives worth scaling from those that should be stopped, and how to build the governance and decision-making frameworks needed to move from experimentation to sustainable business impact.',
+          '[session_concise]',
           '',
           'He would be very interested in contributing an editorial session rather than a company sponsored speaking placement.',
           '',
-          "Thor's Speaker Package / Bio can be found here: [bio_link] — two possible session topics are below.",
+          "Thor's Speaker Package / Bio can be found here: [bio_link], and I’d be happy to send over further session descriptions upon request.",
           '',
           'Best,',
           'Angela',
           '---',
           'Angela Pavone',
           'ArcticBlue AI · [site]',
-          'LinkedIn: [linkedin]',
-          '',
-          '[topics]'
+          'LinkedIn: [linkedin]'
         ].join('\\n')
       }}
     }};
@@ -12362,7 +12410,8 @@ def build():
         'Event Name':     name || 'your event',
         'Event Date':     dates,
         'focus_sentence': _mailFocusSentence(rec, name),
-        'topics':         AB_MAIL_TOPICS,
+        'topics':           _mailTopicsFull(),
+        'session_concise':  _mailTopicConcise(rec),
         'bio_link':       AB_MAIL_ASSETS.bio,
         'linkedin':       AB_MAIL_ASSETS.linkedin,
         'site':           AB_MAIL_ASSETS.site,
@@ -12371,12 +12420,34 @@ def build():
       }};
     }}
     // Build the panel for one event.
-    window.abMailDraft = function (rec) {{
+    // mode: 'concise' names ONE session inline; 'full' appends both with their
+    // takeaways. Never both — that is what put Fail or Scale in twice.
+    // The default follows each template's own job: an editorial pitch asks for
+    // a slot in someone's programme, so one sharp proposal that fits their
+    // theme beats a menu; the global one is a broader enquiry, so both are
+    // offered and the organiser picks (Hurley 2026-07-31).
+    window.abMailDraft = function (rec, mode) {{
       var ctx = _mailCtx(rec);
       var isUS = _mailIsUS(rec);
+      if (mode !== 'concise' && mode !== 'full') mode = isUS ? 'concise' : 'full';
       var tpl = _mailTemplates()[isUS ? 'us' : 'global'];
+      var _body = String(tpl.body);
+      if (mode === 'concise') {{
+        ctx['topics'] = '';
+        if (_body.indexOf('[session_concise]') === -1) {{
+          _body = _body.replace('[topics]', 'One session he could contribute is:\\n\\n[session_concise]');
+        }}
+      }} else {{
+        ctx['session_concise'] = '';
+        if (_body.indexOf('[topics]') === -1) {{
+          _body = _body.replace('One session he could contribute is:', '')
+                       .replace('[session_concise]', '[topics]');
+        }}
+      }}
+      tpl = {{ subject: tpl.subject, body: _body }};
       return {{
         variant: isUS ? 'US \u2014 editorial' : 'Global / UAE',
+        mode: mode,
         to: ctx.contact_email,
         subject: _mailFill(tpl.subject, ctx),
         body: _mailFill(tpl.body, ctx),
@@ -12385,13 +12456,22 @@ def build():
     }};
     // Render the panel. Editable before sending — she may want to add a line,
     // and a draft you cannot touch is a draft you paste elsewhere to fix.
-    window.abRenderMailPanel = function (host, rec) {{
-      var d = window.abMailDraft(rec);
+    window.abRenderMailPanel = function (host, rec, mode) {{
+      var d = window.abMailDraft(rec, mode);
       host.innerHTML =
         '<div class="qa-mail-head">' +
           '<span class="qa-mail-variant">' + escapeHtml(d.variant) + ' template</span>' +
           (d.to ? '<span class="qa-mail-to">to ' + escapeHtml(d.to) + '</span>'
                 : '<span class="qa-mail-to qa-mail-to--none">no email on file</span>') +
+          // Which form the topics take. Defaulted per template; switchable
+          // because the right call is a judgement about the organiser, not
+          // something the event data can settle (Hurley 2026-07-31).
+          '<span class="qa-mail-modes">' +
+            '<button type="button" class="qa-mail-mode' + (d.mode === 'concise' ? ' is-on' : '') + '" data-mode="concise"' +
+              ' title="Name one session inline, chosen to fit this event">One session</button>' +
+            '<button type="button" class="qa-mail-mode' + (d.mode === 'full' ? ' is-on' : '') + '" data-mode="full"' +
+              ' title="Append both sessions with blurbs and key takeaways">Both, in full</button>' +
+          '</span>' +
         '</div>' +
         '<p class="qa-mail-advice">' + escapeHtml(d.advice) + '</p>' +
         '<input class="qa-mail-subject" id="qa-mail-subject" value="' + escapeHtml(d.subject) + '" aria-label="Subject">' +
@@ -12403,6 +12483,12 @@ def build():
         '</div>';
       var $s = host.querySelector('#qa-mail-subject');
       var $b = host.querySelector('#qa-mail-body');
+      host.querySelectorAll('[data-mode]').forEach(function (mb) {{
+        mb.addEventListener('click', function (e) {{
+          e.stopPropagation();
+          window.abRenderMailPanel(host, rec, mb.getAttribute('data-mode'));
+        }});
+      }});
       host.querySelectorAll('[data-mail]').forEach(function (btn) {{
         btn.addEventListener('click', function (e) {{
           e.stopPropagation();
