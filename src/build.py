@@ -2759,7 +2759,12 @@ def build():
        Overlapped slightly so four of them still read as one cluster. */
     .qrow-who-wrap {{ align-self: center; }}
     .qrow-who {{ display: inline-flex; align-items: center; }}
-    .qrow-who .wn-avatar--sm {{ margin-left: -6px; border: 2px solid var(--ab-bg); }}
+    /* Brand blue, not the --sm grey. Grey is for secondary chrome like the
+       activity feed; here the person IS the information on the row, and at
+       26px on white the grey read as a disabled dot. */
+    .qrow-who .wn-avatar--sm {{
+      margin-left: -6px; border: 2px solid var(--ab-bg); background: #1271a8;
+    }}
     .qrow-who .wn-avatar--sm:first-child {{ margin-left: 0; }}
     .qrow-who-more {{
       margin-left: 4px; font-family: var(--ab-mono); font-size: 0.68rem; color: var(--ab-fg-3);
