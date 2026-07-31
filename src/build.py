@@ -5001,11 +5001,9 @@ def build():
     // Legacy "Status label" dropdown (Sponsorship Only, etc.), built from the
     // shared status palette bridged as window.opsStatusOptions. data-edit="status"
     // so it saves via opsWrite (event_state for catalog, manual_events for manual).
-    function statusDD(cur) {{
-      var c = (cur === '__deleted__') ? '' : (cur || '');
-      var opts = (window.opsStatusOptions) ? window.opsStatusOptions(c) : ('<option value="">\\u2014 none \\u2014</option>');
-      return '<select class="me-input" data-edit="status">' + opts + '</select>';
-    }}
+    // statusDD removed with the Status marker field (Hurley 2026-07-31). The
+    // `status` column is still stored and still read — the legacy marker just
+    // isn't hand-set from the edit form any more.
     var stages = rec.stage_tags || [];
     var order = window.opsStageOrder || ['Submitted', 'Initial outreach', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
     // Pipeline chips = the SPEAKING track only. "Attending" is managed per-person
@@ -5070,6 +5068,25 @@ def build():
     h += sec('Notes',
       '<div class="modal-field"><textarea class="me-input" data-edit="notes" rows="4" aria-label="Notes">' + esc(rec.notes || '') + '</textarea></div>');
 
+    // Contacts — everything you'd search a person by. Kept for private events
+    // too: the POC is the whole point of a private event.
+    // Angela only, matching the read view. Contacts were merged into Speaking &
+    // submission, which is hers alone, so the read view already hides them from
+    // everyone else — but the EDIT form still offered them, which meant Thor
+    // could change a POC he cannot see (Hurley 2026-07-30). Outreach is hers.
+    if (window.isAngelaUser && window.isAngelaUser()) {{
+      var sContact = ef('Contact info', inp('contact_info', rec.contact_info));
+      if (!isCat) {{
+        sContact += ef('POC name', inp('poc_name', rec.poc_name));
+        sContact += ef('POC email', inp('poc_email', rec.poc_email));
+      }}
+      // A few words on who they are — this is what tells Angela what to send.
+      sContact += ef('Who they are', inp('poc_note', rec.poc_note,
+                     'e.g. Programme director \u2014 owns the speaker agenda'));
+      h += sec('Contacts', sContact);
+    }}
+
+
     // Speaking & submission — the pipeline zone.
     var sSpeak = ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
     // "Submitted on" — Angela records the date the application went out. Only
@@ -5086,17 +5103,12 @@ def build():
     if (!priv) {{
       sSpeak += ef('Speaker topic \\u2014 drives the day-of news pull', inp('speaker_topic', rec.speaker_topic, 'e.g. AI workforce enablement'));
       sSpeak += ef('Apply to speak link \\u2014 powers the card button', inp('apply_url', rec.apply_url, 'https:// CFP or application page'));
-      sSpeak += ef('Speaking route', ta('speaking_route', rec.speaking_route, 2));
+      sSpeak += ef('Speaking Notes', ta('speaking_route', rec.speaking_route, 2));
       sSpeak += ef('Deadline', inp('deadline', rec.deadline, 'e.g. July 10, 2026'));
       // How we'd get in, in one place: is it pay-to-play, and the legacy status
       // marker (Sponsorship Only, Curated invite, ...). ONE dropdown for both
       // catalog and manual — Angela hit two edit sections that disagreed.
       sSpeak += ef('Pay-to-play', '<select class="me-input" data-edit="pay_to_play">' + p2p.map(function (v) {{ return opt(v, rec.pay_to_play); }}).join('') + '</select>');
-      // Angela's triage vocabulary, not a speaker's — Thor has no reason to set
-    // an event to "Sponsorship Only" (Hurley 2026-07-30).
-    if (window.isAngelaUser && window.isAngelaUser()) {{
-      sSpeak += ef('Status marker (e.g. Sponsorship Only)', statusDD(rec.workflow_status));
-    }}
     }}
     // Same in the editor — these are her fields to keep straight.
     if (window.isAngelaUser && window.isAngelaUser()) h += sec('Speaking & submission', sSpeak);
@@ -5115,7 +5127,6 @@ def build():
         return '<label class="me-int' + (on ? ' on' : '') + '"><input type="checkbox" data-outreach="' + esc(n.toLowerCase()) + '"' + (on ? ' checked' : '') + '>' + esc(n) + '</label>';
       }}).join('');
       sTeam += ef('Ask a teammate to reach out \\u2014 they may have a connection', '<div class="me-ints">' + outrChips + '</div>');
-      sTeam += ef('Who to reach / why them (optional)', inp('outreach_note', 'conflict_note', rec.outreach_note, 'e.g. you know their Head of Events'));
       // A conflict the DATES can't reveal — a board meeting, a holiday, a
       // trip that makes this unreachable. Overlapping events are detected
       // automatically; this is for everything else (Hurley 2026-07-30).
@@ -5126,24 +5137,6 @@ def build():
     // the buttons at the top of the card, so for them this whole section is
     // someone else's controls (Hurley 2026-07-30).
     if (window.isAngelaUser && window.isAngelaUser()) h += sec('Attending & team', sTeam);
-
-    // Contacts — everything you'd search a person by. Kept for private events
-    // too: the POC is the whole point of a private event.
-    // Angela only, matching the read view. Contacts were merged into Speaking &
-    // submission, which is hers alone, so the read view already hides them from
-    // everyone else — but the EDIT form still offered them, which meant Thor
-    // could change a POC he cannot see (Hurley 2026-07-30). Outreach is hers.
-    if (window.isAngelaUser && window.isAngelaUser()) {{
-      var sContact = ef('Contact info', inp('contact_info', rec.contact_info));
-      if (!isCat) {{
-        sContact += ef('POC name', inp('poc_name', rec.poc_name));
-        sContact += ef('POC email', inp('poc_email', rec.poc_email));
-      }}
-      // A few words on who they are — this is what tells Angela what to send.
-      sContact += ef('Who they are', inp('poc_note', rec.poc_note,
-                     'e.g. Programme director \u2014 owns the speaker agenda'));
-      h += sec('Contacts', sContact);
-    }}
 
     // Event details — the reference facts, mostly filled by the nightly enrich.
     var sDet = '';
@@ -5695,7 +5688,7 @@ def build():
         }})()) +
         // A 94-character raw URL is not a "route" anyone reads — it's a wall of
         // slug. Show what it IS and make the words the link (Hurley 2026-07-30).
-        field('Speaking route', (function () {{
+        field('Speaking Notes', (function () {{
           var r = String(rec.speaking_route || '').trim();
           if (!r || _modalJunk(r)) return '';
           var m = r.match(/https?:\/\/\S+/);
@@ -7995,7 +7988,7 @@ def build():
         '<label><span class="key">About</span><textarea name="about">' + v('about') + '</textarea></label>' +
         '<label><span class="key">Topics</span><textarea name="focus_areas">' + v('focus_areas') + '</textarea></label>' +
         '<label><span class="key">Typical attendees</span><input type="text" name="typical_attendees" value="' + v('typical_attendees') + '"></label>' +
-        '<label><span class="key">Speaking route</span><textarea name="speaking_route">' + v('speaking_route') + '</textarea></label>' +
+        '<label><span class="key">Speaking Notes</span><textarea name="speaking_route">' + v('speaking_route') + '</textarea></label>' +
         '<label><span class="key">Contact info</span><textarea name="contact_info">' + v('contact_info') + '</textarea></label>' +
         '<div class="row">' +
           '<label><span class="key">Deadline</span><input type="text" name="deadline" value="' + v('deadline') + '"></label>' +
