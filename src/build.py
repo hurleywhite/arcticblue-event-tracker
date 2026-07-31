@@ -12166,59 +12166,143 @@ def build():
     // Placeholders are [square brackets], not braces — this file is a Python
     // .format() template and every brace in it has to be doubled.
     // ════════════════════════════════════════════════════════════════
-    var AB_MAIL_PLACEHOLDERS = ['contact_first', 'contact_name', 'event_name', 'event_dates',
-                                'event_location', 'speaker_name', 'speaker_topic', 'bio_link'];
-    // Defaults so the composer works before anyone edits anything. Angela can
-    // replace both from Team Profiles -> Outreach email templates.
+    var AB_MAIL_PLACEHOLDERS = ['Name', 'event_phrase', 'Event Name', 'Event Date',
+                                'focus_sentence', 'topics', 'bio_link', 'linkedin', 'site'];
+    // Thor's real assets. Not his email address — Angela sends from hers.
+    var AB_MAIL_ASSETS = {{
+      bio:      'https://docs.google.com/document/d/174JAp_ViiFPcIONuwxqe0wZ3wTUlg1ldMNXqeHbXJYo/edit?usp=sharing',
+      linkedin: 'https://www.linkedin.com/in/thorernstsson/',
+      site:     'https://www.arcticblue.ai/'
+    }};
+    // The two session topics, verbatim from Angela's doc.
+    var AB_MAIL_TOPICS = [
+      'Possible session topics',
+      '',
+      '1) Leadership Frameworks for AI Experimentation',
+      'As AI accelerates the tempo of business, governance must evolve from static control to adaptive orchestration. Thor explores leadership models that balance experimentation and accountability — showing how to define decision rights, manage risk, and measure learning velocity. Drawing on ArcticBlue’s experience operating at the frontier of AI experimentation, he outlines how modern leaders can create confidence, not just compliance, in how their teams innovate.',
+      'Key takeaways:',
+      '  • Shifting from “compliance” to “confidence” in AI governance',
+      '  • Structuring compliance for adaptive, AI-augmented teams',
+      '  • Metrics that capture learning velocity, not just output',
+      '',
+      '2) Fail or Scale: What’s the difference between Experiments and Pilots?',
+      'Most teams lump “experiments” and “pilots” together, and that’s exactly how they get stuck in endless proofs-of-concept that never scale. Thor draws a sharp, practical line between the two: experiments as cheap, disposable learning vehicles, and pilots as pre-scale dress rehearsals for reality. He walks through how companies move from idea to experiment to pilot to scale without getting trapped in “pilot purgatory” or burning trust with stakeholders.',
+      'Key takeaways:',
+      '  • How to distinguish experiments from pilots in design, stakes, and success criteria',
+      '  • A simple progression model: experiment → pilot → scale, without “pilot purgatory”',
+      '  • Signals that an experiment is ready to graduate — and when you should stop instead',
+      '  • Governance, risk, and communication patterns that keep stakeholders aligned at every stage'
+    ].join('\\n');
     var AB_MAIL_DEFAULTS = {{
       global: {{
-        subject: 'Speaking enquiry \u2014 [event_name]',
+        subject: 'Speaker Proposal: Thor Ernstsson (ArcticBlue AI)',
         body: [
-          'Hi [contact_first],',
+          'Hello [Name],',
           '',
-          "I'm reaching out about [event_name] ([event_dates], [event_location]).",
+          'I am reaching out on behalf of Thor Ernstsson, CEO/Founder of ArcticBlue AI.',
+          'Thor is very interested in contributing to [event_phrase] as a speaker.',
           '',
-          'I look after speaking for ArcticBlue AI. [speaker_name] leads our work on',
-          '[speaker_topic], and has spoken on it across the Middle East \u2014 including',
-          'programmes in Dubai, Abu Dhabi and Riyadh \u2014 as well as in the US and Europe.',
+          'Thor brings extensive expertise in AI, along with a strong record of keynote presentations and executive workshops around the world. He is based in NYC, though delivers global sessions, including in the MENA region each month for AI programming delivered in partnership with Tamkeen, Bahrain’s government-backed organization focused on strengthening and enriching the local economy using AI.',
           '',
-          "If you're still shaping the agenda, I'd be glad to send a short outline.",
-          "[speaker_name]'s bio and past talks: [bio_link]",
+          "Thor's Bio and Speaker Package are linked below, as well as two possible session topics to fit the event.",
           '',
-          'Best,',
-          'Angela'
-        ].join('\\n')
-      }},
-      us: {{
-        subject: 'Speaking enquiry \u2014 [event_name]',
-        body: [
-          'Hi [contact_first],',
-          '',
-          "I'm reaching out about [event_name] ([event_dates], [event_location]).",
-          '',
-          'I look after speaking for ArcticBlue AI. [speaker_name] leads our work on',
-          '[speaker_topic] and speaks on it regularly at US events.',
-          '',
-          "If you're still shaping the agenda, I'd be glad to send a short outline.",
-          "[speaker_name]'s bio and past talks: [bio_link]",
+          "I'd be happy to set up a quick intro call with Thor if you would like to discuss any further session topics or future AI events.",
           '',
           'Best,',
           'Angela',
+          '---',
+          'Angela Pavone',
+          'ArcticBlue AI · [site]',
           '',
-          '\u2014',
-          'ArcticBlue AI also runs an international programme \u2014 [speaker_name] has spoken',
-          "across the Middle East and Europe if that's useful for your audience."
+          'Thor Ernstsson — Bio & Speaker Package: [bio_link]',
+          'LinkedIn: [linkedin]',
+          '',
+          '[topics]'
+        ].join('\\n')
+      }},
+      us: {{
+        subject: 'Editorial Speaker Proposal: Thor Ernstsson (ArcticBlue AI)',
+        body: [
+          'Hello [Name],',
+          '',
+          "I’m reaching out on behalf of Thor Ernstsson, CEO of ArcticBlue AI, regarding a potential editorial speaking contribution to [event_phrase].",
+          '',
+          'Thor brings extensive expertise in AI, along with a strong record of keynote presentations and executive workshops around the world. He holds a practical enterprise perspective on moving AI from experimentation to measurable business impact, drawing on experience with more than 20,000 AI experiments across Fortune 500 organizations.',
+          '',
+          '[focus_sentence]',
+          'One session he could contribute is:',
+          '',
+          'Fail or Scale: What’s the Difference Between Experiments and Pilots?: How enterprises can distinguish AI initiatives worth scaling from those that should be stopped, and how to build the governance and decision-making frameworks needed to move from experimentation to sustainable business impact.',
+          '',
+          'He would be very interested in contributing an editorial session rather than a company sponsored speaking placement.',
+          '',
+          "Thor's Speaker Package / Bio can be found here: [bio_link] — two possible session topics are below.",
+          '',
+          'Best,',
+          'Angela',
+          '---',
+          'Angela Pavone',
+          'ArcticBlue AI · [site]',
+          'LinkedIn: [linkedin]',
+          '',
+          '[topics]'
         ].join('\\n')
       }}
     }};
-    // Which variant. Country first (it is the reliable field); fall back to
-    // the location string, which is where most manual rows carry their geo.
+    // Which variant: US gets the editorial pitch, everywhere else gets the
+    // Global/UAE one with the Tamkeen paragraph. Country first (the reliable
+    // field), then the location string, then the ", NY" state suffix the
+    // catalog uses for US cities.
     function _mailIsUS(rec) {{
       var blob = String((rec && (rec.country || '')) + ' ' + (rec && (rec.location || '')) + ' ' + (rec && (rec.city || ''))).toLowerCase();
       if (/\\b(usa|u\\.s\\.a|united states)\\b/.test(blob)) return true;
-      if (/\\b(uae|dubai|abu dhabi|riyadh|saudi|qatar|doha|london|paris|berlin|amsterdam|zurich|dublin|singapore|india|canada|toronto|mexico)\\b/.test(blob)) return false;
-      // ", NY" / ", CA" — the state suffix the catalog uses for US cities.
+      if (/\\b(uae|dubai|abu dhabi|riyadh|saudi|qatar|doha|bahrain|manama|kuwait|oman|london|paris|berlin|amsterdam|zurich|dublin|singapore|india|canada|toronto|mexico)\\b/.test(blob)) return false;
       return /,\\s*(a[lkzr]|c[aot]|de|fl|ga|hi|i[adln]|k[sy]|la|m[adeinost]|n[cdehjmvy]|o[hkr]|pa|ri|s[cd]|t[nx]|ut|v[at]|w[aivy]|dc)\\b/i.test(blob);
+    }}
+    var _EVENT_NOUNS = ['summit', 'conference', 'convention', 'assembly', 'forum', 'expo',
+                        'exposition', 'congress', 'symposium', 'event', 'festival', 'week',
+                        'day', 'days', 'roundtable', 'exchange', 'workshop', 'retreat',
+                        'series', 'awards', 'meetup', 'showcase', 'fair', 'session', 'sessions'];
+    // The last word decides it — that is exactly the "is event/assembly/etc at
+    // the end?" test, and it keeps the sentence honest without a grammar model.
+    function _mailEventPhrase(name, dateStr) {{
+      name = String(name || '').trim();
+      if (!name) return 'your event';
+      var words = name.split(/\\s+/);
+      var last = words[words.length - 1].toLowerCase().replace(/[^a-z]/g, '');
+      var startsWithThe = /^the\\b/i.test(name);
+      var phrase = (!startsWithThe && _EVENT_NOUNS.indexOf(last) !== -1)
+        ? 'the upcoming ' + name
+        : name;
+      // A date only belongs here if we actually have one — "on Date TBD" is
+      // worse than saying nothing.
+      var d = String(dateStr || '').trim();
+      if (d && !/tbd|unknown|rolling/i.test(d)) {{
+        // "on August 4-6, 2026" but "in April 2027" — a month with no day
+        // takes "in". Strip the year first so 2027 isn't read as a day.
+        var hasDay = /\\d{{1,2}}(?!\\d)/.test(d.replace(/\\b\\d{{4}}\\b/g, ''));
+        phrase += (hasDay ? ' on ' : ' in ') + d;
+      }}
+      return phrase;
+    }}
+    // The US template's "Given the Summit's focus on ..." line. Only written
+    // when the event actually tells us what it is about; an empty focus makes
+    // it a sentence about nothing.
+    function _mailFocusSentence(rec, name) {{
+      var fa = rec && rec.focus_areas;
+      if (Array.isArray(fa)) fa = fa.join(', ');
+      fa = String(fa || '').trim().replace(/\\s*[;|]\\s*/g, ', ').replace(/\\.$/, '');
+      if (!fa || fa.length < 8) return '';
+      // "a, b, c" -> "a, b and c" — a bare comma list reads like a form field.
+      var _parts = fa.split(/,\\s*/).filter(Boolean);
+      if (_parts.length > 1) fa = _parts.slice(0, -1).join(', ') + ' and ' + _parts[_parts.length - 1];
+      var words = String(name || '').trim().split(/\\s+/);
+      var last = words[words.length - 1].toLowerCase().replace(/[^a-z]/g, '');
+      var noun = (_EVENT_NOUNS.indexOf(last) !== -1)
+        ? words[words.length - 1].replace(/[^A-Za-z]/g, '') : 'event';
+      noun = noun.charAt(0).toUpperCase() + noun.slice(1);
+      return 'Given the ' + noun + '\\u2019s focus on ' + fa +
+             ', I believe Thor\\u2019s perspective could be particularly relevant to the program.\\n';
     }}
     function _mailTemplates() {{
       var row = (window._abProfileRows || {{}}).angela || {{}};
@@ -12231,67 +12315,44 @@ def build():
     // one line: a checklist nobody reads is worse than no checklist.
     function _mailAdvice(rec, ctx) {{
       var note = String((rec && rec.poc_note) || '').toLowerCase();
-      if (!ctx.contact_name) return 'No named contact on this event yet \u2014 add one under Point of contact before you send.';
+      if (!ctx.contact_name) return 'No named contact yet — it will open "Hello there,". Add one under Point of contact.';
       if (/sponsor|exhibit|stand|booth|sales|partnership/.test(note)) {{
-        return ctx.contact_name.split(/\s+/)[0] + ' looks like a sponsorship contact \u2014 this pitches a talk, so consider asking them to point you at the programme lead.';
+        return ctx.contact_name.split(/\s+/)[0] + ' looks like a sponsorship contact — this pitches an editorial slot, so consider asking them to point you at the programme lead.';
       }}
       if (/linkedin/.test(note) && !ctx.contact_email) {{
-        return 'No email on file \u2014 ' + ctx.contact_name.split(/\s+/)[0] + ' was found on LinkedIn, so send this as a message there.';
+        return 'No email on file — ' + ctx.contact_name.split(/\s+/)[0] + ' was found on LinkedIn, so send this there.';
       }}
-      if (!ctx.contact_email) return 'No email address on file \u2014 copy this and send it however you have them.';
-      if (!ctx.speaker_name || ctx.speaker_name === 'our team') return 'No speaker assigned yet \u2014 the topic line is generic until you pick one.';
-      if (ctx._topicGuessed) return 'Topic line is a guess from the event\u2019s focus \u2014 worth a look before sending.';
-      return 'Check the dates and the topic line, then send.';
+      if (!ctx.contact_email) return 'No email address on file — copy this and send it however you have them.';
+      if (!ctx['Event Date']) return 'No date on this event, so the sentence just names it — add the date if you have it.';
+      return 'Check the date reads right, then send.';
     }}
     // Fill [placeholders]. Unknown ones are left alone rather than blanked, so
     // a typo in a template shows up instead of silently deleting a line.
     function _mailFill(text, ctx) {{
-      return String(text || '').replace(/\[([a-z_]+)\]/g, function (m, k) {{
-        return (ctx[k] !== undefined && ctx[k] !== null && ctx[k] !== '') ? ctx[k] : m;
-      }});
+      return String(text || '').replace(/\[([A-Za-z_ ]+)\]/g, function (m, k) {{
+        if (!(k in ctx)) return m;              // unknown -> leave visible, don't blank a line
+        return (ctx[k] === null || ctx[k] === undefined) ? '' : ctx[k];
+      }})
+      // An omitted focus sentence leaves a blank line behind it; collapse any
+      // run of three-plus newlines back to a paragraph break.
+      .replace(/\\n{{3,}}/g, '\\n\\n').trim();
     }}
     function _mailCtx(rec) {{
-      var spk = String((rec && rec.speaker) || '').split(/\s*(?:,|;|&| and )\s*/)[0].trim();
-      var spkKey = spk.toLowerCase().split(/\s+/)[0];
-      var pRow = (window._abProfileRows || {{}})[spkKey] || {{}};
-      // Topic: what she set on the event wins; else the first of the speaker's
-      // own topics that the event actually mentions; else their first topic.
-      var topic = String((rec && rec.speaker_topic) || '').trim();
-      var guessed = false;
-      if (!topic) {{
-        // People format this field however they like — Joe's is a document
-        // with emoji section headings. Keep only lines that read like an
-        // actual topic, or the email opens with "Thor leads our work on
-        // Speaking Topics & Blurbs".
-        var mine = String(pRow.topics || '').split(/[\\n;]/).map(function (t) {{
-          return t.replace(/^[^A-Za-z0-9]+/, '')      // leading emoji / bullets
-                  .replace(/^\\d+[.)]\\s*/, '')             // "1. " list numbering
-                  .replace(/\\s*[:\\-\\u2013\\u2014]\\s*$/, '')     // trailing colon / dash
-                  .trim();
-        }}).filter(function (t) {{
-          if (t.length < 9 || t.length > 110) return false;
-          if (/[:]$/.test(t)) return false;                    // a heading
-          if (!/[a-z]/.test(t)) return false;                  // ALL CAPS banner
-          if (/^(speaking |talk |topics?\\b|blurbs?\\b|bio\\b|about\\b)/i.test(t)) return false;
-          return true;
-        }});
-        var blob = String([(rec && rec.name) || '', (rec && rec.focus_areas) || '', (rec && rec.about) || ''].join(' ')).toLowerCase();
-        var hit = mine.filter(function (t) {{ return t.length > 3 && blob.indexOf(t.toLowerCase()) !== -1; }})[0];
-        topic = hit || mine[0] || 'applied AI in the enterprise';
-        guessed = true;
-      }}
+      var name = String((rec && rec.name) || '').trim();
       var dates = String((rec && rec.date_str) || '').trim();
       return {{
+        // The templates greet by first name; no name means "Hello there,".
+        'Name':           String((rec && rec.poc_name) || '').trim().split(/\s+/)[0] || 'there',
+        'event_phrase':   _mailEventPhrase(name, dates),
+        'Event Name':     name || 'your event',
+        'Event Date':     dates,
+        'focus_sentence': _mailFocusSentence(rec, name),
+        'topics':         AB_MAIL_TOPICS,
+        'bio_link':       AB_MAIL_ASSETS.bio,
+        'linkedin':       AB_MAIL_ASSETS.linkedin,
+        'site':           AB_MAIL_ASSETS.site,
         contact_name:  String((rec && rec.poc_name) || '').trim(),
-        contact_first: String((rec && rec.poc_name) || '').trim().split(/\s+/)[0] || 'there',
-        contact_email: String((rec && rec.poc_email) || '').trim(),
-        event_name:    String((rec && rec.name) || 'your event').trim(),
-        event_dates:   dates || 'the dates you have listed',
-        event_location: String((rec && rec.location) || '').trim() || 'your venue',
-        speaker_name:  spk || 'our team',
-        speaker_topic: topic,
-        bio_link:      PROFILE_LINKEDIN[spkKey] || '',
-        _topicGuessed: guessed
+        contact_email: String((rec && rec.poc_email) || '').trim()
       }};
     }}
     // Build the panel for one event.
@@ -12300,7 +12361,7 @@ def build():
       var isUS = _mailIsUS(rec);
       var tpl = _mailTemplates()[isUS ? 'us' : 'global'];
       return {{
-        variant: isUS ? 'US' : 'Global / UAE',
+        variant: isUS ? 'US \u2014 editorial' : 'Global / UAE',
         to: ctx.contact_email,
         subject: _mailFill(tpl.subject, ctx),
         body: _mailFill(tpl.body, ctx),
