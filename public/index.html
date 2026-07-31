@@ -11629,7 +11629,10 @@
       { key: 'Joe', label: 'HR & people (US)', regions: [],
          kw: ['hr','human resources','chro','clo','chief people','people officer','vp of hr','talent','workforce','future of work','upskilling','reskilling','learning','l&d','people analytics','change management','human enablement','human capital','organizational development','employee experience'] },
       { key: 'Thor', label: 'Healthcare (exec)', regions: [],
-         kw: ['healthcare','healthtech','health tech','digital health','medtech','med tech','life sciences','pharma','pharmaceutical','biotech','medical','health system','healthcare ai','patient care','telehealth','payer','provider'] },
+         // 'patient care', 'telehealth' and 'provider' pulled in care-delivery
+         // events directly — the exact thing the rule excludes. Buyer-side
+         // terms kept (Hurley 2026-07-31).
+         kw: ['healthcare','healthtech','health tech','digital health','medtech','med tech','life sciences','pharma','pharmaceutical','biotech','health system','healthcare ai','payer','health plan','hospital executive','chief medical officer'] },
       { key: 'Verma', label: 'Insurance & regulated (board-level)', regions: [],
          kw: ['insurance','insurtech','life insurance','reinsurance','finance','financial services','bank','banking','capital markets','payments','fintech','board','chief data','regulated','compliance'] },
       // Carlos runs LatAm — no US cities (Hurley 2026-07-29). 'US & Canada' used
@@ -11672,6 +11675,26 @@
     // Joe present and sell in English, so a Spanish/Portuguese/French/German/
     // Italian-language event is never their fit (Hurley 2026-07-29) — it stays
     // available to Jerome and Carlos, whose territories it belongs to.
+    // Clinical / care-delivery events are NOT Thor's, even though healthcare is
+    // his industry. The rule the team actually follows is healthcare BUYERS yes,
+    // clinical-practice conferences no — they delete AIMed, GIANT Health NHS,
+    // BMJ Future Health and King's Fund while keeping HLTH, HIMSS and the
+    // Millennium Alliance healthcare assemblies (Hurley 2026-07-31, and now
+    // stated in personas.json thor.event_rules).
+    //
+    // Same two-test shape as the HR gate: the NAME/HOST catches the obvious
+    // ones, the BLOB catches events whose audience is clinicians even when the
+    // title says AI. Deliberately does NOT fire on "patient" alone — "patient
+    // outcomes" is standard language at a buyer event too.
+    var _CLIN_NAME = /\baimed\d*\b|\bbmj\b|king'?s fund|giant health|\bnhs\b|clinical (trials?|research|practice|excellence)|\bcme\b|grand rounds|nursing|physicians?|clinicians?|oncolog|radiolog|cardiolog|surgical|surgery|\bmedical (association|society|congress)\b/i;
+    var _CLIN_HOST = /\b(ai-med\.io|aimed\.com|bmj\.com|kingsfund\.org\.uk|giant\.health|nhs\.uk|americanhealthlaw\.org|ncqa\.org)\b/i;
+    var _CLIN_BLOB = /\b(practising|practicing) (clinicians?|physicians?)\b|for (clinicians?|physicians?|nurses)\b|clinical (trials?|research|workflows?|practice)\b|bedside|point of care|care delivery/;
+    function _isClinicalEvent(name, url, blob) {
+      return _CLIN_NAME.test(String(name || '')) ||
+             _CLIN_HOST.test(String(url || '')) ||
+             _CLIN_BLOB.test(String(blob || ''));
+    }
+    window.abIsClinicalEvent = _isClinicalEvent;
     var _HR_BLOB = /\bchro\b|shrm|chief (human resources|people)|people officer|\bhr (summit|conference|forum|assembly|exchange|congress|leaders)\b/;
     // Title words that make HR/L&D the SUBJECT of the event, not a topic in it.
     var _HR_NAME = /\b(hr|chro|shrm|pshra|hrci|clo|cupa)\b|human resources?|chief (human resources|people|learning) officer|people (officer|analytics)|talent (management|acquisition|strategy|forum)|workforce (summit|forum|conference|institute)|learning (futures|technologies)|\bl&d\b|employee experience|total rewards|compensation (and|&) benefits/i;
@@ -11703,6 +11726,10 @@
       // is still his.
       if (p.key !== 'Joe' && (_HR_BLOB.test(String(blob || '')) ||
                               _isHrEvent(evName, evUrl))) return false;
+      // Healthcare BUYERS yes, clinical-practice conferences no. Thor's keyword
+      // list carries the healthcare terms that find the right events; this keeps
+      // the clinician ones out of the same net.
+      if (_isClinicalEvent(evName, evUrl, blob)) return false;
       // AND-profile (Hurley): every keyword group must hit, and a freeOnly
       // profile additionally requires a price we KNOW is zero — an unknown price
       // is not "free", so it stays out rather than pretending.
