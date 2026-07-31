@@ -26,6 +26,26 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-648@arcticblue-event-tracker
+DTSTAMP:20260730T000000Z
+DTSTART;VALUE=DATE:20270222
+DTEND;VALUE=DATE:20270226
+SUMMARY:AHLA Winter Institute — The Complexities of AI in Health Care Track
+LOCATION:Las Vegas\, NV
+DESCRIPTION:American Health Law Association's Winter Institute dedicates a full track to AI in health care governance\, legal\, and compliance complexity — aligned with Verma's regulated-industry AI governance and board-oversight focus\, with an open call for speakers.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.americanhealthlaw.org/education-events/call-for-educational-content/call-for-speakers
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-647@arcticblue-event-tracker
+DTSTAMP:20260730T000000Z
+DTSTART;VALUE=DATE:20261022
+DTEND;VALUE=DATE:20261025
+SUMMARY:HIMSS AI in Healthcare Forum San Diego 2026
+LOCATION:San Diego\, CA\, USA
+DESCRIPTION:HIMSS's dedicated AI-in-healthcare forum for senior healthcare executives and clinicians — AI leadership strategy\, governance\, and AI implementation in regulated health systems\; Verma's regulated-healthcare/AI-at-scale narrative fits this audience.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.himss.org/events-overview/ai-in-healthcare-forum-san-diego/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-642@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20270224
@@ -493,16 +513,6 @@ SUMMARY:F3: Future of Freight Festival 2026
 LOCATION:The Signal\, Chattanooga\, TN
 DESCRIPTION:FreightWaves’ flagship freight and logistics AI festival at The Signal\, Chattanooga — logistics executives deploying AI agents for supply chain optimization\; speaking route via FreightWaves events team\; niche but vertically deep for enterprise AI in operations.\nPriority: Low\nAdded by: dust@arcticblue.ai
 URL:https://live.freightwaves.com/f3-2026
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-590@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261110
-DTEND;VALUE=DATE:20261111
-SUMMARY:Pharma Smart Factories Summit 2026
-LOCATION:Chicago\, IL
-DESCRIPTION:AMG World’s senior pharma manufacturing + AI summit in Chicago — pharmaceutical operations\, manufacturing technology\, and AI transformation leaders\; niche but high-value vertical for ArcticBlue’s AI-for-operations enterprise thesis.\nPriority: Low\nAdded by: dust@arcticblue.ai
-URL:https://www.amg-world.co.uk/pharma-smart-factories-summit/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-589@arcticblue-event-tracker
@@ -2764,16 +2774,6 @@ DESCRIPTION:Millennium Alliance European CDO assembly co-located at same Barcelo
 URL:https://mill-all.com/assemblies/transformational-data-assembly-europe-november-2026/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-290@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20261006
-DTEND;VALUE=DATE:20261008
-SUMMARY:Healthcare Technology & AI Transformation Assembly – October 2026
-LOCATION:JW Marriott Arts District\, Dallas\, TX
-DESCRIPTION:Second 2026 edition of Millennium Alliance's healthcare CIO/CMIO AI assembly — October Dallas edition targets healthcare C-suite specifically on AI transformation\, a high-growth vertical for ArcticBlue's operating model change services.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/healthcare-technology-ai-transformation-assembly-october-2026/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-289@arcticblue-event-tracker
 DTSTAMP:20260730T000000Z
 DTSTART;VALUE=DATE:20260830
@@ -3392,16 +3392,6 @@ SUMMARY:ISG AI Impact Summit London 2026
 LOCATION:London\, UK
 DESCRIPTION:Enterprise-only summit focused on AI ROI\, sovereign AI and agentic workflows — themes at the heart of ArcticBlue's pitch to regulated-industry CIOs and COOs.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://aiimpact.isg-one.com/london
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-195@arcticblue-event-tracker
-DTSTAMP:20260730T000000Z
-DTSTART;VALUE=DATE:20260826
-DTEND;VALUE=DATE:20260829
-SUMMARY:International Conference on AI in Healthcare (AIiH 2026)
-LOCATION:London\, UK
-DESCRIPTION:Enterprise and clinical AI adoption in healthcare at Imperial College London — reaches NHS\, pharma and health-system leaders who are a secondary ICP for ArcticBlue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://aiih.cc/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-193@arcticblue-event-tracker
