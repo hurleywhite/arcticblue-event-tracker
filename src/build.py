@@ -2805,6 +2805,9 @@ def build():
     .q-btn-row .q-btn.primary {{ flex: 1; }}
     /* Plan Ahead embedded at the bottom of My Lineup — a clear divider above it. */
     .ops-planahead-embed {{ margin-top: 20px; padding-top: 8px; border-top: 1px solid var(--ab-rule); }}
+    /* Off for someone (see _PLAN_AHEAD_OFF): the divider is on this element, so
+       an emptied section would still draw a stray rule under Past events. */
+    .ops-planahead-embed:empty {{ display: none; }}
     /* Plan Ahead decision buttons: "I'm interested" + "Not for me" side by side. */
     .queue-actions.sug-actions {{ flex-direction: row; flex-wrap: wrap; gap: 6px; align-items: center; }}
     .q-btn.sug-skip {{ color: var(--ab-fg-3); }}
@@ -5945,6 +5948,12 @@ def build():
     // People who don't want Plan Ahead's month-by-month suggestion list
     // under Event Radar — the curated blocks above it are enough.
     var _PLAN_SUGGESTIONS_OFF = {{ thor: 1 }};
+    // People who don't want the Plan Ahead section AT ALL (Hurley 2026-07-30).
+    // Nothing is deleted: renderPlanAhead and everything it builds stay exactly
+    // as they are for everyone else, and this person's own stored state — their
+    // skips, their hidden trip clusters — is left untouched, so removing a name
+    // here brings the section back exactly as they left it.
+    var _PLAN_AHEAD_OFF = {{ thor: 1 }};
 
     // ── English-language gate for Thor / Verma / Joe ──────────────────────
     // They work the room and take the stage in English, so an event RUN in
@@ -11000,6 +11009,9 @@ def build():
       var host = document.getElementById('ops-planahead');
       if (!host) return;
       var meFirst = (getCollabName() || '').trim().toLowerCase().split(/\\s+/)[0];
+      // Off for this person — leave the section empty (:empty hides it and its
+      // divider) and build none of it. Everyone else is unaffected.
+      if (_PLAN_AHEAD_OFF[meFirst]) {{ host.innerHTML = ''; return; }}
       var personalized = !!((window.AB_PERSONAS || {{}})[meFirst]);
       var meName = getCollabName() || '';
       var support = isSupportPerson(meName);
