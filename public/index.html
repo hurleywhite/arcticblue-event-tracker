@@ -3622,58 +3622,85 @@
     if (!s || _modalJunk(s)) return '';
     // These arrive as semicolon lists mixing real formats with non-answers
     // ("attendee app not verified; invite-only stream; innovation clinics").
-    // Take the first clause that actually states something, not blindly the
-    // first one, and never a pipe-joined blob.
+    // Take clauses that actually state something, never a pipe-joined blob.
     var parts = s.split(/\s*[;|]\s*|\.\s+/);
-    // Take up to THREE real clauses, not just the first. On "Day 0 stakeholder
-    // tracks; workshops; networking; multistakeholder policy discussions" the
-    // first-only rule produced "The format includes day 0 stakeholder tracks."
-    // — one item out of four, and the most jargon-y one at that, which read as
-    // a non-sequitur at the end of the overview (Hurley 2026-07-30).
     var picks = [];
-    for (var i = 0; i < parts.length && picks.length < 3; i++) {
+    for (var i = 0; i < parts.length && picks.length < 4; i++) {
       var t = parts[i].replace(/[.;,\s]+$/, '').trim();
       if (!t || _modalJunk(t)) continue;
       if (/\bnot\s+(verified|specified|published|available|listed|confirmed|known)\b/i.test(t)) continue;
+      // "no guaranteed 1:1 meetings" is the absence of a feature — listing it
+      // after "Includes" says the opposite of what it means.
+      if (/^(?:no|none|without)\b/i.test(t)) continue;
+      t = t.replace(/\[\d+\]/g, '').trim();      // scrape citation markers
+      if (!t) continue;
       picks.push(t);
     }
     if (!picks.length) return '';
-    // Lead with the plainest one — a clause nobody has to decode reads better
-    // first, and "Day 0" style insider shorthand is what made this confusing.
-    picks.sort(function (a, b) {
-      var jarg = function (x) { return /\bday\s*0\b|\btrack\b/i.test(x) ? 1 : 0; };
+    // A meeting app is not a "format", and neither is being invite-only — the
+    // sentence has to match what the clause actually IS (Hurley 2026-07-30).
+    // Three kinds, three lead-ins; the one that fits wins, most useful first.
+    // Plurals matter: \bworkshop\b never matches "workshops", so the old list
+    // silently dropped every plural clause — "keynotes; roundtables; expo floor"
+    // came out as just the expo floor.
+    var _isFormat = /\b(panels?|keynotes?|workshops?|roundtables?|firesides?|breakouts?|masterclass(?:es)?|sessions?|tracks?|talks?|discussions?|debates?|demos?|exhibitions?|expos?|hackathons?|pitch(?:es)?|clinics?|labs?|tours?|dinners?|receptions?|networking|presentations?|briefings?|forums?)\b/i;
+    // Only a bare adjectival access term can follow "Attendance is". Anything
+    // longer ("invite-only stream") is a thing, not a condition, and reads as
+    // broken English there — it goes through "Includes" instead.
+    var _isAccess = /^(?:invite[- ]only|members?[- ]only|closed[- ]door|curated invite(?:[- ]only)?|invitation[- ]only|by application|application[- ]only|vetted|screened)$/i;
+    var fmts = [], acc = [], rest = [];
+    picks.forEach(function (t) {
+      if (_isFormat.test(t)) fmts.push(t);
+      else if (_isAccess.test(t)) acc.push(t);
+      else rest.push(t);
+    });
+    var lead = 'The format includes ', chosen = fmts, article = true;
+    if (!fmts.length && acc.length) { lead = 'Attendance is '; chosen = [acc[0]]; article = false; }
+    else if (!fmts.length)          { lead = 'Includes ';      chosen = rest;     article = true;  }
+    chosen = chosen.slice(0, 3);
+    if (!chosen.length) return '';
+    // Lead with the plainest one — insider shorthand ("Day 0") reads badly first.
+    chosen.sort(function (a, b) {
+      var jarg = function (x) { return /\bday\s*0\b/i.test(x) ? 1 : 0; };
       return jarg(a) - jarg(b);
     });
-    // Commas only — the step below turns the final comma into "and", so
-    // joining with "and" here produced "a and b and c".
-    var pick = picks.join(', ');
-    if (pick.length > 140) pick = pick.slice(0, 137).replace(/\s\S*$/, '') + '…';
-    // The value is a bare noun phrase ("Panel discussions, fireside chats"),
-    // which reads as a dangling fragment once it's sitting at the end of the
-    // overview. Give it a verb (Hurley 2026-07-30). Anything already written
-    // as a sentence is left alone.
-    if (!/\b(is|are|was|were|include|includes|offer|offers|feature|features|run|runs|host|hosts|provide|provides|guarantee|guarantees|use|uses|has|have|allow|allows|unlock|unlocks|cover|covers|grant|grants|combine|combines|admit|admits|give|gives|bring|brings|enable|enables|let|lets|mean|means|apply|applies|work|works|take|takes|require|requires|consist|consists|comprise|comprises|span|spans|award|awards|pair|pairs|connect|connects)\b/i.test(pick)) {
-      var _lst = pick.replace(/,\s*([^,]+)$/, ' and $1');       // last comma -> "and"
-      // Don't lowercase a brand — "Reuters Events app" must not become
-      // "reuters". A second capitalised word is the tell that we're in a
-      // proper name rather than an ordinary noun phrase.
-      if (!/^[A-Z][a-z]+.*\s[A-Z][a-z]/.test(_lst)) {
-        _lst = _lst.charAt(0).toLowerCase() + _lst.slice(1);
-      }
+    // Commas only — the last one becomes "and" below.
+    var pick = chosen.join(', ');
+    // Brief is the point — this rides at the END of the overview, so it has to
+    // land in one readable breath rather than run on for three lines.
+    if (pick.length > 110) pick = pick.slice(0, 107).replace(/[\s,]\S*$/, '') + '…';
+    // Already a sentence? Leave it alone.
+    if (/\b(is|are|was|were|include|includes|offer|offers|feature|features|run|runs|host|hosts|provide|provides|guarantee|guarantees|use|uses|has|have|allow|allows|unlock|unlocks|cover|covers|grant|grants|combine|combines|admit|admits|give|gives|bring|brings|enable|enables|let|lets|mean|means|apply|applies|work|works|take|takes|require|requires|consist|consists|comprise|comprises|span|spans|award|awards|pair|pairs|connect|connects)\b/i.test(pick)) {
+      return pick;
+    }
+    // Clauses often carry their own "and" ("general and breakout sessions");
+    // adding another produced "a and b and c". Commas only in that case.
+    var _lst = / and /i.test(pick) ? pick : pick.replace(/,\s*([^,]+)$/, ' and $1');
+    // Don't lowercase a brand — "Reuters Events app" must not become "reuters".
+    // A second capitalised word is the tell that we're in a proper name.
+    // A proper name is a capitalised word followed by ANOTHER capitalised word
+    // ("Reuters Events", "One-to-One Meetings") — those keep their capitals.
+    // Everything else is an ordinary noun phrase and gets lowercased. Applied
+    // per clause, so "…, Full access to keynotes" is fixed mid-sentence too,
+    // not just the opening word.
+    _lst = _lst.split(/(,\s*)/).map(function (seg) {
+      if (/^,/.test(seg) || !seg.trim()) return seg;
+      return /^[A-Z][A-Za-z-]*\s+[A-Z]/.test(seg) ? seg
+                                                 : seg.charAt(0).toLowerCase() + seg.slice(1);
+    }).join('');
+    if (article) {
       // "includes attendee app for pre-booking" wants an article. The head noun
-      // sits before the first preposition, so test THAT for a plural rather
-      // than the last word of the whole phrase.
-      var _cut = _lst.search(/\s(?:for|with|via|in|on|at|to|during|across|from|and)\s|,/i);
+      // sits before the first preposition, so test THAT for a plural.
+      var _cut = _lst.search(/\s(?:for|with|via|in|on|at|to|during|across|from)\s|,/i);   // NOT 'and' — it's a conjunction, so the head noun continues past it
       var _head = (_cut > 0 ? _lst.slice(0, _cut) : _lst).trim().split(/\s+/).pop()
-                    .replace(/[^A-Za-z-]+$/, '');            // drop trailing "(", ")", ":"
+                    .replace(/[^A-Za-z-]+$/, '');
       // A gerund is a mass noun — "a matchmaking" / "a networking" are wrong.
       if (_head && !/s$/i.test(_head) && !/ing$/i.test(_head) &&
           !/^(?:a|an|the|some|several|multiple|\d)\b/i.test(_lst)) {
         _lst = (/^[aeiou]/i.test(_lst) ? 'an ' : 'a ') + _lst;
       }
-      pick = 'The format includes ' + _lst;
     }
-    return pick;
+    return lead + _lst;
   }
 
   // ── Editable modal: one-tap quick actions ──────────────────────────
