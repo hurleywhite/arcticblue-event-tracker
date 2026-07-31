@@ -45,6 +45,9 @@
       --ab-red: #b91c1c;          /* archived / fail */
       --ab-sans: "Hanken Grotesk", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
       --ab-mono: "Fragment Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      /* What Angela actually writes her outreach in. Used only by the email
+         composer + template editor so the preview matches the sent mail. */
+      --ab-email: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Tahoma, sans-serif;
       --ab-max: 1240px;
     }
 
@@ -1573,13 +1576,18 @@
       background: rgba(234,179,8,0.13); border-left: 3px solid #eab308;
       font-family: var(--ab-sans); font-size: 0.76rem; color: var(--ab-fg-2);
     }
+    /* Angela composes in Trebuchet MS, so the draft previews in it rather
+       than the UI's mono — the preview should look like the email. */
+    .qa-mail-subject, .qa-mail-body, .profile-mail-slot textarea {
+      font-family: var(--ab-email);
+    }
     .qa-mail-subject, .qa-mail-body {
       width: 100%; box-sizing: border-box; margin-bottom: 8px;
       padding: 8px 10px; border: 1px solid var(--ab-rule-strong); border-radius: 7px;
       background: var(--ab-bg); color: var(--ab-fg); font-size: 0.8rem;
     }
-    .qa-mail-subject { font-family: var(--ab-sans); font-weight: 600; }
-    .qa-mail-body { font-family: var(--ab-mono); line-height: 1.5; resize: vertical; }
+    .qa-mail-subject { font-weight: 600; }
+    .qa-mail-body { line-height: 1.55; resize: vertical; }
     .qa-mail-actions { display: flex; gap: 7px; flex-wrap: wrap; }
     /* Angela's master templates, in Team Profiles. */
     .profile-mail { margin: 0 0 22px; padding: 15px 17px; border: 1px solid var(--ab-rule-strong); border-radius: 10px; background: var(--ab-bg-2); }
@@ -1591,7 +1599,7 @@
     .profile-mail-slot textarea {
       width: 100%; box-sizing: border-box; padding: 9px 11px; border-radius: 7px;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
-      font-family: var(--ab-mono); font-size: 0.76rem; line-height: 1.5; resize: vertical;
+      font-size: 0.8rem; line-height: 1.55; resize: vertical;
     }
     .qa-step.qa-static { cursor: default; }
     .qa-step.qa-static:hover { border-color: var(--ab-rule-strong); color: var(--ab-fg-2); }
