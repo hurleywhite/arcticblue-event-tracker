@@ -3318,59 +3318,6 @@ def build():
     .ops-add-item__txt {{ display: flex; flex-direction: column; gap: 2px; min-width: 0; }}
     .ops-add-item__t {{ font-size: 0.875rem; font-weight: 600; color: var(--ab-fg); line-height: 1.2; }}
     .ops-add-item__d {{ font-size: 0.75rem; color: var(--ab-fg-3); line-height: 1.2; }}
-    /* Chat panel */
-    .ask-log {{ display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; margin: 4px 0 12px; }}
-    .ask-msg {{ padding: 10px 13px; border-radius: 10px; font-size: 0.92rem; line-height: 1.5; max-width: 85%; white-space: pre-wrap; }}
-    .ask-msg.user {{ align-self: flex-end; background: var(--ab-fg); color: var(--ab-bg); }}
-    .ask-msg.ai   {{ align-self: flex-start; background: var(--ab-bg-3); color: var(--ab-fg); border: 1px solid var(--ab-rule); }}
-    .ask-msg.ai a {{ color: var(--ab-blue, #1d4ed8); }}
-    /* Recommended event cards returned under an AI answer — clickable, ranked. */
-    .ask-cards {{ align-self: stretch; max-width: 100%; display: flex; flex-direction: column; gap: 7px; margin: 2px 0 2px; }}
-    .ask-card {{
-      display: block; width: 100%; text-align: left; cursor: pointer;
-      border: 1px solid var(--ab-rule-strong); border-radius: 9px;
-      background: var(--ab-bg); color: var(--ab-fg);
-      padding: 9px 11px; font-family: var(--ab-sans); position: relative;
-    }}
-    .ask-card:hover {{ background: var(--ab-bg-3); border-color: var(--ab-fg-3); }}
-    .ask-card .rank {{
-      position: absolute; top: 9px; right: 10px; font-family: var(--ab-mono);
-      font-size: 0.64rem; color: var(--ab-fg-3); letter-spacing: 0.06em;
-    }}
-    .ask-card .ac-name {{ font-weight: 600; font-size: 0.9rem; line-height: 1.3; padding-right: 26px; }}
-    .ask-card .ac-meta {{ font-size: 0.78rem; color: var(--ab-fg-2); margin-top: 3px; }}
-    .ask-card .ac-tags {{ display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }}
-    .ask-card .ac-tag {{
-      font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.04em;
-      padding: 2px 7px; border-radius: 3px; border: 1px solid var(--ab-rule);
-      background: var(--ab-bg-2); color: var(--ab-fg-2);
-    }}
-    .ask-card .ac-tag.buyer {{ background: #ecfdf5; color: #047857; border-color: #a7f3d0; }}
-    .ask-card .ac-tag.worth {{ background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }}
-    .ask-card .ac-tag.pri-high   {{ background: #166534; color: #fff; border-color: #166534; }}
-    .ask-card .ac-tag.pri-medium {{ background: #fef3c7; color: #92400e; border-color: #fde68a; }}
-    .ask-card .ac-tag.pri-low    {{ background: var(--ab-bg-3); color: var(--ab-fg-3); border-color: var(--ab-rule); }}
-    /* Reasoning under the ranked cards — small + muted so cards stay the headline. */
-    .ask-note {{
-      margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--ab-rule);
-      font-size: 0.82rem; line-height: 1.5; color: var(--ab-fg-2);
-    }}
-    .ask-note a {{ color: var(--ab-blue, #1d4ed8); }}
-    /* A conversational reply (specific event / how-to / chat) — the prose is the
-       headline; any single event card sits below it. */
-    .ask-prose {{ font-size: 0.92rem; line-height: 1.55; color: var(--ab-fg); }}
-    .ask-prose a {{ color: var(--ab-blue, #1d4ed8); }}
-    .ask-prose + .ask-cards {{ margin-top: 10px; }}
-    .ask-forrow {{ display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }}
-    .ask-for-label {{ font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3); margin-right: 2px; }}
-    .ask-for-chip {{ font-size: 0.78rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
-    .ask-for-chip:hover {{ color: var(--ab-fg); border-color: var(--ab-fg-3); }}
-    .ask-for-chip.is-on {{ background: #7c3aed; color: #fff; border-color: #7c3aed; }}
-    .ask-examples {{ display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }}
-    .ask-chip {{ font-size: 0.8rem; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
-    .ask-chip:hover {{ background: var(--ab-bg-3); color: var(--ab-fg); }}
-    .ask-inputrow {{ display: flex; gap: 8px; }}
-    .ask-inputrow input {{ flex: 1; padding: 11px 13px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font-family: var(--ab-sans); font-size: 0.95rem; background: var(--ab-bg); color: var(--ab-fg); }}
     /* Pressed state while a feature's panel is open — click again to close. */
     .ab-btn.is-open {{ box-shadow: 0 0 0 2px currentColor; }}
     .ab-btn.ab-btn--primary.is-open {{ box-shadow: 0 0 0 2px #047857, 0 0 0 4px #d1fae5; }}
@@ -4106,8 +4053,7 @@ def build():
   // Buyer-rich / audience mix is a targeting judgement, not a fact about the
   // event: it's Verma's signal (regulated-industry board rooms) and Angela's
   // triage tool. Nobody else sees it — in the read view OR the editor, which is
-  // where it was still leaking to Thor (Hurley 2026-07-29). The assistant is
-  // held to the same rule server-side in api/ask.py.
+  // where it was still leaking to Thor (Hurley 2026-07-29).
   function seesAudience() {{
     var me = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '')
       .trim().toLowerCase().split(/\\s+/)[0];
@@ -15425,261 +15371,6 @@ def build():
     }}
 
 
-    // ── Ask AI — chat over the tracked events (OpenAI via /api/ask) ──
-    var _askHistory = [];
-    function _mdToHtml(s) {{
-      // Tiny, safe markdown → HTML: escape first, then bold + links + bullets.
-      var h = escapeHtml(s);
-      h = h.replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>');
-      h = h.replace(/(https?:\\/\\/[^\\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
-      h = h.replace(/^\\s*[-*]\\s+(.*)$/gm, '• $1');
-      return h;
-    }}
-    // Render the AI\\u2019s ranked event recommendations as clickable mini cards.
-    // ranked: show "#1, #2…". A conversational reply about ONE event puts its
-    // card below the prose purely as a reference — ranking a list of one is
-    // meaningless, and "#1" read as a stray character (Hurley 2026-07-29).
-    function _askCardsHtml(cards, ranked) {{
-      if (!cards || !cards.length) return '';
-      var showRank = ranked !== false && cards.length > 1;
-      return '<div class="ask-cards">' + cards.map(function (c, i) {{
-        var meta = [c.date, c.location || c.region].filter(Boolean).map(escapeHtml).join(' \\u00b7 ');
-        var tags = [];
-        var _acPri = window.cardPriority ? window.cardPriority({{ priority: c.priority, audience_type: c.audience }}) : '';
-        if (_acPri) tags.push('<span class="ac-tag pri-' + _acPri.toLowerCase() + '">' + escapeHtml(_acPri) + '</span>');
-        if (c.stage) tags.push('<span class="ac-tag">' + escapeHtml(String(c.stage).split(',')[0].trim()) + '</span>');
-        if (c.price) tags.push('<span class="ac-tag">' + escapeHtml(c.price) + '</span>');
-        // Carry every identifier we have: catalog num, manual id, AND the name.
-        // The name alone is not reliable — the card face trims a trailing year,
-        // so the AI's "IDC CIO Summit Spain 2026" never equalled the card's
-        // "IDC CIO Summit Spain" and the click did nothing.
-        var idAttr = '';
-        if (c.num !== null && c.num !== undefined) idAttr += ' data-evnum="' + escapeHtml(String(c.num)) + '"';
-        if (c.mid !== null && c.mid !== undefined) idAttr += ' data-evmid="' + escapeHtml(String(c.mid)) + '"';
-        idAttr += ' data-evname="' + escapeHtml(c.name || '') + '"';
-        return '<button type="button" class="ask-card"' + idAttr + '>' +
-          (showRank ? '<span class="rank">#' + (i + 1) + '</span>' : '') +
-          '<span class="ac-name">' + escapeHtml(c.name || 'Untitled event') + '</span>' +
-          (meta ? '<span class="ac-meta">' + meta + '</span>' : '') +
-          (tags.length ? '<span class="ac-tags">' + tags.join('') + '</span>' : '') +
-        '</button>';
-      }}).join('') + '</div>';
-    }}
-    // Render an AI reply: lead with the ranked event cards, then a short,
-    // de-emphasised note for the reasoning (no big markdown blocks). When there
-    // are no matching events (a factual question), fall back to the text.
-    window.abMdToHtml = _mdToHtml;
-    function _askAnswerHtml(answer, cards, mode) {{
-      var txt = (answer || '').trim();
-      var hasCards = cards && cards.length;
-      // A LIST / ranking ("events" mode, or legacy replies with no mode) leads
-      // with the ranked cards and demotes the prose to a small note. A
-      // CONVERSATIONAL reply (a specific event, a how-to, or general chat) leads
-      // with the prose like a normal chatbot, and any single event card sits
-      // below it as a reference.
-      if ((mode === 'events' || !mode) && hasCards) {{
-        return _askCardsHtml(cards, true) +
-          (txt ? '<div class="ask-note">' + _mdToHtml(txt) + '</div>' : '');
-      }}
-      var out = txt ? '<div class="ask-prose">' + _mdToHtml(txt) + '</div>' : '';
-      // Conversational reply — the card is a reference, not a ranking.
-      if (hasCards) out += _askCardsHtml(cards, false);
-      return out || _mdToHtml(txt);
-    }}
-    // Click a recommended card \\u2192 open that event\\u2019s detail modal.
-    //
-    // Resolve against the RENDERED cards first, always. Their _modalRec is the
-    // merged record (event_state overrides + _table/_key edit context); the raw
-    // CATALOG entry that window.openEventByNum used has none of that, so Details
-    // opened with an empty Edit form — and when the num wasn't in the client
-    // CATALOG at all (manual events carry no num; a catalog event can be stale)
-    // it silently opened nothing, which is the "can't click the details" Angela
-    // hit. Falls back to CATALOG with edit context grafted on so a card can
-    // still open even if its grid row isn't there.
-    // Fold a title down to something comparable across the AI's copy and the
-    // card's: lowercase, strip accents (Zürich/Zurich), drop a trailing edition
-    // year and any "20xx" token, drop punctuation, collapse whitespace.
-    function _askNameKey(s) {{
-      var t = String(s || '');
-      if (t.normalize) t = t.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
-      return t.toLowerCase()
-              .replace(/\\b20\\d\\d\\b/g, ' ')
-              .replace(/[^a-z0-9]+/g, ' ')
-              .trim();
-    }}
-    function _askResolveRec(num, mid, name) {{
-      var cards = $opsGrid ? Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card')) : [];
-      var rec = null;
-      var pick = function (table, key) {{
-        var k = String(key);
-        return (cards.filter(function (c) {{
-          return c._modalRec && c._modalRec._table === table && String(c._modalRec._key) === k;
-        }})[0] || {{}})._modalRec || null;
-      }};
-      // 1) By key — exact and unambiguous.
-      if (num !== null && num !== undefined && String(num) !== '') rec = pick('event_state', num);
-      if (!rec && mid !== null && mid !== undefined && String(mid) !== '') rec = pick('manual_events', mid);
-      // 2) Exact name.
-      if (!rec && name) {{
-        var nm = String(name).trim().toLowerCase();
-        rec = (cards.filter(function (c) {{
-          return c._modalRec && (c._modalRec.name || '').trim().toLowerCase() === nm;
-        }})[0] || {{}})._modalRec || null;
-      }}
-      // 3) Normalised name — survives the trimmed year, accents and punctuation.
-      if (!rec && name) {{
-        var key = _askNameKey(name);
-        if (key) {{
-          var hits = cards.filter(function (c) {{
-            return c._modalRec && _askNameKey(c._modalRec.name) === key;
-          }});
-          // Only accept a fuzzy hit when it's unambiguous.
-          if (hits.length === 1) rec = hits[0]._modalRec;
-        }}
-      }}
-      if (!rec && num !== null && num !== undefined && String(num) !== '') {{
-        var raw = (window.AB_CATALOG || {{}})[String(num)];
-        if (raw) {{
-          // Clone + attach the editing context the modal needs, so Edit works.
-          rec = {{}};
-          for (var kk in raw) {{ if (Object.prototype.hasOwnProperty.call(raw, kk)) rec[kk] = raw[kk]; }}
-          rec._table = 'event_state'; rec._key = raw.num;
-        }}
-      }}
-      return rec;
-    }}
-    function _wireAskCards(container) {{
-      container.querySelectorAll('.ask-card').forEach(function (btn) {{
-        btn.addEventListener('click', function () {{
-          var rec = _askResolveRec(btn.getAttribute('data-evnum'), btn.getAttribute('data-evmid'), btn.getAttribute('data-evname'));
-          if (rec && typeof window.openEventModal === 'function') {{ window.openEventModal(rec); return; }}
-          // Nothing matched — say so instead of looking dead on click.
-          if (typeof status === 'function') status('Could not open that event \\u2014 it may have been deleted or renamed.', 'error');
-        }});
-      }});
-    }}
-    function openAskPanel() {{
-      var existing = document.getElementById('ask-panel');
-      if (existing) {{ existing.remove(); return; }}
-      var panel = document.createElement('div');
-      panel.id = 'ask-panel';
-      panel.className = 'add-event-card';
-      // Support (Angela/Hurley) can aim the results at the whole team or specific
-      // teammates; everyone else just gets their own, tailored to them.
-      var _askSupport = isSupportPerson(getCollabName() || '');
-      panel.innerHTML =
-        '<h3>Ask AI about current results</h3>' +
-        '<p style="margin:0 0 12px;color:var(--ab-fg-2);font-size:0.9rem;">' +
-          'Ranks your tracked events by how well they fit and answers from their own data \\u2014 statuses, dates, region and verdicts. Tap a card to open it.</p>' +
-        '<div class="ask-log" id="ask-log"></div>' +
-        (_askSupport
-          ? '<div class="ask-forrow" id="ask-forrow"><span class="ask-for-label">Find for</span>' +
-              '<button type="button" class="ask-for-chip is-on" data-for="all">Everyone</button>' +
-              ['Thor', 'Verma', 'Jerome', 'Joe', 'Scott', 'Carlos', 'Jim'].map(function (n) {{ return '<button type="button" class="ask-for-chip" data-for="' + escapeHtml(n) + '">' + escapeHtml(n) + '</button>'; }}).join('') +
-            '</div>'
-          : '') +
-        '<div class="ask-examples" id="ask-examples">' +
-          ['Which events should I attend in September?',
-           'What\\u2019s booked for Thor?',
-           'Which enterprise events fit us in Q4?',
-           'Which CFP deadlines are closing soon?'].map(function (q) {{
-            return '<button type="button" class="ask-chip">' + escapeHtml(q) + '</button>';
-          }}).join('') +
-        '</div>' +
-        '<div class="ask-inputrow">' +
-          '<input type="text" id="ask-input" placeholder="Ask anything about these events\\u2026" autocomplete="off">' +
-          '<button type="button" class="primary" id="ask-send">Ask</button>' +
-        '</div>' +
-        '<div class="add-actions" style="margin-top:12px;">' +
-          '<button type="button" class="secondary" id="ask-close">Close</button>' +
-        '</div>';
-      $opsGrid.insertBefore(panel, $opsGrid.firstChild);
-      _mountPanelClose(panel);
-
-      var log = panel.querySelector('#ask-log');
-      var input = panel.querySelector('#ask-input');
-      var sendBtn = panel.querySelector('#ask-send');
-
-      // "Find for" chips (support only): Everyone is exclusive; picking a name
-      // clears Everyone; clearing all reverts to Everyone.
-      var forRow = panel.querySelector('#ask-forrow');
-      if (forRow) {{
-        forRow.addEventListener('click', function (e) {{
-          var c = e.target.closest ? e.target.closest('.ask-for-chip') : null;
-          if (!c) return;
-          var allChip = forRow.querySelector('.ask-for-chip[data-for="all"]');
-          if (c.dataset.for === 'all') {{
-            Array.prototype.forEach.call(forRow.querySelectorAll('.ask-for-chip'), function (x) {{ x.classList.toggle('is-on', x === c); }});
-          }} else {{
-            if (allChip) allChip.classList.remove('is-on');
-            c.classList.toggle('is-on');
-            if (!forRow.querySelector('.ask-for-chip.is-on') && allChip) allChip.classList.add('is-on');
-          }}
-        }});
-      }}
-      function getForPeople() {{
-        if (!forRow) return [];
-        var out = [];
-        Array.prototype.forEach.call(forRow.querySelectorAll('.ask-for-chip.is-on'), function (c) {{ if (c.dataset.for !== 'all') out.push(c.dataset.for); }});
-        return out;   // empty = Everyone / whole team
-      }}
-
-      function addMsg(role, text, isHtml) {{
-        var m = document.createElement('div');
-        m.className = 'ask-msg ' + (role === 'user' ? 'user' : 'ai');
-        if (isHtml) m.innerHTML = text; else m.textContent = text;
-        log.appendChild(m);
-        log.scrollTop = log.scrollHeight;
-        return m;
-      }}
-      // Replay prior history when re-opening (including recommended cards).
-      _askHistory.forEach(function (h) {{
-        if (h.role === 'assistant') {{
-          var m = addMsg('ai', _askAnswerHtml(h.content, h.cards, h.mode), true);
-          _wireAskCards(m);
-        }} else {{
-          addMsg(h.role, h.content);
-        }}
-      }});
-
-      function ask(q) {{
-        q = (q || '').trim();
-        if (!q) return;
-        addMsg('user', q);
-        _askHistory.push({{ role: 'user', content: q }});
-        input.value = '';
-        sendBtn.disabled = true; sendBtn.textContent = 'Thinking\\u2026';
-        var thinking = addMsg('ai', 'Thinking\\u2026');
-        fetch('/api/ask', {{
-          method: 'POST',
-          headers: {{ 'Content-Type': 'application/json' }},
-          body: JSON.stringify({{ question: q, history: _askHistory.slice(0, -1), user: (typeof getCollabName === 'function' ? (getCollabName() || '') : ''), for_people: getForPeople() }})
-        }}).then(function (r) {{ return r.json().then(function (j) {{ return [r.status, j]; }}); }})
-          .then(function (pair) {{
-            sendBtn.disabled = false; sendBtn.textContent = 'Ask';
-            var st = pair[0], data = pair[1];
-            if (st !== 200 || !data.answer) {{
-              thinking.textContent = 'Sorry \\u2014 ' + ((data && data.error) || 'the assistant is unavailable right now.');
-              return;
-            }}
-            thinking.innerHTML = _askAnswerHtml(data.answer, data.cards, data.mode);
-            _wireAskCards(thinking);
-            log.scrollTop = log.scrollHeight;
-            _askHistory.push({{ role: 'assistant', content: data.answer, cards: data.cards || [], mode: data.mode }});
-          }}).catch(function () {{
-            sendBtn.disabled = false; sendBtn.textContent = 'Ask';
-            thinking.textContent = 'Network error \\u2014 please try again.';
-          }});
-      }}
-
-      sendBtn.addEventListener('click', function () {{ ask(input.value); }});
-      input.addEventListener('keydown', function (e) {{ if (e.key === 'Enter') ask(input.value); }});
-      panel.querySelectorAll('.ask-chip').forEach(function (c) {{
-        c.addEventListener('click', function () {{ ask(c.textContent); }});
-      }});
-      panel.querySelector('#ask-close').addEventListener('click', function () {{ panel.remove(); }});
-      setTimeout(function () {{ input.focus(); }}, 50);
-    }}
 
 
     // ── + Add event / Paste email orchestration ─────────────────────
@@ -15759,7 +15450,6 @@ def build():
       var $csvBtn    = document.getElementById('csv-btn');
       var $icalBtn   = document.getElementById('ical-btn');
       var $subBtn    = document.getElementById('ical-subscribe-btn');
-      var $askBtn    = document.getElementById('ask-ai-btn');
       if (!$addBtn) return;
       // Clone-replace to clear listeners from any prior route() call
       var freshAdd = $addBtn.cloneNode(true); $addBtn.parentNode.replaceChild(freshAdd, $addBtn); $addBtn = freshAdd;
@@ -15767,7 +15457,6 @@ def build():
       if ($searchBtn) {{ var fs2 = $searchBtn.cloneNode(true); $searchBtn.parentNode.replaceChild(fs2, $searchBtn); $searchBtn = fs2; }}
       if ($csvBtn)    {{ var fc = $csvBtn.cloneNode(true);    $csvBtn.parentNode.replaceChild(fc, $csvBtn);       $csvBtn    = fc; }}
       if ($icalBtn)   {{ var fi = $icalBtn.cloneNode(true);   $icalBtn.parentNode.replaceChild(fi, $icalBtn);     $icalBtn   = fi; }}
-      if ($askBtn)    {{ var fk = $askBtn.cloneNode(true);    $askBtn.parentNode.replaceChild(fk, $askBtn);       $askBtn    = fk; }}
       if ($subBtn)    {{ var fs = $subBtn.cloneNode(true);    $subBtn.parentNode.replaceChild(fs, $subBtn);       $subBtn    = fs; }}
 
       // "+ Add" dropdown: toggle the menu holding the three add paths. The menu
@@ -15834,8 +15523,7 @@ def build():
         ['add-event-card',  $addBtn],
         ['search-panel',    $searchBtn],
         ['csv-panel',       $csvBtn],
-        ['subscribe-panel', $subBtn],
-        ['ask-panel',       $askBtn]
+        ['subscribe-panel', $subBtn]
       ];
       function closeOtherPanels(keepId) {{
         PANELS.forEach(function (p) {{
@@ -15914,15 +15602,6 @@ def build():
           closeOtherPanels('subscribe-panel');
           openSubscribePanel();
           revealPanel('subscribe-panel');
-          syncToolbarState();
-        }});
-      }}
-      if ($askBtn) {{
-        $askBtn.addEventListener('click', function () {{
-          ensureGridView();
-          closeOtherPanels('ask-panel');
-          openAskPanel();
-          revealPanel('ask-panel');
           syncToolbarState();
         }});
       }}

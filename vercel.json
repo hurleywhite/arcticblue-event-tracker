@@ -16,9 +16,6 @@
     "api/enrich.py": {
       "maxDuration": 120
     },
-    "api/ask.py": {
-      "maxDuration": 60
-    },
     "api/calendars.py": {
       "maxDuration": 60
     },

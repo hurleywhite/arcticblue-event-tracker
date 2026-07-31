@@ -55,11 +55,10 @@ real drift risk: it is curated/synced from a Replit "EventsCal" app. Match by
 | `POST /api/enrich_one` | Per-event "Enrich" — fill missing fields | `event_state` **or** `manual_events` | Exa + Perplexity |
 | `POST /api/enrich` | Nightly batch enrich sweep | `manual_events` | Exa + Perplexity |
 | `POST /api/briefing` | Day-Of briefs + Deep outreach targets; `GET ?cron=1` overnight pre-gen | `event_state` / `manual_events` (`briefing_json`, `targets_json`) | **gpt-5.4** (web search) + **Exa** roster retrieval; Perplexity secondary |
-| `POST /api/ask` | "Ask AI" chat (persona-aware) | — | gpt-5.4 |
 | `GET /api/calendars` | Team iCal overlay (no OAuth) | — | — |
 | `POST /api/mcp` | MCP endpoint | — | — |
 
-**Models:** OpenAI **gpt-5.4** is the default for structuring/briefs/targets/ask
+**Models:** OpenAI **gpt-5.4** is the default for structuring/briefs/targets
 (requires `max_completion_tokens`, not `max_tokens`; has built-in web search).
 **Exa** is the retrieval/scrape engine (reliably reaches agenda/event pages
 where gpt-5.4's own search often can't). **Perplexity** is a secondary research
