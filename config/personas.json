@@ -301,12 +301,34 @@
       ],
       "outcome_target": "1 keynote/podcast/flagship-stage intro + 2 senior peer connections",
       "flags": [
-        "INDUSTRY = healthcare / healthtech / digital health / life sciences (Thor is the healthcare lead; insurance & regulated finance belong to Verma)",
+        "INDUSTRY = healthcare / healthtech / digital health / life sciences (Thor is the healthcare lead; insurance & regulated finance belong to Verma). BUT: healthcare BUYERS yes, clinical-practice conferences no. Target events where health-system and health-industry EXECUTIVES buy technology (HLTH, HIMSS, Millennium Alliance healthcare assemblies, Reuters Pharma commercial). Skip events for practising clinicians and care delivery — AIMed, GIANT Health NHS, BMJ Future Health, King's Fund, and anything whose audience is doctors, nurses, or clinical researchers rather than buyers (Hurley 2026-07-31).",
         "executive/strategic level — enterprise AI adoption at scale, governance frameworks, proving ROI, not deep technical implementation",
         "NYC/SF/DC/Las Vegas/Miami primary US; London/Zurich + Gulf (Riyadh/Dubai/Abu Dhabi) international; Mexico City + Sao Paulo secondary LatAm",
         "author/keynote-tier: check for open speaker route; weight prestige introductions",
         "NO HR / L&D / people events — they are Joe's audience. That includes ones whose blurb is all about AI while the event itself is HR: EANE HR Connect, CLO Exchange, iVentiv Learning Futures, PSHRA, CUPA-HR, ATD, UNLEASH (Hurley 2026-07-30). An AI summit that merely mentions workforce is still his."
-      ]
+      ],
+      "event_rules": {
+        "include_when": [
+          "healthcare, healthtech, digital health, life sciences or medtech AND the audience is executives/buyers (CIO, CTO, Chief AI Officer, Chief Medical Officer, Chief Digital Health Officer, health-system or payer leadership)"
+        ],
+        "exclude_when": [
+          "the audience is practising clinicians, physicians, nurses or clinical researchers",
+          "the event is about care delivery, clinical practice or clinical trials rather than buying and deploying technology"
+        ],
+        "include_examples": [
+          "HLTH USA",
+          "HIMSS AI in Healthcare Forum",
+          "Healthcare Technology & AI Transformation Assembly",
+          "Reuters Pharma Commercial Data & Tech"
+        ],
+        "exclude_examples": [
+          "AIMed",
+          "GIANT Health NHS National AI Conference",
+          "BMJ Future Health Europe",
+          "King's Fund Digital Health and AI Conference",
+          "International Conference on AI in Healthcare"
+        ]
+      }
     },
     "verma": {
       "name": "Anuraag Verma",

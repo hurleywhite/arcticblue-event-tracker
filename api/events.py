@@ -72,6 +72,87 @@ INGEST_SECRET = _env('EVENTS_INGEST_SECRET')
 # single-key setup when unset.
 INGEST_SECRET_CARLOS = _env('EVENTS_INGEST_SECRET_CARLOS')
 
+# Each speaker's Dust search agent can carry its OWN key, so an authenticated
+# GET returns only that person's targeting rules instead of the whole roster
+# (Hurley 2026-07-31). Carlos already worked this way for POST; this
+# generalises it. Any of these left unset simply means that agent doesn't
+# exist yet and the team key covers them.
+#
+# Jim deliberately has no dedicated agent — he is sourced by the team agent,
+# and his criteria are still served under ?person=jim so events are ready if
+# he wants them.
+PERSON_SECRETS = {}
+for _p in ('thor', 'verma', 'jerome', 'joe', 'carlos'):
+    _k = _env('EVENTS_INGEST_SECRET_' + _p.upper())
+    if _k:
+        PERSON_SECRETS[_p] = _k
+if INGEST_SECRET_CARLOS and 'carlos' not in PERSON_SECRETS:
+    PERSON_SECRETS['carlos'] = INGEST_SECRET_CARLOS
+
+NO_AGENT_PEOPLE = {'jim'}   # served on request, but no key of their own
+
+
+def _person_created_by(person):
+    """Attribution address for a person's own search agent. Overridable per
+    person via EVENTS_INGEST_<NAME>_CREATED_BY; Carlos keeps his existing
+    variable so nothing already deployed changes."""
+    if person == 'carlos':
+        return CARLOS_CREATED_BY
+    return _env('EVENTS_INGEST_' + person.upper() + '_CREATED_BY',
+                '%s@arcticblue.ai' % person)
+
+_PERSONAS_CACHE = None
+
+
+def _personas():
+    """Load config/personas.json (the single source of truth the tracker UI and
+    the Day-Of briefing already read). Returns {} if it can't be found, so a
+    GET degrades to just the deleted-events backlog rather than failing."""
+    global _PERSONAS_CACHE
+    if _PERSONAS_CACHE is not None:
+        return _PERSONAS_CACHE
+    here = os.path.dirname(os.path.abspath(__file__))
+    # Same resolution api/briefing.py uses (proven in production), plus a couple
+    # of fallbacks. vercel.json must also carry
+    #   "api/events.py": { "includeFiles": "config/personas.json" }
+    # or the file is not bundled and this silently returns {}.
+    root = os.path.abspath(os.path.join(here, '..'))
+    cands = [os.path.join(root, 'config', 'personas.json'),
+             os.path.join(here, 'config', 'personas.json'),
+             os.path.join(os.getcwd(), 'config', 'personas.json')]
+    for rel in cands:
+        try:
+            with open(os.path.normpath(rel), 'r') as fh:
+                _PERSONAS_CACHE = json.load(fh)
+                return _PERSONAS_CACHE
+        except Exception:
+            continue
+    _PERSONAS_CACHE = {}
+    return _PERSONAS_CACHE
+
+
+def _person_payload(key, p):
+    """One person's targeting rules, shaped for a search agent: what to look
+    for, where, and what to skip. Field names mirror personas.json so the
+    tracker and the agent never drift."""
+    return {
+        'person':            key,
+        'name':              p.get('name', key.title()),
+        'role':              p.get('role', ''),
+        'mode':              p.get('mode', ''),
+        'target_industries': p.get('icp_industries', []),
+        'buyer_titles':      p.get('buyer_titles', []),
+        'themes':            p.get('themes', []),
+        'signature_angles':  p.get('signature_angles', []),
+        'geo':               p.get('geo', []),
+        'geo_note':          'Preferred cities/regions. A strong enough event outside this list is '
+                             'still worth surfacing — treat geo as a preference, not a hard filter.',
+        'rules':             p.get('flags', []),
+        'event_rules':       p.get('event_rules', {}),
+        'outcome_target':    p.get('outcome_target', ''),
+        'has_dedicated_agent': key not in NO_AGENT_PEOPLE,
+    }
+
 DEFAULT_CREATED_BY = _env('EVENTS_INGEST_CREATED_BY', 'dust@arcticblue.ai')
 CARLOS_CREATED_BY  = _env('EVENTS_INGEST_CARLOS_CREATED_BY', 'carlos@arcticblue.ai')
 MAX_EVENTS = 50
@@ -1116,10 +1197,10 @@ def _send(handler, status, payload):
 
 
 def _match_secret(handler):
-    """Return which agent's key authenticated: 'carlos', 'team', or None.
-    Accepts the main EVENTS_INGEST_SECRET (team) or, if configured, the
-    separate EVENTS_INGEST_SECRET_CARLOS — so two Dust agents can each carry
-    their own key."""
+    """Return which agent's key authenticated: a person key ('thor', 'verma',
+    'jerome', 'joe', 'carlos'), 'team', or None. Accepts the main
+    EVENTS_INGEST_SECRET (team) or any configured EVENTS_INGEST_SECRET_<NAME>,
+    so every Dust agent can carry its own key."""
     provided = (handler.headers.get('X-API-Key', '') or handler.headers.get('x-api-key', '') or '').strip()
     if not provided:
         ah = handler.headers.get('Authorization', '')
@@ -1127,8 +1208,9 @@ def _match_secret(handler):
             provided = ah[7:].strip()
     if not provided:
         return None
-    if INGEST_SECRET_CARLOS and hmac.compare_digest(provided, INGEST_SECRET_CARLOS):
-        return 'carlos'
+    for _person, _secret in PERSON_SECRETS.items():
+        if _secret and hmac.compare_digest(provided, _secret):
+            return _person
     if INGEST_SECRET and hmac.compare_digest(provided, INGEST_SECRET):
         return 'team'
     return None
@@ -1139,25 +1221,65 @@ class handler(BaseHTTPRequestHandler):
         _send(self, 204, {})
 
     def do_GET(self):
-        # An authenticated GET returns the "don't bring this back" backlog, so a
-        # scraper / agent can see what NOT to include before it even submits
-        # (the POST path blocks these anyway, reporting "previously deleted").
-        if _match_secret(self) is None:
+        # An authenticated GET is the search agent's BRIEF: who to look for, and
+        # what never to bring back. Each person's Dust agent carries its own key
+        # and gets only its own targeting rules; the shared team key gets the
+        # whole roster, or one person via ?person=thor (Hurley 2026-07-31).
+        who = _match_secret(self)
+        if who is None:
             return _send(self, 405, {
                 'error': 'method not allowed',
                 'hint':  'POST a JSON event (or {"events":[...]}) with header X-API-Key. '
-                         'An authenticated GET returns the deleted-events backlog.',
+                         'An authenticated GET returns your search brief: targeting rules '
+                         'plus the deleted-events backlog.',
             })
         if not SERVICE_ROLE:
             return _send(self, 500, {'error': 'server not configured: SUPABASE_SERVICE_ROLE_KEY missing'})
+
+        try:
+            qs = urllib.parse.urlparse(self.path).query
+            asked = (urllib.parse.parse_qs(qs).get('person', [''])[0] or '').strip().lower()
+        except Exception:
+            asked = ''
+
+        people = (_personas() or {}).get('personas', {}) or {}
+        # A person's own key pins them to their own brief — ?person= is ignored
+        # so one agent's key can never pull another's rules. The team key may
+        # ask for anyone, which is how Jim gets sourced without his own agent.
+        if who != 'team':
+            wanted = [who]
+        elif asked:
+            wanted = [asked] if asked in people else []
+        else:
+            wanted = list(people.keys())
+
+        if asked and not wanted:
+            return _send(self, 404, {
+                'error': 'unknown person',
+                'known': sorted(people.keys()),
+            })
+
         backlog = _deleted_backlog()
-        _send(self, 200, {
+        out = {
+            'authenticated_as': who,
+            'people': [_person_payload(k, people[k]) for k in wanted if k in people],
             'deleted_events': [{'name': n, 'start_date': d or None} for n, d in backlog],
-            'count': len(backlog),
-            'note':  'Events a human deleted in the tracker. Do not submit these again. '
-                     'A dated entry blocks re-adds in that year only, so a later '
+            'deleted_count': len(backlog),
+            'count': len(backlog),   # kept for callers written against the old shape
+            'note':  'deleted_events are events a human deleted in the tracker. Do not submit '
+                     'these again. A dated entry blocks re-adds in that year only, so a later '
                      'edition of an annual event is still welcome.',
-        })
+            'how_to_use': 'Search for events matching each person in `people`: target_industries '
+                          'plus buyer_titles plus themes, honouring `event_rules.exclude_when` and '
+                          '`rules`. Treat `geo` as a preference, not a hard filter. Then POST what '
+                          'you find back to this same endpoint.',
+        }
+        if who == 'team' and not asked:
+            out['no_dedicated_agent'] = sorted(NO_AGENT_PEOPLE)
+            out['no_dedicated_agent_note'] = ('These people have no search agent of their own — '
+                                              'source them with the team key so events are ready '
+                                              'if they want them.')
+        _send(self, 200, out)
 
     def do_POST(self):
         try:
@@ -1254,12 +1376,13 @@ class handler(BaseHTTPRequestHandler):
                 if e and not row.get('end_date'):
                     row['end_date'] = e
 
-            # Carlos's agent: stamp his attribution server-side (override any
-            # payload value) so his events are reliably his — this is what makes
-            # them surface in Carlos's Planner section. The team agent keeps the
-            # default. created_by is never forced for the team key.
-            if agent == 'carlos':
-                row['created_by'] = CARLOS_CREATED_BY
+            # A person's own agent: stamp their attribution server-side
+            # (overriding any payload value) so the events are reliably theirs and
+            # surface in their Planner section. This started as a Carlos-only rule
+            # and now covers every per-person agent (Hurley 2026-07-31). The team
+            # key keeps the default — created_by is never forced for it.
+            if agent and agent != 'team':
+                row['created_by'] = _person_created_by(agent)
             else:
                 row.setdefault('created_by', DEFAULT_CREATED_BY)
             row.setdefault('external_id', 'dust')
