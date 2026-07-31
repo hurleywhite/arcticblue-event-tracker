@@ -946,6 +946,11 @@
     /* Should-Attend name picker — hover (or focus) the button to choose who
        it's for. Sits above the quickbar so it can't be clipped by the row. */
     .qa-sa-wrap { position: relative; display: inline-flex; }
+    /* Same type as the route pills beside it. It sat a size larger and read
+       as a heading for the row rather than one more button (Hurley). */
+    .modal-quickbar .qa-sa-btn {
+      min-height: 0; font-size: 0.73rem; font-weight: 600; padding: 5px 9px;
+    }
     .qa-sa-menu {
       position: absolute; top: 100%; left: 0; z-index: 40;
       display: none; flex-direction: column; gap: 2px; min-width: 178px;
@@ -1482,10 +1487,9 @@
       padding: 5px 9px; border-radius: 999px; cursor: pointer;
       border: 1px solid var(--ab-rule-strong);
       background: var(--ab-bg); color: var(--ab-fg-2);
-      transition: border-color 120ms, background 120ms, color 120ms;
+      transition: border-color 90ms ease;
     }
     .qa-step:hover { border-color: var(--ab-fg-3); color: var(--ab-fg); }
-    .qa-tick { font-size: 0.8em; line-height: 1; }
     .qa-n {
       margin-left: 3px; font-family: var(--ab-mono); font-size: 0.72em;
       font-weight: 700; opacity: 0.85;
@@ -3906,8 +3910,7 @@
     var _fuOn = !_endState && (has('Followed up') || !!_fuN);
     function _step(qa, label, on, cls, extra) {
       return '<button type="button" class="qa-step' + (on ? ' is-on' : '') + (cls ? ' ' + cls : '') +
-             '" data-qa="' + qa + '"' + (extra || '') + '>' +
-             (on ? '<span class="qa-tick" aria-hidden="true">✓</span>' : '') + label + '</button>';
+             '" data-qa="' + qa + '"' + (extra || '') + '>' + label + '</button>';
     }
     // Once an end state is set, the in-flight steps are spent: they read dark
     // and stop taking clicks. Leaving them live meant clicking "Followed up" on
@@ -3993,7 +3996,7 @@
       bStage.push('<span class="qa-step qa-good qa-static' + (_attOn ? ' is-on' : '') + '" title="' +
         (_attWho.length ? 'Attending: ' + esc(_attWho.join(', ')) + ' — set who in Edit'
                         : 'Nobody marked as attending yet — set who in Edit') + '">' +
-        (_attOn ? '<span class="qa-tick" aria-hidden="true">✓</span>' : '') + 'Attending</span>');
+        'Attending</span>');
     } else {
       bStage.push(_step('attending', 'Attending', _iAmAttending, 'qa-good',
         ' title="Attending is per-person — this marks whether YOU are going"'));
@@ -4020,18 +4023,20 @@
       // _suggestionsFor() skips events you're already flagged on — so this
       // writes the same list rather than inventing a parallel field.
       // Order is how often they actually go on stage.
+      // Any pipeline stage at all means that triage question is answered.
+      var _inPipeline = (rec.stage_tags || []).length > 0;
       var _saOn = (rec.interested || []).filter(Boolean);
       var _saHas = function (n) { return _saOn.some(function (x) { return String(x).toLowerCase() === n.toLowerCase(); }); };
       var _saPicked = SA_PEOPLE.filter(_saHas);
       var _saLabel = _saPicked.length
-        ? '✓ Should Attend — ' + esc(_saPicked.join(', '))
-        : (_saKind === 'human' ? '✓ Should Attend' : 'Should Attend');
+        ? 'Should Attend — ' + esc(_saPicked.join(', '))
+        : 'Should Attend';
       var _saMenu = SA_PEOPLE.map(function (n) {
         return '<button type="button" class="sa-pick' + (_saHas(n) ? ' on' : '') +
                '" data-sa-for="' + esc(n) + '">' + (_saHas(n) ? '✓ ' : '') + esc(n) + '</button>';
       }).join('');
-      bStage.push('<span class="qa-sa-wrap">' +
-        '<button type="button" class="qa' + ((_saKind === 'human' || _saPicked.length) ? ' on' : '') + '" data-qa="should-attend" title="' +
+      if (!_inPipeline) bStage.push('<span class="qa-sa-wrap">' +
+        '<button type="button" class="qa qa-sa-btn' + ((_saKind === 'human' || _saPicked.length) ? ' on' : '') + '" data-qa="should-attend" title="' +
         (_saKind === 'ai' ? 'AI-suggested — click to confirm as a team Should-Attend' : 'Flag Should Attend — tentative but high on the radar') + '">' +
         _saLabel + '</button>' +
         '<span class="qa-sa-menu" role="group" aria-label="Flag Should Attend for">' +
@@ -4134,12 +4139,6 @@
             _cnt.remove();
           }
           _pill.classList.toggle('is-on', !!_n);
-          if (_n && !_pill.querySelector('.qa-tick')) {
-            _pill.insertAdjacentHTML('afterbegin', '<span class="qa-tick" aria-hidden="true">\u2713</span>');
-          } else if (!_n) {
-            var _tk = _pill.querySelector('.qa-tick');
-            if (_tk) _tk.remove();
-          }
         }
         var _minus = $body.querySelector('[data-qa="followed-up-minus"]');
         if (_minus) {
@@ -4371,6 +4370,14 @@
       // So the click now repaints only what it changed, and the full rebuild is
       // deferred until the clicking stops.
       _qaLightRefresh(rec, qa);
+      // Stage toggles: the bar IS the whole change, and _qaLightRefresh has
+      // already repainted it synchronously from rec. Rebuilding the modal
+      // 500ms later only made the click feel late (Hurley 2026-07-31).
+      // Follow-ups and interest DO touch other sections, so they still settle.
+      if (qa === 'submitted' || qa === 'outreach' || qa === 'booked' || qa === 'rejected') {
+        if (window.opsRefresh) window.opsRefresh();
+        return;
+      }
       if (_qaFullTimer) clearTimeout(_qaFullTimer);
       _qaFullTimer = setTimeout(function () {
         _qaFullTimer = null;
