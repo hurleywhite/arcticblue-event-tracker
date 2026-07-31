@@ -2769,6 +2769,24 @@ def build():
       font-family: var(--ab-mono); font-size: 0.64rem; padding: 2px 7px;
       border-radius: 999px; border: 1px solid var(--ab-rule); color: var(--ab-fg-2);
     }}
+    /* x N chase count riding inside the "Followed up" pill. */
+    .q-n {{ margin-left: 4px; font-weight: 700; opacity: 0.75; }}
+    /* Month divider inside the "To apply" list — the queue is chronological,
+       so these are the only thing telling you where one month ends. */
+    .q-month {{
+      font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--ab-fg-3);
+      padding: 12px 2px 4px; border-bottom: 1px solid var(--ab-rule); margin-bottom: 4px;
+    }}
+    .queue-section .q-month:first-child {{ padding-top: 2px; }}
+    /* Per-person discs on the card corner mark. */
+    .ops-who-dot {{
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 15px; height: 15px; padding: 0 3px; margin-left: 2px;
+      border-radius: 999px; color: #fff;
+      font-family: var(--ab-sans); font-size: 0.52rem; font-weight: 700; line-height: 1;
+    }}
+    .ops-who-more {{ margin-left: 3px; font-family: var(--ab-mono); font-size: 0.56rem; color: var(--ab-fg-3); }}
     .q-deadline {{ font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-3); }}
     .q-deadline.soon {{ color: #d64545; font-weight: 600; }}
     .queue-actions {{ display: flex; flex-direction: column; gap: 6px; align-items: stretch; }}
@@ -4355,6 +4373,11 @@ def build():
       ? _spentStep('Submitted', 'Retired \u2014 this event has reached an outcome')
       : _step('submitted', 'Submitted', has('Submitted'), 'qa-flight'));
     bStage.push('<span class="qa-arrow" aria-hidden="true">\u2192</span>');
+    bStage.push(_endState
+      ? _spentStep('Initial outreach', 'Retired \u2014 this event has reached an outcome')
+      : _step('outreach', 'Initial outreach', has('Initial outreach'), 'qa-flight',
+              ' title="' + esc('First approach to the organiser \u2014 before any chasing') + '"'));
+    bStage.push('<span class="qa-arrow" aria-hidden="true">\u2192</span>');
     // Clicking this LOGS a chase dated today rather than flipping a bare tag:
     // the \u00d7N count comes from the log, so a tag-only toggle left the step stuck
     // lit and the button looked dead (Hurley 2026-07-30). Clicking again undoes
@@ -4577,7 +4600,7 @@ def build():
       wireQuickBar(rec);
     }}
     function _abRetireInFlight(tags) {{
-      return tags.filter(function (s) {{ return s !== 'Submitted' && s !== 'Followed up'; }});
+      return tags.filter(function (s) {{ return s !== 'Submitted' && s !== 'Initial outreach' && s !== 'Followed up'; }});
     }}
     window.__qaClick = function (e) {{
       // Angela picked a NAME under Should Attend -> toggle them on `interested`,
@@ -4740,8 +4763,10 @@ def build():
         rec.stage_tags = _fuTags;
         patch.status_tags = _fuTags;
       }}
-      else if (qa === 'submitted' || qa === 'booked' || qa === 'rejected') {{
-        var stage = qa === 'submitted' ? 'Submitted' : (qa === 'booked' ? 'Booked' : 'Rejected');
+      else if (qa === 'submitted' || qa === 'outreach' || qa === 'booked' || qa === 'rejected') {{
+        var stage = qa === 'submitted' ? 'Submitted'
+                  : (qa === 'outreach' ? 'Initial outreach'
+                  : (qa === 'booked' ? 'Booked' : 'Rejected'));
         var tags = (rec.stage_tags || []).slice();
         var idx = tags.indexOf(stage);
         if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
@@ -4834,7 +4859,7 @@ def build():
       return '<select class="me-input" data-edit="status">' + opts + '</select>';
     }}
     var stages = rec.stage_tags || [];
-    var order = window.opsStageOrder || ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
+    var order = window.opsStageOrder || ['Submitted', 'Initial outreach', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
     // Pipeline chips = the SPEAKING track only. "Attending" is managed per-person
     // via the Attending bubbles below (which sync the Attending stage), not as a
     // manual pipeline toggle.
@@ -6442,6 +6467,11 @@ def build():
     // with Attending as the alternate positive outcome.
     var STAGE_TAGS = [
       {{ key: 'Submitted',    dot: '#0ea5e9', bg: '#bae6fd', fg: '#075985' }},
+      // Initial outreach — the first approach to the organiser, before any
+      // chasing (Hurley 2026-07-31). Angela was recording "I emailed them" as
+      // a follow-up, which made the x N chase count read one too high on every
+      // event and hid whether anyone had made first contact at all.
+      {{ key: 'Initial outreach', dot: '#6366f1', bg: '#e0e7ff', fg: '#3730a3' }},
       {{ key: 'Followed up',  dot: '#d97706', bg: '#fde68a', fg: '#92400e' }},
       {{ key: 'Meeting held', dot: '#8b5cf6', bg: '#ddd6fe', fg: '#5b21b6' }},
       {{ key: 'Booked',       dot: '#047857', bg: '#bbf7d0', fg: '#14532d' }},
@@ -6453,7 +6483,7 @@ def build():
     // "Most important" ranking for a single calendar tint when an event
     // carries several stages: a win (Booked) trumps everything, then
     // Attending, then progress backwards.
-    var STAGE_DISPLAY_RANK = ['Booked', 'Attending', 'Rejected', 'Meeting held', 'Followed up', 'Submitted', 'Identified'];
+    var STAGE_DISPLAY_RANK = ['Booked', 'Attending', 'Rejected', 'Meeting held', 'Followed up', 'Initial outreach', 'Submitted', 'Identified'];
 
     function stageStyle(key) {{
       var s = STAGE_BY_KEY[key];
@@ -6516,7 +6546,39 @@ def build():
     // the thing they're in the middle of (Hurley 2026-07-30). Rejected is NOT
     // engagement: the door is shut, so it never pulls an event onto a list.
     // 'Identified' isn't either — it's a bookmark, not an approach.
-    var _LIVE_STAGES = {{ 'Submitted': 1, 'Followed up': 1, 'Meeting held': 1, 'Booked': 1, 'Attending': 1 }};
+    var _LIVE_STAGES = {{ 'Submitted': 1, 'Initial outreach': 1, 'Followed up': 1, 'Meeting held': 1, 'Booked': 1, 'Attending': 1 }};
+    // ── One colour per person ──────────────────────────────────────
+    // Used everywhere a name is drawn as a circle or a chip: the switcher,
+    // the activity feed, the Lineup team rows, the Queue's interested chips
+    // and the card corner mark. Angela reads the Queue by WHO flagged what,
+    // and eight identical blue discs made that a name-by-name read rather
+    // than a glance (Hurley 2026-07-31).
+    //
+    // Jim and Scott are deliberately both grey: they aren't in the speaking
+    // rotation, so a colour of their own would imply a pipeline they don't
+    // have. Their initials (JC / S) still tell them apart.
+    var AB_PERSON_COLORS = {{
+      angela: '#db2777',   // pink — hers is the one that has to be findable
+      thor:   '#1fa0dc',   // brand blue, unchanged
+      carlos: '#ea580c',
+      hurley: '#7c3aed',
+      jerome: '#059669',
+      joe:    '#0891b2',
+      verma:  '#4f46e5',
+      jim:    '#6b7280',
+      scott:  '#6b7280'
+    }};
+    // Keyed on FIRST name, lowercased — the same key every other surface
+    // folds names down to, so "Jerome Wallace" and "jerome" land together.
+    window.abPersonColor = function (name) {{
+      var k = String(name || '').trim().toLowerCase().split(/\s+/)[0];
+      return AB_PERSON_COLORS[k] || '#1271a8';
+    }};
+    // Chip strength: the colour at 12% as the fill, full strength as the text.
+    window.abPersonChip = function (name) {{
+      var c = window.abPersonColor(name);
+      return 'background:' + c + '1f;color:' + c + ';';
+    }};
     window.abLiveStage = function (tags) {{
       tags = tags || [];
       // Stages accumulate, so a rejected event still carries the 'Submitted'
@@ -6883,7 +6945,7 @@ def build():
       var stages = stageTagsOf(st);
       var rows = [];
       // Speaking track — the furthest active speaking stage, with the speaker.
-      var SPEAK = ['Booked', 'Meeting held', 'Followed up', 'Submitted'];
+      var SPEAK = ['Booked', 'Meeting held', 'Followed up', 'Initial outreach', 'Submitted'];
       var spStage = null;
       for (var i = 0; i < SPEAK.length; i++) {{ if (stages.indexOf(SPEAK[i]) !== -1) {{ spStage = SPEAK[i]; break; }} }}
       // The roster names people on purpose — that IS the section.
@@ -7132,7 +7194,7 @@ def build():
       // are unmistakable side by side.
       if (who.show && tags.indexOf('Booked') !== -1)        mic = ['full',  '#15803d', 'Booked'];
       else if (who.show && tags.indexOf('Rejected') !== -1) mic = ['empty', '#991b1b', 'Rejected'];
-      else if (who.show && (tags.indexOf('Submitted') !== -1 || tags.indexOf('Followed up') !== -1 || tags.indexOf('Meeting held') !== -1))
+      else if (who.show && (tags.indexOf('Submitted') !== -1 || tags.indexOf('Initial outreach') !== -1 || tags.indexOf('Followed up') !== -1 || tags.indexOf('Meeting held') !== -1))
                                                             mic = ['half',  '#ca8a04', 'Submitted'];
       if (!mic && !attOn) return '';
       // The ticket is drawn FIRST so it sits to the LEFT: the mic is the fixed
@@ -7176,9 +7238,17 @@ def build():
           return (w[0].charAt(0) + (w.length > 1 ? w[w.length - 1].charAt(0) : '')).toUpperCase();
         }});
       var who2 = pool ? ' \u2014 ' + pool : '';
+      // Was one grey run of letters ("JW V"). Now a disc each in that person's
+      // colour, so the card says who it's for without being read (Hurley).
+      var _names = String(pool || '').split(/\s*(?:,|;|&| and )\s*/)
+        .map(function (x) {{ return String(x || '').trim(); }}).filter(Boolean);
       var initHtml = inits.length
-        ? '<span class="ops-stage-who" aria-hidden="true">' + escapeHtml(inits.slice(0, 3).join(' ')) +
-          (inits.length > 3 ? '+' + (inits.length - 3) : '') + '</span>' : '';
+        ? '<span class="ops-stage-who" aria-hidden="true">' +
+          inits.slice(0, 3).map(function (t, i) {{
+            return '<span class="ops-who-dot" style="background:' + window.abPersonColor(_names[i] || '') + '">' +
+                   escapeHtml(t) + '</span>';
+          }}).join('') +
+          (inits.length > 3 ? '<span class="ops-who-more">+' + (inits.length - 3) + '</span>' : '') + '</span>' : '';
       return '<span class="ops-stage-ico" title="' + escapeHtml(label + who2) + '" aria-label="' + escapeHtml(label + who2) + '" role="img">' +
              '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>' + initHtml + '</span>';
     }}
@@ -7202,7 +7272,7 @@ def build():
       }} else if (stages.indexOf('Rejected') !== -1 && _spkShow) {{
         // Rejected to speak — a terminal "no" that wins over a pending Submitted.
         bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + '</span>' }});
-      }} else if (_spkShow && (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1)) {{
+      }} else if (_spkShow && (stages.indexOf('Submitted') !== -1 || stages.indexOf('Initial outreach') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1)) {{
         // Angela records WHEN the application went out (event_state/manual
         // .submitted_at) — surface it on her status line only.
         var _subDate = (window.isAngelaUser && window.isAngelaUser() && st.submitted_at)
@@ -8417,6 +8487,7 @@ def build():
       'Identified':   'Logged as a candidate — we have NOT applied yet. (not submitted)',
       'Submitted':    'A speaking application has been sent.',
       'Followed up':  'We chased/nudged after submitting.',
+      'Initial outreach': 'First approach to the organizer \u2014 before any chasing.',
       'Meeting held': 'An intro call / meeting with the organizer happened.',
       'Booked':       'Confirmed to speak.',
       'Attending':    'Going to the event (not speaking).'
@@ -8846,7 +8917,7 @@ def build():
             var _ps = tagsS.split('|');
             // Rejected is terminal — never "pending" (matches _iPending's count).
             var _isPend = _ps.indexOf('Rejected') === -1 &&
-              (_ps.indexOf('Submitted') !== -1 || _ps.indexOf('Followed up') !== -1 || _ps.indexOf('Meeting held') !== -1) && _ps.indexOf('Booked') === -1;
+              (_ps.indexOf('Submitted') !== -1 || _ps.indexOf('Initial outreach') !== -1 || _ps.indexOf('Followed up') !== -1 || _ps.indexOf('Meeting held') !== -1) && _ps.indexOf('Booked') === -1;
             var _mine = _attSupport;
             if (_isPend && !_mine) {{
               var _sp = (card.dataset.speaker || '').toLowerCase();
@@ -9061,7 +9132,7 @@ def build():
         // nothing in flight (Hurley 2026-07-29). It used to keep counting as
         // Pending because only Booked closed the application out.
         if (stages.indexOf('Rejected') !== -1) return false;
-        var pend = (stages.indexOf('Submitted') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) && stages.indexOf('Booked') === -1;
+        var pend = (stages.indexOf('Submitted') !== -1 || stages.indexOf('Initial outreach') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1) && stages.indexOf('Booked') === -1;
         if (!pend) return false;
         return _support || speakerTokens(speaker || '').indexOf(meFirst) !== -1;
       }}
@@ -9293,6 +9364,9 @@ def build():
         attendees: ((st && st.attendees) || base.attendees || []).slice ? ((st && st.attendees) || base.attendees || []).slice() : [],
         outreach_assignees: (outr && outr.slice) ? outr.slice() : [],
         outreach_note: (st && st.outreach_note) || base.outreach_note || '',
+        // Drives the \u00d7N chase count on the Queue's stage pills. Explicit
+        // whitelist \u2014 a field missing here is invisible to every Queue surface.
+        follow_ups: (st && st.follow_ups) || base.follow_ups || [],
         speaker_topic: (st && st.speaker_topic) || base.speaker_topic || '',
         // Manual organiser group. On a CATALOG event this lives on the
         // event_state row, so reading base.* alone made every hand-linked
@@ -9458,14 +9532,19 @@ def build():
       if (card && card._modalRec && window.openEventModal) window.openEventModal(card._modalRec);
     }}
 
-    function qStagePills(stages) {{
+    function qStagePills(stages, it) {{
       if (!stages || !stages.length) return '<span class="q-stage-pill">Not started</span>';
+      // How many times we've chased, straight off the log — so the Queue row
+      // says "Followed up x3" without Angela opening the event to count them
+      // (Hurley 2026-07-31). One chase needs no number.
+      var _n = (it && window.abFollowUps) ? window.abFollowUps(it).length : 0;
       // Attending is the one stage that's a settled fact rather than a step
       // still in flight, so it gets a tick — same mark the modal's quick-action
       // buttons use for a stage that's done (Hurley 2026-07-30).
       return stages.map(function (s) {{
         var lab = escapeHtml(s);
         if (s === 'Attending') lab = '✓ ' + lab;
+        if (s === 'Followed up' && _n > 1) lab += '<span class="q-n">\u00d7' + _n + '</span>';
         return '<span class="q-stage-pill" style="' + stageStyle(s) + '">' + lab + '</span>';
       }}).join('');
     }}
@@ -9827,7 +9906,7 @@ def build():
     function renderQueue() {{
       var host = document.getElementById('ops-queue');
       if (!host) return;
-      var order = window.opsStageOrder || ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
+      var order = window.opsStageOrder || ['Submitted', 'Initial outreach', 'Followed up', 'Meeting held', 'Booked', 'Attending'];
       // Queue = events still needing an application. Count only interested
       // people NOT already booked/attending (window.visibleInterested).
       // queue_dismissed = Angela said "not relevant" (the × next to Mark
@@ -9840,7 +9919,11 @@ def build():
         return '<span class="q-deadline' + (soon ? ' soon' : '') + '">&#9203; ' + escapeHtml(it.deadline) + '</span>';
       }}
       function rowHtml(it, actions) {{
-        var ints = window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).map(function (n) {{ return '<span class="q-int-chip">' + escapeHtml(n) + '</span>'; }}).join('');
+        // Each name in its own colour — this is the "who is this for?" read
+        // Angela makes down the whole queue (Hurley 2026-07-31).
+        var ints = window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).map(function (n) {{
+          return '<span class="q-int-chip" style="' + window.abPersonChip(n) + '">' + escapeHtml(n) + '</span>';
+        }}).join('');
         var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>' : '';
         var loc = [it.location].filter(Boolean).join(' &middot; ');
         var _cf = String(it.conflict_note || '').trim();
@@ -9849,7 +9932,7 @@ def build():
             '<div class="queue-main">' +
               '<button class="queue-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
-              '<div class="queue-chips">' + ints + qStagePills(it.stages) + dec + deadlineHtml(it) + '</div>' +
+              '<div class="queue-chips">' + ints + qStagePills(it.stages, it) + dec + deadlineHtml(it) + '</div>' +
               (_cf ? '<span class="ops-clash">&#9888; ' + escapeHtml(_cf) + '</span>' : '') +
             '</div>' +
             // No conflict button here (Hurley 2026-07-30). A conflict is set
@@ -9863,16 +9946,16 @@ def build():
       var booked = [], submitted = [], toApply = [];
       items.forEach(function (it) {{
         if (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Attending') !== -1) booked.push(it);
-        else if (it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1) submitted.push(it);
+        else if (it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Initial outreach') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1) submitted.push(it);
         else toApply.push(it);
       }});
-      function bySoonThenDate(a, b) {{
-        var as = isDeadlineSoon(a.deadline) ? 0 : 1, bs = isDeadlineSoon(b.deadline) ? 0 : 1;
-        if (as !== bs) return as - bs;
-        return a.sort - b.sort;
-      }}
-      toApply.sort(bySoonThenDate); submitted.sort(bySoonThenDate);
-      booked.sort(function (a, b) {{ return a.sort - b.sort; }});
+      // Chronological by EVENT DATE throughout (Hurley 2026-07-31). It used to
+      // float deadline-soon rows to the top of their section, so the order
+      // shifted under Angela as deadlines came and went and nothing stayed
+      // where she left it. The deadline chip still highlights when one is
+      // close — it just no longer reorders the list.
+      function byDate(a, b) {{ return a.sort - b.sort; }}
+      toApply.sort(byDate); submitted.sort(byDate); booked.sort(byDate);
 
       function markStage(it, stage) {{
         var tags = it.stages.slice();
@@ -9881,11 +9964,27 @@ def build():
         opsQuickWrite(it.kind, it.key, {{ status_tags: tags }});
       }}
 
-      var html = '<p class="queue-intro"><strong>Angela&#39;s application queue.</strong> Every event a teammate flagged as &ldquo;apply for me,&rdquo; grouped by where it stands. Add more from any event &rarr; <em>Edit</em> &rarr; &ldquo;Interested,&rdquo; or from the Planner&#39;s coverage gaps.</p>';
+      var html = '<p class="queue-intro"><strong>Angela&#39;s application queue:</strong> Every event a teammate marked as interested, grouped by event dates; followed by events that are in progress.</p>';
 
-      function section(title, list, kind) {{
+      // Month dividers inside a section — "grouped by event dates" (Hurley
+      // 2026-07-31). Only for the to-apply list: In progress and Booked are
+      // short and read better as one run.
+      function monthRows(list, render) {{
+        var out = '', last = null;
+        list.forEach(function (it) {{
+          var m = _sugMonth(it.sort || 0);
+          if (m.key !== last) {{
+            last = m.key;
+            out += '<div class="q-month">' + escapeHtml(m.label) + '</div>';
+          }}
+          out += render(it);
+        }});
+        return out;
+      }}
+
+      function section(title, list, kind, byMonth) {{
         if (!list.length) return '';
-        var rows = list.map(function (it) {{
+        function one(it) {{
           return rowHtml(it, function (x) {{
             var btns = '';
             if (kind === 'toApply') {{
@@ -9898,15 +9997,16 @@ def build():
             // "Details" now sits inline next to the event name (see rowHtml).
             return btns;
           }});
-        }}).join('');
+        }}
+        var rows = byMonth ? monthRows(list, one) : list.map(one).join('');
         return '<div class="queue-section"><div class="queue-sec-head"><span class="queue-sec-title">' + title + '</span><span class="queue-sec-count">' + list.length + '</span></div>' + rows + '</div>';
       }}
 
       if (!items.length) {{
         html += '<div class="queue-empty">Nobody has flagged an event yet.<br>Open any event &rarr; <strong>Edit</strong> &rarr; tick a name under &ldquo;Interested,&rdquo; and it lands here.</div>';
       }} else {{
-        html += section('To apply', toApply, 'toApply');
-        html += section('Submitted / in progress', submitted, 'submitted');
+        html += section('To apply', toApply, 'toApply', true);
+        html += section('In Progress', submitted, 'submitted');
         html += section('Booked / attending', booked, 'booked');
       }}
       host.innerHTML = html;
@@ -10020,6 +10120,121 @@ def build():
       _wnSave(s);
     }}
     function _wnDismiss(item) {{ _wnDismissMany([item]); }}
+
+    // ── Change log: WHAT changed, not just "the row was touched" ────────
+    // event_state carries updated_at / updated_by but no history, so a row
+    // that moved tells you who and when and nothing else — which is why the
+    // feed could only ever report stage changes (those are readable off the
+    // current row). We keep a per-person snapshot of every row in
+    // localStorage and diff it on each load, turning "this row moved" into
+    // "Verma flagged interest" / "Angela rewrote the notes".
+    //
+    // Detected changes go into a rolling 7-day log rather than being read
+    // off the snapshot directly: the snapshot catches up the instant we
+    // save it, so without the log a change would appear once and vanish on
+    // the next refresh instead of staying up for the week.
+    //
+    // Nothing here is written to the DB. It is per-browser by nature — a
+    // change made while you were away is caught on your next load, which is
+    // exactly the "since I last looked" window Angela reads this for.
+    var _WN_FIELDS = [
+      {{ k: 'interested',    f: 'interest',  list: 1 }},
+      {{ k: 'attendees',     f: 'attend',    list: 1 }},
+      {{ k: 'notes',         f: 'notes'   }},
+      {{ k: 'poc_name',      f: 'contact' }},
+      {{ k: 'poc_email',     f: 'contact' }},
+      {{ k: 'poc_note',      f: 'contact' }},
+      {{ k: 'conflict_note', f: 'clash'   }}
+    ];
+    function _wnSig(row) {{
+      var s = {{ _s: stageTagsOf(row).join('|') }};
+      _WN_FIELDS.forEach(function (fd) {{
+        var v = row[fd.k];
+        s[fd.k] = fd.list
+          ? (v || []).map(function (x) {{ return String(x || '').trim().toLowerCase(); }}).filter(Boolean).sort().join(',')
+          : String(v == null ? '' : v).trim();
+      }});
+      return s;
+    }}
+    // "verma,joe" -> "Verma & Joe"
+    function _wnNames(csv) {{
+      var ns = String(csv || '').split(',').filter(Boolean).map(function (n) {{
+        return n.trim().split(/\\s+/).map(function (w) {{ return w.charAt(0).toUpperCase() + w.slice(1); }}).join(' ');
+      }});
+      if (ns.length <= 1) return ns[0] || '';
+      // Plain '&', not '&amp;' — the feed escapes every row it renders, so an
+      // entity here comes out doubled as a literal "&amp;" on screen.
+      return ns.slice(0, -1).join(', ') + ' & ' + ns[ns.length - 1];
+    }}
+    function _wnSplit(a, b) {{
+      var A = String(a || '').split(',').filter(Boolean), B = String(b || '').split(',').filter(Boolean);
+      return {{ added: B.filter(function (x) {{ return A.indexOf(x) === -1; }}).join(','),
+               gone:  A.filter(function (x) {{ return B.indexOf(x) === -1; }}).join(',') }};
+    }}
+    // %E stands in for the event name — filled in when the row is rendered,
+    // so a renamed event still reads correctly a few days later.
+    function _wnDiff(prev, cur) {{
+      var out = [];
+      if (prev._s !== cur._s) {{
+        var d = _wnSplit(prev._s.split('|').join(','), cur._s.split('|').join(','));
+        var low = function (s) {{ return _wnNames(s).toLowerCase(); }};
+        if (d.added) out.push({{ f: 'status', txt: 'marked %E as ' + low(d.added) }});
+        else if (d.gone) out.push({{ f: 'status', txt: 'cleared ' + low(d.gone) + ' on %E' }});
+      }}
+      if (prev.interested !== cur.interested) {{
+        var di = _wnSplit(prev.interested, cur.interested);
+        if (di.added) out.push({{ f: 'interest', txt: _wnNames(di.added) + ' flagged interest in %E' }});
+        else if (di.gone) out.push({{ f: 'interest', txt: _wnNames(di.gone) + ' dropped interest in %E' }});
+      }}
+      if (prev.attendees !== cur.attendees) {{
+        var da = _wnSplit(prev.attendees, cur.attendees);
+        if (da.added) out.push({{ f: 'attend', txt: _wnNames(da.added) + ' is down to attend %E' }});
+        else if (da.gone) out.push({{ f: 'attend', txt: _wnNames(da.gone) + ' is no longer attending %E' }});
+      }}
+      if (prev.notes !== cur.notes) {{
+        out.push({{ f: 'notes', txt: (!prev.notes ? 'added notes to %E'
+                                    : (!cur.notes ? 'cleared the notes on %E' : 'updated the notes on %E')) }});
+      }}
+      var pc = [prev.poc_name, prev.poc_email, prev.poc_note].join('\\u0001');
+      var cc = [cur.poc_name, cur.poc_email, cur.poc_note].join('\\u0001');
+      if (pc !== cc) out.push({{ f: 'contact', txt: (!prev.poc_name && cur.poc_name ? 'added a contact for %E' : 'updated the contact for %E') }});
+      if (prev.conflict_note !== cur.conflict_note && cur.conflict_note) out.push({{ f: 'clash', txt: 'flagged a clash on %E' }});
+      return out;
+    }}
+    function _wnScanChanges(stateRows, manualRows) {{
+      var s = _wnState();
+      var snap = s.snap || {{}}, log = s.chlog || [];
+      var cutoff = new Date(Date.now() - 7 * 86400000).toISOString();
+      var bootstrap = !s.snapAt;   // first load for this person — nothing to diff yet
+      var have = {{}};
+      log.forEach(function (e) {{ have[e.id] = 1; }});
+      var next = {{}};
+      function scan(rows, kind, keyOf) {{
+        (rows || []).forEach(function (r) {{
+          var key = keyOf(r); if (key == null) return;
+          var k = (kind === 'manual' ? 'm' : 'c') + key;
+          var sig = _wnSig(r);
+          next[k] = sig;
+          if (bootstrap) return;
+          var prev = snap[k]; if (!prev) return;   // brand new row — the "added" feed row covers it
+          var ts = r.updated_at || r.created_at || '';
+          if (!ts || ts < cutoff) return;
+          _wnDiff(prev, sig).forEach(function (d) {{
+            var id = 'd:' + k + ':' + ts + ':' + d.f;
+            if (have[id]) return;
+            have[id] = 1;
+            log.push({{ id: id, ts: ts, kind: kind, key: key, f: d.f, txt: d.txt,
+                       who: firstNameFromEmail(r.updated_by || r.created_by || '') || '' }});
+          }});
+        }});
+      }}
+      scan(stateRows,  'catalog', function (r) {{ return r.event_num; }});
+      scan(manualRows, 'manual',  function (r) {{ return r.id; }});
+      s.snap = next;
+      s.snapAt = new Date().toISOString();
+      s.chlog = log.filter(function (e) {{ return e.ts >= cutoff; }});
+      _wnSave(s);
+    }}
     // Compact relative time for the activity feed ("2h", "3d", "1w").
     function _relTime(ts) {{
       try {{
@@ -10061,7 +10276,7 @@ def build():
         _radar = {{}};
         opsAllItems().forEach(function (it) {{
           var _sp = abFold(it.speaker || '').split(/[,;/&]| and |\\bplus\\b/).some(function (s) {{ return s.trim().split(/\\s+/)[0] === me; }});
-          var _pend = _sp && (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1);
+          var _pend = _sp && (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Initial outreach') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1);
           var _on = _pend
             || (it.interested || []).some(function (n) {{ return abFold(n).split(/\\s+/)[0] === me; }})
             || (it.attendees || []).some(function (a) {{ return abFold(a).split(/\\s+/)[0] === me; }});
@@ -10070,13 +10285,30 @@ def build():
       }}
       function _onRadar(kind, key) {{ return !_radar || !!_radar[kind + ':' + key]; }}
       var items = [];
-      // Real pipeline progress only — a teammate (never the automated
-      // Enrichment writer) advanced the event to Followed up / Meeting held /
-      // Booked. Not every edit: priority tweaks, notes, archiving etc. don't
-      // belong here — this is "here's what actually moved," not an edit log.
+      // Everything that actually changed since your last load — interest,
+      // status, attendance, notes, contacts, clashes (Hurley 2026-07-31).
+      // _wnScanChanges did the diffing; this just renders it.
+      var _logSeen = {{}};
+      (st.chlog || []).forEach(function (e) {{
+        if (!e.ts || e.ts < cutoff) return;
+        // Claim this (row, timestamp) either way, so the stage fallback below
+        // can't re-report a change we already have — or one you dismissed.
+        _logSeen[(e.kind === 'manual' ? 'm' : 'c') + e.key + ':' + e.ts] = 1;
+        if (dis[e.id]) return;
+        var who = e.who || '';
+        if (!who || who.toLowerCase() === me || who.toLowerCase() === 'enrichment') return;
+        var rec = e.kind === 'manual' ? byMid[e.key] : byNum[e.key];
+        if (!rec) return;
+        var det = String(e.txt || '').replace('%E', rec.name || 'an event');
+        items.push({{ id: e.id, ts: e.ts, kind: e.kind, key: e.key, type: 'update', who: who,
+          label: who + ' ' + det, detail: det }});
+      }});
+      // Fallback for the first load on a browser, before there's a snapshot to
+      // diff against: real pipeline progress readable off the current row.
       var _WN_STAGES = {{ 'Followed up': 1, 'Meeting held': 1, 'Booked': 1 }};
       (_lastStateRows || []).forEach(function (r) {{
         if (!r.updated_at || r.updated_at < cutoff) return;
+        if (_logSeen['c' + r.event_num + ':' + r.updated_at]) return;
         var whoF = firstNameFromEmail(r.updated_by || '') || '';
         if (!whoF || whoF.toLowerCase() === me || whoF.toLowerCase() === 'enrichment') return;
         var stg = stageTagsOf(r).filter(function (s) {{ return _WN_STAGES[s]; }});
@@ -10640,7 +10872,7 @@ def build():
         if (showWho && it.who && it.who.length) {{
           whoHtml = '<span class="qrow-who" title="' + escapeHtml(it.who.join(', ')) + '">' +
             it.who.slice(0, 4).map(function (n) {{
-              return '<span class="wn-avatar wn-avatar--sm">' + escapeHtml(_wnInitials(n)) + '</span>';
+              return '<span class="wn-avatar wn-avatar--sm" style="background:' + window.abPersonColor(n) + '" title="' + escapeHtml(n) + '">' + escapeHtml(_wnInitials(n)) + '</span>';
             }}).join('') +
             (it.who.length > 4 ? '<span class="qrow-who-more">+' + (it.who.length - 4) + '</span>' : '') +
             '</span>';
@@ -10718,7 +10950,7 @@ def build():
             ? '<strong>' + escapeHtml(w.author || 'Someone') + '</strong> mentioned you on <strong>' + escapeHtml(w.eventName || 'an event') + '</strong>'
             : '<strong>' + escapeHtml(w.author || 'Someone') + '</strong> commented on <strong>' + escapeHtml(w.eventName || 'an event') + '</strong>';
           return '<div class="wn-comment' + (w.mention ? ' is-mention' : '') + '" role="button" tabindex="0" data-wn-open="' + o.i + '">' +
-              '<span class="wn-avatar-wrap"><span class="wn-avatar">' + escapeHtml(_wnInitials(w.author)) + '</span>' +
+              '<span class="wn-avatar-wrap"><span class="wn-avatar" style="background:' + window.abPersonColor(w.author) + '">' + escapeHtml(_wnInitials(w.author)) + '</span>' +
                 '<span class="wn-chat-badge" title="Chat comment" aria-label="chat comment"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg></span></span>' +
               '<div class="wn-comment-main">' +
                 '<div class="wn-comment-head">' + head + '<span class="wn-time">' + escapeHtml(_relTime(w.ts)) + '</span></div>' +
@@ -10747,7 +10979,7 @@ def build():
           // updates sitting behind the 8-item display cap.
           return '<div class="wn-group collapsed">' +
               '<div class="wn-group-head" role="button" tabindex="0">' +
-                '<span class="wn-avatar wn-avatar--sm">' + escapeHtml(_wnInitials(who)) + '</span>' +
+                '<span class="wn-avatar wn-avatar--sm" style="background:' + window.abPersonColor(who) + '">' + escapeHtml(_wnInitials(who)) + '</span>' +
                 '<span class="wn-group-name">' + escapeHtml(who) + '</span>' +
                 '<span class="wn-group-count">' + list.length + ' ' +
                   (list.every(function (o) {{ return o.w.ask; }})
@@ -10770,99 +11002,19 @@ def build():
           '</div>' +
           _cardsHtml + _groupsHtml + '</div>';
       }}
-      // ── Team Interests / Attendance / Pipeline ──────────────────────
-      // Three roll-ups BY PERSON, because "who is actually interested, who is
-      // going, and what's in flight for whom" was only answerable by opening
-      // events one at a time (Hurley 2026-07-30). Support-only: it's the
-      // coordination view, and for a speaker it's just everyone else's business.
-      var teamHtml = '';
-      if (b.support) {{
-        var _tp = {{}};                                  // person -> the three buckets
-        function _tpAdd(bucket, who, it) {{
-          who = String(who || '').trim(); if (!who) return;
-          who = who.charAt(0).toUpperCase() + who.slice(1).toLowerCase();
-          if (!_tp[who]) _tp[who] = {{ interested: [], attending: [], pipeline: [] }};
-          if (!_tp[who][bucket].some(function (x) {{ return x.kind === it.kind && String(x.key) === String(it.key); }})) {{
-            _tp[who][bucket].push(it);
-          }}
-        }}
-        var _PIPE = {{ 'Submitted': 1, 'Followed up': 1, 'Meeting held': 1, 'Booked': 1 }};
-        opsAllItems().forEach(function (it) {{
-          if (it.past || it.hidden) return;
-          var o = it.startObj || it;
-          var _stg = it.stages || [];
-          var _booked = _stg.indexOf('Booked') !== -1;
-          // Every row carries its date and, where there is one, the outcome —
-          // "interested" alone doesn't tell Angela whether it actually landed,
-          // which is the question these three views exist to answer.
-          function _row(stage) {{
-            return {{ kind: it.kind, key: it.key, name: it.name,
-                     date: o.date_str || '', sort: it.sort || 0, stage: stage || '' }};
-          }}
-          var _mark = _booked ? 'Booked' : (_stg.indexOf('Rejected') !== -1 ? 'Rejected' : '');
-          (it.interested || []).forEach(function (n) {{ _tpAdd('interested', n, _row(_mark)); }});
-          (it.attendees || []).forEach(function (n) {{ _tpAdd('attending', n, _row(_mark)); }});
-          var stg = _stg.filter(function (x) {{ return _PIPE[x]; }});
-          if (stg.length && String(o.speaker || '').trim()) {{
-            String(o.speaker).split(/\s*(?:,|;|&| and )\s*/).forEach(function (n) {{
-              _tpAdd('pipeline', n, _row(_booked ? 'Booked' : stg[0]));
-            }});
-          }}
-        }});
-        function _tpStageCls(s) {{
-          if (s === 'Booked') return ' tp-stage--booked';
-          if (s === 'Rejected') return ' tp-stage--rejected';
-          return s ? ' tp-stage--flight' : '';
-        }}
-        function _tpSection(title, bucket, note) {{
-          var who = Object.keys(_tp).filter(function (n) {{ return _tp[n][bucket].length; }});
-          if (!who.length) return '';
-          who.sort(function (a2, b2) {{ return _tp[b2][bucket].length - _tp[a2][bucket].length; }});
-          var total = who.reduce(function (t, n) {{ return t + _tp[n][bucket].length; }}, 0);
-          var rows = who.map(function (n) {{
-            // Landed first, then whatever is still open, then by date — the
-            // top of each person's block is what actually came off.
-            var list = _tp[n][bucket].slice().sort(function (a2, b2) {{
-              var ra = a2.stage === 'Booked' ? 0 : (a2.stage === 'Rejected' ? 2 : 1);
-              var rb = b2.stage === 'Booked' ? 0 : (b2.stage === 'Rejected' ? 2 : 1);
-              if (ra !== rb) return ra - rb;
-              return (a2.sort || 0) - (b2.sort || 0);
-            }});
-            var nB = list.filter(function (x) {{ return x.stage === 'Booked'; }}).length;
-            var nF = list.filter(function (x) {{ return x.stage && x.stage !== 'Booked' && x.stage !== 'Rejected'; }}).length;
-            var tally = [];
-            if (nB) tally.push('<b>' + nB + ' booked</b>');
-            if (nF) tally.push(nF + ' in flight');
-            return '<div class="tp-person"><div class="tp-head">' +
-              '<span class="wn-avatar wn-avatar--sm">' + escapeHtml(_wnInitials(n)) + '</span>' +
-              '<span class="tp-name">' + escapeHtml(n) + '</span>' +
-              (tally.length ? '<span class="tp-tally">' + tally.join(' · ') + '</span>' : '') +
-              '<span class="tp-count">' + list.length + '</span></div>' +
-              '<div class="tp-list">' + list.map(function (x) {{
-                return '<button type="button" class="tp-row" data-ref-kind="' + x.kind +
-                       '" data-ref-key="' + escapeHtml(String(x.key)) + '">' +
-                       '<span class="tp-ev">' + escapeHtml(x.name) + '</span>' +
-                       (x.stage ? '<span class="tp-stage' + _tpStageCls(x.stage) + '">' +
-                                  escapeHtml(x.stage) + '</span>' : '') +
-                       (x.date ? '<span class="tp-when">' + escapeHtml(x.date) + '</span>' : '') +
-                       '</button>';
-              }}).join('') + '</div></div>';
-          }}).join('');
-          return '<div class="queue-section tp-section"><div class="queue-sec-head">' +
-            '<span class="queue-sec-title">' + title + '</span>' +
-            '<span class="queue-sec-count">' + total + '</span>' +
-            (note ? '<span class="planner-sec-sub">' + note + '</span>' : '') +
-            '</div>' + rows + '</div>';
-        }}
-        teamHtml = _tpSection('Team Interests', 'interested', 'flagged &ldquo;I&rsquo;m interested&rdquo;') +
-                   _tpSection('Team Attendance', 'attending', 'down to attend') +
-                   _tpSection('Team Pipeline', 'pipeline', 'applications in flight, by speaker');
-      }}
+      // Team Interests / Attendance / Pipeline lived here until 2026-07-31.
+      // Three by-person roll-ups answering "who is interested, who is going,
+      // what is in flight" — but the Lineup is meant to be YOUR events, and
+      // for Angela it had become a wall of names above her actual work.
+      // The Queue now answers the same question in the shape she reads it in
+      // (by event, in date order, with the interested names on the row), so
+      // these are gone rather than moved (Hurley: "should be in the queue if
+      // anything, but not like this style").
       // Plan Ahead now lives at the BOTTOM of My Lineup (below Past events),
       // replacing the old "Suggested for you" — it's a better version of the
       // same idea (trips + interest recs + monthly picks). renderPlanAhead()
       // fills the embed below; its own intro is the divider between the two.
-      host.innerHTML = intro + outHtml + wnHtml + teamHtml +
+      host.innerHTML = intro + outHtml + wnHtml +
         ((b.support && !b.upcoming.length) ? '' : section(upTitle, b.upcoming, 'Nothing upcoming yet.')) +
         section("Team&#39;s Upcoming Events", b.team,
                 'Nobody else is down for anything upcoming.', false, false, true) +
@@ -13546,6 +13698,9 @@ def build():
         // Cache for the Queue + Planner views; refresh whichever is active plus
         // the tab-count badges (so flagging / conflicts update live).
         _lastEvs = evs; _lastStateMap = stateMap; _lastStateRows = stateRows; _lastManual = manualRows;
+        // Diff this load against the last one BEFORE anything renders, so
+        // "In the last week" can say what actually changed.
+        try {{ _wnScanChanges(stateRows, manualRows); }} catch (e) {{}}
         if (currentView === 'myevents') renderMyEvents();
         else if (currentView === 'queue') renderQueue();
         else if (currentView === 'planner') renderPlanner();
@@ -16240,7 +16395,7 @@ def build():
     // The modal's quick-action buttons + "Edit Event" call these. opsWrite
     // routes a patch to the right table; opsOpenEditor expands the source
     // card's full edit form.
-    var _STAGE_ORDER = ['Submitted', 'Followed up', 'Meeting held', 'Booked', 'Rejected', 'Attending'];
+    var _STAGE_ORDER = ['Submitted', 'Initial outreach', 'Followed up', 'Meeting held', 'Booked', 'Rejected', 'Attending'];
     window.opsStageOrder = _STAGE_ORDER;
     // Bridge so the modal's Edit form (separate closure) can re-derive the
     // structured start/end dates when a manual event's date TEXT is edited.
@@ -16765,7 +16920,8 @@ def build():
       var cur = getCollabName();
       var others = WHO_ROSTER.filter(function (p) {{ return p.name.toLowerCase() !== cur.toLowerCase(); }});
       host.innerHTML =
-        '<button type="button" class="who-init who-current" id="who-current-btn" aria-haspopup="true" aria-expanded="false" title="' +
+        '<button type="button" class="who-init who-current" id="who-current-btn" aria-haspopup="true" aria-expanded="false"' +
+          ' style="background:' + window.abPersonColor(cur) + '" title="' +
           (cur ? escapeHtml(cur) + ' — profile & switch' : 'Set who you are') + '">' + escapeHtml(_whoInitFor(cur)) + '</button>' +
         '<div class="who-dropdown" id="who-dropdown" hidden>' +
           '<button type="button" class="who-menu-item" id="who-myprofile-btn">' +
@@ -16774,7 +16930,9 @@ def build():
           (others.length
             ? '<div class="who-switch-label">Switch to</div><div class="who-switch-row">' +
               others.map(function (p) {{
-                return '<button type="button" class="who-init" data-setname="' + escapeHtml(p.name) + '" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.init) + '</button>';
+                return '<button type="button" class="who-init" data-setname="' + escapeHtml(p.name) +
+                       '" style="background:' + window.abPersonColor(p.name) + '" title="' + escapeHtml(p.name) + '">' +
+                       escapeHtml(p.init) + '</button>';
               }}).join('') + '</div>'
             : '') +
           '<button type="button" class="who-other" id="who-other-btn">Someone else&hellip;</button>' +
