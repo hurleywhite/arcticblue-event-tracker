@@ -1486,29 +1486,39 @@
        wider space before the second arrow than before the first — the route
        looked broken (Hurley 2026-07-31). Absolute costs no layout, so every
        step is evenly spaced whether or not the control exists. */
+    /* The follow-up count control: + above, - below, in a stack UNDER the pill.
+       Revealed on hover.
+
+       The reason it does not vanish on the way to it: the stack is a DOM CHILD
+       of .qa-fu, so hovering it still satisfies .qa-fu:hover even though it is
+       positioned outside the parent's box — and its padding-top forms an
+       invisible bridge across the gap, so there is no dead strip where the
+       pointer is over neither. That gap is what made the earlier hover controls
+       disappear as you reached for them (Hurley 2026-07-31). */
     .qa-fu { display: inline-flex; align-items: center; position: relative; }
-    .qa-fu-minus {
-      box-sizing: border-box;
-      position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
-      margin-left: 3px; z-index: 2;
-      width: 22px; height: 22px; padding: 0;
+    .qa-fu-ctl {
+      position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      padding-top: 7px;                 /* the bridge — do not turn into margin */
+      display: flex; flex-direction: column; gap: 3px;
+      opacity: 0; pointer-events: none; transition: opacity 120ms;
+      z-index: 6;
+    }
+    .qa-fu:hover .qa-fu-ctl,
+    .qa-fu:focus-within .qa-fu-ctl { opacity: 1; pointer-events: auto; }
+    .qa-fu-btn {
+      box-sizing: border-box; width: 26px; height: 22px; padding: 0;
       display: inline-flex; align-items: center; justify-content: center;
-      border: 1px solid var(--ab-rule-strong); border-radius: 999px;
+      border: 1px solid var(--ab-rule-strong); border-radius: 6px;
       background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer;
-      font-size: 0.95rem; line-height: 1;
-      opacity: 0; pointer-events: none; transition: opacity 130ms;
+      font-size: 0.95rem; line-height: 1; font-family: var(--ab-sans);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.10);
     }
-    .qa-fu:hover .qa-fu-minus,
-    .qa-fu:focus-within .qa-fu-minus { opacity: 1; pointer-events: auto; }
-    .qa-fu:hover .qa-fu-minus:disabled,
-    .qa-fu:focus-within .qa-fu-minus:disabled { opacity: 0.4; cursor: not-allowed; }
-    .qa-fu-minus:hover:not(:disabled) { background: #fee2e2; border-color: #991b1b; color: #991b1b; }
-    .qa-fu-minus:focus-visible { opacity: 1; pointer-events: auto; outline: 2px solid var(--ab-blue); outline-offset: 1px; }
-    /* Touch has no hover — show it permanently there. */
-    @media (hover: none) {
-      .qa-fu-minus { opacity: 1; pointer-events: auto; }
-      .qa-fu-minus:disabled { opacity: 0.4; }
-    }
+    .qa-fu-btn.is-add:hover    { background: #dcfce7; border-color: #15803d; color: #15803d; }
+    .qa-fu-btn.is-sub:hover:not(:disabled) { background: #fee2e2; border-color: #991b1b; color: #991b1b; }
+    .qa-fu-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .qa-fu-btn:focus-visible { outline: 2px solid var(--ab-blue); outline-offset: 1px; }
+    /* Touch has no hover — keep it visible there. */
+    @media (hover: none) { .qa-fu-ctl { opacity: 1; pointer-events: auto; } }
     .qa-step.qa-static { cursor: default; }
     .qa-step.qa-static:hover { border-color: var(--ab-rule-strong); color: var(--ab-fg-2); }
     .qa-step.qa-good.qa-static.is-on:hover { color: #fff; border-color: #15803d; }
@@ -3834,19 +3844,25 @@
         (_fuN ? _fuN + ' chase' + (_fuN === 1 ? '' : 's') + ' still logged below.'
               : 'No chases were logged.')));
     } else {
-      // The pill and its "−" are siblings, not nested (a button can't contain a
-      // button). Both carry their own data-qa, so the delegated handler picks
-      // whichever was actually clicked.
+      // The +/- stack is a CHILD of .qa-fu, not a sibling of it. That is what
+      // keeps it open while the pointer travels onto it: :hover on an ancestor
+      // holds for any descendant, even one positioned outside the ancestor's
+      // box. Buttons can't nest, so they sit beside the pill inside the wrapper.
       bStage.push('<span class="qa-fu">' +
         _step('followed-up', _fuLabel, _fuOn, 'qa-flight', ' title="' + esc(_fuTip) + '"') +
-        '<button type="button" class="qa-fu-minus" data-qa="followed-up-minus"' +
-          (_fuUndoable ? '' : ' disabled') +
-          ' aria-label="Remove one follow-up" title="' +
-          esc(_fuUndoable
-                ? 'Logged one too many? Take the last one back'
-                : (_fuN ? 'Every chase logged here has a note — remove it from its own row below'
-                        : 'Nothing logged yet')) +
-          '">−</button>' +
+        '<span class="qa-fu-ctl">' +
+          '<button type="button" class="qa-fu-btn is-add" data-qa="followed-up"' +
+            ' aria-label="Log one more follow-up"' +
+            ' title="Log another chase, dated today">+</button>' +
+          '<button type="button" class="qa-fu-btn is-sub" data-qa="followed-up-minus"' +
+            (_fuUndoable ? '' : ' disabled') +
+            ' aria-label="Remove one follow-up" title="' +
+            esc(_fuUndoable
+                  ? 'Take back the last quick chase'
+                  : (_fuN ? 'Every chase logged here has a note — remove it from its own row below'
+                          : 'Nothing logged yet')) +
+            '">−</button>' +
+        '</span>' +
         '</span>');
     }
     bStage.push('<span class="qa-arrow" aria-hidden="true">→</span>');
