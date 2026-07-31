@@ -1163,6 +1163,18 @@ def build():
       font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3);
     }}
     .sib-more {{ margin: 7px 0 0; font-size: 0.8rem; color: var(--ab-fg-3); }}
+    /* Angela's organiser-linking controls under the sibling list. */
+    .sib-add {{ display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }}
+    .sib-results {{ display: flex; flex-direction: column; max-height: 220px; overflow-y: auto; margin: 6px 0 2px; }}
+    .sib-hit {{
+      display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left;
+      background: none; border: 0; border-bottom: 1px solid var(--ab-rule);
+      padding: 7px 2px; cursor: pointer; font-family: var(--ab-sans); color: var(--ab-fg);
+    }}
+    .sib-hit:hover {{ background: var(--ab-bg-2); }}
+    .sib-hit-name {{ font-size: 0.88rem; font-weight: 600; }}
+    .sib-hit-meta {{ margin-left: auto; white-space: nowrap; font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-3); }}
+    .sib-hit-none {{ font-size: 0.85rem; color: var(--ab-fg-3); padding: 8px 2px; }}
     .fu-state.fu-rejected {{ color: #b91c1c; }}
     .fu-state.fu-rejected::before {{ background: #b91c1c; }}
     .fu-state.fu-none {{ font-weight: 500; color: var(--ab-fg-3); }}
@@ -5512,9 +5524,47 @@ def build():
       //   along here as one clause instead of claiming its own labelled row.
       // Same organiser, other events. On an umbrella this is the list it
       // covers; on a member it's the family it belongs to (Hurley 2026-07-30).
+      // Angela-only: pull an event we already track into this organiser's family,
+      // or add one we don't have yet. The domain rule catches most families on
+      // its own; this is for the ones it can't see — an organiser running several
+      // brands, or an event whose page sits on a venue domain (Hurley 2026-07-31).
+      function _sibAdd() {{
+        if (!(window.isAngelaUser && window.isAngelaUser())) return '';
+        return '<div class="sib-add">' +
+          '<button type="button" class="ab-addbtn" id="sib-link-btn">' +
+            '<span class="ab-addbtn-ic" aria-hidden="true">+</span> Link an event we already track</button>' +
+          '<button type="button" class="ab-addbtn" id="sib-new-btn">' +
+            '<span class="ab-addbtn-ic" aria-hidden="true">+</span> Add an event not in the tracker</button>' +
+          // search-and-link
+          '<div class="ab-form" id="sib-link-form" hidden>' +
+            '<input type="text" class="ab-input" id="sib-search" autocomplete="off" ' +
+              'placeholder="Search events by name\u2026">' +
+            '<div class="sib-results" id="sib-results"></div>' +
+            '<div class="ab-form-actions">' +
+              '<button type="button" class="ab-btn-ghost" id="sib-link-cancel">Cancel</button>' +
+            '</div>' +
+          '</div>' +
+          // create a brand-new event, pre-linked to this organiser
+          '<div class="ab-form" id="sib-new-form" hidden>' +
+            '<input type="text" class="ab-input" id="sib-new-name" placeholder="Event name (required)">' +
+            '<input type="text" class="ab-input" id="sib-new-when" placeholder="Dates \u2014 e.g. March 3\u20135, 2027">' +
+            '<input type="text" class="ab-input" id="sib-new-where" placeholder="Location">' +
+            '<input type="url"  class="ab-input" id="sib-new-url" placeholder="Link (optional)">' +
+            '<div class="ab-form-actions">' +
+              '<button type="button" class="ab-btn-primary" id="sib-new-save">Add to this organiser</button>' +
+              '<button type="button" class="ab-btn-ghost" id="sib-new-cancel">Cancel</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }}
       var _sibSec = (function () {{
         var sibs = window.abSiblingEvents ? window.abSiblingEvents(rec) : [];
-        if (!sibs.length) return '';
+        // Angela sees the section even with no siblings — otherwise there is
+        // nowhere to start a group from (Hurley 2026-07-31).
+        var _sibMine = !!(window.isAngelaUser && window.isAngelaUser());
+        if (!sibs.length && !_sibMine) return '';
+        if (!sibs.length) return sec('Also from this organiser',
+          '<p class="sib-more">Nothing else from this organiser yet.</p>' + _sibAdd());
         var live = sibs.filter(function (x) {{ return !x.past; }});
         var use = live.length ? live : sibs;
         var rowsH = use.slice(0, 12).map(function (x) {{
@@ -5525,7 +5575,7 @@ def build():
                  '</button>';
         }}).join('');
         var more = use.length > 12 ? '<p class="sib-more">+ ' + (use.length - 12) + ' more</p>' : '';
-        return sec('Also from this organiser', '<div class="sib-list">' + rowsH + more + '</div>');
+        return sec('Also from this organiser', '<div class="sib-list">' + rowsH + more + '</div>' + _sibAdd());
       }})();
       var _ovSec = sec('Overview',
         (function () {{
@@ -5583,7 +5633,117 @@ def build():
       }});
     }});
     wireEditForm(rec);
+    wireSiblingAdd(rec);
     if (window.opsRenderChat) window.opsRenderChat(rec);
+
+    // ── Organiser grouping (Angela) ───────────────────────────────────
+    // Two ways in: link an event we already track, or add one we don't have.
+    // Both write the same org_group key on BOTH sides, so the link is explicit
+    // on each event and survives either being edited (Hurley 2026-07-31).
+    function wireSiblingAdd(rec) {{
+      var linkBtn = $body.querySelector('#sib-link-btn');
+      var newBtn  = $body.querySelector('#sib-new-btn');
+      if (!linkBtn && !newBtn) return;
+      var linkForm = $body.querySelector('#sib-link-form');
+      var newForm  = $body.querySelector('#sib-new-form');
+      function show(form) {{
+        [linkForm, newForm].forEach(function (f) {{ if (f) f.hidden = (f !== form); }});
+        [linkBtn, newBtn].forEach(function (b) {{ if (b) b.hidden = !!form; }});
+      }}
+      function reset() {{ show(null); }}
+      if (linkBtn) linkBtn.addEventListener('click', function () {{
+        show(linkForm);
+        var q = $body.querySelector('#sib-search');
+        if (q) {{ q.value = ''; renderHits(''); q.focus(); }}
+      }});
+      if (newBtn) newBtn.addEventListener('click', function () {{ show(newForm); 
+        var n = $body.querySelector('#sib-new-name'); if (n) n.focus(); }});
+      var lc = $body.querySelector('#sib-link-cancel'); if (lc) lc.addEventListener('click', reset);
+      var nc = $body.querySelector('#sib-new-cancel');  if (nc) nc.addEventListener('click', reset);
+
+      // The group key this event anchors. Written to both sides on link.
+      function groupKey() {{ return window.abOrgKey ? window.abOrgKey(rec) : ''; }}
+
+      function afterChange() {{
+        var sc = overlay.querySelector('.modal-scroll');
+        var top = sc ? sc.scrollTop : 0;
+        openEventModal(rec);
+        var sc2 = overlay.querySelector('.modal-scroll');
+        if (sc2) sc2.scrollTop = top;
+        if (window.opsRefresh) window.opsRefresh();
+      }}
+
+      // ── search over what we already track
+      var results = $body.querySelector('#sib-results');
+      function renderHits(term) {{
+        if (!results) return;
+        term = String(term || '').trim().toLowerCase();
+        if (term.length < 2) {{
+          results.innerHTML = '<p class="sib-hit-none">Type at least two letters.</p>';
+          return;
+        }}
+        var already = {{}};
+        (window.abSiblingEvents ? window.abSiblingEvents(rec) : []).forEach(function (x) {{
+          already[x.kind + ':' + x.key] = 1;
+        }});
+        already[(rec._table === 'manual_events' ? 'manual' : 'catalog') + ':' + rec._key] = 1;  // not myself
+        var hits = window.abSearchEvents ? window.abSearchEvents(term, already, 25) : [];
+        if (!hits.length) {{ results.innerHTML = '<p class="sib-hit-none">No match.</p>'; return; }}
+        results.innerHTML = hits.map(function (it) {{
+          return '<button type="button" class="sib-hit" data-hit-kind="' + esc(it.kind) +
+                 '" data-hit-key="' + esc(String(it.key)) + '">' +
+                 '<span class="sib-hit-name">' + esc(it.name) + '</span>' +
+                 '<span class="sib-hit-meta">' + esc(it.date) + '</span></button>';
+        }}).join('');
+        Array.prototype.forEach.call(results.querySelectorAll('.sib-hit'), function (b) {{
+          b.addEventListener('click', function () {{ linkExisting(b.dataset.hitKind, b.dataset.hitKey); }});
+        }});
+      }}
+      var sq = $body.querySelector('#sib-search');
+      if (sq) sq.addEventListener('input', function () {{ renderHits(sq.value); }});
+
+      function linkExisting(kind, key) {{
+        var g = groupKey();
+        if (!g || !window.opsWrite) return;
+        var tbl = (kind === 'manual') ? 'manual_events' : 'event_state';
+        window.opsWrite(tbl, (kind === 'manual') ? key : parseInt(key, 10), {{ org_group: g }});
+        // Stamp this event too, so the group is explicit on both sides even when
+        // it was only ever implied by the domain.
+        if (String(rec.org_group || '') !== g) {{
+          rec.org_group = g;
+          window.opsWrite(rec._table, rec._key, {{ org_group: g }});
+        }}
+        reset(); afterChange();
+      }}
+
+      // ── add an event we don't track yet, pre-linked
+      var save = $body.querySelector('#sib-new-save');
+      if (save) save.addEventListener('click', function () {{
+        var name = ($body.querySelector('#sib-new-name') || {{}}).value || '';
+        name = String(name).trim();
+        if (!name) {{ var n0 = $body.querySelector('#sib-new-name'); if (n0) n0.focus(); return; }}
+        var g = groupKey();
+        var row = {{
+          name: name,
+          date_str: String((($body.querySelector('#sib-new-when') || {{}}).value || '')).trim() || null,
+          location: String((($body.querySelector('#sib-new-where') || {{}}).value || '')).trim() || null,
+          url: String((($body.querySelector('#sib-new-url') || {{}}).value || '')).trim() || null,
+          org_group: g || null,
+          created_by: (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || 'tracker',
+          external_id: 'manual'
+        }};
+        save.disabled = true; save.textContent = 'Adding\u2026';
+        if (window.opsCreateManual) {{
+          window.opsCreateManual(row).then(function () {{
+            if (String(rec.org_group || '') !== g && g) {{
+              rec.org_group = g;
+              window.opsWrite(rec._table, rec._key, {{ org_group: g }});
+            }}
+            reset(); afterChange();
+          }}, function () {{ save.disabled = false; save.textContent = 'Add to this organiser'; }});
+        }}
+      }});
+    }}
 
     // Edit / delete a single entry. Editing keeps the ORIGINAL date — that's
     // when the contact actually happened — and stamps an `edited` date beside
@@ -9121,14 +9281,50 @@ def build():
     // records made this worth surfacing: standing on "Terrapinn — Ongoing
     // Events" you want the three it covers, and standing on Connected Britain
     // you want to know it's one of a family (Hurley 2026-07-30).
+    // The key that identifies an organiser family. The URL's registrable domain
+    // when there is one, otherwise a slug of the event name — so an event with
+    // no link can still anchor a group Angela builds by hand.
+    window.abOrgKey = function (rec) {{
+      var g = String((rec && rec.org_group) || '').trim();
+      if (g) return g;
+      var d = _urlOrg((rec && rec.url) || '');
+      if (d) return d;
+      return String((rec && rec.name) || '').toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+    }};
+    // Siblings = same domain OR same manual group. The domain rule is unchanged;
+    // org_group is an ADDITIONAL way in, for organisers whose events sit on
+    // different domains and for events Angela links by hand (Hurley 2026-07-31).
+    // Name search across everything we track, for the organiser-linking box in
+    // the modal. Lives here because opsAllItems() is in this closure — calling
+    // it from the modal closure throws ReferenceError, silently, inside an
+    // input handler (Hurley 2026-07-31).
+    window.abSearchEvents = function (term, excludeSet, limit) {{
+      term = String(term || '').trim().toLowerCase();
+      if (term.length < 2) return [];
+      excludeSet = excludeSet || {{}};
+      var out = [];
+      opsAllItems().forEach(function (it) {{
+        if (out.length >= (limit || 25)) return;
+        if (excludeSet[it.kind + ':' + it.key]) return;
+        if (String(it.name || '').toLowerCase().indexOf(term) === -1) return;
+        var o = it.startObj || it;
+        out.push({{ kind: it.kind, key: it.key, name: it.name || '', date: o.date_str || '' }});
+      }});
+      return out;
+    }};
     window.abSiblingEvents = function (rec) {{
-      var me = _urlOrg((rec && rec.url) || '');
-      if (!me) return [];
+      var meDom = _urlOrg((rec && rec.url) || '');
+      var meGrp = String((rec && rec.org_group) || '').trim();
+      if (!meDom && !meGrp) return [];
       var mine = String((rec && rec._key) != null ? rec._key : '');
       var mineT = String((rec && rec._table) || '');
       return opsAllItems().filter(function (it) {{
         var o = it.startObj || it;
-        if (_urlOrg(o.url || '') !== me) return false;
+        var dom = _urlOrg(o.url || '');
+        var grp = String(o.org_group || '').trim();
+        var hit = (meDom && dom === meDom) || (meGrp && grp === meGrp);
+        if (!hit) return false;
         var t = it.kind === 'manual' ? 'manual_events' : 'event_state';
         return !(t === mineT && String(it.key) === mine);      // not myself
       }}).map(function (it) {{
@@ -16004,6 +16200,32 @@ def build():
     // '__deleted__' sentinel on their event_state row, so they don't reappear.
     // Either way the event goes on the deleted_events backlog first, so the
     // ingest won't offer it again.
+    // Create a manual event from anywhere in the app. Goes through sbWriteRetry,
+    // so a column the DB doesn't have yet (org_group before its migration runs)
+    // is stripped and the insert still succeeds rather than failing outright.
+    window.opsCreateManual = function (row) {{
+      var r = {{}};
+      for (var k in row) {{
+        if (Object.prototype.hasOwnProperty.call(row, k) && row[k] !== null && row[k] !== '') r[k] = row[k];
+      }}
+      if (!String(r.name || '').trim()) return Promise.reject(new Error('name required'));
+      return sbWriteRetry(r, function (p) {{ return sb.from('manual_events').insert(p).select(); }})
+        .then(function (resp) {{
+          if (resp && resp.error) {{
+            status('Could not add the event: ' + resp.error.message, 'error');
+            throw new Error(resp.error.message);
+          }}
+          if (resp && resp.strippedMigrationCols && resp.strippedMigrationCols.length) {{
+            status('Added, but "' + resp.strippedMigrationCols.join(', ') +
+                   '" needs its migration before the organiser link sticks.', 'error');
+          }} else {{
+            flashOk('Event added');
+          }}
+          if (typeof loadKnownNames === 'function') loadKnownNames();
+          renderOps(getCollabName() || 'Team');
+          return resp.data && resp.data[0];
+        }});
+    }};
     window.opsDelete = function (table, key) {{
       var _info = _deletedInfoFor(table, key);
       if (table === 'manual_events') {{
