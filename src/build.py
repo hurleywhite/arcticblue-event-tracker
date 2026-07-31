@@ -1894,17 +1894,17 @@ def build():
     .ops-stage-ico {{ gap: 3px; width: auto; min-width: 20px; }}
     /* The pipeline as a ROUTE, not a row of switches. Colours match the corner
        mark exactly: amber = in flight, green = landed, red = closed. */
-    .qa-flow {{ display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }}
-    .qa-arrow {{ color: var(--ab-fg-3); font-size: 0.95rem; line-height: 1; }}
+    .qa-flow {{ display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }}
+    .qa-arrow {{ color: var(--ab-fg-3); font-size: 0.8rem; line-height: 1; }}
     .qa-branch {{
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 6px; border-radius: 10px;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 5px; border-radius: 10px;
       background: var(--ab-bg-2); border: 1px dashed var(--ab-rule-strong);
     }}
     .qa-step {{
-      display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
-      font-family: var(--ab-sans); font-size: 0.82rem; font-weight: 600;
-      padding: 6px 12px; border-radius: 999px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+      font-family: var(--ab-sans); font-size: 0.73rem; font-weight: 600;
+      padding: 5px 9px; border-radius: 999px; cursor: pointer;
       border: 1px solid var(--ab-rule-strong);
       background: var(--ab-bg); color: var(--ab-fg-2);
       transition: border-color 120ms, background 120ms, color 120ms;
@@ -1965,6 +1965,55 @@ def build():
     .qa-fu-btn:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 1px; }}
     /* Touch has no hover — keep it visible there. */
     @media (hover: none) {{ .qa-fu-ctl {{ opacity: 1; pointer-events: auto; }} }}
+    /* Draft outreach — the email, on the route, at the point of submission. */
+    .qa-mail-open {{
+      display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+      font-family: var(--ab-sans); font-size: 0.73rem; font-weight: 650;
+      padding: 5px 10px; border-radius: 999px; cursor: pointer;
+      border: 1px solid #1fa0dc; background: rgba(31,160,220,0.10); color: #1271a8;
+      transition: background 120ms, border-color 120ms;
+    }}
+    .qa-mail-open:hover {{ background: rgba(31,160,220,0.20); }}
+    .qa-mail {{
+      flex: 1 1 100%; margin-top: 10px; padding: 12px 14px;
+      border: 1px solid var(--ab-rule-strong); border-radius: 10px; background: var(--ab-bg-2);
+    }}
+    .qa-mail[hidden] {{ display: none; }}
+    .qa-mail-head {{ display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }}
+    .qa-mail-variant {{
+      font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.07em;
+      text-transform: uppercase; color: #1271a8;
+      background: rgba(31,160,220,0.13); padding: 2px 7px; border-radius: 999px;
+    }}
+    .qa-mail-to {{ font-family: var(--ab-mono); font-size: 0.68rem; color: var(--ab-fg-3); }}
+    .qa-mail-to--none {{ color: #b45309; }}
+    /* The one thing to check before sending. Amber, because it is a nudge, not
+       an error — the draft is still perfectly sendable. */
+    .qa-mail-advice {{
+      margin: 0 0 9px; padding: 7px 10px; border-radius: 7px;
+      background: rgba(234,179,8,0.13); border-left: 3px solid #eab308;
+      font-family: var(--ab-sans); font-size: 0.76rem; color: var(--ab-fg-2);
+    }}
+    .qa-mail-subject, .qa-mail-body {{
+      width: 100%; box-sizing: border-box; margin-bottom: 8px;
+      padding: 8px 10px; border: 1px solid var(--ab-rule-strong); border-radius: 7px;
+      background: var(--ab-bg); color: var(--ab-fg); font-size: 0.8rem;
+    }}
+    .qa-mail-subject {{ font-family: var(--ab-sans); font-weight: 600; }}
+    .qa-mail-body {{ font-family: var(--ab-mono); line-height: 1.5; resize: vertical; }}
+    .qa-mail-actions {{ display: flex; gap: 7px; flex-wrap: wrap; }}
+    /* Angela's master templates, in Team Profiles. */
+    .profile-mail {{ margin: 0 0 22px; padding: 15px 17px; border: 1px solid var(--ab-rule-strong); border-radius: 10px; background: var(--ab-bg-2); }}
+    .profile-mail h3 {{ margin: 0 0 4px; font-family: var(--ab-sans); font-size: 0.95rem; }}
+    .profile-mail .profile-mail-hint {{ margin: 0 0 12px; font-size: 0.78rem; color: var(--ab-fg-3); }}
+    .profile-mail code {{ font-family: var(--ab-mono); font-size: 0.72rem; background: var(--ab-bg-3); padding: 1px 4px; border-radius: 4px; }}
+    .profile-mail-slot {{ margin-bottom: 12px; }}
+    .profile-mail-slot > label {{ display: block; font-family: var(--ab-sans); font-size: 0.8rem; font-weight: 650; margin-bottom: 5px; }}
+    .profile-mail-slot textarea {{
+      width: 100%; box-sizing: border-box; padding: 9px 11px; border-radius: 7px;
+      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
+      font-family: var(--ab-mono); font-size: 0.76rem; line-height: 1.5; resize: vertical;
+    }}
     .qa-step.qa-static {{ cursor: default; }}
     .qa-step.qa-static:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg-2); }}
     .qa-step.qa-good.qa-static.is-on:hover {{ color: #fff; border-color: #15803d; }}
@@ -4451,6 +4500,16 @@ def build():
     }}
     bStage.push('</span>');   // /qa-branch
     bStage.push('</div>');    // /qa-flow
+    // Submitted, but nobody has approached the organiser yet -> offer the
+    // email. This is the moment Angela reaches for her template, so the draft
+    // comes to her rather than the other way round (Hurley 2026-07-31).
+    var _mailDue = has('Submitted') && !has('Initial outreach') && !_endState;
+    if (_mailDue) {{
+      bStage.push('<button type="button" class="qa-mail-open" data-qa="mail-open" ' +
+        'title="Draft the organiser email, pre-filled from this event">' +
+        '\u2709 Draft outreach</button>');
+    }}
+    bStage.push('<div class="qa-mail" id="qa-mail" hidden></div>');
     // Should Attend is Angela's triage tool — only she sees/sets it here. For
     // everyone else, marking Interested funnels into her Should-Attend list.
     if (window.isAngelaUser && window.isAngelaUser()) {{
@@ -4783,6 +4842,14 @@ def build():
         if (order.length) tags = order.filter(function (s) {{ return tags.indexOf(s) !== -1; }});
         rec.stage_tags = tags;
         patch.status_tags = tags;
+      }}
+      else if (qa === 'mail-open') {{
+        var _mh = document.getElementById('qa-mail');
+        if (_mh) {{
+          if (!_mh.hasAttribute('hidden')) {{ _mh.setAttribute('hidden', ''); _mh.innerHTML = ''; }}
+          else {{ _mh.removeAttribute('hidden'); window.abRenderMailPanel(_mh, rec); }}
+        }}
+        return;   // pure UI — nothing to write
       }}
       else if (qa === 'should-attend') {{
         // human -> clear; AI-suggested OR none -> set a CONFIRMED human
@@ -11293,9 +11360,14 @@ def build():
       if (typeof sb === 'undefined' || !sb || !sb.from) {{ if (cb) cb(); return; }}
       sb.from('team_profiles').select('*').then(function (r) {{
         var cache = {{}};
+        // Raw rows, keyed by first name — the outreach composer reads each
+        // speaker's topics and Angela's saved email templates from here rather
+        // than fetching the same table a second time.
+        window._abProfileRows = {{}};
         ((r && r.data) || []).forEach(function (row) {{
           var who = abFold(String(row.person || row.display_name || '')).split(/\\s+/)[0];
           if (!who) return;
+          window._abProfileRows[who] = row;
           var blob = [row.bio, row.topics, row.past_talks, row.notes].filter(Boolean).join(' ');
           if (!blob.trim()) return;
           cache[who] = {{ topics: _simTokens(blob), roles: _simTokens([row.topics, row.past_talks].filter(Boolean).join(' ')) }};
@@ -11875,8 +11947,10 @@ def build():
       {{ k: 'bios',            label: 'Bio & one-pagers',  hint: 'formal bio doc, speaker one-pager, leave-behinds' }},
       {{ k: 'speaking_topics', label: 'Speaking Topics',   hint: 'your talk topics / abstracts one-sheet organizers can pick from' }},
       {{ k: 'decks',           label: 'Slides & decks',    hint: 'your talk decks — PDF / PPTX / Keynote' }},
-      {{ k: 'other',           label: 'Other materials',   hint: 'press, testimonials, video links saved as a file — anything else' }},
-      {{ k: 'headshot',        label: 'Headshot',          hint: 'a professional photo organizers can use' }}
+      {{ k: 'other',           label: 'Other materials',   hint: 'press, testimonials, video links saved as a file — anything else' }}
+      // 'headshot' removed 2026-07-31 (Hurley). Organisers ask for it by email
+      // and it was the one slot nobody kept current; the outreach templates
+      // below are what Angela actually reaches for at this point.
     ];
     function _profileKey(name) {{ return (name || '').trim().toLowerCase().split(/\\s+/)[0]; }}
     function _profileDisplay(row, key) {{
@@ -11996,6 +12070,216 @@ def build():
     // fields, and a Materials slot filled in async by _loadTeammateFiles.
     // Each teammate's LinkedIn — the name links to it, and the full URL shows
     // right below (so Angela can copy/paste it into an organizer email).
+    // ════════════════════════════════════════════════════════════════
+    // Outreach composer — the email, at the moment Angela needs it
+    //
+    // She writes to the organiser immediately after marking an event
+    // Submitted, and her stated friction is re-checking the event name and
+    // the dates every time before pasting a template. So this lives ON the
+    // event, appears the moment Submitted is set, and comes pre-filled from
+    // the row she is already looking at. Nothing to look up, nothing to
+    // re-type, and "Mark sent" advances the event to Initial outreach — the
+    // step that used to get recorded as a follow-up.
+    //
+    // Two variants because the pitch differs by geography: outside the US the
+    // Middle East programme is the lead, inside the US it sits below the
+    // signature as context rather than the headline.
+    //
+    // Placeholders are [square brackets], not braces — this file is a Python
+    // .format() template and every brace in it has to be doubled.
+    // ════════════════════════════════════════════════════════════════
+    var AB_MAIL_PLACEHOLDERS = ['contact_first', 'contact_name', 'event_name', 'event_dates',
+                                'event_location', 'speaker_name', 'speaker_topic', 'bio_link'];
+    // Defaults so the composer works before anyone edits anything. Angela can
+    // replace both from Team Profiles -> Outreach email templates.
+    var AB_MAIL_DEFAULTS = {{
+      global: {{
+        subject: 'Speaking enquiry \u2014 [event_name]',
+        body: [
+          'Hi [contact_first],',
+          '',
+          "I'm reaching out about [event_name] ([event_dates], [event_location]).",
+          '',
+          'I look after speaking for ArcticBlue AI. [speaker_name] leads our work on',
+          '[speaker_topic], and has spoken on it across the Middle East \u2014 including',
+          'programmes in Dubai, Abu Dhabi and Riyadh \u2014 as well as in the US and Europe.',
+          '',
+          "If you're still shaping the agenda, I'd be glad to send a short outline.",
+          "[speaker_name]'s bio and past talks: [bio_link]",
+          '',
+          'Best,',
+          'Angela'
+        ].join('\\n')
+      }},
+      us: {{
+        subject: 'Speaking enquiry \u2014 [event_name]',
+        body: [
+          'Hi [contact_first],',
+          '',
+          "I'm reaching out about [event_name] ([event_dates], [event_location]).",
+          '',
+          'I look after speaking for ArcticBlue AI. [speaker_name] leads our work on',
+          '[speaker_topic] and speaks on it regularly at US events.',
+          '',
+          "If you're still shaping the agenda, I'd be glad to send a short outline.",
+          "[speaker_name]'s bio and past talks: [bio_link]",
+          '',
+          'Best,',
+          'Angela',
+          '',
+          '\u2014',
+          'ArcticBlue AI also runs an international programme \u2014 [speaker_name] has spoken',
+          "across the Middle East and Europe if that's useful for your audience."
+        ].join('\\n')
+      }}
+    }};
+    // Which variant. Country first (it is the reliable field); fall back to
+    // the location string, which is where most manual rows carry their geo.
+    function _mailIsUS(rec) {{
+      var blob = String((rec && (rec.country || '')) + ' ' + (rec && (rec.location || '')) + ' ' + (rec && (rec.city || ''))).toLowerCase();
+      if (/\\b(usa|u\\.s\\.a|united states)\\b/.test(blob)) return true;
+      if (/\\b(uae|dubai|abu dhabi|riyadh|saudi|qatar|doha|london|paris|berlin|amsterdam|zurich|dublin|singapore|india|canada|toronto|mexico)\\b/.test(blob)) return false;
+      // ", NY" / ", CA" — the state suffix the catalog uses for US cities.
+      return /,\\s*(a[lkzr]|c[aot]|de|fl|ga|hi|i[adln]|k[sy]|la|m[adeinost]|n[cdehjmvy]|o[hkr]|pa|ri|s[cd]|t[nx]|ut|v[at]|w[aivy]|dc)\\b/i.test(blob);
+    }}
+    function _mailTemplates() {{
+      var row = (window._abProfileRows || {{}}).angela || {{}};
+      return {{
+        us:     {{ subject: AB_MAIL_DEFAULTS.us.subject,     body: row.email_template_us     || AB_MAIL_DEFAULTS.us.body }},
+        global: {{ subject: AB_MAIL_DEFAULTS.global.subject, body: row.email_template_global || AB_MAIL_DEFAULTS.global.body }}
+      }};
+    }}
+    // The one thing she should look at before sending. Deliberately at most
+    // one line: a checklist nobody reads is worse than no checklist.
+    function _mailAdvice(rec, ctx) {{
+      var note = String((rec && rec.poc_note) || '').toLowerCase();
+      if (!ctx.contact_name) return 'No named contact on this event yet \u2014 add one under Point of contact before you send.';
+      if (/sponsor|exhibit|stand|booth|sales|partnership/.test(note)) {{
+        return ctx.contact_name.split(/\s+/)[0] + ' looks like a sponsorship contact \u2014 this pitches a talk, so consider asking them to point you at the programme lead.';
+      }}
+      if (/linkedin/.test(note) && !ctx.contact_email) {{
+        return 'No email on file \u2014 ' + ctx.contact_name.split(/\s+/)[0] + ' was found on LinkedIn, so send this as a message there.';
+      }}
+      if (!ctx.contact_email) return 'No email address on file \u2014 copy this and send it however you have them.';
+      if (!ctx.speaker_name || ctx.speaker_name === 'our team') return 'No speaker assigned yet \u2014 the topic line is generic until you pick one.';
+      if (ctx._topicGuessed) return 'Topic line is a guess from the event\u2019s focus \u2014 worth a look before sending.';
+      return 'Check the dates and the topic line, then send.';
+    }}
+    // Fill [placeholders]. Unknown ones are left alone rather than blanked, so
+    // a typo in a template shows up instead of silently deleting a line.
+    function _mailFill(text, ctx) {{
+      return String(text || '').replace(/\[([a-z_]+)\]/g, function (m, k) {{
+        return (ctx[k] !== undefined && ctx[k] !== null && ctx[k] !== '') ? ctx[k] : m;
+      }});
+    }}
+    function _mailCtx(rec) {{
+      var spk = String((rec && rec.speaker) || '').split(/\s*(?:,|;|&| and )\s*/)[0].trim();
+      var spkKey = spk.toLowerCase().split(/\s+/)[0];
+      var pRow = (window._abProfileRows || {{}})[spkKey] || {{}};
+      // Topic: what she set on the event wins; else the first of the speaker's
+      // own topics that the event actually mentions; else their first topic.
+      var topic = String((rec && rec.speaker_topic) || '').trim();
+      var guessed = false;
+      if (!topic) {{
+        // People format this field however they like — Joe's is a document
+        // with emoji section headings. Keep only lines that read like an
+        // actual topic, or the email opens with "Thor leads our work on
+        // Speaking Topics & Blurbs".
+        var mine = String(pRow.topics || '').split(/[\\n;]/).map(function (t) {{
+          return t.replace(/^[^A-Za-z0-9]+/, '')      // leading emoji / bullets
+                  .replace(/^\\d+[.)]\\s*/, '')             // "1. " list numbering
+                  .replace(/\\s*[:\\-\\u2013\\u2014]\\s*$/, '')     // trailing colon / dash
+                  .trim();
+        }}).filter(function (t) {{
+          if (t.length < 9 || t.length > 110) return false;
+          if (/[:]$/.test(t)) return false;                    // a heading
+          if (!/[a-z]/.test(t)) return false;                  // ALL CAPS banner
+          if (/^(speaking |talk |topics?\\b|blurbs?\\b|bio\\b|about\\b)/i.test(t)) return false;
+          return true;
+        }});
+        var blob = String([(rec && rec.name) || '', (rec && rec.focus_areas) || '', (rec && rec.about) || ''].join(' ')).toLowerCase();
+        var hit = mine.filter(function (t) {{ return t.length > 3 && blob.indexOf(t.toLowerCase()) !== -1; }})[0];
+        topic = hit || mine[0] || 'applied AI in the enterprise';
+        guessed = true;
+      }}
+      var dates = String((rec && rec.date_str) || '').trim();
+      return {{
+        contact_name:  String((rec && rec.poc_name) || '').trim(),
+        contact_first: String((rec && rec.poc_name) || '').trim().split(/\s+/)[0] || 'there',
+        contact_email: String((rec && rec.poc_email) || '').trim(),
+        event_name:    String((rec && rec.name) || 'your event').trim(),
+        event_dates:   dates || 'the dates you have listed',
+        event_location: String((rec && rec.location) || '').trim() || 'your venue',
+        speaker_name:  spk || 'our team',
+        speaker_topic: topic,
+        bio_link:      PROFILE_LINKEDIN[spkKey] || '',
+        _topicGuessed: guessed
+      }};
+    }}
+    // Build the panel for one event.
+    window.abMailDraft = function (rec) {{
+      var ctx = _mailCtx(rec);
+      var isUS = _mailIsUS(rec);
+      var tpl = _mailTemplates()[isUS ? 'us' : 'global'];
+      return {{
+        variant: isUS ? 'US' : 'Global / UAE',
+        to: ctx.contact_email,
+        subject: _mailFill(tpl.subject, ctx),
+        body: _mailFill(tpl.body, ctx),
+        advice: _mailAdvice(rec, ctx)
+      }};
+    }};
+    // Render the panel. Editable before sending — she may want to add a line,
+    // and a draft you cannot touch is a draft you paste elsewhere to fix.
+    window.abRenderMailPanel = function (host, rec) {{
+      var d = window.abMailDraft(rec);
+      host.innerHTML =
+        '<div class="qa-mail-head">' +
+          '<span class="qa-mail-variant">' + escapeHtml(d.variant) + ' template</span>' +
+          (d.to ? '<span class="qa-mail-to">to ' + escapeHtml(d.to) + '</span>'
+                : '<span class="qa-mail-to qa-mail-to--none">no email on file</span>') +
+        '</div>' +
+        '<p class="qa-mail-advice">' + escapeHtml(d.advice) + '</p>' +
+        '<input class="qa-mail-subject" id="qa-mail-subject" value="' + escapeHtml(d.subject) + '" aria-label="Subject">' +
+        '<textarea class="qa-mail-body" id="qa-mail-body" rows="14" aria-label="Email body">' + escapeHtml(d.body) + '</textarea>' +
+        '<div class="qa-mail-actions">' +
+          '<button type="button" class="q-btn primary" data-mail="copy">Copy</button>' +
+          (d.to ? '<button type="button" class="q-btn" data-mail="open">Open in email</button>' : '') +
+          '<button type="button" class="q-btn" data-mail="sent" title="Logs Initial outreach on this event">Mark sent</button>' +
+        '</div>';
+      var $s = host.querySelector('#qa-mail-subject');
+      var $b = host.querySelector('#qa-mail-body');
+      host.querySelectorAll('[data-mail]').forEach(function (btn) {{
+        btn.addEventListener('click', function (e) {{
+          e.stopPropagation();
+          var act = btn.getAttribute('data-mail');
+          if (act === 'copy') {{
+            var txt = $s.value + '\\n\\n' + $b.value;
+            var done = function () {{ btn.textContent = 'Copied'; setTimeout(function () {{ btn.textContent = 'Copy'; }}, 1400); }};
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, done);
+            else {{ $b.select(); try {{ document.execCommand('copy'); }} catch (x) {{}} done(); }}
+          }} else if (act === 'open') {{
+            window.open('mailto:' + encodeURIComponent(d.to) +
+              '?subject=' + encodeURIComponent($s.value) +
+              '&body=' + encodeURIComponent($b.value), '_blank');
+          }} else if (act === 'sent') {{
+            // Same write the Initial outreach step makes, so the two can never
+            // disagree about what stage the event is at.
+            var tags = (rec.stage_tags || []).slice();
+            if (tags.indexOf('Initial outreach') === -1) tags.push('Initial outreach');
+            var ord = window.opsStageOrder || [];
+            if (ord.length) tags = ord.filter(function (x) {{ return tags.indexOf(x) !== -1; }});
+            rec.stage_tags = tags;
+            if (window.opsWrite) window.opsWrite(rec._table, rec._key, {{ status_tags: tags }});
+            host.setAttribute('hidden', ''); host.innerHTML = '';
+            // Repaint so the route shows Initial outreach lit and the
+            // "Draft outreach" button retires — openEventModal is the same
+            // full rebuild the stage clicks settle on.
+            if (window.openEventModal) window.openEventModal(rec);
+          }}
+        }});
+      }});
+    }};
     var PROFILE_LINKEDIN = {{
       thor:   'https://www.linkedin.com/in/thorernstsson/',
       verma:  'https://www.linkedin.com/in/anuraagsverma/',
@@ -12074,6 +12358,28 @@ def build():
       if (dbMissing) {{
         html += '<div class="profile-setup-note"><strong>One-time setup needed.</strong> The profile store isn&#39;t in the database yet, so nothing here will save or show. Run the <code>team_profiles</code> setup once, then reload.</div>';
       }}
+      // Angela's master outreach templates. Support-only: they are hers, and
+      // for a speaker they'd be someone else's stationery (Hurley 2026-07-31).
+      // The composer on each event reads these; leave them blank and it falls
+      // back to the built-in defaults, so it works before anyone edits it.
+      if (support) {{
+        var _mailRow = (window._abProfileRows || {{}}).angela || {{}};
+        html += '<div class="profile-mail">' +
+          '<h3>Outreach email templates</h3>' +
+          '<p class="profile-mail-hint">Used by <strong>Draft outreach</strong> on any event you have marked Submitted. ' +
+            'The variant is picked from the event\u2019s location. Placeholders fill themselves in: ' +
+            AB_MAIL_PLACEHOLDERS.map(function (k) {{ return '<code>[' + k + ']</code>'; }}).join(' ') + '. ' +
+            'Leave one blank to use the built-in default.</p>' +
+          '<div class="profile-mail-slot"><label for="pf-mail-global">Outside the US (Global / UAE)</label>' +
+            '<textarea id="pf-mail-global" rows="12" placeholder="' + escapeHtml(AB_MAIL_DEFAULTS.global.body) + '">' +
+            escapeHtml(_mailRow.email_template_global || '') + '</textarea></div>' +
+          '<div class="profile-mail-slot"><label for="pf-mail-us">Inside the US</label>' +
+            '<textarea id="pf-mail-us" rows="12" placeholder="' + escapeHtml(AB_MAIL_DEFAULTS.us.body) + '">' +
+            escapeHtml(_mailRow.email_template_us || '') + '</textarea></div>' +
+          '<div class="qa-mail-actions"><button type="button" class="q-btn primary" id="pf-mail-save">Save templates</button>' +
+            '<span id="pf-mail-status" class="qa-mail-to"></span></div>' +
+          '</div>';
+      }}
       // Support (Angela/Hurley) coordinate — they don't speak, so they get the
       // team directory straight away, not their own speaker card.
       if (!support) {{
@@ -12127,6 +12433,35 @@ def build():
         var $about = document.getElementById('pf-about');
         if ($about) {{ _pfWireAbout($about); _pfRenderAbout(); }}
         PROFILE_MATERIALS.forEach(function (m) {{ _loadProfileFiles(meKey, m.k, dbMissing); }});
+      }}
+      var $mailSave = document.getElementById('pf-mail-save');
+      if ($mailSave) {{
+        $mailSave.addEventListener('click', function () {{
+          var $st = document.getElementById('pf-mail-status');
+          var g = (document.getElementById('pf-mail-global') || {{}}).value || '';
+          var u = (document.getElementById('pf-mail-us') || {{}}).value || '';
+          // Templates are a team asset, not a personal one, but they are hers
+          // to write \u2014 so they live on the angela row.
+          var patch = {{ person: 'angela', display_name: 'Angela',
+                        email_template_global: g.trim(), email_template_us: u.trim(),
+                        updated_by: meName, updated_at: new Date().toISOString() }};
+          if ($st) $st.textContent = 'Saving\u2026';
+          sb.from('team_profiles').upsert(patch, {{ onConflict: 'person' }}).then(function (resp) {{
+            if (resp && resp.error) {{
+              // The columns arrive with scripts/2026-07-31_email_templates.sql.
+              // Until then say so plainly rather than pretending it saved.
+              var miss = /email_template|column|schema cache/i.test(resp.error.message || '');
+              if ($st) $st.textContent = miss
+                ? 'Not saved \u2014 run the email-templates migration first. The built-in defaults are still in use.'
+                : 'Could not save: ' + resp.error.message;
+              return;
+            }}
+            window._abProfileRows = window._abProfileRows || {{}};
+            window._abProfileRows.angela = dict_assign(window._abProfileRows.angela || {{}}, patch);
+            if ($st) $st.textContent = 'Saved';
+            setTimeout(function () {{ if ($st) $st.textContent = ''; }}, 1800);
+          }}, function (e) {{ if ($st) $st.textContent = 'Could not save: ' + (e && e.message || e); }});
+        }});
       }}
       // Directory materials: Angela (support) gets editable slots (load each);
       // everyone else gets the read-only grouped list.
