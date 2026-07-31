@@ -4892,12 +4892,18 @@ def build():
 
     // Contacts — everything you'd search a person by. Kept for private events
     // too: the POC is the whole point of a private event.
-    var sContact = ef('Contact info', inp('contact_info', rec.contact_info));
-    if (!isCat) {{
-      sContact += ef('POC name', inp('poc_name', rec.poc_name));
-      sContact += ef('POC email', inp('poc_email', rec.poc_email));
+    // Angela only, matching the read view. Contacts were merged into Speaking &
+    // submission, which is hers alone, so the read view already hides them from
+    // everyone else — but the EDIT form still offered them, which meant Thor
+    // could change a POC he cannot see (Hurley 2026-07-30). Outreach is hers.
+    if (window.isAngelaUser && window.isAngelaUser()) {{
+      var sContact = ef('Contact info', inp('contact_info', rec.contact_info));
+      if (!isCat) {{
+        sContact += ef('POC name', inp('poc_name', rec.poc_name));
+        sContact += ef('POC email', inp('poc_email', rec.poc_email));
+      }}
+      h += sec('Contacts', sContact);
     }}
-    h += sec('Contacts', sContact);
 
     // Event details — the reference facts, mostly filled by the nightly enrich.
     var sDet = '';
