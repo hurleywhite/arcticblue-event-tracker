@@ -12145,15 +12145,29 @@ def build():
     // Speaking materials, organized by what an organizer actually asks for —
     // each is its own upload slot (files live under <person>/<slot>/ in the
     // profiles bucket). This is the point of the profile: a ready-to-send kit.
+    // Three slots, not five (Hurley 2026-07-31). Bios and Speaking Topics were
+    // the same ask wearing two hats, and Slides & decks is just another file —
+    // Other materials covers it.
+    //
+    // `also` lists folders a slot ALSO reads. The names are storage paths, so
+    // renaming a slot would orphan what is already uploaded: Verma's one-sheet
+    // sits under speaking_topics/ and Thor's deck folder may fill later. New
+    // uploads go to `k`; the old folders stay readable.
     var PROFILE_MATERIALS = [
-      {{ k: 'bios',            label: 'Bio & one-pagers',  hint: 'formal bio doc, speaker one-pager, leave-behinds' }},
-      {{ k: 'speaking_topics', label: 'Speaking Topics',   hint: 'your talk topics / abstracts one-sheet organizers can pick from' }},
-      {{ k: 'decks',           label: 'Slides & decks',    hint: 'your talk decks — PDF / PPTX / Keynote' }},
-      {{ k: 'other',           label: 'Other materials',   hint: 'press, testimonials, video links saved as a file — anything else' }}
-      // 'headshot' removed 2026-07-31 (Hurley). Organisers ask for it by email
-      // and it was the one slot nobody kept current; the outreach templates
-      // below are what Angela actually reaches for at this point.
+      {{ k: 'bios', label: 'Bios & Speaking Topics',
+         hint: 'formal bio doc, speaking topics, or overview on yourself',
+         also: ['speaking_topics'] }},
+      {{ k: 'email_template', label: 'Email Template',
+         hint: 'what you’d like Angela to send to the event organizer if needed',
+         supportHint: 'What to send to the event organizers' }},
+      {{ k: 'other', label: 'Other materials',
+         hint: 'press, testimonials, video links, or anything else',
+         also: ['decks'] }}
     ];
+    // Angela does not speak, so the slot means something different on her card.
+    function _matHint(m, isSupport) {{
+      return (isSupport && m.supportHint) ? m.supportHint : m.hint;
+    }}
     function _profileKey(name) {{ return (name || '').trim().toLowerCase().split(/\\s+/)[0]; }}
     function _profileDisplay(row, key) {{
       if (row && row.display_name) return row.display_name;
@@ -12652,7 +12666,7 @@ def build():
       // upload / add-link / delete for this teammate. Everyone else is read-only.
       if (canEdit) {{
         h += '<div class="profile-tm-field"><div class="k">Materials</div>' +
-          PROFILE_MATERIALS.map(function (m) {{ return _materialSlotHtml(key, m); }}).join('') + '</div>';
+          PROFILE_MATERIALS.map(function (m) {{ return _materialSlotHtml(key, m, isSupportPerson(key)); }}).join('') + '</div>';
       }} else {{
         h += '<div class="profile-tm-field"><div class="k">Materials</div><div class="profile-tm-files" id="' + filesId + '"><p class="profile-file-empty">Loading&hellip;</p></div></div>';
       }}
@@ -12721,6 +12735,16 @@ def build():
             '<span id="pf-mail-status" class="qa-mail-to"></span></div>' +
           '</div>';
       }}
+      // Support don't speak, but they still keep materials — Angela's master
+      // Email Template is a file, and it belongs to her rather than to any one
+      // speaker (Hurley 2026-07-31). Same three slots, own wording.
+      if (support) {{
+        html += '<div class="profile-card">' +
+          '<div class="profile-section-head">Your materials</div>' +
+          '<p class="profile-section-sub">Yours, not a speaker\u2019s \u2014 what you send on their behalf.</p>';
+        PROFILE_MATERIALS.forEach(function (m) {{ html += _materialSlotHtml(meKey, m, true); }});
+        html += '</div>';
+      }}
       // Support (Angela/Hurley) coordinate — they don't speak, so they get the
       // team directory straight away, not their own speaker card.
       if (!support) {{
@@ -12773,8 +12797,10 @@ def build():
       if (!support) {{
         var $about = document.getElementById('pf-about');
         if ($about) {{ _pfWireAbout($about); _pfRenderAbout(); }}
-        PROFILE_MATERIALS.forEach(function (m) {{ _loadProfileFiles(meKey, m.k, dbMissing); }});
       }}
+      // Both paths render meKey's slots now — support via "Your materials",
+      // everyone else inside their speaker card.
+      PROFILE_MATERIALS.forEach(function (m) {{ _loadProfileFiles(meKey, m.k, dbMissing); }});
       var $mailSave = document.getElementById('pf-mail-save');
       if ($mailSave) {{
         $mailSave.addEventListener('click', function () {{
@@ -12938,11 +12964,11 @@ def build():
     // One editable material slot for a person (their own card, or any person in
     // Angela's team directory). Element ids are keyed by <person>-<slot> so
     // several people's slots can coexist. Includes an optional link TITLE.
-    function _materialSlotHtml(key, m) {{
+    function _materialSlotHtml(key, m, isSupport) {{
       var sid = key + '-' + m.k;
       return '<div class="profile-material"><div class="profile-material-head">' +
           '<span class="profile-material-label">' + escapeHtml(m.label) + '</span>' +
-          '<span class="hint">' + escapeHtml(m.hint) + '</span></div>' +
+          '<span class="hint">' + escapeHtml(_matHint(m, isSupport)) + '</span></div>' +
         '<div class="profile-files" id="pf-files-' + sid + '"><p class="profile-file-empty">Loading&hellip;</p></div>' +
         '<div class="profile-upload-row"><input type="file" id="pf-file-input-' + sid + '" aria-label="Choose a file for ' + escapeHtml(m.label) + '">' +
           '<button type="button" class="q-btn" data-mat-upload="' + escapeHtml(key + '|' + m.k) + '">Upload</button></div>' +
@@ -12956,21 +12982,41 @@ def build():
       var $files = document.getElementById('pf-files-' + meKey + '-' + cat);
       if (!$files) return;
       var prefix = meKey + '/' + cat;
+      // Folders this slot absorbed when the list was cut from five to three.
+      var _slot = PROFILE_MATERIALS.filter(function (m) {{ return m.k === cat; }})[0] || {{}};
+      var _also = (_slot.also || []).map(function (c) {{ return meKey + '/' + c; }});
       // A missing bucket returns an empty list (not an error), so lean on the
       // same setup signal as the text store for the empty-state wording.
-      var emptyMsg = setupPending
-        ? 'Storage not set up yet.'
-        : 'Nothing here yet.';
-      sb.storage.from('profiles').list(prefix, {{ limit: 100, sortBy: {{ column: 'created_at', order: 'desc' }} }}).then(function (resp) {{
-        if (resp && resp.error) {{
+      // An empty slot says nothing at all now — the upload row underneath is
+      // already the invitation, and "Nothing here yet" three times over was
+      // just noise (Hurley 2026-07-31). Storage-not-set-up still speaks up.
+      var _opts = {{ limit: 100, sortBy: {{ column: 'created_at', order: 'desc' }} }};
+      var _lists = [prefix].concat(_also).map(function (pfx) {{
+        return sb.storage.from('profiles').list(pfx, _opts).then(function (r) {{
+          return {{ pfx: pfx, resp: r }};
+        }}, function () {{ return {{ pfx: pfx, resp: null }}; }});
+      }});
+      Promise.all(_lists).then(function (all) {{
+        var head = all[0] && all[0].resp;
+        if (head && head.error) {{
           $files.innerHTML = '<p class="profile-file-empty">File storage isn&#39;t set up yet &mdash; the one-time <code>profiles</code> bucket setup is still pending.</p>';
           return;
         }}
-        var items = ((resp && resp.data) || []).filter(function (f) {{ return f.name && f.name !== '.emptyFolderPlaceholder'; }});
-        if (!items.length) {{ $files.innerHTML = '<p class="profile-file-empty">' + emptyMsg + '</p>'; return; }}
-        $files.innerHTML = items.map(function (f) {{
+        var items = [];
+        all.forEach(function (o) {{
+          ((o.resp && o.resp.data) || []).forEach(function (f) {{
+            if (f.name && f.name !== '.emptyFolderPlaceholder') items.push({{ pfx: o.pfx, f: f }});
+          }});
+        }});
+        if (!items.length) {{
+          $files.innerHTML = setupPending
+            ? '<p class="profile-file-empty">Storage not set up yet.</p>' : '';
+          return;
+        }}
+        $files.innerHTML = items.map(function (it) {{
+          var f = it.f;
           var size = (f.metadata && f.metadata.size) ? _fmtBytes(f.metadata.size) : '';
-          return _matFileRowHtml(prefix + '/' + f.name, f.name, size, true);
+          return _matFileRowHtml(it.pfx + '/' + f.name, f.name, size, true);
         }}).join('');
         _wireProfileFileContainer($files, function (fullPath, name) {{
           if (!window.confirm('Delete "' + name + '"? This cannot be undone.')) return;
