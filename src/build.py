@@ -4726,8 +4726,11 @@ def build():
       _bar.parentNode.replaceChild(_fresh, _bar);
       wireQuickBar(rec);
     }}
+    // An outcome retires the steps still IN FLIGHT, but no longer erases the
+    // fact that we applied — "submitted, then rejected" is the useful record,
+    // and clearing Submitted also fought the implication above (Hurley).
     function _abRetireInFlight(tags) {{
-      return tags.filter(function (s) {{ return s !== 'Submitted' && s !== 'Initial outreach' && s !== 'Followed up'; }});
+      return tags.filter(function (s) {{ return s !== 'Initial outreach' && s !== 'Followed up'; }});
     }}
     window.__qaClick = function (e) {{
       // Angela picked a NAME under Should Attend -> toggle them on `interested`,
@@ -6922,6 +6925,13 @@ def build():
       CHAIN.forEach(function (st, i) {{ if (tags.indexOf(st) !== -1) deepest = i; }});
       for (var c = 0; c < deepest; c++) {{
         if (tags.indexOf(CHAIN[c]) === -1) tags.push(CHAIN[c]);
+      }}
+      // Rejected means they turned down an application, so there was one.
+      // Only Submitted, though: outreach and chasing get skipped all the time
+      // when we never had a contact address to use (Hurley 2026-07-31).
+      // Booked and Attending imply nothing — either can come from an invite.
+      if (tags.indexOf('Rejected') !== -1 && tags.indexOf('Submitted') === -1) {{
+        tags.push('Submitted');
       }}
       var ord = window.opsStageOrder || _STAGE_ORDER;
       return ord.length ? ord.filter(function (x) {{ return tags.indexOf(x) !== -1; }}) : tags;
@@ -9861,10 +9871,26 @@ def build():
                  past: !!it.past, manual: byGroup }};
       }}).sort(function (a2, b2) {{ return (a2.sort || 0) - (b2.sort || 0); }});
     }};
+    // Rebuilding this is the single most expensive thing the app does: 661
+    // items, each one folding a search blob out of every field. It is called
+    // from 21 places and several times inside ONE render, which is why
+    // switching to Lineup blocked the main thread for 240ms (Hurley
+    // 2026-07-31).
+    //
+    // Cached for the CURRENT SYNCHRONOUS PASS ONLY. The timeout fires at the
+    // end of this task, so every later call rebuilds — a write can never be
+    // masked by a stale list, which is the one failure mode worth avoiding
+    // here. Writes clear it outright as well.
+    var _itemsCache = null;
+    function opsInvalidateItems() {{ _itemsCache = null; }}
+    window.opsInvalidateItems = opsInvalidateItems;
     function opsAllItems() {{
+      if (_itemsCache) return _itemsCache;
       var items = [];
       (_lastEvs || []).forEach(function (ev) {{ items.push(opsItem('catalog', ev, _lastStateMap[ev.num] || {{}})); }});
       (_lastManual || []).forEach(function (m) {{ items.push(opsItem('manual', m, m)); }});
+      _itemsCache = items;
+      setTimeout(opsInvalidateItems, 0);
       return items;
     }}
 
@@ -10292,6 +10318,9 @@ def build():
 
       var booked = [], submitted = [], toApply = [];
       items.forEach(function (it) {{
+        // Closed. It kept Submitted from 2026-07-31 so the history reads
+        // right, which would otherwise land it in In Progress for ever.
+        if (it.stages.indexOf('Rejected') !== -1) return;
         if (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Attending') !== -1) booked.push(it);
         else if (it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Initial outreach') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1) submitted.push(it);
         else toApply.push(it);
@@ -10642,7 +10671,8 @@ def build():
         _radar = {{}};
         opsAllItems().forEach(function (it) {{
           var _sp = abFold(it.speaker || '').split(/[,;/&]| and |\\bplus\\b/).some(function (s) {{ return s.trim().split(/\\s+/)[0] === me; }});
-          var _pend = _sp && (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Initial outreach') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1);
+          var _pend = _sp && it.stages.indexOf('Rejected') === -1 &&
+            (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Initial outreach') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1);
           var _on = _pend
             || (it.interested || []).some(function (n) {{ return abFold(n).split(/\\s+/)[0] === me; }})
             || (it.attendees || []).some(function (a) {{ return abFold(a).split(/\\s+/)[0] === me; }});
@@ -14539,6 +14569,7 @@ def build():
         // Cache for the Queue + Planner views; refresh whichever is active plus
         // the tab-count badges (so flagging / conflicts update live).
         _lastEvs = evs; _lastStateMap = stateMap; _lastStateRows = stateRows; _lastManual = manualRows;
+        opsInvalidateItems();   // new data — the memo must not survive it
         // Diff this load against the last one BEFORE anything renders, so
         // "In the last week" can say what actually changed.
         try {{ _wnScanChanges(stateRows, manualRows); }} catch (e) {{}}
@@ -17242,6 +17273,7 @@ def build():
     // structured start/end dates when a manual event's date TEXT is edited.
     window.opsDeriveDates = deriveDatesFromText;
     window.opsWrite = function (table, key, patch) {{
+      opsInvalidateItems();
       var who = getCollabName() || 'Team';
       var run;
       if (table === 'manual_events') {{
