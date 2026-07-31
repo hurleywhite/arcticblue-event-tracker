@@ -4154,14 +4154,28 @@ def build():
     // Take the first clause that actually states something, not blindly the
     // first one, and never a pipe-joined blob.
     var parts = s.split(/\\s*[;|]\\s*|\\.\\s+/);
-    var pick = '';
-    for (var i = 0; i < parts.length; i++) {{
+    // Take up to THREE real clauses, not just the first. On "Day 0 stakeholder
+    // tracks; workshops; networking; multistakeholder policy discussions" the
+    // first-only rule produced "The format includes day 0 stakeholder tracks."
+    // — one item out of four, and the most jargon-y one at that, which read as
+    // a non-sequitur at the end of the overview (Hurley 2026-07-30).
+    var picks = [];
+    for (var i = 0; i < parts.length && picks.length < 3; i++) {{
       var t = parts[i].replace(/[.;,\\s]+$/, '').trim();
       if (!t || _modalJunk(t)) continue;
       if (/\\bnot\\s+(verified|specified|published|available|listed|confirmed|known)\\b/i.test(t)) continue;
-      pick = t; break;
+      picks.push(t);
     }}
-    if (!pick) return '';
+    if (!picks.length) return '';
+    // Lead with the plainest one — a clause nobody has to decode reads better
+    // first, and "Day 0" style insider shorthand is what made this confusing.
+    picks.sort(function (a, b) {{
+      var jarg = function (x) {{ return /\\bday\\s*0\\b|\\btrack\\b/i.test(x) ? 1 : 0; }};
+      return jarg(a) - jarg(b);
+    }});
+    // Commas only — the step below turns the final comma into "and", so
+    // joining with "and" here produced "a and b and c".
+    var pick = picks.join(', ');
     if (pick.length > 140) pick = pick.slice(0, 137).replace(/\\s\\S*$/, '') + '…';
     // The value is a bare noun phrase ("Panel discussions, fireside chats"),
     // which reads as a dangling fragment once it's sitting at the end of the
@@ -5130,18 +5144,65 @@ def build():
     var pocHtml = (contactBits.length ? field('Point of contact', contactBits.join(' · '), true) : '') +
                   (_ctp(rec.contact_info) ? field('Contact info', rec.contact_info) : '');
 
+    var _fuMine = !!(window.isAngelaUser && window.isAngelaUser());
+    var _fuList = window.abFollowUps ? window.abFollowUps(rec) : [];
+    // The chase LOG is Angela's worklist — dates, who, edit and delete controls.
+    // For everyone else that machinery is noise, but what came back in those
+    // chases is exactly what they want to know. So the notes travel and the log
+    // doesn't: whatever Angela writes against a follow-up lands in everyone
+    // else's Notes automatically (Hurley 2026-07-30).
+    function _notesForReader() {{
+      var base = String(rec.notes || '').trim();
+      if (_fuMine || !_fuList.length) return base;
+      // Compare on letters and digits only, so "Followed up with Terrapinn."
+      // and "followed up with terrapinn" count as the same sentence and a note
+      // already written into Notes is never repeated underneath it.
+      function _norm(s) {{ return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }}
+      // Angela writes the same thing twice in her own words — Notes say "I
+      // followed up with her personally on 7/29" and the chase says "Followed
+      // up w/ Jessica personally on 7/29." A substring test misses that, so
+      // also treat a note as a repeat when nearly all of its words are already
+      // on the page. Short fragments are exempt: too few words to judge.
+      function _mostlySaid(text, hayTokens) {{
+        // Whole tokens, not substrings — matching "he" inside "the" made
+        // unrelated notes look like repeats. Two-letter words count: dropping
+        // them left "Followed up w/ Jessica personally on 7/29" with only three
+        // words to judge, under the minimum, so it slipped through as new.
+        var w = _norm(text).split(' ').filter(function (x) {{ return x.length > 1; }});
+        if (w.length < 4) return false;
+        var hit = w.filter(function (x) {{ return hayTokens[x] === 1; }}).length;
+        return hit / w.length >= 0.8;
+      }}
+      function _tokens(str) {{
+        var m = {{}};
+        _norm(str).split(' ').forEach(function (x) {{ if (x) m[x] = 1; }});
+        return m;
+      }}
+      var seen = _norm(base), add = [];
+      // Oldest first, so the merged block reads in the order it happened.
+      _fuList.slice().reverse().forEach(function (f) {{
+        var t = String((f || {{}}).note || '').trim();
+        var n = _norm(t);
+        if (!t || !n) return;
+        if (seen.indexOf(n) !== -1) return;              // already said in Notes
+        if (_mostlySaid(t, _tokens(seen))) return;       // ...or said in other words
+        add.push((f.on ? _fuWhen(f.on) + ' — ' : '') + t);
+        seen += ' ' + n;                                  // and don't repeat itself
+      }});
+      if (!add.length) return base;
+      return base ? base + '\\n' + add.join('\\n') : add.join('\\n');
+    }}
     var v = '';
     // Notes lead the read view — right below "Chat with the team" (Angela). The
     // zone heading already says "Notes", so the value goes in bare.
-    v += sec('Notes', fieldBare(rec.notes));
-    // Follow-up log — Angela's spreadsheet column, as a clean dated list.
-    // Angela always gets the section (she needs the log button even on an empty
-    // one). Everyone else sees it only once there IS something to read: the
-    // speakers want to know they've been chased for, not to be shown an empty
-    // heading (Hurley 2026-07-30). Read-only for them — it's hers to run.
-    var _fuMine = !!(window.isAngelaUser && window.isAngelaUser());
-    var _fuList = window.abFollowUps ? window.abFollowUps(rec) : [];
-    if (_fuMine || _fuList.length) {{
+    v += sec('Notes', fieldBare(_notesForReader()));
+    // Follow-up log — Angela's spreadsheet column, as a clean dated list, and
+    // HERS ALONE (Hurley 2026-07-30). It used to show read-only to everyone
+    // once there was a row, but the dates, the "reached out / followed up"
+    // labels and the cadence badge are all worklist mechanics. What the rest of
+    // the team actually needs from it — what came back — is merged into their
+    // Notes above instead.
+    if (_fuMine) {{
       var _fuSt = window.abFollowUpState
         ? window.abFollowUpState(rec, rec.stage_tags || [], '') : null;
       var _fuBody = '';
