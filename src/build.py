@@ -1162,6 +1162,11 @@ def build():
       margin-left: auto; white-space: nowrap;
       font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3);
     }}
+    /* Who the contact is, under their name. Quiet — it's context, not a label. */
+    .poc-note {{
+      display: block; margin-top: 3px; font-size: 0.82rem; line-height: 1.45;
+      color: var(--ab-fg-2); font-style: italic;
+    }}
     .sib-line {{ display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--ab-rule); }}
     .sib-line:last-of-type {{ border-bottom: 0; }}
     .sib-line .sib-row {{ border-bottom: 0; flex: 1 1 auto; min-width: 0; }}
@@ -4945,6 +4950,9 @@ def build():
         sContact += ef('POC name', inp('poc_name', rec.poc_name));
         sContact += ef('POC email', inp('poc_email', rec.poc_email));
       }}
+      // A few words on who they are — this is what tells Angela what to send.
+      sContact += ef('Who they are', inp('poc_note', rec.poc_note,
+                     'e.g. Programme director \u2014 owns the speaker agenda'));
       h += sec('Contacts', sContact);
     }}
 
@@ -5282,7 +5290,14 @@ def build():
       contactBits.push('<a href="mailto:' + esc(rec.poc_email) + '">' + esc(rec.poc_email) + '</a>');
     }}
     if (rec.poc_linkedin) contactBits.push('<a href="' + esc(rec.poc_linkedin) + '" target="_blank" rel="noopener">LinkedIn ↗</a>');
-    var pocHtml = (contactBits.length ? field('Point of contact', contactBits.join(' · '), true) : '') +
+    // Who they are, in a few words, under the name. A name and an address don't
+    // tell you what to write — "programme director, owns the agenda" and
+    // "sponsorship lead" get very different emails. Deliberately words, not a
+    // confidence score: a number just raises "is 0.7 enough to email?", which
+    // nobody can answer (Hurley 2026-07-31).
+    var _pocNote = _ct(rec.poc_note) ? '<span class="poc-note">' + esc(rec.poc_note) + '</span>' : '';
+    var pocHtml = (contactBits.length
+                    ? field('Point of contact', contactBits.join(' · ') + _pocNote, true) : '') +
                   (_ctp(rec.contact_info) ? field('Contact info', rec.contact_info) : '');
 
     var _fuMine = !!(window.isAngelaUser && window.isAngelaUser());
@@ -7467,6 +7482,12 @@ def build():
         if (st.conflict_note) rec.conflict_note = st.conflict_note;
         if (st.follow_ups) rec.follow_ups = st.follow_ups;
         if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
+        // Both live ONLY on the state row for a catalog event, and this
+        // builder is an explicit whitelist — miss them here and the
+        // organiser link and the contact note silently never appear
+        // (Hurley 2026-07-31). Same trap as opsItem's projection.
+        if (st.org_group) rec.org_group = st.org_group;
+        if (st.poc_note)  rec.poc_note  = st.poc_note;
         if (st.decision) rec.decision = st.decision;
         if (st.is_private != null) rec.is_private = !!st.is_private;
         if (st.updated_at) rec.updated_at = st.updated_at;   // drives the modal "Updated …" line
