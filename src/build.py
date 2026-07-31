@@ -1894,6 +1894,33 @@ def build():
     .qa-step.qa-good.is-on {{ background: #15803d; border-color: #15803d; color: #fff; }}
     /* closed */
     .qa-step.qa-bad.is-on {{ background: #991b1b; border-color: #991b1b; color: #fff; }}
+    /* "Followed up" plus its correction control. The "−" stays out of the way
+       until you go near the pill, so the normal path (click to log a chase) is
+       the only thing on screen. */
+    .qa-fu {{ display: inline-flex; align-items: center; gap: 4px; }}
+    /* Same pattern as the hover icons beside the modal title (.mt-acts): the
+       button keeps its box and only fades. Animating width instead kept
+       collapsing it back to its 2px border inside the wrapping route row. */
+    .qa-fu-minus {{
+      box-sizing: border-box; flex: none;
+      width: 22px; height: 22px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--ab-rule-strong); border-radius: 999px;
+      background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer;
+      font-size: 0.95rem; line-height: 1;
+      opacity: 0; pointer-events: none; transition: opacity 130ms;
+    }}
+    .qa-fu:hover .qa-fu-minus,
+    .qa-fu:focus-within .qa-fu-minus {{ opacity: 1; pointer-events: auto; }}
+    .qa-fu:hover .qa-fu-minus:disabled,
+    .qa-fu:focus-within .qa-fu-minus:disabled {{ opacity: 0.4; cursor: not-allowed; }}
+    .qa-fu-minus:hover:not(:disabled) {{ background: #fee2e2; border-color: #991b1b; color: #991b1b; }}
+    .qa-fu-minus:focus-visible {{ opacity: 1; pointer-events: auto; outline: 2px solid var(--ab-blue); outline-offset: 1px; }}
+    /* Touch has no hover — show it permanently there. */
+    @media (hover: none) {{
+      .qa-fu-minus {{ opacity: 1; pointer-events: auto; }}
+      .qa-fu-minus:disabled {{ opacity: 0.4; }}
+    }}
     .qa-step.qa-static {{ cursor: default; }}
     .qa-step.qa-static:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg-2); }}
     .qa-step.qa-good.qa-static.is-on:hover {{ color: #fff; border-color: #15803d; }}
@@ -4232,14 +4259,36 @@ def build():
     // the last such quick entry; chases you typed a note against are real
     // history and are removed from their own row below, not from here.
     var _fuLabel = 'Followed up' + (_fuN ? '<span class="qa-n">\u00d7' + _fuN + '</span>' : '');
-    var _fuTip = _fuOn
-      ? 'Click to log another chase dated today (click again to undo it)'
-      : 'Click to log a chase dated today';
-    bStage.push(_endState
-      ? _spentStep(_fuLabel, 'Retired \u2014 this event has reached an outcome. ' +
-          (_fuN ? _fuN + ' chase' + (_fuN === 1 ? '' : 's') + ' still logged below.'
-                : 'No chases were logged.'))
-      : _step('followed-up', _fuLabel, _fuOn, 'qa-flight', ' title="' + esc(_fuTip) + '"'));
+    // Clicking only ever ADDS now. Undo used to be a second click on the same
+    // pill, which meant you couldn't add two chases in a row and couldn't tell
+    // which way the next click would go (Hurley 2026-07-30). Correcting a
+    // mis-click is its own "−", revealed on hover.
+    var _fuTip = 'Click to log a chase dated today';
+    // The "−" can only take back a quick click. An entry someone typed a note
+    // against is real history and comes off via its own row below, so if every
+    // logged chase has a note there is nothing safe for it to remove.
+    var _fuUndoable = (window.abFollowUps ? window.abFollowUps(rec) : [])
+      .filter(function (f) {{ return !String((f || {{}}).note || '').trim(); }}).length;
+    if (_endState) {{
+      bStage.push(_spentStep(_fuLabel, 'Retired \u2014 this event has reached an outcome. ' +
+        (_fuN ? _fuN + ' chase' + (_fuN === 1 ? '' : 's') + ' still logged below.'
+              : 'No chases were logged.')));
+    }} else {{
+      // The pill and its "\u2212" are siblings, not nested (a button can't contain a
+      // button). Both carry their own data-qa, so the delegated handler picks
+      // whichever was actually clicked.
+      bStage.push('<span class="qa-fu">' +
+        _step('followed-up', _fuLabel, _fuOn, 'qa-flight', ' title="' + esc(_fuTip) + '"') +
+        '<button type="button" class="qa-fu-minus" data-qa="followed-up-minus"' +
+          (_fuUndoable ? '' : ' disabled') +
+          ' aria-label="Remove one follow-up" title="' +
+          esc(_fuUndoable
+                ? 'Logged one too many? Take the last one back'
+                : (_fuN ? 'Every chase logged here has a note \u2014 remove it from its own row below'
+                        : 'Nothing logged yet')) +
+          '">\u2212</button>' +
+        '</span>');
+    }}
     bStage.push('<span class="qa-arrow" aria-hidden="true">\u2192</span>');
     bStage.push('<span class="qa-branch">');
     bStage.push(_step('booked', 'Booked', has('Booked'), 'qa-good'));
@@ -4495,7 +4544,7 @@ def build():
         rec.stage_tags = atags;
         patch.status_tags = atags;
       }}
-      else if (qa === 'followed-up') {{
+      else if (qa === 'followed-up' || qa === 'followed-up-minus') {{
         // The ×N on this step counts LOGGED chases, so a tag-only toggle could
         // never turn it off — click, nothing moves, click again, still nothing
         // (Hurley 2026-07-30). Clicking writes the log itself.
@@ -4505,24 +4554,25 @@ def build():
         var _fuTags = (rec.stage_tags || []).slice();
         var _meFu = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || '';
         var _fuToday = window.abTodayIso ? window.abTodayIso() : '';
-        // The step is lit whenever ANY chase is logged, so "lit means the next
-        // click removes" would strand every event Angela imported with a note
-        // against it — the button would be permanently dead (Hurley
-        // 2026-07-30). So a click ADDS a chase, and only undoes the one thing
-        // this button could have created: my own note-less entry from today.
-        // Anything with a note typed against it is real history and comes off
-        // via the trash can on its own row.
-        var _undo = -1;
-        for (var _f1 = 0; _f1 < _fuList.length; _f1++) {{
-          var _e1 = _fuList[_f1] || {{}};
-          if (String(_e1.note || '').trim()) continue;
-          if (String(_e1.on || '') !== _fuToday) continue;
-          var _by1 = String(_e1.by || '').trim().toLowerCase();
-          if (_by1 && _meFu && _by1 !== String(_meFu).trim().toLowerCase()) continue;
-          _undo = _f1;
+        // The pill only ever ADDS; the "−" beside it only ever removes. One
+        // click, one predictable direction (Hurley 2026-07-30) — the old
+        // single-pill toggle meant you couldn't log two chases in a row.
+        if (qa === 'followed-up-minus') {{
+          // Take back the most recent QUICK entry — one logged from the pill,
+          // so it carries no note. A chase someone typed a note against is real
+          // history and comes off via the trash can on its own row instead.
+          var _cut = -1, _cutOn = '';
+          for (var _f1 = 0; _f1 < _fuList.length; _f1++) {{
+            var _e1 = _fuList[_f1] || {{}};
+            if (String(_e1.note || '').trim()) continue;
+            var _on1 = String(_e1.on || '');
+            if (_cut === -1 || _on1 >= _cutOn) {{ _cut = _f1; _cutOn = _on1; }}
+          }}
+          if (_cut === -1) return;              // nothing safe to remove
+          _fuList.splice(_cut, 1);
+        }} else {{
+          _fuList.push({{ on: _fuToday, by: _meFu, note: '' }});
         }}
-        if (_undo !== -1) _fuList.splice(_undo, 1);
-        else _fuList.push({{ on: _fuToday, by: _meFu, note: '' }});
         // Keep the tag honest: it means "there are chases on record".
         var _fuHad = _fuTags.indexOf('Followed up');
         if (_fuList.length && _fuHad === -1) _fuTags.push('Followed up');
