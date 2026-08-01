@@ -105,7 +105,9 @@
    "city": "Toronto",
    "country": "Canada",
    "external_id": "586b9c14-49c3-4494-a951-6ebc5addcbd6",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "From C$0.00 to C$1,000.00",
+   "audience_type": "Mixed"
   },
   {
    "num": 19,
@@ -1030,7 +1032,10 @@
    "speaking_route": "Speaker/CFP: aiconference.com (speaker applications on official site)",
    "contact_info": "aiconference.com",
    "pay_to_play": "No",
-   "focus_areas": "Applied enterprise AI deployment and operations; Agentic AI systems in production; AI governance and alignment; Generative AI enterprise use cases; AI safety and responsible deployment"
+   "focus_areas": "Applied enterprise AI deployment and operations; Agentic AI systems in production; AI governance and alignment; Generative AI enterprise use cases; AI safety and responsible deployment",
+   "venue": "Pier 48 (Shed A and B)",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "5,500+"
   },
   {
    "num": 89,
@@ -2739,7 +2744,10 @@
    "external_id": "f706229f-56f8-4e87-8242-b526d3c5256b",
    "source": "arcticscout",
    "start_date": "2026-08-19",
-   "end_date": "2026-08-19"
+   "end_date": "2026-08-19",
+   "pricing": "Paid all-access pass: $2,499; complimentary passes available for qualified non-vendor senior enterprise attendees",
+   "meeting_formats": "Executive roundtables; networking reception; exhibit hall; panels; presentations",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 126,
@@ -3258,7 +3266,8 @@
    "source": "arcticscout",
    "start_date": "2026-08-31",
    "end_date": "2026-09-03",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "meeting_formats": "attendee app for pre-booking meetings; curated networking areas"
   },
   {
    "num": 146,
@@ -4223,7 +4232,8 @@
    "external_id": "0eb91e85-853d-4ffa-b34d-25330c9b1193",
    "source": "arcticscout",
    "start_date": "2026-03-04",
-   "end_date": "2026-03-05"
+   "end_date": "2026-03-05",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 182,
