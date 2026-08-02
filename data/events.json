@@ -3510,7 +3510,9 @@
    "external_id": "acf52fc3-dd27-45c1-8f2e-9be46390aec6",
    "source": "arcticscout",
    "start_date": "2026-04-08",
-   "end_date": "2026-04-09"
+   "end_date": "2026-04-09",
+   "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 156,
@@ -3598,7 +3600,8 @@
    "meeting_formats": "curated roundtables; networking formats; side events; attendee app for pre-booking meetings",
    "audience_type": "Buyer-rich",
    "attendee_count": "300",
-   "deadline": "31st December 2025"
+   "deadline": "31st December 2025",
+   "past_speakers": "Sascha Lobo, Author and Columnist; Jonas Andrulis, Founder and CEO, Aleph Alpha; Philipp Herzig, Chief AI Officer, SAP"
   },
   {
    "num": 159,
@@ -5192,7 +5195,9 @@
    "external_id": "208e206a-d179-4224-9637-877faa04b78f",
    "source": "arcticscout",
    "start_date": "2026-07-09",
-   "end_date": "2026-07-09"
+   "end_date": "2026-07-09",
+   "meeting_formats": "Networking breakfast/reception",
+   "audience_type": "Mixed"
   },
   {
    "num": 215,
@@ -7402,12 +7407,17 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "AI engineers, technical leaders, and executives",
    "url": "https://world.aiacceleratorinstitute.com/location/washington",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-washington",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "480 L'Enfant Plaza SW, Washington, DC 20024, USA",
+   "pricing": "Individual Pass: $595; early-bird Individual Pass: $495; vendor/supplier pass: $395",
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "audience_type": "Mixed",
+   "attendee_count": "0-300 delegates"
   },
   {
    "num": 300,
