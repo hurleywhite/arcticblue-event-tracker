@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-02T00:00:00Z",
-  "build_date": "2026-08-02",
+  "generated_at": "2026-08-03T00:00:00Z",
+  "build_date": "2026-08-03",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -2429,6 +2429,7 @@
       "speaking_route": "Sponsorship/speaking contact: aidataanalytics.network/events-agentic-ai-summit",
       "contact_info": "aidataanalytics.network",
       "deadline": "No call-for-speakers deadline published",
+      "audience_type": "Buyer-rich",
       "venue": "Amsterdam Marriott Hotel",
       "city": "Amsterdam",
       "country": "Netherlands",
