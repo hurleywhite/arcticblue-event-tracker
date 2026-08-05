@@ -2029,68 +2029,7 @@ def build():
     .qa-fu-btn:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 1px; }}
     /* Touch has no hover — keep it visible there. */
     @media (hover: none) {{ .qa-fu-ctl {{ opacity: 1; pointer-events: auto; }} }}
-    /* Draft outreach — the email, on the route, at the point of submission. */
-    .qa-mail-open {{
-      display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
-      font-family: var(--ab-sans); font-size: 0.73rem; font-weight: 650;
-      padding: 5px 10px; border-radius: 999px; cursor: pointer;
-      border: 1px solid #1fa0dc; background: rgba(31,160,220,0.10); color: #1271a8;
-      transition: background 120ms, border-color 120ms;
-    }}
-    .qa-mail-open:hover {{ background: rgba(31,160,220,0.20); }}
-    .qa-mail {{
-      flex: 1 1 100%; margin-top: 10px; padding: 12px 14px;
-      border: 1px solid var(--ab-rule-strong); border-radius: 10px; background: var(--ab-bg-2);
-    }}
-    .qa-mail[hidden] {{ display: none; }}
-    .qa-mail-head {{ display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }}
-    .qa-mail-variant {{
-      font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.07em;
-      text-transform: uppercase; color: #1271a8;
-      background: rgba(31,160,220,0.13); padding: 2px 7px; border-radius: 999px;
-    }}
-    .qa-mail-to {{ font-family: var(--ab-mono); font-size: 0.68rem; color: var(--ab-fg-3); }}
-    .qa-mail-to--none {{ color: #b45309; }}
-    .qa-mail-modes {{ margin-left: auto; display: inline-flex; gap: 4px; }}
-    .qa-mail-mode {{
-      font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.03em;
-      padding: 3px 8px; border-radius: 999px; cursor: pointer; white-space: nowrap;
-      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-3);
-    }}
-    .qa-mail-mode:hover {{ border-color: #1fa0dc; color: #1271a8; }}
-    .qa-mail-mode.is-on {{ background: #1fa0dc; border-color: #1fa0dc; color: #fff; }}
-    /* The one thing to check before sending. Amber, because it is a nudge, not
-       an error — the draft is still perfectly sendable. */
-    .qa-mail-advice {{
-      margin: 0 0 9px; padding: 7px 10px; border-radius: 7px;
-      background: rgba(234,179,8,0.13); border-left: 3px solid #eab308;
-      font-family: var(--ab-sans); font-size: 0.76rem; color: var(--ab-fg-2);
-    }}
-    /* Angela composes in Trebuchet MS, so the draft previews in it rather
-       than the UI's mono — the preview should look like the email. */
-    .qa-mail-subject, .qa-mail-body, .profile-mail-slot textarea {{
-      font-family: var(--ab-email);
-    }}
-    .qa-mail-subject, .qa-mail-body {{
-      width: 100%; box-sizing: border-box; margin-bottom: 8px;
-      padding: 8px 10px; border: 1px solid var(--ab-rule-strong); border-radius: 7px;
-      background: var(--ab-bg); color: var(--ab-fg); font-size: 0.8rem;
-    }}
-    .qa-mail-subject {{ font-weight: 600; }}
-    .qa-mail-body {{ line-height: 1.55; resize: vertical; }}
-    .qa-mail-actions {{ display: flex; gap: 7px; flex-wrap: wrap; }}
-    /* Angela's master templates, in Team Profiles. */
-    .profile-mail {{ margin: 0 0 22px; padding: 15px 17px; border: 1px solid var(--ab-rule-strong); border-radius: 10px; background: var(--ab-bg-2); }}
-    .profile-mail h3 {{ margin: 0 0 4px; font-family: var(--ab-sans); font-size: 0.95rem; }}
-    .profile-mail .profile-mail-hint {{ margin: 0 0 12px; font-size: 0.78rem; color: var(--ab-fg-3); }}
-    .profile-mail code {{ font-family: var(--ab-mono); font-size: 0.72rem; background: var(--ab-bg-3); padding: 1px 4px; border-radius: 4px; }}
-    .profile-mail-slot {{ margin-bottom: 12px; }}
-    .profile-mail-slot > label {{ display: block; font-family: var(--ab-sans); font-size: 0.8rem; font-weight: 650; margin-bottom: 5px; }}
-    .profile-mail-slot textarea {{
-      width: 100%; box-sizing: border-box; padding: 9px 11px; border-radius: 7px;
-      border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
-      font-size: 0.8rem; line-height: 1.55; resize: vertical;
-    }}
+    /* (Draft-outreach styles removed 2026-08-05 with the feature.) */
     .qa-step.qa-static {{ cursor: default; }}
     .qa-step.qa-static:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg-2); }}
     .qa-step.qa-good.qa-static.is-on:hover {{ color: #fff; border-color: #15803d; }}
@@ -4596,16 +4535,11 @@ def build():
     }}
     bStage.push('</span>');   // /qa-branch
     bStage.push('</div>');    // /qa-flow
-    // Submitted, but nobody has approached the organiser yet -> offer the
-    // email. This is the moment Angela reaches for her template, so the draft
-    // comes to her rather than the other way round (Hurley 2026-07-31).
-    var _mailDue = has('Submitted') && !has('Initial outreach') && !_endState;
-    if (_mailDue) {{
-      bStage.push('<button type="button" class="qa-mail-open" data-qa="mail-open" ' +
-        'title="Draft the organiser email, pre-filled from this event">' +
-        '\u2709 Draft outreach</button>');
-    }}
-    bStage.push('<div class="qa-mail" id="qa-mail" hidden></div>');
+    // "Draft outreach" REMOVED for everyone (Hurley 2026-08-05, confirming the
+    // earlier "take out the email drafter"). It offered a pre-filled organiser
+    // email whenever an event was Submitted with no outreach logged yet. The
+    // button, its panel, its click handler and Angela's template editor are all
+    // gone, along with the whole compose engine (see the tombstone further down).
     // Should Attend is Angela's triage tool — only she sees/sets it here. For
     // everyone else, marking Interested funnels into her Should-Attend list.
     if (window.isAngelaUser && window.isAngelaUser()) {{
@@ -4968,14 +4902,6 @@ def build():
         patch.status_tags = tags;
         // Submitted means the outreach email is next — have the contact ready.
         if (stage === 'Submitted' && idx === -1 && window.abFindContact) window.abFindContact(rec);
-      }}
-      else if (qa === 'mail-open') {{
-        var _mh = document.getElementById('qa-mail');
-        if (_mh) {{
-          if (!_mh.hasAttribute('hidden')) {{ _mh.setAttribute('hidden', ''); _mh.innerHTML = ''; }}
-          else {{ _mh.removeAttribute('hidden'); window.abRenderMailPanel(_mh, rec); }}
-        }}
-        return;   // pure UI — nothing to write
       }}
       else if (qa === 'should-attend') {{
         // human -> clear; AI-suggested OR none -> set a CONFIRMED human
@@ -12820,337 +12746,15 @@ def build():
     // Placeholders are [square brackets], not braces — this file is a Python
     // .format() template and every brace in it has to be doubled.
     // ════════════════════════════════════════════════════════════════
-    var AB_MAIL_PLACEHOLDERS = ['Name', 'event_phrase', 'Event Name', 'Event Date',
-                                'focus_sentence', 'topics', 'bio_link', 'linkedin', 'site'];
-    // Thor's real assets. Not his email address — Angela sends from hers.
-    var AB_MAIL_ASSETS = {{
-      bio:      'https://docs.google.com/document/d/174JAp_ViiFPcIONuwxqe0wZ3wTUlg1ldMNXqeHbXJYo/edit?usp=sharing',
-      linkedin: 'https://www.linkedin.com/in/thorernstsson/',
-      site:     'https://www.arcticblue.ai/'
-    }};
-    // The two session topics. Blurbs and key takeaways are verbatim from
-    // Angela's doc; `concise` is the one-line form the editorial pitch uses.
-    // Hers for Fail or Scale is verbatim too — the Leadership one is condensed
-    // from her own blurb, in her words, since the doc has no short version.
-    var AB_MAIL_SESSIONS = [
-      {{
-        title: 'Leadership Frameworks for AI Experimentation',
-        match: 'governance leadership risk compliance decision rights operating model culture change management',
-        concise: 'How leadership and governance evolve from static control to adaptive orchestration — defining decision rights, managing risk, and measuring learning velocity, so teams innovate with confidence rather than just compliance.',
-        blurb: 'As AI accelerates the tempo of business, governance must evolve from static control to adaptive orchestration. Thor explores leadership models that balance experimentation and accountability — showing how to define decision rights, manage risk, and measure learning velocity. Drawing on ArcticBlue’s experience operating at the frontier of AI experimentation, he outlines how modern leaders can create confidence, not just compliance, in how their teams innovate.',
-        takeaways: [
-          'Shifting from “compliance” to “confidence” in AI governance',
-          'Structuring compliance for adaptive, AI-augmented teams',
-          'Metrics that capture learning velocity, not just output'
-        ]
-      }},
-      {{
-        title: 'Fail or Scale: What’s the Difference Between Experiments and Pilots?',
-        match: 'roi scale scaling pilot experiment poc proof of concept measurable impact adoption transformation value',
-        concise: 'How enterprises can distinguish AI initiatives worth scaling from those that should be stopped, and how to build the governance and decision-making frameworks needed to move from experimentation to sustainable business impact.',
-        blurb: 'Most teams lump “experiments” and “pilots” together, and that’s exactly how they get stuck in endless proofs-of-concept that never scale. Thor draws a sharp, practical line between the two: experiments as cheap, disposable learning vehicles, and pilots as pre-scale dress rehearsals for reality. He walks through how companies move from idea to experiment to pilot to scale without getting trapped in “pilot purgatory” or burning trust with stakeholders.',
-        takeaways: [
-          'How to distinguish experiments from pilots in design, stakes, and success criteria',
-          'A simple progression model: experiment → pilot → scale, without “pilot purgatory”',
-          'Signals that an experiment is ready to graduate — and when you should stop instead',
-          'Governance, risk, and communication patterns that keep stakeholders aligned at every stage'
-        ]
-      }}
-    ];
-    // Which single session to lead with when we're only naming one. Whichever
-    // of the two the event's own words point at; Fail or Scale is the default
-    // because it is the one Angela leads with most.
-    function _mailPickSession(rec) {{
-      var blob = [ (rec && rec.name) || '', (rec && rec.focus_areas) || '',
-                   (rec && rec.about) || '', (rec && rec.speaker_topic) || '' ].join(' ').toLowerCase();
-      var best = AB_MAIL_SESSIONS[1], bestScore = 0;
-      AB_MAIL_SESSIONS.forEach(function (t) {{
-        var score = t.match.split(' ').filter(function (w) {{
-          return w.length > 3 && blob.indexOf(w) !== -1;
-        }}).length;
-        if (score > bestScore) {{ bestScore = score; best = t; }}
-      }});
-      return best;
-    }}
-    // FULL: both sessions with blurbs and takeaways, as an appendix.
-    function _mailTopicsFull() {{
-      var out = ['Possible session topics', ''];
-      AB_MAIL_SESSIONS.forEach(function (t, i) {{
-        out.push((i + 1) + ') ' + t.title);
-        out.push(t.blurb);
-        out.push('Key takeaways:');
-        t.takeaways.forEach(function (k) {{ out.push('  • ' + k); }});
-        if (i < AB_MAIL_SESSIONS.length - 1) out.push('');
-      }});
-      return out.join('\\n');
-    }}
-    // CONCISE: one session, title and a single sentence, inline in the body.
-    function _mailTopicConcise(rec) {{
-      var t = _mailPickSession(rec);
-      return t.title + ': ' + t.concise;
-    }}
-    var AB_MAIL_DEFAULTS = {{
-      global: {{
-        subject: 'Speaker Proposal: Thor Ernstsson (ArcticBlue AI)',
-        body: [
-          'Hello [Name],',
-          '',
-          'I am reaching out on behalf of Thor Ernstsson, CEO/Founder of ArcticBlue AI.',
-          'Thor is very interested in contributing to [event_phrase] as a speaker.',
-          '',
-          'Thor brings extensive expertise in AI, along with a strong record of keynote presentations and executive workshops around the world. He is based in NYC, though delivers global sessions, including in the MENA region each month for AI programming delivered in partnership with Tamkeen, Bahrain’s government-backed organization focused on strengthening and enriching the local economy using AI.',
-          '',
-          "Thor's Bio and Speaker Package are linked below, as well as two possible session topics to fit the event.",
-          '',
-          "I'd be happy to set up a quick intro call with Thor if you would like to discuss any further session topics or future AI events.",
-          '',
-          'Best,',
-          'Angela',
-          '---',
-          'Angela Pavone',
-          'ArcticBlue AI · [site]',
-          '',
-          'Thor Ernstsson — Bio & Speaker Package: [bio_link]',
-          'LinkedIn: [linkedin]',
-          '',
-          '[topics]'
-        ].join('\\n')
-      }},
-      us: {{
-        subject: 'Editorial Speaker Proposal: Thor Ernstsson (ArcticBlue AI)',
-        body: [
-          'Hello [Name],',
-          '',
-          "I’m reaching out on behalf of Thor Ernstsson, CEO of ArcticBlue AI, regarding a potential editorial speaking contribution to [event_phrase].",
-          '',
-          'Thor brings extensive expertise in AI, along with a strong record of keynote presentations and executive workshops around the world. He holds a practical enterprise perspective on moving AI from experimentation to measurable business impact, drawing on experience with more than 20,000 AI experiments across Fortune 500 organizations.',
-          '',
-          '[focus_sentence]',
-          'One session he could contribute is:',
-          '',
-          '[session_concise]',
-          '',
-          'He would be very interested in contributing an editorial session rather than a company sponsored speaking placement.',
-          '',
-          "Thor's Speaker Package / Bio can be found here: [bio_link], and I’d be happy to send over further session descriptions upon request.",
-          '',
-          'Best,',
-          'Angela',
-          '---',
-          'Angela Pavone',
-          'ArcticBlue AI · [site]',
-          'LinkedIn: [linkedin]'
-        ].join('\\n')
-      }}
-    }};
-    // Which variant: US gets the editorial pitch, everywhere else gets the
-    // Global/UAE one with the Tamkeen paragraph. Country first (the reliable
-    // field), then the location string, then the ", NY" state suffix the
-    // catalog uses for US cities.
-    function _mailIsUS(rec) {{
-      var blob = String((rec && (rec.country || '')) + ' ' + (rec && (rec.location || '')) + ' ' + (rec && (rec.city || ''))).toLowerCase();
-      if (/\\b(usa|u\\.s\\.a|united states)\\b/.test(blob)) return true;
-      if (/\\b(uae|dubai|abu dhabi|riyadh|saudi|qatar|doha|bahrain|manama|kuwait|oman|london|paris|berlin|amsterdam|zurich|dublin|singapore|india|canada|toronto|mexico)\\b/.test(blob)) return false;
-      return /,\\s*(a[lkzr]|c[aot]|de|fl|ga|hi|i[adln]|k[sy]|la|m[adeinost]|n[cdehjmvy]|o[hkr]|pa|ri|s[cd]|t[nx]|ut|v[at]|w[aivy]|dc)\\b/i.test(blob);
-    }}
-    var _EVENT_NOUNS = ['summit', 'conference', 'convention', 'assembly', 'forum', 'expo',
-                        'exposition', 'congress', 'symposium', 'event', 'festival', 'week',
-                        'day', 'days', 'roundtable', 'exchange', 'workshop', 'retreat',
-                        'series', 'awards', 'meetup', 'showcase', 'fair', 'session', 'sessions'];
-    // The last word decides it — that is exactly the "is event/assembly/etc at
-    // the end?" test, and it keeps the sentence honest without a grammar model.
-    function _mailEventPhrase(name, dateStr) {{
-      name = String(name || '').trim();
-      if (!name) return 'your event';
-      var words = name.split(/\\s+/);
-      var last = words[words.length - 1].toLowerCase().replace(/[^a-z]/g, '');
-      var startsWithThe = /^the\\b/i.test(name);
-      var phrase = (!startsWithThe && _EVENT_NOUNS.indexOf(last) !== -1)
-        ? 'the upcoming ' + name
-        : name;
-      // A date only belongs here if we actually have one — "on Date TBD" is
-      // worse than saying nothing.
-      var d = String(dateStr || '').trim();
-      if (d && !/tbd|unknown|rolling/i.test(d)) {{
-        // "on August 4-6, 2026" but "in April 2027" — a month with no day
-        // takes "in". Strip the year first so 2027 isn't read as a day.
-        var hasDay = /\\d{{1,2}}(?!\\d)/.test(d.replace(/\\b\\d{{4}}\\b/g, ''));
-        phrase += (hasDay ? ' on ' : ' in ') + d;
-      }}
-      return phrase;
-    }}
-    // The US template's "Given the Summit's focus on ..." line. Only written
-    // when the event actually tells us what it is about; an empty focus makes
-    // it a sentence about nothing.
-    function _mailFocusSentence(rec, name) {{
-      var fa = rec && rec.focus_areas;
-      if (Array.isArray(fa)) fa = fa.join(', ');
-      fa = String(fa || '').trim().replace(/\\s*[;|]\\s*/g, ', ').replace(/\\.$/, '');
-      if (!fa || fa.length < 8) return '';
-      // "a, b, c" -> "a, b and c" — a bare comma list reads like a form field.
-      var _parts = fa.split(/,\\s*/).filter(Boolean);
-      if (_parts.length > 1) fa = _parts.slice(0, -1).join(', ') + ' and ' + _parts[_parts.length - 1];
-      var words = String(name || '').trim().split(/\\s+/);
-      var last = words[words.length - 1].toLowerCase().replace(/[^a-z]/g, '');
-      var noun = (_EVENT_NOUNS.indexOf(last) !== -1)
-        ? words[words.length - 1].replace(/[^A-Za-z]/g, '') : 'event';
-      noun = noun.charAt(0).toUpperCase() + noun.slice(1);
-      return 'Given the ' + noun + '\\u2019s focus on ' + fa +
-             ', I believe Thor\\u2019s perspective could be particularly relevant to the program.\\n';
-    }}
-    function _mailTemplates() {{
-      var row = (window._abProfileRows || {{}}).angela || {{}};
-      return {{
-        us:     {{ subject: AB_MAIL_DEFAULTS.us.subject,     body: row.email_template_us     || AB_MAIL_DEFAULTS.us.body }},
-        global: {{ subject: AB_MAIL_DEFAULTS.global.subject, body: row.email_template_global || AB_MAIL_DEFAULTS.global.body }}
-      }};
-    }}
-    // The one thing she should look at before sending. Deliberately at most
-    // one line: a checklist nobody reads is worse than no checklist.
-    function _mailAdvice(rec, ctx) {{
-      var note = String((rec && rec.poc_note) || '').toLowerCase();
-      if (!ctx.contact_name) return 'No named contact yet — it will open "Hello there,". Add one under Point of contact.';
-      if (/sponsor|exhibit|stand|booth|sales|partnership/.test(note)) {{
-        return ctx.contact_name.split(/\s+/)[0] + ' looks like a sponsorship contact — this pitches an editorial slot, so consider asking them to point you at the programme lead.';
-      }}
-      if (/linkedin/.test(note) && !ctx.contact_email) {{
-        return 'No email on file — ' + ctx.contact_name.split(/\s+/)[0] + ' was found on LinkedIn, so send this there.';
-      }}
-      if (!ctx.contact_email) return 'No email address on file — copy this and send it however you have them.';
-      if (!ctx['Event Date']) return 'No date on this event, so the sentence just names it — add the date if you have it.';
-      return 'Check the date reads right, then send.';
-    }}
-    // Fill [placeholders]. Unknown ones are left alone rather than blanked, so
-    // a typo in a template shows up instead of silently deleting a line.
-    function _mailFill(text, ctx) {{
-      return String(text || '').replace(/\[([A-Za-z_ ]+)\]/g, function (m, k) {{
-        if (!(k in ctx)) return m;              // unknown -> leave visible, don't blank a line
-        return (ctx[k] === null || ctx[k] === undefined) ? '' : ctx[k];
-      }})
-      // An omitted focus sentence leaves a blank line behind it; collapse any
-      // run of three-plus newlines back to a paragraph break.
-      .replace(/\\n{{3,}}/g, '\\n\\n').trim();
-    }}
-    function _mailCtx(rec) {{
-      var name = String((rec && rec.name) || '').trim();
-      var dates = String((rec && rec.date_str) || '').trim();
-      return {{
-        // The templates greet by first name; no name means "Hello there,".
-        'Name':           String((rec && rec.poc_name) || '').trim().split(/\s+/)[0] || 'there',
-        'event_phrase':   _mailEventPhrase(name, dates),
-        'Event Name':     name || 'your event',
-        'Event Date':     dates,
-        'focus_sentence': _mailFocusSentence(rec, name),
-        'topics':           _mailTopicsFull(),
-        'session_concise':  _mailTopicConcise(rec),
-        'bio_link':       AB_MAIL_ASSETS.bio,
-        'linkedin':       AB_MAIL_ASSETS.linkedin,
-        'site':           AB_MAIL_ASSETS.site,
-        contact_name:  String((rec && rec.poc_name) || '').trim(),
-        contact_email: String((rec && rec.poc_email) || '').trim()
-      }};
-    }}
-    // Build the panel for one event.
-    // mode: 'concise' names ONE session inline; 'full' appends both with their
-    // takeaways. Never both — that is what put Fail or Scale in twice.
-    // The default follows each template's own job: an editorial pitch asks for
-    // a slot in someone's programme, so one sharp proposal that fits their
-    // theme beats a menu; the global one is a broader enquiry, so both are
-    // offered and the organiser picks (Hurley 2026-07-31).
-    window.abMailDraft = function (rec, mode) {{
-      var ctx = _mailCtx(rec);
-      var isUS = _mailIsUS(rec);
-      if (mode !== 'concise' && mode !== 'full') mode = isUS ? 'concise' : 'full';
-      var tpl = _mailTemplates()[isUS ? 'us' : 'global'];
-      var _body = String(tpl.body);
-      if (mode === 'concise') {{
-        ctx['topics'] = '';
-        if (_body.indexOf('[session_concise]') === -1) {{
-          _body = _body.replace('[topics]', 'One session he could contribute is:\\n\\n[session_concise]');
-        }}
-      }} else {{
-        ctx['session_concise'] = '';
-        if (_body.indexOf('[topics]') === -1) {{
-          _body = _body.replace('One session he could contribute is:', '')
-                       .replace('[session_concise]', '[topics]');
-        }}
-      }}
-      tpl = {{ subject: tpl.subject, body: _body }};
-      return {{
-        variant: isUS ? 'US \u2014 editorial' : 'Global / UAE',
-        mode: mode,
-        to: ctx.contact_email,
-        subject: _mailFill(tpl.subject, ctx),
-        body: _mailFill(tpl.body, ctx),
-        advice: _mailAdvice(rec, ctx)
-      }};
-    }};
-    // Render the panel. Editable before sending — she may want to add a line,
-    // and a draft you cannot touch is a draft you paste elsewhere to fix.
-    window.abRenderMailPanel = function (host, rec, mode) {{
-      var d = window.abMailDraft(rec, mode);
-      host.innerHTML =
-        '<div class="qa-mail-head">' +
-          '<span class="qa-mail-variant">' + escapeHtml(d.variant) + ' template</span>' +
-          (d.to ? '<span class="qa-mail-to">to ' + escapeHtml(d.to) + '</span>'
-                : '<span class="qa-mail-to qa-mail-to--none">no email on file</span>') +
-          // Which form the topics take. Defaulted per template; switchable
-          // because the right call is a judgement about the organiser, not
-          // something the event data can settle (Hurley 2026-07-31).
-          '<span class="qa-mail-modes">' +
-            '<button type="button" class="qa-mail-mode' + (d.mode === 'concise' ? ' is-on' : '') + '" data-mode="concise"' +
-              ' title="Name one session inline, chosen to fit this event">One session</button>' +
-            '<button type="button" class="qa-mail-mode' + (d.mode === 'full' ? ' is-on' : '') + '" data-mode="full"' +
-              ' title="Append both sessions with blurbs and key takeaways">Both, in full</button>' +
-          '</span>' +
-        '</div>' +
-        '<p class="qa-mail-advice">' + escapeHtml(d.advice) + '</p>' +
-        '<input class="qa-mail-subject" id="qa-mail-subject" value="' + escapeHtml(d.subject) + '" aria-label="Subject">' +
-        '<textarea class="qa-mail-body" id="qa-mail-body" rows="14" aria-label="Email body">' + escapeHtml(d.body) + '</textarea>' +
-        '<div class="qa-mail-actions">' +
-          '<button type="button" class="q-btn primary" data-mail="copy">Copy</button>' +
-          (d.to ? '<button type="button" class="q-btn" data-mail="open">Open in email</button>' : '') +
-          '<button type="button" class="q-btn" data-mail="sent" title="Logs Initial outreach on this event">Mark sent</button>' +
-        '</div>';
-      var $s = host.querySelector('#qa-mail-subject');
-      var $b = host.querySelector('#qa-mail-body');
-      host.querySelectorAll('[data-mode]').forEach(function (mb) {{
-        mb.addEventListener('click', function (e) {{
-          e.stopPropagation();
-          window.abRenderMailPanel(host, rec, mb.getAttribute('data-mode'));
-        }});
-      }});
-      host.querySelectorAll('[data-mail]').forEach(function (btn) {{
-        btn.addEventListener('click', function (e) {{
-          e.stopPropagation();
-          var act = btn.getAttribute('data-mail');
-          if (act === 'copy') {{
-            var txt = $s.value + '\\n\\n' + $b.value;
-            var done = function () {{ btn.textContent = 'Copied'; setTimeout(function () {{ btn.textContent = 'Copy'; }}, 1400); }};
-            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, done);
-            else {{ $b.select(); try {{ document.execCommand('copy'); }} catch (x) {{}} done(); }}
-          }} else if (act === 'open') {{
-            window.open('mailto:' + encodeURIComponent(d.to) +
-              '?subject=' + encodeURIComponent($s.value) +
-              '&body=' + encodeURIComponent($b.value), '_blank');
-          }} else if (act === 'sent') {{
-            // Same write the Initial outreach step makes, so the two can never
-            // disagree about what stage the event is at.
-            var tags = (rec.stage_tags || []).slice();
-            if (tags.indexOf('Initial outreach') === -1) tags.push('Initial outreach');
-            var ord = window.opsStageOrder || [];
-            if (ord.length) tags = ord.filter(function (x) {{ return tags.indexOf(x) !== -1; }});
-            rec.stage_tags = tags;
-            if (window.opsWrite) window.opsWrite(rec._table, rec._key, {{ status_tags: tags }});
-            host.setAttribute('hidden', ''); host.innerHTML = '';
-            // Repaint so the route shows Initial outreach lit and the
-            // "Draft outreach" button retires — openEventModal is the same
-            // full rebuild the stage clicks settle on.
-            if (window.openEventModal) window.openEventModal(rec);
-          }}
-        }});
-      }});
-    }};
+    // ── Outreach email drafter: REMOVED 2026-08-05 ──────────────────
+    // The "Draft outreach" button, its panel, Angela's template editor and the
+    // whole compose engine (AB_MAIL_PLACEHOLDERS / AB_MAIL_DEFAULTS, _mailIsUS,
+    // _mailTemplates, _mailAdvice, _mailFill, _mailCtx, _mailPickSession,
+    // window.abMailDraft, window.abRenderMailPanel) are gone — Hurley asked for
+    // the drafter out for everyone. Nothing composes email in the tracker now;
+    // Angela writes hers in her mail client.
+    // The team_profiles.email_template_us / _global COLUMNS are left alone:
+    // dropping columns needs a migration and they hold text she may want back.
     var PROFILE_LINKEDIN = {{
       thor:   'https://www.linkedin.com/in/thorernstsson/',
       verma:  'https://www.linkedin.com/in/anuraagsverma/',
@@ -13229,28 +12833,9 @@ def build():
       if (dbMissing) {{
         html += '<div class="profile-setup-note"><strong>One-time setup needed.</strong> The profile store isn&#39;t in the database yet, so nothing here will save or show. Run the <code>team_profiles</code> setup once, then reload.</div>';
       }}
-      // Angela's master outreach templates. Support-only: they are hers, and
-      // for a speaker they'd be someone else's stationery (Hurley 2026-07-31).
-      // The composer on each event reads these; leave them blank and it falls
-      // back to the built-in defaults, so it works before anyone edits it.
-      if (support) {{
-        var _mailRow = (window._abProfileRows || {{}}).angela || {{}};
-        html += '<div class="profile-mail">' +
-          '<h3>Outreach email templates</h3>' +
-          '<p class="profile-mail-hint">Used by <strong>Draft outreach</strong> on any event you have marked Submitted. ' +
-            'The variant is picked from the event\u2019s location. Placeholders fill themselves in: ' +
-            AB_MAIL_PLACEHOLDERS.map(function (k) {{ return '<code>[' + k + ']</code>'; }}).join(' ') + '. ' +
-            'Leave one blank to use the built-in default.</p>' +
-          '<div class="profile-mail-slot"><label for="pf-mail-global">Outside the US (Global / UAE)</label>' +
-            '<textarea id="pf-mail-global" rows="12" placeholder="' + escapeHtml(AB_MAIL_DEFAULTS.global.body) + '">' +
-            escapeHtml(_mailRow.email_template_global || '') + '</textarea></div>' +
-          '<div class="profile-mail-slot"><label for="pf-mail-us">Inside the US</label>' +
-            '<textarea id="pf-mail-us" rows="12" placeholder="' + escapeHtml(AB_MAIL_DEFAULTS.us.body) + '">' +
-            escapeHtml(_mailRow.email_template_us || '') + '</textarea></div>' +
-          '<div class="qa-mail-actions"><button type="button" class="q-btn primary" id="pf-mail-save">Save templates</button>' +
-            '<span id="pf-mail-status" class="qa-mail-to"></span></div>' +
-          '</div>';
-      }}
+      // (Angela's outreach-template editor removed 2026-08-05 with the
+      // "Draft outreach" button it fed — with nothing composing an email, the
+      // templates edited nothing. Her Email Template FILE slot below stays.)
       // Support don't speak, but they still keep materials — Angela's master
       // Email Template is a file, and it belongs to her rather than to any one
       // speaker (Hurley 2026-07-31). Same three slots, own wording.
@@ -13317,35 +12902,7 @@ def build():
       // Both paths render meKey's slots now — support via "Your materials",
       // everyone else inside their speaker card.
       PROFILE_MATERIALS.forEach(function (m) {{ _loadProfileFiles(meKey, m.k, dbMissing); }});
-      var $mailSave = document.getElementById('pf-mail-save');
-      if ($mailSave) {{
-        $mailSave.addEventListener('click', function () {{
-          var $st = document.getElementById('pf-mail-status');
-          var g = (document.getElementById('pf-mail-global') || {{}}).value || '';
-          var u = (document.getElementById('pf-mail-us') || {{}}).value || '';
-          // Templates are a team asset, not a personal one, but they are hers
-          // to write \u2014 so they live on the angela row.
-          var patch = {{ person: 'angela', display_name: 'Angela',
-                        email_template_global: g.trim(), email_template_us: u.trim(),
-                        updated_by: meName, updated_at: new Date().toISOString() }};
-          if ($st) $st.textContent = 'Saving\u2026';
-          sb.from('team_profiles').upsert(patch, {{ onConflict: 'person' }}).then(function (resp) {{
-            if (resp && resp.error) {{
-              // The columns arrive with scripts/2026-07-31_email_templates.sql.
-              // Until then say so plainly rather than pretending it saved.
-              var miss = /email_template|column|schema cache/i.test(resp.error.message || '');
-              if ($st) $st.textContent = miss
-                ? 'Not saved \u2014 run the email-templates migration first. The built-in defaults are still in use.'
-                : 'Could not save: ' + resp.error.message;
-              return;
-            }}
-            window._abProfileRows = window._abProfileRows || {{}};
-            window._abProfileRows.angela = dict_assign(window._abProfileRows.angela || {{}}, patch);
-            if ($st) $st.textContent = 'Saved';
-            setTimeout(function () {{ if ($st) $st.textContent = ''; }}, 1800);
-          }}, function (e) {{ if ($st) $st.textContent = 'Could not save: ' + (e && e.message || e); }});
-        }});
-      }}
+      // (pf-mail-save handler removed with the template editor above.)
       // Directory materials: Angela (support) gets editable slots (load each);
       // everyone else gets the read-only grouped list.
       dirKeys.forEach(function (k, i) {{
