@@ -11466,7 +11466,12 @@
       var meFirst = (getCollabName() || '').trim().toLowerCase().split(/\s+/)[0];
       // Off for this person — leave the section empty (:empty hides it and its
       // divider) and build none of it. Everyone else is unaffected.
-      if (_PLAN_AHEAD_OFF[meFirst]) { host.innerHTML = ''; return; }
+      // _PLAN_AHEAD_OFF switches Plan Ahead off for one PERSON (Thor). That is a
+      // per-profile view difference, so with profiles merged it no longer
+      // applies — it was the reason Thor saw no Plan Ahead at all while everyone
+      // else did, i.e. the merge appearing not to work. Honoured again the
+      // moment _mergedTeamView() goes back to per-person.
+      if (!_mergedTeamView() && _PLAN_AHEAD_OFF[meFirst]) { host.innerHTML = ''; return; }
       var personalized = !!((window.AB_PERSONAS || {})[meFirst]);
       var meName = getCollabName() || '';
       var support = isSupportPerson(meName);
