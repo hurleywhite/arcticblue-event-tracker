@@ -12841,7 +12841,14 @@
       // runs for him — it's kept only as documentation of his territory.
       { key: 'Carlos', label: 'Latin America (mid-market)', regions: ['Latin America'], locked: true,
          kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] },
-      { key: 'Jim', label: 'Government (DC)', regions: [],
+      // Jim is DEFINED by a place and a sector, but carries no region lock (an
+      // empty `regions` means the region test can never pass for him). Without
+      // minKw he matched on any single word below — see the note in
+      // profileFits. `strongKw` terms are unambiguous enough to stand alone;
+      // everything else needs two. 'washington' is deliberately NOT strong:
+      // on its own it's as likely to be Washington STATE as DC.
+      { key: 'Jim', label: 'Government (DC)', regions: [], minKw: 2,
+         strongKw: ['washington dc','public sector','govtech','fedramp','gsa','dod','nist','national security','defense'],
          kw: ['government','public sector','federal','defense','national security','govtech','civic','municipal','state and local','washington','washington dc','capitol','congress','white house','agency','gsa','dod','nist','fedramp','public policy'] },
       // Hurley runs the tracker and doesn't speak — his "fits" are the ones he'd
       // actually walk into: FREE AI events within reach of the Northeast. Unlike
@@ -12950,7 +12957,25 @@
       if (p.locked) return regionOk;
       if (regionOk) return true;
       var b = ' ' + String(blob || '').replace(/[^a-z0-9 ]/g, ' ').replace(/ +/g, ' ').trim() + ' ';
-      for (var i = 0; i < p.kw.length; i++) { if (b.indexOf(' ' + p.kw[i] + ' ') !== -1) return true; }
+      // `strongKw` — terms that mean the event IS this person's on their own.
+      // `minKw`    — how many ordinary keywords it takes otherwise (default 1).
+      // Both exist for Jim. His remit is DC + government but his `regions` is
+      // empty, so he never passed the region test and fell straight through to
+      // a plain keyword OR — and a single "government" in the blurb of an AI
+      // summit was enough. 49 of his 65 matches were one stray word, pulling in
+      // Riyadh, Australia, Colombia and Puerto Rico (Hurley 2026-08-05).
+      // This is the SAME bar his Plan Ahead suggestions already applied
+      // ("in DC, or clearly gov, or 2+ themes") — the grid filter just never
+      // got it, which nobody noticed while he had no filter chip at all.
+      if (p.strongKw) {
+        for (var s = 0; s < p.strongKw.length; s++) {
+          if (b.indexOf(' ' + p.strongKw[s] + ' ') !== -1) return true;
+        }
+      }
+      var _need = p.minKw || 1, _hits = 0;
+      for (var i = 0; i < p.kw.length; i++) {
+        if (b.indexOf(' ' + p.kw[i] + ' ') !== -1 && ++_hits >= _need) return true;
+      }
       return false;
     }
 
