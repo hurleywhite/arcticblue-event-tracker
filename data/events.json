@@ -2487,7 +2487,9 @@
    "source": "arcticscout",
    "start_date": "2026-04-28",
    "end_date": "2026-05-01",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "attendee_count": "5,000+"
   },
   {
    "num": 117,
@@ -5255,7 +5257,11 @@
    "source": "arcticscout",
    "start_date": "2026-11-09",
    "end_date": "2026-11-11",
-   "url": "https://protectorsvegas.com/"
+   "url": "https://protectorsvegas.com/",
+   "pricing": "All-Access Pass: $995 (discounted from $2,295); Protectors Pass: complimentary for select qualified roles; Protectors Pass+ includes up to $1,000 in travel reimbursement for agents/advisors",
+   "meeting_formats": "Unlimited 1:1 meetings; exhibit hall; curated learning and networking opportunities",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "1,500+"
   },
   {
    "num": 217,
@@ -6700,7 +6706,10 @@
    "seed": false,
    "urgent": false,
    "external_id": "12d7b980-ec91-49ae-8878-85bf2b63271a",
-   "pay_to_play": "No"
+   "pay_to_play": "No",
+   "venue": "Atzavara Hotel & Spa, Barcelona, Spain",
+   "meeting_formats": "Executive roundtables; one-to-one strategic meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 271,
@@ -7313,7 +7322,8 @@
    "external_id": "replit-223",
    "venue": "New York, USA",
    "meeting_formats": "Registration & Networking Breakfast, peer-driven content and discussions",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "attendee_count": "300-500 delegates"
   },
   {
    "num": 296,
