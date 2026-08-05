@@ -359,6 +359,9 @@
     .st-ok   { background: #047857; }
     .st-wait { background: #0ea5e9; }
     .st-no   { background: #991b1b; }   /* deeper red, in step with the rejected mic */
+    /* Interest is a MAYBE — hollow ring, not a filled dot, so it reads lighter
+       than Booked/Attending sitting beside it (matches the hollow star mark). */
+    .st-int  { background: transparent; box-shadow: inset 0 0 0 2px #7c3aed; }
     .st-sep  { color: var(--ab-fg-3); font-weight: 400; }
     .st-sub-date { color: var(--ab-fg-3); font-weight: 500; }
     /* Whisper-quiet data-freshness cue from updated_at. Deliberately faint —
@@ -3397,8 +3400,8 @@
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Region</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- region chips injected by buildRegionFilters() --></div>
           </div>
-          <div class="filter-dd" id="filter-fits" title="Show events matching a teammate's target profile (geography, audience, industry, themes)">
-            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Fits</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
+          <div class="filter-dd" id="filter-fits" title="Pick a person: shows events that match their target profile (geography, audience, industry, themes) or that they flagged interest in">
+            <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Person</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"></div>
           </div>
           <div class="filter-dd" id="filter-months" title="Show only events in the months you pick (pick several to combine)">
@@ -3745,13 +3748,14 @@
   }
 
   // Buyer-rich / audience mix is a targeting judgement, not a fact about the
-  // event: it's Verma's signal (regulated-industry board rooms) and Angela's
-  // triage tool. Nobody else sees it — in the read view OR the editor, which is
-  // where it was still leaking to Thor (Hurley 2026-07-29).
+  // event — Angela's triage tool. Nobody else sees it, in the read view OR the
+  // editor (Hurley 2026-07-29).
+  // Verma used to be carved out here too, which made his card different from
+  // everyone else's on the same event. Profiles are merged and everyone gets
+  // Thor's view, and Thor never saw this — so the carve-out goes (2026-08-05).
+  // Angela stays: it's her triage job, not a persona.
   function seesAudience() {
-    var me = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '')
-      .trim().toLowerCase().split(/\s+/)[0];
-    return me === 'verma' || !!(window.isAngelaUser && window.isAngelaUser());
+    return !!(window.isAngelaUser && window.isAngelaUser());
   }
 
   // ── Who attends: one list, not two overlapping ones ──────────────────
@@ -4094,15 +4098,25 @@
     // she runs the apply queue, so an empty interested list is information she
     // acts on. For everyone else it was just a line of nothing — no flags is the
     // normal state of most events, so the row now shows only the button.
-    var summary = formatInterested(rec.interested);
+    // Thor first, short names — same order and vocabulary as the card's star
+    // mark and the Lineup status line, so the three never disagree.
+    var _intOrd = (window.abPlanOrder ? window.abPlanOrder(rec.interested || []) : (rec.interested || []))
+      .map(function (n) { var w = String(n || '').trim().split(/\s+/)[0];
+                          return w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : ''; })
+      .filter(Boolean);
+    var summary = formatInterested(_intOrd);
     var _qbAngela = !!(window.isAngelaUser && window.isAngelaUser());
     // Header icons need these two facts; the buttons themselves live up there now.
     window.__mqIn = iAmIn;
-    // Only Angela's "nobody flagged this" prompt survives — that one is a gap
-    // she acts on. Whose event it is now reads off the pop-up's blue border,
-    // the same signal the card face uses.
-    var intSummary = (!summary && _qbAngela)
-      ? '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>' : '';
+    // `summary` was BUILT and then dropped on the floor: the only branch that
+    // used it fired when it was EMPTY, so "Verma & Joe are interested" never
+    // reached the screen for anyone, Angela included (Hurley 2026-08-05). Thor
+    // asked for the names, and this is the one place in Details they belong.
+    // Angela additionally keeps the "nobody flagged this" prompt — an empty list
+    // is a gap she works; for everyone else no flags is just the normal state.
+    var intSummary = summary
+      ? '<span class="qa-int-summary">' + summary + '</span>'
+      : (_qbAngela ? '<span class="qa-int-summary qa-int-empty">No one flagged yet</span>' : '');
     // Archiving happens ONLY in this pop-up (the card face just shows an
     // "Archived" label), so the control is here for BOTH catalog and manual
     // events. Manual events also keep their separate "Delete this event" button
@@ -5953,9 +5967,11 @@
     // 'past' = the date has gone by. Two different things, two different words.
     var opsCollapsedMonths = { archived: true, past: true };
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
-    // | 'buyer' | 'interested' | 'myfits') — click a top stat to show only those events.
+    // | 'attending' | 'buyer' | 'interested' | 'contacts') — click a top stat to
+    // show only those events. Starts empty (All) for everyone; nothing
+    // auto-selects a chip any more, so two people opening the tracker see the
+    // same grid (the "My fits" auto-default was retired 2026-08-05).
     var opsStatFilter = '';
-    var _userPickedStat = false;   // once the reader clicks any status chip, stop auto-defaulting to "My fits"
     // When true, the auto-detected duplicate cards are REVEALED (marked
     // "DUPLICATE") instead of hidden, so they can be opened + deleted in-app.
     var _reviewDupes = false;
@@ -6734,6 +6750,17 @@
       var s = String(k == null ? '' : k);
       return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
     }
+    // The SHORT name the team actually uses — for status lines, where the full
+    // name is too long and, worse, inconsistent: attendees resolved through
+    // _personName while the speaker field holds first names, so one row read
+    // "Attending — Thor Ernstsson · Rejected — Thor" (Hurley 2026-08-05).
+    // Uses the stored key's first token, not the persona's first name: he's
+    // 'verma' to the whole team and the app ('Anuraag Verma' would become
+    // "Anuraag", which nothing else calls him).
+    function _personShort(k) {
+      var w = String(k == null ? '' : k).trim().split(/\s+/)[0];
+      return w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : '';
+    }
     // Small colored initial-avatar (Google Calendar / Docs style) instead of a
     // boxed "STAGE: name" label — the stage color now lives on the avatar, the
     // stage word is a plain muted caption, and "who" reads like a byline.
@@ -6827,11 +6854,15 @@
       var att = (st.attendees || []).map(_personName).filter(Boolean);
       if (att.length) rows.push(_rosterRow('Attending', att, escapeHtml(att.join(', ')), stageStyle('Attending')));
       else if (stages.indexOf('Attending') !== -1) rows.push(_rosterRow('Attending', null, 'add who in Details &rarr; Edit', stageStyle('Attending'), true));
-      // Interested names — feeds Angela's apply queue, so ONLY she sees the list.
-      // For everyone else, their own interest shows as the blue card outline +
-      // blue star (is-mine), not a "Name interested" label.
-      var intr = (st.interested || []).filter(Boolean);
-      if (intr.length && window.isAngelaUser && window.isAngelaUser()) rows.push(_rosterRow('\u2605 Interested', intr, escapeHtml(intr.join(', ')), ''));
+      // Interested names — EVERYONE sees the list now (Thor 2026-08-05, "make it
+      // say their name"). It was Angela-only, on the reasoning that it fed her
+      // apply queue and that your own interest was already implied by the blue
+      // outline; but that reasoning only covers YOUR name, and the question a
+      // shared tracker has to answer is who ELSE wants this. Thor first.
+      var intr = (window.abPlanOrder ? window.abPlanOrder((st.interested || []).filter(Boolean))
+                                     : (st.interested || []).filter(Boolean))
+                 .map(_personShort).filter(Boolean);
+      if (intr.length) rows.push(_rosterRow('\u2605 Interested', intr, escapeHtml(intr.join(', ')), ''));
       var pills = [];
       // Audience badge (Buyer-rich etc.) shares this SAME row so the labels sit
       // side-by-side instead of stacking (the card is a flex column, so two
@@ -7010,26 +7041,22 @@
     //   Closed to speak
     //   Attending — Jerome
     // Shows NOTHING when we know nothing — no invented status, no filler.
-    // The status line is about YOU. Everyone signs in as themselves, so their
-    // own name is noise — and a stage that belongs to a COLLEAGUE is not their
-    // status at all, so it does not belong on their card (Hurley 2026-07-30).
-    // Support is the exception: coordinating the team means seeing all of it.
-    //   show  - render this stage at all?
-    //   names - what to print after it ('' for a speaker: it is either theirs,
-    //           which they already know, or someone else's, which is hidden)
+    //
+    // PROFILES ARE MERGED (Thor, 2026-08-01; finished 2026-08-05). This used to
+    // be "the status line is about YOU": your own name was stripped as noise and
+    // a colleague's stage was hidden outright, so each person saw a different
+    // card. Thor asked for one shared team view, and the whole point of a shared
+    // view is seeing who on the team is on an event — "Booked — Thor speaking"
+    // is exactly the line Jerome needs to NOT re-apply. So every name shows, for
+    // everyone. Angela keeps the same line; she always saw it all.
+    //
+    // The function stays (six callers) and keeps its {show, names} shape so the
+    // per-person view is one flip away: restore the body below to gate on
+    // !_mergedTeamView().
+    //   show  - render this stage at all?  (now always true)
+    //   names - what to print after it     (now always the full list)
     window.abMineOnly = function (names) {
-      var raw = String(names || '').trim();
-      try {
-        if (isSupportPerson(getCollabName() || '')) return { show: true, names: raw };
-      } catch (e) { return { show: true, names: raw }; }
-      if (!raw) return { show: true, names: '' };      // nobody named -> the event's own state
-      var me = (getCollabName() || '').trim().split(/\s+/)[0].toLowerCase();
-      if (!me) return { show: true, names: raw };
-      var mine = raw.split(/\s*(?:,|;|&| and )\s*/).some(function (n) {
-        n = String(n || '').trim();
-        return n && n.split(/\s+/)[0].toLowerCase() === me;
-      });
-      return { show: mine, names: '' };
+      return { show: true, names: String(names || '').trim() };
     };
     // Permanent status mark, top-right of every card. Shape says the TRACK
     // (mic = speaking, ticket = attending); fill and colour say the STAGE:
@@ -7066,18 +7093,46 @@
       else if (who.show && tags.indexOf('Rejected') !== -1) mic = ['empty', '#991b1b', 'Rejected'];
       else if (who.show && (tags.indexOf('Submitted') !== -1 || tags.indexOf('Initial outreach') !== -1 || tags.indexOf('Followed up') !== -1 || tags.indexOf('Meeting held') !== -1))
                                                             mic = ['half',  '#ca8a04', 'Submitted'];
-      if (!mic && !attOn) return '';
-      // The ticket is drawn FIRST so it sits to the LEFT: the mic is the fixed
-      // top-right mark and must not move because someone was added.
+      // WHO FLAGGED IT — Thor 2026-08-05: "if someone says they're interested,
+      // make it say their name". Interest was stored, filterable and starrable
+      // but never PRINTED, so the one question a shared team view exists to
+      // answer — who on the team wants this? — had no answer on the card face.
+      // A star, in the same initials-beside-a-mark idiom as the mic and ticket,
+      // rather than reviving the old status line: Thor asked for minimal.
+      // visibleInterested() drops anyone already covered — once you're booked or
+      // down to attend, "interested" is stale and repeating the name is noise.
+      // Past events are skipped: wanting something that already happened is not
+      // a state anyone can act on.
+      var _intOn = false, _intNames = '';
+      if (!isPastEvent(ev || st)) {
+        var _intVis = window.visibleInterested
+          ? window.visibleInterested(((st && st.interested) || (ev && ev.interested) || []),
+                                     ((st && st.speaker) || ''), attList, tags)
+          : (((st && st.interested) || (ev && ev.interested) || []));
+        // Thor leads, then the rest of PLAN_ORDER — his priority, his ask.
+        _intNames = (window.abPlanOrder ? window.abPlanOrder(_intVis) : (_intVis || []))
+          .map(function (n) { return _personShort(n); }).filter(Boolean).join(', ');
+        _intOn = !!_intNames;
+      }
+      if (!mic && !attOn && !_intOn) return '';
+      // Drawn left to right by how COMMITTED each mark is, softest first: an
+      // interested star, then a ticket, then the mic. The mic is the fixed
+      // top-right mark and must not shift because someone else was added.
       var _out = '';
-      if (attOn) _out += _drawStageMark('ticket', 'none', '#15803d', 'Attending', att.names);
-      if (mic)   _out += _drawStageMark('mic', mic[0], mic[1], mic[2], who.names);
+      if (_intOn) _out += _drawStageMark('star', 'none', '#7c3aed', 'Interested', _intNames);
+      if (attOn)  _out += _drawStageMark('ticket', 'none', '#15803d', 'Attending', att.names);
+      if (mic)    _out += _drawStageMark('mic', mic[0], mic[1], mic[2], who.names);
       return _out;
     };
     function _drawStageMark(kind, fill, col, label, pool) {
       var id = 'stq' + (++_stIconN);
       var body;
-      if (kind === 'ticket') {
+      if (kind === 'star') {
+        // Hollow, not filled: interest is a MAYBE and must read lighter than the
+        // solid ticket/booked marks sitting next to it.
+        body = '<path d="M12 3.1l2.75 5.57 6.15.9-4.45 4.34 1.05 6.12L12 17.14l-5.5 2.89 1.05-6.12L3.1 9.57l6.15-.9z" ' +
+               'fill="none" stroke="' + col + '" stroke-width="1.7" stroke-linejoin="round"/>';
+      } else if (kind === 'ticket') {
         body = '<path d="M3 8.5a1.5 1.5 0 0 1 1.5-1.5h15A1.5 1.5 0 0 1 21 8.5v1.6a1.9 1.9 0 0 0 0 3.8v1.6a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 15.5v-1.6a1.9 1.9 0 0 0 0-3.8z" fill="' + col + '"/>' +
                '<path d="M14.5 8.6v6.8" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="1.6 1.8"/>';
       } else {
@@ -7128,7 +7183,7 @@
       var past = isPastEvent(ev);
       var _spk = window.abMineOnly((st.speaker || '').trim());
       var speaker = _spk.names, _spkShow = _spk.show;
-      var _atn = window.abMineOnly(((st.attendees || ev.attendees) || []).map(_personName).filter(Boolean).join(', '));
+      var _atn = window.abMineOnly(((st.attendees || ev.attendees) || []).map(_personShort).filter(Boolean).join(', '));
       var att = _atn.names ? _atn.names.split(', ') : [], _atShow = _atn.show;
       var d = (st.deadline === '__cleared__') ? '' : ((st.deadline != null && String(st.deadline).trim()) ? st.deadline : ev.deadline);
       var closed = !past && d && !_isJunkVal(d) && isDeadlinePast(d);
@@ -7166,6 +7221,24 @@
       // so ticking "Attending" on the add form holds visibly (add who in Edit).
       } else if (_atShow && stages.indexOf('Attending') !== -1 && !past) {
         bits.push({ p: 1, h: '<span class="st-bit"><span class="st-dot st-ok"></span>Attending</span>' });
+      }
+      // WHO FLAGGED IT — Thor 2026-08-05: "if someone says they're interested,
+      // make it say their name". Softest tier (p4): a maybe sits behind every
+      // commitment. visibleInterested() drops anyone already covered, so a row
+      // reads "Attending — Jerome · Interested — Thor" and never repeats a name.
+      // Same rule as the star on the grid card, so the two always agree.
+      if (!past) {
+        var _intVis = window.visibleInterested
+          ? window.visibleInterested((st.interested || ev.interested || []),
+                                     (st.speaker || ''), ((st.attendees || ev.attendees) || []), stages)
+          : (st.interested || ev.interested || []);
+        // Thor leads, then the rest of PLAN_ORDER — his priority, his ask.
+        var _intN = (window.abPlanOrder ? window.abPlanOrder(_intVis) : (_intVis || []))
+          .map(_personShort).filter(Boolean);
+        if (_intN.length) {
+          bits.push({ p: 4, h: '<span class="st-bit"><span class="st-dot st-int"></span>Interested \u2014 ' +
+            escapeHtml(_intN.slice(0, 3).join(', ') + (_intN.length > 3 ? ' +' + (_intN.length - 3) : '')) + '</span>' });
+        }
       }
       if (!bits.length) return '';
       bits.sort(function (a, b) { return a.p - b.p; });   // committed presence leads (stable within a tier)
@@ -8098,10 +8171,19 @@
         prc.appendChild(clrP);
         prc.dataset.built = '1';
       }
-      // Fits: teammate ICP profiles (multi-select bubbles)
+      // Person: whose events are these? (multi-select bubbles). This is THE
+      // per-person filter now that the "My fits" chip is gone (Thor 2026-08-05,
+      // "make a filter based on the person instead of My fits") — one shared
+      // view, and you pick whose targeting you want to look through.
+      // Built from AB_PROFILES rather than a hardcoded list: the old literal
+      // ['Jerome','Joe','Thor','Verma','Carlos'] silently omitted JIM, so his
+      // government events were unfilterable, and Hurley's Northeast-free-AI
+      // profile had no control at all once "My fits" went. Thor leads (his ask).
       var fit = document.querySelector('#filter-fits .filter-dd-menu');
       if (fit && fit.dataset.built !== '1') {
-        ['Jerome', 'Joe', 'Thor', 'Verma', 'Carlos'].forEach(function (n) {
+        var _fitKeys = (typeof AB_PROFILES !== 'undefined' ? AB_PROFILES : [])
+          .map(function (p) { return p.key; }).filter(Boolean);
+        (window.abPlanOrder ? window.abPlanOrder(_fitKeys) : _fitKeys).forEach(function (n) {
           fit.appendChild(_makeExtraChip(n, n, 'fits-chip'));
         });
         var clrF = document.createElement('button');
@@ -8257,7 +8339,6 @@
       // since their view is the whole team's, not their own.
       var $myTab = document.querySelector('.view-toggle [data-view="myevents"]');
       if ($myTab) {
-        var _teamView = isSupportPerson(getCollabName() || '');
         var _badge = $myTab.querySelector('.vt-count');
         $myTab.textContent = 'Lineup';   // one name for everyone (Hurley 2026-07-31)
         if (_badge) $myTab.appendChild(_badge);   // re-attach the count badge
@@ -8629,10 +8710,13 @@
       var activeRegions = Array.prototype.map.call(document.querySelectorAll('#filter-region .extra-chip.is-on'), function (b) { return b.dataset.value; });
       var activeMonths  = Array.prototype.map.call(document.querySelectorAll('#filter-months .extra-chip.is-on'), function (b) { return b.dataset.value; });
       var activeShould  = Array.prototype.map.call(document.querySelectorAll('#filter-should .extra-chip.is-on'), function (b) { return b.dataset.value; });
-      // Per-account "Attending" filter (support = team-wide). Precomputed once.
+      // Pending / Attending are TEAM-WIDE for everyone under the merged view.
+      // This used to be isSupportPerson() while renderStats already counted with
+      // _mergedTeamView(), so the chips lied: the tile said "Booked 12" and
+      // clicking it filtered to the 3 that were Thor's own (Hurley 2026-08-05).
+      // The count and the list it opens must come from the same test.
       var _attMe = (getCollabName() || 'Team').toLowerCase().split(/\s+/)[0];
-      var _attSupport = isSupportPerson(getCollabName() || '');
-      var _myFitPf = AB_PROFILE_BY_LCKEY[_attMe] || null;   // for the "My fits" chip (keys are capitalized)
+      var _attSupport = _mergedTeamView();
       var fSaved   = !!($saved && $saved.checked);
       var fUrgent  = !!($urgent && $urgent.checked);
       var fSubmitted = !!($submitted && $submitted.checked);
@@ -8805,26 +8889,9 @@
           if (opsStatFilter === 'buyer'   && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
           if (opsStatFilter === 'contacts' && card.dataset.contactFound !== '1') on = false;
           if (opsStatFilter === 'interested' && card.dataset.interested !== '1') on = false;
-          if (opsStatFilter === 'myfits') {
-            // Fits my profile OR I flagged interested (interest = a fit). Mirrors
-            // the count in renderStats and the Fits-dropdown rule.
-            var _mfInt = (card.dataset.interestedNames || '').split('|').filter(Boolean).some(function (n) { return abFold(n).split(/\s+/)[0] === _attMe; });
-            // Already in flight for me -> mine, whatever the profile says.
-            var _mfLive = window.abLiveStage((card.dataset.statusTags || '').split('|').filter(Boolean)) &&
-                          window.abNamedAmong(
-                            (card.dataset.interestedNames || '').split('|')
-                              .concat((card.dataset.attendeeNames || '').split('|'))
-                              .concat([card.dataset.speaker || '']), _attMe);
-            // A rejected event is not a fit — the organiser said no. It only
-            // stays if I flagged interest myself, since that's my own call to
-            // reverse (Hurley 2026-07-30).
-            var _mfRej = (card.dataset.statusTags || '').split('|').indexOf('Rejected') !== -1;
-            if (_mfRej && !_mfInt) on = false;
-            // A learned "Not for me" pattern narrows MY fits — but never drops an
-            // event I've flagged interest in, or one we're already engaged on.
-            else if (!_mfInt && !_mfLive && _vetoedCard(card)) on = false;
-            else if (!(_mfInt || _mfLive || (_myFitPf && profileFits(_myFitPf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1', card.dataset.evName, card.dataset.evUrl)))) on = false;
-          }
+          // ('myfits' retired 2026-08-05 — the per-person cut is the Person
+          // dropdown now, which does the same job for ANY teammate rather than
+          // only the one signed in. See the Person filter in the drawer.)
         }
         if (activeStages.length > 0) {
           var cardStages = (card.dataset.statusTags || '').split('|').filter(Boolean);
@@ -8959,7 +9026,7 @@
         document.querySelectorAll('#filter-pipeline .extra-chip.is-on, #filter-region .extra-chip.is-on, #filter-months .extra-chip.is-on, #filter-should .extra-chip.is-on, .status-filters .status-chip.is-on, #filter-price .extra-chip.is-on, #filter-fits .extra-chip.is-on, #filter-priority .extra-chip.is-on, #filter-speaker .extra-chip.is-on'),
         function (c) { c.classList.remove('is-on'); }
       );
-      opsStatFilter = ''; _userPickedStat = true;   // "clear all" = show All; don't re-default to My fits
+      opsStatFilter = '';   // "clear all" = show All
       var $stats = document.getElementById('ops-stats');
       if ($stats) Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (x) { x.classList.toggle('is-on', x.dataset.stat === 'all'); });
       applyFilters();
@@ -8980,13 +9047,10 @@
       var me = (getCollabName() || 'Team').toLowerCase();
       var meFirst = me.split(/\s+/)[0];   // attendees are stored as lowercase first names
       var _support = _mergedTeamView();   // merged: everyone sees the team-wide counts
-      // A persona lands on "My fits"; support (no profile) stays on All. Applied
-      // on every (re)render until the reader clicks a status chip — robust to the
-      // load-order of profiles vs. the first stats render.
-      if (!_userPickedStat && !opsStatFilter && AB_PROFILE_BY_LCKEY[meFirst]) opsStatFilter = 'myfits';
-      // Angela has no "My fits" chip (see renderStats) — make sure she can never
-      // be left sitting on that filter with no visible control to clear it.
-      if (opsStatFilter === 'myfits' && window.isAngelaUser && window.isAngelaUser()) opsStatFilter = '';
+      // No auto-default any more. Each persona used to be dropped onto their own
+      // "My fits" the moment their profile loaded, which is the single biggest
+      // reason two people looking at the same tracker saw different events. One
+      // shared view means everyone opens on All (Thor 2026-08-05).
       function _isMine(list) { return (list || []).some(function (n) { return String(n).toLowerCase() === me; }); }
       // "Attending" is PER-ACCOUNT: events where the signed-in person is an
       // assigned attendee — the attendee list is the source of truth (not the
@@ -9042,43 +9106,8 @@
         if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
         if (!isPastEvent(m) && hasEmailContact(m)) contacts++;
       });
-      // "My fits" = events matching the signed-in person's target profile, OR
-      // ones they flagged "I'm interested" (interest counts as a fit). Support
-      // has no profile, so for them it's just their interested events. Upcoming
-      // only, like the other chips. Kept in lock-step with the applyFilters test.
-      var _myPf = AB_PROFILE_BY_LCKEY[meFirst] || null, myFits = 0;
-      function _fitBlob(o, st2) {
-        var aud = (st2 && st2.audience_type && String(st2.audience_type).trim()) ? st2.audience_type : o.audience_type;
-        return abFold([o.name, o.about, o.focus_areas, o.typical_attendees, o.location, o.city, o.country, o.type, o.past_speakers, aud].join(' '));
-      }
-      function _mineInterest(list) { return (list || []).some(function (n) { return abFold(n).split(/\s+/)[0] === meFirst; }); }
-      // The same "already in flight for me" test the filter uses, so the tile
-      // number can't drift from the list it opens.
-      function _mineRejected(o, st2) {
-        return stageTagsOf(st2 || o).indexOf('Rejected') !== -1;
-      }
-      function _mineLive(o, st2, interested) {
-        if (!window.abLiveStage(stageTagsOf(st2 || o))) return false;
-        return window.abNamedAmong(
-          (interested || []).concat(((st2 && st2.attendees) || o.attendees || []))
-            .concat([(st2 && st2.speaker) || o.speaker || '']), meFirst);
-      }
-      (evs || []).forEach(function (ev) {
-        if (isPastEvent(ev)) return;
-        var st2 = stByNum[ev.num] || {};
-        var _int = (st2.interested && st2.interested.length) ? st2.interested : (ev.interested || []);
-        if (_mineInterest(_int)) myFits++;
-        else if (_mineRejected(ev, st2)) return;
-        else if (_mineLive(ev, st2, _int)) myFits++;
-        else if (!_vetoedItem(ev) && _myPf && profileFits(_myPf, _fitBlob(ev, st2), canonicalRegion(ev), priceNumOf((st2 && st2.pricing) || ev.pricing), _isForeignLangEvent(ev), ev.name, (st2 && st2.url) || ev.url)) myFits++;
-      });
-      (manualRows || []).forEach(function (m) {
-        if (isPastEvent(m)) return;
-        if (_mineInterest(m.interested)) myFits++;
-        else if (_mineRejected(m, m)) return;
-        else if (_mineLive(m, m, m.interested)) myFits++;
-        else if (!_vetoedItem(m) && _myPf && profileFits(_myPf, _fitBlob(m, m), canonicalRegion(m), priceNumOf(m.pricing), _isForeignLangEvent(m), m.name, m.url)) myFits++;
-      });
+      // ("My fits" counting retired 2026-08-05 with the chip — see the Person
+      // dropdown, which cuts by ANY teammate's profile instead of only mine.)
       // A cut-and-dry segmented status filter (data-stat). 'All' clears the
       // status filter; the rest are one-click chips. Other filters (region,
       // months, pipeline stages, …) live behind the filter icon beside search.
@@ -9089,27 +9118,23 @@
           (key !== 'all' ? '<span class="seg-num">' + num + '</span>' : '') + '</button>';
       }
       var _isAngelaView = !!(window.isAngelaUser && window.isAngelaUser());
+      // ONE chip row for the whole team (Thor 2026-08-05). Every count is now
+      // team-wide, so "Team Attending" dropped the prefix — on a shared tracker
+      // there is no other kind. The "My fits" chip that used to lead this row for
+      // everyone but Angela is gone; per-person cuts are the Person dropdown.
       var _coreTiles =
         tile('all', total, 'All') +
         tile('pipeline', inPipeline, 'Pending') +
         tile('booked', booked, 'Booked') +
-        tile('attending', attending, _support ? 'Team Attending' : 'Attending');
-      // "My fits" is a personal targeting filter — it means nothing for Angela,
-      // who books events FOR the team and never attends herself, so she doesn't
-      // get the chip at all (it used to sit at the end of her row). Everyone
-      // else is targeting their own fits, so it leads — left of "All" (Hurley).
-      var _myfitsTile = _isAngelaView ? '' : tile('myfits', myFits, 'My fits');
+        tile('attending', attending, 'Attending');
       // "Contacts" = events where we have an organizer email / POC — Angela-only
-      // (like the ✉ badge), sits after Attending.
-      var _contactsTile = _isAngelaView ? tile('contacts', contacts, 'Contacts') : '';
-      $stats.innerHTML = _isAngelaView
-        ? (_coreTiles + _contactsTile)
-        : (_myfitsTile + _coreTiles);
+      // (like the ✉ badge), sits after Attending. The one remaining difference
+      // between her row and everyone else's, and it is hers by job, not persona.
+      $stats.innerHTML = _coreTiles + (_isAngelaView ? tile('contacts', contacts, 'Contacts') : '');
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {
         t.addEventListener('click', function () {
           var k = t.dataset.stat;
-          _userPickedStat = true;   // reader chose — stop auto-defaulting to My fits
           opsStatFilter = (k === 'all' || opsStatFilter === k) ? '' : k;
           // Jump to the Grid so the filtered events are actually visible — unless
           // the reader is on the Calendar or Map, which mirror the same filters
@@ -9122,7 +9147,11 @@
           // show; if any are upcoming, stay on the calendar filtered to those.
           if (currentView === 'calendar' && opsStatFilter === k && (k === 'booked' || k === 'attending')) {
             var _meFirst = (getCollabName() || 'Team').toLowerCase().split(/\s+/)[0];
-            var _sup = isSupportPerson(getCollabName() || '');
+            // Must use the SAME test as the Attending chip in applyFilters —
+            // if this said "mine only" while the filter said "team", the
+            // calendar would decide there was nothing upcoming and bounce you
+            // to the grid over events it was perfectly able to show.
+            var _sup = _mergedTeamView();
             var _cards = $opsGrid.querySelectorAll('.ops-card'), _hasUpcoming = false;
             for (var _i = 0; _i < _cards.length; _i++) {
               var _c = _cards[_i];
@@ -9979,12 +10008,25 @@
           // Use the SAME derived status the card already rendered, so My Lineup
           // reads identically to the grid ("Submitted to speak — Thor ·
           // Attending — Jerome") instead of its own vocabulary.
-          var _slEl = c.querySelector('.ops-status-line');
+          //
+          // This CLONED the card's .ops-status-line, and the card stopped
+          // rendering one when the status moved to the corner mark — so every
+          // Lineup row silently lost its status and became a bare name + date
+          // (Hurley 2026-08-05). A grid card can say it in an icon because the
+          // icon sits next to the event; a list row has no such context, so the
+          // Lineup keeps the WORDS. Derive them from the card's own dataset —
+          // same inputs the mark used, so the two can't disagree.
+          var _slHtml = cardStatusLine(r, {
+            status_tags: (c.dataset.statusTags || '').split('|').filter(Boolean),
+            speaker:     c.dataset.speaker || r.speaker || '',
+            attendees:   atts,
+            interested:  (c.dataset.interestedNames || '').split('|').filter(Boolean)
+          });
           var item = {
             kind: (r._table === 'manual_events') ? 'manual' : 'catalog',
             key: r._key, name: r.name || 'Event', date_str: r.date_str || '',
             region: r.region || '', location: r.location || '', speaker: r.speaker || '',
-            statusHtml: _slEl ? _slEl.outerHTML : '',
+            statusHtml: _slHtml || '',
             sort: parseInt(c.dataset.sort || '99999999', 10),
             _past: _pastFlag, briefReady: c.dataset.briefReady === '1',
             // A Day-Of brief researches the event online. A PRIVATE / invite-only
@@ -10186,11 +10228,13 @@
       var byNum = {}, byMid = {};
       (_lastEvs || []).forEach(function (e) { byNum[e.num] = e; });
       (_lastManual || []).forEach(function (m) { byMid[m.id] = m; });
-      // Only surface updates for events ON YOUR RADAR — ones you're interested
-      // in / attending / booked or pending (as speaker) for — otherwise this
-      // fills with noise. Support (Angela/Hurley) coordinate for everyone, so
-      // they see all of it. Build the radar key-set once.
-      var _wnSupport = isSupportPerson(getCollabName() || '');
+      // "In the last week" is TEAM-WIDE under the merged view (2026-08-05).
+      // It used to narrow to events on YOUR OWN radar for everyone but support,
+      // which is the one thing a shared activity feed must not do: Thor could
+      // not see that Angela had booked Jerome somewhere. The radar-narrowing
+      // machinery below is kept intact behind this flag so a per-person feed is
+      // one edit away — flip back to isSupportPerson(getCollabName() || '').
+      var _wnSupport = _mergedTeamView();
       var _radar = null;
       if (!_wnSupport && me) {
         _radar = {};
@@ -10846,9 +10890,9 @@
       var intro = b.support
         ? '<p class="queue-intro myev-intro"><strong>Team events:</strong> Everyone the team is booked to speak at or attending &mdash; upcoming first, past below.</p>'
         : '<p class="queue-intro myev-intro"><strong>' + escapeHtml(b.me) + '&#39;s events:</strong> Events you&#39;re booked to speak at or attending &mdash; upcoming first, past below.</p>';
-      // Named to say WHOSE events these are, with the team's set directly
-      // below (Hurley 2026-07-31).
-      var upTitle = 'My Upcoming Events';
+      // One shared list, so "My" would be a lie — these are the team's, and the
+      // initials on each row say whose (merged view, 2026-08-05).
+      var upTitle = _mergedTeamView() ? 'Upcoming Events' : 'My Upcoming Events';
       // Past events collapse into a dropdown, hidden by default (like the grid's
       // month groups). _myEventsPastOpen remembers if the reader expanded them.
       // "In the last week" — teammates' updates + new comments. A row comes down
@@ -10963,11 +11007,17 @@
       // replacing the old "Suggested for you" — it's a better version of the
       // same idea (trips + interest recs + monthly picks). renderPlanAhead()
       // fills the embed below; its own intro is the divider between the two.
+      // Under the merged view every team event lands in `upcoming`, so `team` is
+      // always empty — it was still rendering as a permanent "Nobody else is
+      // down for anything upcoming", which is both untrue and unhelpful. One
+      // section now, with initials on the rows (showWho) so you can still tell
+      // whose event each one is (Hurley 2026-08-05).
+      var _merged = _mergedTeamView();
       host.innerHTML = intro + outHtml + wnHtml +
-        ((b.support && !b.upcoming.length) ? '' : section(upTitle, b.upcoming, 'Nothing upcoming yet.')) +
-        section("Team&#39;s Upcoming Events", b.team,
-                'Nobody else is down for anything upcoming.', false, false, true) +
-        (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen) : '') +
+        ((b.support && !b.upcoming.length) ? '' : section(upTitle, b.upcoming, 'Nothing upcoming yet.', false, false, _merged)) +
+        (_merged ? '' : section("Team&#39;s Upcoming Events", b.team,
+                'Nobody else is down for anything upcoming.', false, false, true)) +
+        (b.past.length ? section('Past events', b.past, '', true, !_myEventsPastOpen, _merged) : '') +
         '<div id="ops-planahead" class="ops-planahead-embed"></div>';
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {
         el.addEventListener('click', function () { opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); });
@@ -13678,12 +13728,15 @@
       });
       return out;
     }
-    // Angela sees every clash (she does the scheduling); everyone else sees
-    // only the ones that are theirs to resolve.
+    // EVERY clash, for everyone (merged view, 2026-08-05). This used to show a
+    // speaker only their own diary collisions, which defeats the point: the
+    // clash warning exists so we don't send two people to the same week, and
+    // you cannot see that in a list filtered to yourself. The clash label names
+    // who, so a team-wide list still reads unambiguously.
     function visibleClashes(it) {
       var all = clashesFor(it);
       if (!all.length) return [];
-      if (isSupportPerson(getCollabName() || '')) return all;
+      if (_mergedTeamView()) return all;
       var me = abFold(getCollabName() || '').split(/\s+/)[0];
       return me ? all.filter(function (c) { return c.who === me; }) : [];
     }
