@@ -1491,8 +1491,9 @@
     }
     .ops-stage-ico svg { width: 17px; height: 17px; display: block; }
     .ops-stage-ico { gap: 3px; width: auto; min-width: 20px; }
-    /* The interest star carries two letters INSIDE it, so it needs a few more
-       pixels than the mic/ticket to stay legible. */
+    /* The interest star carries the initials INSIDE it, so it needs a few more
+       pixels than the mic/ticket to stay legible — sized for the two-letter
+       case (JW / JL / JC); the single-letter ones just sit roomier. */
     .ops-stage-ico.is-star svg { width: 21px; height: 21px; }
     .ops-stage-ico.is-star { width: auto; min-width: 21px; height: 21px; }
     /* Lineup rows carry the same marks as the card, on their own line under the
@@ -7164,15 +7165,23 @@
       if (mic)    _out += _drawStageMark('mic', mic[0], mic[1], mic[2], who.names);
       return _out;
     };
-    // TWO letters, not one. This roster is Thor, Verma, JEROME, JOE, CARLOS and
-    // JIM — a single initial made three of them an identical "J" and left the
-    // colour doing all the work (Hurley 2026-08-05). A one-word name gives its
-    // first two letters (Je / Jo / Ji); a full name still gives first + last.
+    // ONE letter when that first initial is unique on the roster (Thor = T,
+    // Verma = V, Carlos = C); first + surname initial only when it collides
+    // (Jerome Wouters = JW, Joe Lalley = JL, Jim = JC). Hurley's rule, and the
+    // rule the avatar switcher has always used — so this defers to
+    // window.abInitFor (WHO_ROSTER) rather than restating it.
+    // This briefly took the first TWO letters of every name ("Th", "Je"), which
+    // did break the three-way J collision but left Thor's card mark disagreeing
+    // with Thor's own avatar (Hurley 2026-08-05). One rule, one place.
     function _markInitials(n) {
       var w = String(n || '').trim().split(/\s+/).filter(Boolean);
       if (!w.length) return '?';
+      if (window.abInitFor) {
+        var v = window.abInitFor(w[0]);
+        if (v && v !== '?') return v;
+      }
       if (w.length > 1) return (w[0].charAt(0) + w[w.length - 1].charAt(0)).toUpperCase();
-      return (w[0].charAt(0).toUpperCase() + (w[0].charAt(1) || '').toLowerCase());
+      return w[0].charAt(0).toUpperCase();
     }
     // INTEREST: one star PER PERSON, filled in their colour with their initials
     // inside it (Hurley 2026-08-05: "make it so that their initials are inside
@@ -15122,8 +15131,13 @@
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
       // The Day-Of brief now lives inside My Events — no standalone tab.
       if (name === 'dayof') name = 'myevents';
-      // Planner + Queue are Angela-only — redirect anyone else who lands on them.
-      if ((name === 'planner' || name === 'queue') && window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
+      // Planner, Queue and the profile page are Angela-only — redirect anyone
+      // else who lands on them. The guard matters for 'myprofile' beyond the
+      // hidden menu entry: an activity row about a profile upload calls
+      // setView('myprofile') directly, and without this it would drop a
+      // teammate on a blank view (Hurley 2026-08-05).
+      if ((name === 'planner' || name === 'queue' || name === 'myprofile') &&
+          window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
       currentView = name;
       var isEventsView = (name === 'grid' || name === 'calendar' || name === 'map');
       if (isEventsView) _lastEventsSub = name;
@@ -17542,11 +17556,23 @@
       { name: 'Thor',   init: 'T' },
       { name: 'Verma',  init: 'V' }
     ];
+    // THE initials rule for the whole app: one letter when that first initial is
+    // unique on the roster, first + surname initial only when it collides.
+    // Hand-kept in WHO_ROSTER above rather than derived from personas.json,
+    // which has no surname for Jim — there is nothing to derive "JC" from.
+    // Exposed so the card's status marks use the SAME answer as this avatar
+    // (see _markInitials); they disagreed for a while and it looked like a bug.
+    // Takes the first word, so "Jerome Wouters" and "jerome" both land on JW.
     function _whoInitFor(name) {
-      var n = String(name || '').trim().toLowerCase();
+      var n = String(name || '').trim().toLowerCase().split(/\s+/)[0];
       var hit = WHO_ROSTER.filter(function (p) { return p.name.toLowerCase() === n; })[0];
       return hit ? hit.init : (n ? n.charAt(0).toUpperCase() : '?');
     }
+    window.abInitFor = _whoInitFor;
+    // Who may open the profile page at all. Angela only — see the note in
+    // _renderWhoSwitcher. Kept as a named function so the menu entry and the
+    // view guard can't drift apart.
+    function _profileMenuOk() { return !!(window.isAngelaUser && window.isAngelaUser()); }
     function _closeWhoDropdown() {
       var dd = document.getElementById('who-dropdown');
       var btn = document.getElementById('who-current-btn');
@@ -17563,9 +17589,21 @@
           ' style="background:' + window.abPersonColor(cur) + '" title="' +
           (cur ? escapeHtml(cur) + ' — profile & switch' : 'Set who you are') + '">' + escapeHtml(_whoInitFor(cur)) + '</button>' +
         '<div class="who-dropdown" id="who-dropdown" hidden>' +
-          '<button type="button" class="who-menu-item" id="who-myprofile-btn">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>' +
-            (isSupportPerson(cur) ? 'Team Profiles' : 'My Profile') + '</button>' +
+          // PROFILES ARE ANGELA'S NOW (Hurley 2026-08-05: "it still shows up
+          // that there are separate personas/profiles, which shouldn't be the
+          // case — it should be merged besides angela"). A per-person profile
+          // page is the last thing in the app that says the team is a set of
+          // separate identities rather than one shared tracker. Angela keeps it
+          // as "Team Profiles" because she writes the speaker bios and books
+          // FOR everyone — same exception as Queue, Planner and Plan Ahead.
+          // The switcher below STAYS for everyone: it isn't a profile, it's how
+          // you say who you are, and without it a star or an archive can't be
+          // attributed to anybody.
+          (_profileMenuOk()
+            ? '<button type="button" class="who-menu-item" id="who-myprofile-btn">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>' +
+              'Team Profiles</button>'
+            : '') +
           (others.length
             ? '<div class="who-switch-label">Switch to</div><div class="who-switch-row">' +
               others.map(function (p) {
@@ -17584,7 +17622,8 @@
         _closeWhoDropdown();
         if (willOpen) { dropdown.removeAttribute('hidden'); curBtn.setAttribute('aria-expanded', 'true'); }
       });
-      document.getElementById('who-myprofile-btn').addEventListener('click', function (e) {
+      var _mpBtn = document.getElementById('who-myprofile-btn');
+      if (_mpBtn) _mpBtn.addEventListener('click', function (e) {
         e.stopPropagation();
         _closeWhoDropdown();
         if (!getCollabName()) { var n = (window.prompt('Your name:', '') || '').trim(); if (n) setCollabName(n); else return; }
