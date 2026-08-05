@@ -1948,6 +1948,12 @@ def build():
        explicit wide-and-short size rather than the shared square one. */
     .ops-stage-ico.is-ticket svg {{ width: 30px; height: 15px; }}
     .ops-stage-ico.is-ticket {{ width: auto; min-width: 30px; height: 21px; }}
+    /* A badged mic draws in a 30-unit box instead of 24, so it needs more
+       pixels just to hold the mic at its old size — and Hurley asked for it a
+       bit bigger than that. 26px puts the mic art ~22% up on the plain one and
+       gives the two-letter badge real height. */
+    .ops-stage-ico.is-mic svg {{ width: 26px; height: 26px; }}
+    .ops-stage-ico.is-mic {{ width: auto; min-width: 26px; height: 26px; }}
     /* Lineup rows carry the same marks as the card, on their own line under the
        date so they don't crowd the event name. */
     .qrow-marks {{ display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin-top: 4px; }}
@@ -7842,27 +7848,49 @@ def build():
           body += '<path d="M4.5 20.5 19.5 3.5" stroke="' + col + '" stroke-width="1.9" stroke-linecap="round"/>';
         }}
       }}
-      // Who it's for, as initials beside the mark — this replaces the "— Thor,
-      // Verma" that used to trail the status line at the foot of the card
-      // (Hurley 2026-07-30). Support sees everyone; a speaker sees only names
-      // other than their own, since their own card is self-evidently theirs.
-      var inits = String(pool || '').split(/\s*(?:,|;|&| and )\s*/)
-        .map(function (n) {{ return String(n || '').trim(); }}).filter(Boolean)
-        .map(_markInitials);
-      var who2 = pool ? ' \u2014 ' + pool : '';
-      // Was one grey run of letters ("JW V"). Now a disc each in that person's
-      // colour, so the card says who it's for without being read (Hurley).
       var _names = String(pool || '').split(/\s*(?:,|;|&| and )\s*/)
         .map(function (x) {{ return String(x || '').trim(); }}).filter(Boolean);
-      var initHtml = inits.length
-        ? '<span class="ops-stage-who" aria-hidden="true">' +
-          inits.slice(0, 3).map(function (t, i) {{
-            return '<span class="ops-who-dot" style="background:' + window.abPersonColor(_names[i] || '') + '">' +
-                   escapeHtml(t) + '</span>';
+      var who2 = pool ? ' \u2014 ' + pool : '';
+      // THE MIC WEARS ITS INITIALS as a badge on the bottom-right, the way an
+      // avatar wears a status dot (Hurley 2026-08-05). It used to trail a
+      // separate coloured disc, which is what the star and the ticket also did
+      // before they absorbed their initials — this is the last of the three.
+      //
+      // COLOUR SCHEME UNCHANGED, which was the explicit instruction: the badge
+      // takes the MIC's colour, not the person's. That colour is load-bearing
+      // here in a way it isn't on the star or ticket — full green = booked,
+      // half yellow = submitted, struck red = rejected — and recolouring the
+      // badge per person would have put a second, competing colour on the one
+      // mark whose colour means something.
+      // A white ring separates the badge from the mic strokes it overlaps.
+      var _badge = '';
+      if (kind !== 'ticket' && _names.length) {{
+        _badge =
+          '<circle cx="21.5" cy="21.5" r="8" fill="' + col + '" stroke="#fff" stroke-width="1.7"/>' +
+          '<text x="21.5" y="21.9" text-anchor="middle" dominant-baseline="central" ' +
+            'fill="#fff" font-size="9" font-weight="700" ' +
+            'font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">' +
+            escapeHtml(_markInitials(_names[0])) + '</text>';
+      }}
+      // The badge needs room the 24-box doesn't have, so a badged mic draws in a
+      // 30-box (the mic art itself is untouched) and is rendered bigger to suit.
+      var _vb = _badge ? '0 0 30 30' : '0 0 24 24';
+      var _cls = 'ops-stage-ico' + (_badge ? ' is-mic' : '');
+      // Only the FIRST speaker fits in the badge; a rare second one trails as +N.
+      var _more = (kind !== 'ticket' && _names.length > 1)
+        ? '<span class="ops-who-more">+' + (_names.length - 1) + '</span>' : '';
+      // Un-badged marks (a bare Attending ticket) keep the old trailing discs.
+      var initHtml = '';
+      if (!_badge && kind === 'ticket' && _names.length) {{
+        initHtml = '<span class="ops-stage-who" aria-hidden="true">' +
+          _names.slice(0, 3).map(function (n) {{
+            return '<span class="ops-who-dot" style="background:' + window.abPersonColor(n) + '">' +
+                   escapeHtml(_markInitials(n)) + '</span>';
           }}).join('') +
-          (inits.length > 3 ? '<span class="ops-who-more">+' + (inits.length - 3) + '</span>' : '') + '</span>' : '';
-      return '<span class="ops-stage-ico" title="' + escapeHtml(label + who2) + '" aria-label="' + escapeHtml(label + who2) + '" role="img">' +
-             '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>' + initHtml + '</span>';
+          (_names.length > 3 ? '<span class="ops-who-more">+' + (_names.length - 3) + '</span>' : '') + '</span>';
+      }}
+      return '<span class="' + _cls + '" title="' + escapeHtml(label + who2) + '" aria-label="' + escapeHtml(label + who2) + '" role="img">' +
+             '<svg viewBox="' + _vb + '" aria-hidden="true">' + body + _badge + '</svg>' + initHtml + '</span>' + _more;
     }}
     function cardStatusLine(ev, st) {{
       st = st || ev;
@@ -9039,7 +9067,19 @@ def build():
       try {{ return /^\\/angela(\\/|$)/i.test(window.location.pathname || ''); }}
       catch (e) {{ return false; }}
     }}
-    window.isAngelaUser = function () {{ return _isAngelaRoute(); }};
+    // EITHER route. Hurley 2026-08-05, after seeing the route-only version:
+    // "make the default named thor and if angela signs in, it shows her special
+    // screen." So signing in as Angela (avatar → "Someone else…") unlocks it,
+    // and /angela still does too — a bookmark that skips the typing.
+    // Stated plainly: the name is a self-declaration, so anyone who types
+    // "Angela" gets her view. That's the trade Hurley picked, and it matches
+    // how the rest of the app treats identity. /angela stays the quiet way in;
+    // neither is an access control.
+    window.isAngelaUser = function () {{
+      if (_isAngelaRoute()) return true;
+      try {{ return (getCollabName() || '').trim().toLowerCase().indexOf('angela') === 0; }}
+      catch (e) {{ return false; }}
+    }};
     function isAngelaUser() {{ return window.isAngelaUser(); }}
     function applyFilterVisibility() {{
       var show = isAngelaUser();
@@ -17651,20 +17691,22 @@ def build():
         renderOps(n || 'Team');
       }}
     }}
+    // Everyone lands as THOR unless they say otherwise (Hurley 2026-08-05).
+    // The tracker used to open with a browser prompt asking who you are — a
+    // wall in front of a tool that otherwise needs no login, and with one merged
+    // view the answer barely changes what you see. Identity now only decides
+    // attribution and your own archive, so a sensible default beats an
+    // interrogation. Change it any time via the avatar → "Someone else…".
+    var AB_DEFAULT_NAME = 'Thor';
     function ensureCollabName() {{
       var n = getCollabName();
-      // On /angela the name is settled — that page IS hers, so don't open with
-      // a "who are you?" prompt, and don't let a stale name from a shared
-      // browser sign her edits as somebody else.
-      if (window.isAngelaUser && window.isAngelaUser()) {{
-        if (String(n || '').trim().toLowerCase() !== 'angela') {{ setCollabName('Angela'); n = 'Angela'; }}
-        return n;
+      // /angela IS Angela's page — settle it there rather than defaulting her
+      // to Thor and signing her edits as him.
+      if (_isAngelaRoute() && String(n || '').trim().toLowerCase().indexOf('angela') !== 0) {{
+        setCollabName('Angela'); return 'Angela';
       }}
-      if (!n) {{
-        n = (window.prompt('Your name (so teammates can see who edited what):', '') || '').trim();
-        setCollabName(n);
-      }}
-      return n || 'Team';
+      if (!n) {{ setCollabName(AB_DEFAULT_NAME); return AB_DEFAULT_NAME; }}
+      return n;
     }}
 
     // ── Bridge for the detail modal (which lives in a separate closure) ──
@@ -18259,7 +18301,7 @@ def build():
       if (_mpBtn) _mpBtn.addEventListener('click', function (e) {{
         e.stopPropagation();
         _closeWhoDropdown();
-        if (!getCollabName()) {{ var n = (window.prompt('Your name:', '') || '').trim(); if (n) setCollabName(n); else return; }}
+        ensureCollabName();   // defaults to Thor; never prompts
         setView('myprofile');
         _renderWhoSwitcher();
       }});
@@ -18281,14 +18323,11 @@ def build():
       var switcher = document.getElementById('who-switcher');
       if (switcher && !switcher.contains(e.target)) _closeWhoDropdown();
     }});
-    // /angela IS Angela's page, so settle the identity at load rather than
-    // waiting for ensureCollabName() — that only fires on the first write, and
-    // until then the avatar, the activity feed and anything she edited would
-    // have carried whatever name the browser last used (Hurley 2026-08-05).
-    if (window.isAngelaUser && window.isAngelaUser() &&
-        String(getCollabName() || '').trim().toLowerCase() !== 'angela') {{
-      setCollabName('Angela');
-    }}
+    // Settle the identity BEFORE the first render: ensureCollabName() only
+    // fires on the first write, and until then the avatar, the activity feed
+    // and anything edited would carry whatever the browser last held — or
+    // nothing at all (Hurley 2026-08-05).
+    ensureCollabName();
     _renderWhoSwitcher();
 
     // Open immediately — no session wait, no magic link.
