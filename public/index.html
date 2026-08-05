@@ -11480,12 +11480,12 @@
       var meFirst = (getCollabName() || '').trim().toLowerCase().split(/\s+/)[0];
       // Off for this person — leave the section empty (:empty hides it and its
       // divider) and build none of it. Everyone else is unaffected.
-      // _PLAN_AHEAD_OFF switches Plan Ahead off for one PERSON (Thor). That is a
-      // per-profile view difference, so with profiles merged it no longer
-      // applies — it was the reason Thor saw no Plan Ahead at all while everyone
-      // else did, i.e. the merge appearing not to work. Honoured again the
-      // moment _mergedTeamView() goes back to per-person.
-      if (!_mergedTeamView() && _PLAN_AHEAD_OFF[meFirst]) { host.innerHTML = ''; return; }
+      // Everyone now shares THOR'S view (Hurley 2026-08-05), and Thor had Plan
+      // Ahead switched off — so it's off for the whole team. Angela is the sole
+      // exception: she plans and books FOR everyone, so she keeps it. This
+      // replaces the old per-person _PLAN_AHEAD_OFF map, which was itself a
+      // separate-profile behaviour.
+      if (!(window.isAngelaUser && window.isAngelaUser())) { host.innerHTML = ''; return; }
       var personalized = !!((window.AB_PERSONAS || {})[meFirst]);
       var meName = getCollabName() || '';
       var support = isSupportPerson(meName);
