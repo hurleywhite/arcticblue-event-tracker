@@ -6568,24 +6568,38 @@
     // into one of the 7 canonical regions used by the filter + map + planner.
     // Country is the most reliable signal; region/city/location are fallbacks.
     // Idempotent — feeding a canonical value back in returns the same value.
+    // Region from the PLACE first, the stored region only as a fallback.
+    //
+    // Two bugs this fixes. (1) The stored region used to sit in the same
+    // haystack as the location, so a wrong region confirmed itself: "Lagos,
+    // Nigeria" tagged MENA stayed MENA because the MENA test matched the word
+    // "MENA" in the region field. Same for Accra/Ghana and for Mauritius, which
+    // held itself in Asia-Pacific. (2) The US test ran before Europe and matched
+    // a bare "america", so "1 America Square, London" — a London venue — came
+    // back US & Canada and vanished from the Europe filter.
+    function _regionFromText(hay) {
+      function has(re) { return re.test(hay); }
+      if (!hay || !hay.trim()) return '';
+      if (has(/\b(uae|united arab emirates|saudi|riyadh|dubai|abu dhabi|doha|qatar|bahrain|kuwait|oman|israel|tel aviv|jordan|lebanon|egypt|cairo|morocco|mena|middle east)\b/)) return 'MENA';
+      if (has(/\b(south africa|johannesburg|cape town|nigeria|lagos|kenya|nairobi|ghana|accra|ethiopia|rwanda|kigali|tanzania|uganda|senegal|mauritius|seychelles|botswana|zambia|africa)\b/)) return 'Africa';
+      // Central America + the (non-US) Caribbean belong here too — without them
+      // Santo Domingo, where Carlos is BASED, fell through to US & Canada.
+      // Trinidad matters specifically: "Port of Spain" otherwise trips the
+      // Europe test on the word "Spain". Puerto Rico is deliberately NOT here:
+      // it's a US territory and that's a call for the team, not for a regex.
+      if (has(/\b(brazil|brasil|sao paulo|rio de janeiro|mexico|cdmx|guadalajara|monterrey|argentina|buenos aires|chile|santiago|colombia|bogota|medellin|cartagena|peru|lima|venezuela|caracas|uruguay|montevideo|ecuador|quito|dominican republic|republica dominicana|santo domingo|panama|costa rica|guatemala|el salvador|san salvador|honduras|tegucigalpa|nicaragua|managua|paraguay|asuncion|bolivia|trinidad|tobago|port of spain|jamaica|kingston|barbados|bahamas|caribbean|latin america|latam|south america|central america)\b/)) return 'Latin America';
+      // Europe BEFORE US & Canada: a London street called "America Square" must
+      // not outrank the word "London".
+      if (has(/\b(uk|united kingdom|england|scotland|london|france|paris|germany|berlin|munich|frankfurt|spain|madrid|barcelona|catalonia|italy|rome|milan|netherlands|amsterdam|ireland|dublin|switzerland|zurich|geneva|sweden|stockholm|denmark|copenhagen|norway|oslo|finland|helsinki|portugal|lisbon|austria|vienna|belgium|brussels|poland|warsaw|czech|prague|greece|athens|europe|emea)\b/)) return 'Europe';
+      if (has(/\b(usa|united states|america|americas|canada|toronto|vancouver|montreal|ottawa|new york|nyc|san francisco|san diego|san jose|los angeles|bay area|boston|chicago|seattle|austin|dallas|houston|denver|phoenix|philadelphia|washington dc|new orleans|hoboken|menlo park|half moon bay|berkeley|leesburg|pier sixty|texas|miami|florida|atlanta|las vegas|nevada|california|midwest|northeast|southeast|southwest|west coast|east coast|mountain west|new jersey|other us)\b/)) return 'US & Canada';
+      if (has(/\b(singapore|hong kong|china|beijing|shanghai|japan|tokyo|korea|seoul|india|delhi|mumbai|bangalore|bengaluru|australia|sydney|melbourne|new zealand|indonesia|jakarta|thailand|bangkok|malaysia|vietnam|philippines|taiwan|apac|asia.pacific|asia)\b/)) return 'Asia-Pacific';
+      return '';
+    }
     function canonicalRegion(o) {
       o = o || {};
-      var hay = abFold([o.country, o.region, o.city, o.location].join(' '));
-      function has(re) { return re.test(hay); }
-      if (has(/\b(uae|united arab emirates|saudi|riyadh|dubai|abu dhabi|doha|qatar|bahrain|kuwait|oman|israel|tel aviv|jordan|lebanon|egypt|cairo|morocco|mena|middle east)\b/)) return 'MENA';
-      if (has(/\b(south africa|johannesburg|cape town|nigeria|lagos|kenya|nairobi|ghana|accra|ethiopia|rwanda|kigali|tanzania|uganda|senegal|africa)\b/)) return 'Africa';
-      // Central America + the (non-US) Caribbean belong here too. Without them
-      // an event in Santo Domingo — where Carlos is BASED — fell through to the
-      // rule below and came back "US & Canada", because these rows carry
-      // region: "Americas" and that regex matches the word "americas". His own
-      // home market was landing in someone else's territory (Hurley 2026-07-29).
-      // Puerto Rico is deliberately NOT here: it's a US territory, and whether
-      // it counts as LatAm for GTM is a call for the team, not for this regex.
-      if (has(/\b(brazil|brasil|sao paulo|rio de janeiro|mexico|cdmx|guadalajara|monterrey|argentina|buenos aires|chile|santiago|colombia|bogota|medellin|cartagena|peru|lima|venezuela|caracas|uruguay|montevideo|ecuador|quito|dominican republic|republica dominicana|santo domingo|panama|costa rica|guatemala|el salvador|san salvador|honduras|tegucigalpa|nicaragua|managua|paraguay|asuncion|bolivia|latin america|latam|south america|central america)\b/)) return 'Latin America';
-      if (has(/\b(usa|united states|america|americas|canada|toronto|vancouver|montreal|ottawa|new york|nyc|san francisco|san diego|san jose|los angeles|bay area|boston|chicago|seattle|austin|dallas|houston|denver|phoenix|philadelphia|washington dc|new orleans|hoboken|menlo park|half moon bay|berkeley|leesburg|pier sixty|texas|miami|florida|atlanta|las vegas|nevada|california|midwest|northeast|southeast|southwest|west coast|east coast|mountain west|new jersey|other us)\b/)) return 'US & Canada';
-      if (has(/\b(uk|united kingdom|england|london|france|paris|germany|berlin|munich|spain|madrid|barcelona|catalonia|italy|rome|milan|netherlands|amsterdam|ireland|dublin|switzerland|zurich|geneva|sweden|stockholm|denmark|copenhagen|norway|oslo|finland|portugal|lisbon|austria|vienna|belgium|brussels|poland|czech|prague|europe)\b/)) return 'Europe';
-      if (has(/\b(singapore|hong kong|china|beijing|shanghai|japan|tokyo|korea|seoul|india|delhi|mumbai|bangalore|bengaluru|australia|sydney|melbourne|new zealand|indonesia|jakarta|thailand|bangkok|malaysia|vietnam|philippines|taiwan|apac|asia.pacific|asia)\b/)) return 'Asia-Pacific';
-      return 'Global';
+      return _regionFromText(abFold([o.country, o.city, o.location].join(' ')))
+          || _regionFromText(abFold(String(o.region || '')))
+          || 'Global';
     }
 
     // City + country for the CARD FACE — the venue / full address stays in the
