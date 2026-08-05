@@ -1943,6 +1943,11 @@ def build():
        case (JW / JL / JC); the single-letter ones just sit roomier. */
     .ops-stage-ico.is-star svg {{ width: 21px; height: 21px; }}
     .ops-stage-ico.is-star {{ width: auto; min-width: 21px; height: 21px; }}
+    /* The attending ticket carries initials too. It is drawn from a cropped
+       viewBox (the art fills only the middle third of a 24-box), so it needs an
+       explicit wide-and-short size rather than the shared square one. */
+    .ops-stage-ico.is-ticket svg {{ width: 30px; height: 15px; }}
+    .ops-stage-ico.is-ticket {{ width: auto; min-width: 30px; height: 21px; }}
     /* Lineup rows carry the same marks as the card, on their own line under the
        date so they don't crowd the event name. */
     .qrow-marks {{ display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin-top: 4px; }}
@@ -3736,7 +3741,9 @@ def build():
   <nav class="nav">
     <div class="nav-inner">
       <a class="brand" href="https://arcticblue.ai/" aria-label="ArcticBlue home">
-        <img src="arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
+        <!-- Root-absolute: this page is also served at /angela, where a
+             relative "arcticblue-logo.png" would resolve to /angela/… and 404. -->
+        <img src="/arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
       </a>
       <h1 class="app-title">ArcticBlue Event Tracker</h1>
       <div class="nav-meta"><span id="ab-today">{last_updated.upper()}</span> <span class="who">· <span class="who-switcher" id="who-switcher"></span></span></div>
@@ -7727,7 +7734,14 @@ def build():
       // top-right mark and must not shift because someone else was added.
       var _out = '';
       if (_intOn) _out += _drawInterestStars(_intNames.split(', ').filter(Boolean));
-      if (attOn)  _out += _drawStageMark('ticket', 'none', '#15803d', 'Attending', att.names);
+      // Named attendees get a ticket each; the bare Attending STAGE with nobody
+      // named still draws one plain green ticket, since "someone is going" is
+      // worth showing even before Edit says who.
+      if (attOn) {{
+        _out += attList.length
+          ? _drawAttendTickets(att.names.split(', ').filter(Boolean))
+          : _drawStageMark('ticket', 'none', '#15803d', 'Attending', '');
+      }}
       if (mic)    _out += _drawStageMark('mic', mic[0], mic[1], mic[2], who.names);
       return _out;
     }};
@@ -7769,6 +7783,35 @@ def build():
                  '<path d="' + _STAR_PATH + '" fill="' + col + '"/>' +
                  '<text x="12" y="12.2" text-anchor="middle" dominant-baseline="central" ' +
                    'fill="#fff" font-size="8.6" font-weight="700" ' +
+                   'font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">' +
+                   escapeHtml(_markInitials(n)) + '</text>' +
+               '</svg></span>';
+      }}).join('');
+      if (list.length > 3) out += '<span class="ops-who-more">+' + (list.length - 3) + '</span>';
+      return out;
+    }}
+    // ATTENDING: one ticket PER PERSON, in their colour with their initials
+    // inside, exactly like the interest star (Hurley 2026-08-05: "make the
+    // ticket larger and put the initials within that larger ticket"). Replaces
+    // a small green ticket trailed by a separate coloured disc — two shapes per
+    // person to say one thing.
+    // Its own viewBox: the ticket art only occupies the middle third of a 24x24
+    // box, so at the shared 17px it would have rendered the initials about 4px
+    // tall. Cropping to the art (0 6 24 12) and drawing it 30x15 gives the
+    // letters real height without making the mark tower over the mic.
+    // The perforation sits right of the initials so it still reads as a ticket.
+    function _drawAttendTickets(names) {{
+      var list = (names || []).filter(Boolean);
+      if (!list.length) return '';
+      var out = list.slice(0, 3).map(function (n) {{
+        var col = window.abPersonColor(n);
+        return '<span class="ops-stage-ico is-ticket" title="' + escapeHtml('Attending \u2014 ' + n) +
+               '" aria-label="' + escapeHtml('Attending \u2014 ' + n) + '" role="img">' +
+               '<svg viewBox="0 6 24 12" aria-hidden="true">' +
+                 '<path d="M3 8.5a1.5 1.5 0 0 1 1.5-1.5h15A1.5 1.5 0 0 1 21 8.5v1.6a1.9 1.9 0 0 0 0 3.8v1.6a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 15.5v-1.6a1.9 1.9 0 0 0 0-3.8z" fill="' + col + '"/>' +
+                 '<path d="M17.4 8.7v6.6" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="1.5 1.7" opacity="0.85"/>' +
+                 '<text x="10.2" y="12.2" text-anchor="middle" dominant-baseline="central" ' +
+                   'fill="#fff" font-size="7.4" font-weight="700" ' +
                    'font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">' +
                    escapeHtml(_markInitials(n)) + '</text>' +
                '</svg></span>';
@@ -8979,9 +9022,24 @@ def build():
     // keeps the top-line dropdowns + search, but never sees the hidden filters.
     // Re-run on sign-in (route) and whenever the collaborator name changes.
     // Global (the detail modal lives in a separate closure and needs this too).
-    window.isAngelaUser = function () {{
-      return (getCollabName() || '').toLowerCase().indexOf('angela') !== -1;
-    }};
+    // ANGELA'S VIEW LIVES ON ITS OWN URL: /angela (Hurley 2026-08-05, "make it
+    // so that angela has a separate underlying page … hidden from everyone else
+    // from seeing"). It used to key off the signed-in NAME, which meant any
+    // teammate who typed "Angela" into "Someone else…" got her Queue, Planner,
+    // Plan Ahead, Contacts chip and CFP dates — and with the switcher offering
+    // her disc, that was one click away. The route is the gate now; the name is
+    // only ever about attribution.
+    //
+    // Obscurity, not security: anyone with the link can open it, and the data
+    // was always readable by anyone with the tracker URL. It keeps her tools out
+    // of the team's way, which is what was asked for — it is not an access
+    // control, and shouldn't be relied on as one.
+    // Vercel serves /angela from the same index.html (see vercel.json rewrites).
+    function _isAngelaRoute() {{
+      try {{ return /^\\/angela(\\/|$)/i.test(window.location.pathname || ''); }}
+      catch (e) {{ return false; }}
+    }}
+    window.isAngelaUser = function () {{ return _isAngelaRoute(); }};
     function isAngelaUser() {{ return window.isAngelaUser(); }}
     function applyFilterVisibility() {{
       var show = isAngelaUser();
@@ -14085,7 +14143,7 @@ def build():
     // "Loading events…" forever (Thor's 30-minute "no events" outage).
     function fetchEventsJson(attempt) {{
       attempt = attempt || 1;
-      return fetch('events.json').then(function (r) {{
+      return fetch('/events.json').then(function (r) {{
         if (!r.ok) throw new Error('events.json HTTP ' + r.status);
         return r.json();
       }}).catch(function (err) {{
@@ -15308,7 +15366,7 @@ def build():
     }}
 
     function loadKnownNames() {{
-      var p1 = fetch('events.json').then(function (r) {{ return r.json(); }}).then(function (d) {{
+      var p1 = fetch('/events.json').then(function (r) {{ return r.json(); }}).then(function (d) {{
         return ((d && d.events) || []);
       }}).catch(function () {{ return []; }});
       var p2 = sb.from('manual_events').select('id,name,city,location,start_date,date_str').then(function (r) {{
@@ -15659,7 +15717,7 @@ def build():
 
     function exportSavedAsIcs() {{
       Promise.all([
-        fetch('events.json').then(function (r) {{ return r.json(); }}),
+        fetch('/events.json').then(function (r) {{ return r.json(); }}),
         sb.from('event_state').select('*'),
         sb.from('manual_events').select('*')
       ]).then(function (results) {{
@@ -15702,7 +15760,7 @@ def build():
       // hidden menu entry: an activity row about a profile upload calls
       // setView('myprofile') directly, and without this it would drop a
       // teammate on a blank view (Hurley 2026-08-05).
-      if ((name === 'planner' || name === 'queue' || name === 'myprofile') &&
+      if ((name === 'planner' || name === 'queue') &&
           window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
       currentView = name;
       var isEventsView = (name === 'grid' || name === 'calendar' || name === 'map');
@@ -17595,6 +17653,13 @@ def build():
     }}
     function ensureCollabName() {{
       var n = getCollabName();
+      // On /angela the name is settled — that page IS hers, so don't open with
+      // a "who are you?" prompt, and don't let a stale name from a shared
+      // browser sign her edits as somebody else.
+      if (window.isAngelaUser && window.isAngelaUser()) {{
+        if (String(n || '').trim().toLowerCase() !== 'angela') {{ setCollabName('Angela'); n = 'Angela'; }}
+        return n;
+      }}
       if (!n) {{
         n = (window.prompt('Your name (so teammates can see who edited what):', '') || '').trim();
         setCollabName(n);
@@ -18135,10 +18200,14 @@ def build():
       return hit ? hit.init : (n ? n.charAt(0).toUpperCase() : '?');
     }}
     window.abInitFor = _whoInitFor;
-    // Who may open the profile page at all. Angela only — see the note in
-    // _renderWhoSwitcher. Kept as a named function so the menu entry and the
-    // view guard can't drift apart.
-    function _profileMenuOk() {{ return !!(window.isAngelaUser && window.isAngelaUser()); }}
+    // Who may open the profile page: EVERYONE. It was briefly Angela-only when
+    // "take out the profiles" was read as covering this page too; Hurley put it
+    // back — "I do want the profile details (just to upload all of that stuff in
+    // one place)". It is a place to keep your bio, topics, past talks and
+    // materials, not a separate VIEW of the tracker, so it never conflicted with
+    // the merge. Kept as a named function so the menu entry and the view guard
+    // can't drift apart.
+    function _profileMenuOk() {{ return true; }}
     function _closeWhoDropdown() {{
       var dd = document.getElementById('who-dropdown');
       var btn = document.getElementById('who-current-btn');
@@ -18149,7 +18218,6 @@ def build():
       var host = document.getElementById('who-switcher');
       if (!host) return;
       var cur = getCollabName();
-      var others = WHO_ROSTER.filter(function (p) {{ return p.name.toLowerCase() !== cur.toLowerCase(); }});
       host.innerHTML =
         '<button type="button" class="who-init who-current" id="who-current-btn" aria-haspopup="true" aria-expanded="false"' +
           ' style="background:' + window.abPersonColor(cur) + '" title="' +
@@ -18168,16 +18236,15 @@ def build():
           (_profileMenuOk()
             ? '<button type="button" class="who-menu-item" id="who-myprofile-btn">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>' +
-              'Team Profiles</button>'
+              (isSupportPerson(cur) ? 'Team Profiles' : 'My Profile') + '</button>'
             : '') +
-          (others.length
-            ? '<div class="who-switch-label">Switch to</div><div class="who-switch-row">' +
-              others.map(function (p) {{
-                return '<button type="button" class="who-init" data-setname="' + escapeHtml(p.name) +
-                       '" style="background:' + window.abPersonColor(p.name) + '" title="' + escapeHtml(p.name) + '">' +
-                       escapeHtml(p.init) + '</button>';
-              }}).join('') + '</div>'
-            : '') +
+          // The "Switch to" roster of discs is GONE (Hurley 2026-08-05: "I just
+          // don't want the switch to A C H since it's just one"). It made sense
+          // when each person had their own view to jump between; with one merged
+          // view it only advertised personas that no longer exist. "Someone
+          // else…" below still sets who you are, which is all identity is for
+          // now — attributing your stars, your archive and your messages.
+          '' +
           '<button type="button" class="who-other" id="who-other-btn">Someone else&hellip;</button>' +
         '</div>';
       var curBtn = document.getElementById('who-current-btn');
@@ -18214,6 +18281,14 @@ def build():
       var switcher = document.getElementById('who-switcher');
       if (switcher && !switcher.contains(e.target)) _closeWhoDropdown();
     }});
+    // /angela IS Angela's page, so settle the identity at load rather than
+    // waiting for ensureCollabName() — that only fires on the first write, and
+    // until then the avatar, the activity feed and anything she edited would
+    // have carried whatever name the browser last used (Hurley 2026-08-05).
+    if (window.isAngelaUser && window.isAngelaUser() &&
+        String(getCollabName() || '').trim().toLowerCase() !== 'angela') {{
+      setCollabName('Angela');
+    }}
     _renderWhoSwitcher();
 
     // Open immediately — no session wait, no magic link.

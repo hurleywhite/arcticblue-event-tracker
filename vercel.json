@@ -45,5 +45,15 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/angela",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/angela/",
+      "destination": "/index.html"
+    }
   ]
 }
