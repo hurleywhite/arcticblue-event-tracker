@@ -9926,10 +9926,7 @@
           // Is anyone from the team on this at all, and is one of them me?
           var everyone = atts.concat(spks).filter(function (x, i, a) { return x && a.indexOf(x) === i; });
           if (!everyone.length) return;
-          // Merged view: ONE list for everyone. The "mine vs rest of the team"
-          // split was the last thing making each person's Lineup different, so
-          // with profiles merged every team event lands in the same bucket.
-          var iAmOn = _mergedTeamView() ? true : (!!meFold && everyone.indexOf(meFold) !== -1);
+          var iAmOn = !!meFold && everyone.indexOf(meFold) !== -1;
           var _pastFlag = c.dataset.past === '1';
           // Use the SAME derived status the card already rendered, so My Lineup
           // reads identically to the grid ("Submitted to speak — Thor ·
