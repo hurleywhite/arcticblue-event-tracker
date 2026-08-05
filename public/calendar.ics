@@ -355,6 +355,16 @@ DESCRIPTION:17th-edition banking technology summit uniting Group CIOs/CDOs/CFOs 
 URL:https://www.bankinnovation-me.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-610@arcticblue-event-tracker
+DTSTAMP:20260805T000000Z
+DTSTART;VALUE=DATE:20260915
+DTEND;VALUE=DATE:20260917
+SUMMARY:LDX3 New York 2026
+LOCATION:New York\, USA
+DESCRIPTION:Targets VP Eng/engineering leadership on delivering AI results and agentic workflows in engineering orgs.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://leaddev.com/leaddev-new-york/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-609@arcticblue-event-tracker
 DTSTAMP:20260805T000000Z
 DTSTART;VALUE=DATE:20260916
@@ -423,6 +433,16 @@ SUMMARY:NextGen AI Summit Riyadh
 LOCATION:Riyadh\, Saudi Arabia
 DESCRIPTION:One-day Riyadh AI summit convening CTOs\, Heads of AI/Digital Transformation and CX leaders from Saudi banks\, government and enterprise (Riyad Bank\, Saudi Electricity\, PIF) around generative/agentic AI\, governance and Vision 2030 ROI — direct ArcticBlue buyer overlap with an open speaker-application route.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://events.incarabia.com/nextgenaisummitriyadh/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-602@arcticblue-event-tracker
+DTSTAMP:20260805T000000Z
+DTSTART;VALUE=DATE:20260901
+DTEND;VALUE=DATE:20260903
+SUMMARY:TMANY New York Cash Exchange (NYCE) 2026
+LOCATION:New York\, USA
+DESCRIPTION:Enterprise finance/treasury ops leaders exploring automation and AI-driven risk management\, aligned with ArcticBlue's ops ROI theme.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.tmany.org/event/15ca542e-3a23-4b06-8476-7efcdb8779a3/summary
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-601@arcticblue-event-tracker
@@ -703,6 +723,16 @@ SUMMARY:IDC CIO Summit Kuwait 2026
 LOCATION:Jumeirah Messilah Beach Hotel & Spa\, Kuwait City\, Kuwait
 DESCRIPTION:IDC’s Kuwait CIO summit themed ‘The Rise of Agentic Systems’\; CIOs and digital transformation leaders from Kuwaiti and Gulf enterprises at Jumeirah Messilah\; strong MENA enterprise AI fit given ArcticBlue’s active GCC client base.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://event.idc.com/event/idc-cio-summit-kuwait/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-566@arcticblue-event-tracker
+DTSTAMP:20260805T000000Z
+DTSTART;VALUE=DATE:20260819
+DTEND;VALUE=DATE:20260821
+SUMMARY:State and Local Government AI Summit 2026
+LOCATION:Denver\, CO
+DESCRIPTION:Government Technology’s invitation-only AI summit for State and Local Government AI leaders in Denver — a niche public sector audience including City and County of Denver AI leaders\; opens ArcticBlue’s government sector pipeline in a market not covered by commercial enterprise events.\nPriority: Low\nAdded by: dust@arcticblue.ai
+URL:https://events.govtech.com/State-and-Local-Government-AI-Summit
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-564@arcticblue-event-tracker
@@ -1794,6 +1824,16 @@ DESCRIPTION:A-Team Insight's focused one-day RegTech summit for senior complianc
 URL:https://a-teaminsight.com/events/regtech-summit-london/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-422@arcticblue-event-tracker
+DTSTAMP:20260805T000000Z
+DTSTART;VALUE=DATE:20260826
+DTEND;VALUE=DATE:20260827
+SUMMARY:CNBC Africa AI Summit 2026
+LOCATION:The Maslow Hotel\, Sandton\, Johannesburg\, South Africa
+DESCRIPTION:CNBC Africa × Forbes Africa flagship one-day AI summit\; CEO panels on AI in African banking and financial services\; Discovery Bank CEO and Absa Group CEO confirmed — ideal Africa-market halo stage for Verma's regulated-industry AI mandate.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://www.cnbcafrica.com/events/cnbc-africa-ai-summit-2026
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-421@arcticblue-event-tracker
 DTSTAMP:20260805T000000Z
 DTSTART;VALUE=DATE:20261117
@@ -1972,6 +2012,16 @@ SUMMARY:From Day One Live: Philadelphia 2026
 LOCATION:Philadelphia\, PA
 DESCRIPTION:From Day One's Philadelphia edition gathers senior HR and people leaders for a focused day on AI transformation and workforce strategy\; confirmed CPO of TIAA and VP HR of Lincoln Financial match Joe's CHRO/CPO ICP\; geographically easy day trip from Joe's NYC base.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.fromdayone.com/conferences/2026/2026_p_philadelphia
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-394@arcticblue-event-tracker
+DTSTAMP:20260805T000000Z
+DTSTART;VALUE=DATE:20260830
+DTEND;VALUE=DATE:20260903
+SUMMARY:HR Florida 2026 (48th Annual SHRM Florida Conference)
+LOCATION:Kissimmee\, FL
+DESCRIPTION:The largest SHRM-affiliated state conference in the Southeast\, drawing 1\,000+ HR and people leaders from across Florida enterprises\; L&D\, AI in HR\, and workforce transformation are expected theme pillars—Joe's AI enablement message is well-matched.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://shrmflorida.org/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-392@arcticblue-event-tracker
@@ -2161,7 +2211,7 @@ DTEND;VALUE=DATE:20260821
 SUMMARY:Tech Day Panama 2026
 LOCATION:Panama City\, Panama
 DESCRIPTION:Enterprise technology summit at Hotel Sheraton Panama City connecting regional CIOs\, CTOs\, and digital transformation leaders — key anchor in Carlos's Central America enterprise pipeline.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.techdayitnow.com/en
+URL:https://techday.com.pa
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-373@arcticblue-event-tracker
@@ -2181,7 +2231,7 @@ DTEND;VALUE=DATE:20261014
 SUMMARY:Tech Day Dominican Republic 2026
 LOCATION:Santo Domingo\, Dominican Republic
 DESCRIPTION:Enterprise technology and digital transformation summit in Carlos's home city of Santo Domingo — ideal anchor event for Carlos's Caribbean enterprise network and ArcticBlue's Dominican Republic market presence.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.techdayitnow.com/en
+URL:https://techday.do
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-371@arcticblue-event-tracker
@@ -3514,6 +3564,16 @@ DESCRIPTION:Latin America's largest B2B enterprise AI conference (3\,500+ attend
 URL:https://ai-lat.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-172@arcticblue-event-tracker
+DTSTAMP:20260805T000000Z
+DTSTART;VALUE=DATE:20260928
+DTEND;VALUE=DATE:20261002
+SUMMARY:Sibos 2026 Miami
+LOCATION:Miami\, FL\, USA
+DESCRIPTION:SWIFT's 10\,000+ global banking and financial industry flagship at Miami Beach Convention Center — theme 'Digital finance for AI-driven economies' places AI governance and payments transformation front and center\; open speaking applications accepted.\nPriority: High\nAdded by: dust@arcticblue.ai
+URL:https://www.sibos.com/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-170@arcticblue-event-tracker
 DTSTAMP:20260805T000000Z
 DTSTART;VALUE=DATE:20260909
@@ -3552,6 +3612,16 @@ SUMMARY:NVIDIA GTC Berlin 2026
 LOCATION:Berlin\, Germany
 DESCRIPTION:Europe's only H2 2026 GPU/AI infrastructure conference with Jensen Huang keynote\; good European enterprise AI market visibility for ArcticBlue alongside AI researchers and enterprise architects.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.nvidia.com/en-eu/gtc/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-164@arcticblue-event-tracker
+DTSTAMP:20260805T000000Z
+DTSTART;VALUE=DATE:20261015
+DTEND;VALUE=DATE:20261016
+SUMMARY:eCommerce Day Mexico 2026
+LOCATION:Mexico City\, Mexico
+DESCRIPTION:Mexico's flagship digital commerce + AI congress in Carlos's Tier 2 LatAm market — enterprise retailers\, fintechs\, and CDOs from Mexico's top companies\; Spanish-language stage building ArcticBlue's visibility across LATAM's largest economy.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://ecommerceday.org/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-162@arcticblue-event-tracker
@@ -3932,6 +4002,16 @@ SUMMARY:eRetail Day México 2026
 LOCATION:Mexico City\, Mexico
 DESCRIPTION:Mexico's most exclusive digital retail event (13th edition) with AI and digital transformation focus in CDMX — high-value LatAm access point for Carlos's pipeline in Mexico.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://eretailday.org/2026/mx/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-78@arcticblue-event-tracker
+DTSTAMP:20260805T000000Z
+DTSTART;VALUE=DATE:20260827
+DTEND;VALUE=DATE:20260828
+SUMMARY:eCommerce Day Argentina 2026
+LOCATION:Buenos Aires\, Argentina
+DESCRIPTION:20th edition of Latin America's largest digital commerce event at Buenos Aires Convention Center\; AI Revolution track draws senior enterprise decision-makers from across LATAM.\nPriority: Medium\nAdded by: dust@arcticblue.ai
+URL:https://ecommerceday.org.ar/2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-77@arcticblue-event-tracker
