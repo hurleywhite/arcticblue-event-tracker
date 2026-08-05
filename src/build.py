@@ -1941,13 +1941,17 @@ def build():
     /* The interest star carries the initials INSIDE it, so it needs a few more
        pixels than the mic/ticket to stay legible — sized for the two-letter
        case (JW / JL / JC); the single-letter ones just sit roomier. */
-    .ops-stage-ico.is-star svg {{ width: 21px; height: 21px; }}
-    .ops-stage-ico.is-star {{ width: auto; min-width: 21px; height: 21px; }}
+    /* The three marks are sized so their LETTERS land within a pixel of each
+       other on screen (~8px), not so their boxes match — a star, a wide ticket
+       and a badged mic can't share a box and shouldn't try. The mic is tallest
+       because its badge hangs off the corner. */
+    .ops-stage-ico.is-star svg {{ width: 24px; height: 24px; }}
+    .ops-stage-ico.is-star {{ width: auto; min-width: 24px; height: 24px; }}
     /* The attending ticket carries initials too. It is drawn from a cropped
        viewBox (the art fills only the middle third of a 24-box), so it needs an
        explicit wide-and-short size rather than the shared square one. */
-    .ops-stage-ico.is-ticket svg {{ width: 30px; height: 15px; }}
-    .ops-stage-ico.is-ticket {{ width: auto; min-width: 30px; height: 21px; }}
+    .ops-stage-ico.is-ticket svg {{ width: 32px; height: 22px; }}
+    .ops-stage-ico.is-ticket {{ width: auto; min-width: 32px; height: 28px; }}
     /* A badged mic draws in a 30-unit box instead of 24, so it needs more
        pixels just to hold the mic at its old size — and Hurley asked for it a
        bit bigger than that. 26px puts the mic art ~22% up on the plain one and
@@ -7733,7 +7737,7 @@ def build():
                '<svg viewBox="0 0 24 24" aria-hidden="true">' +
                  '<path d="' + _STAR_PATH + '" fill="' + col + '"/>' +
                  '<text x="12" y="12.2" text-anchor="middle" dominant-baseline="central" ' +
-                   'fill="#fff" font-size="8.6" font-weight="700" ' +
+                   'fill="#fff" font-size="7.8" font-weight="700" ' +
                    'font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">' +
                    escapeHtml(_markInitials(n)) + '</text>' +
                '</svg></span>';
@@ -7758,11 +7762,17 @@ def build():
         var col = window.abPersonColor(n);
         return '<span class="ops-stage-ico is-ticket" title="' + escapeHtml('Attending \u2014 ' + n) +
                '" aria-label="' + escapeHtml('Attending \u2014 ' + n) + '" role="img">' +
-               '<svg viewBox="0 6 24 12" aria-hidden="true">' +
-                 '<path d="M3 8.5a1.5 1.5 0 0 1 1.5-1.5h15A1.5 1.5 0 0 1 21 8.5v1.6a1.9 1.9 0 0 0 0 3.8v1.6a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 15.5v-1.6a1.9 1.9 0 0 0 0-3.8z" fill="' + col + '"/>' +
-                 '<path d="M17.4 8.7v6.6" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="1.5 1.7" opacity="0.85"/>' +
-                 '<text x="10.2" y="12.2" text-anchor="middle" dominant-baseline="central" ' +
-                   'fill="#fff" font-size="7.4" font-weight="700" ' +
+               '<svg viewBox="0 3.5 24 17" aria-hidden="true">' +
+                 // A TALLER ticket (14 units of height, was 10). The old one was
+                 // squashed enough that two letters filled it edge to edge —
+                 // "JW" on HumanX Amsterdam had no breathing room at all
+                 // (Hurley 2026-08-05). Same silhouette, notches and
+                 // perforation; just proportioned so the initials sit IN it
+                 // rather than fight it, and drawn larger to match the mic.
+                 '<path d="M3 6.5a1.5 1.5 0 0 1 1.5-1.5h15A1.5 1.5 0 0 1 21 6.5v3.1a2.4 2.4 0 0 0 0 4.8v3.1a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-3.1a2.4 2.4 0 0 0 0-4.8z" fill="' + col + '"/>' +
+                 '<path d="M17.1 7.6v8.8" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-dasharray="1.7 1.9" opacity="0.9"/>' +
+                 '<text x="10.1" y="12.1" text-anchor="middle" dominant-baseline="central" ' +
+                   'fill="#fff" font-size="6.8" font-weight="700" ' +
                    'font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">' +
                    escapeHtml(_markInitials(n)) + '</text>' +
                '</svg></span>';
