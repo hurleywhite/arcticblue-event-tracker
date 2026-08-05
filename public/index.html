@@ -4863,8 +4863,17 @@
           'title="' + (_tIn ? "You're interested — click to clear" : "I'm interested") + '" aria-label="I am interested">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true" fill="' + (_tIn ? 'currentColor' : 'none') +
           '" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="' + starD + '"/></svg></button>' +
+        // TELL THE TRUTH ABOUT WHAT THE CLICK DOES. A handful of events carry
+        // the LEGACY team-wide `hidden` flag; on those this button un-hides for
+        // EVERYONE and writes to the database, while the label read "Archived
+        // for you — click to bring it back". A destructive, team-wide action
+        // wearing a personal label is exactly what gets clicked by accident —
+        // it caught me while testing (Hurley 2026-08-05).
         '<button type="button" class="mt-ico' + (_tArch ? ' is-on' : '') + '" data-qa="archive" ' +
-          'title="' + (_tArch ? 'Archived for you — click to bring it back' : 'Archive — for you only; teammates still see it') + '" aria-label="Archive for me">' +
+          'title="' + (rec.hidden === true
+              ? 'Hidden for the WHOLE TEAM — click to bring it back for everyone'
+              : (_tArch ? 'Archived for you — click to bring it back' : 'Archive — for you only; teammates still see it')) +
+          '" aria-label="' + (rec.hidden === true ? 'Un-hide for the whole team' : 'Archive for me') + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>' +
           '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>' +
@@ -5725,9 +5734,19 @@
         '<svg viewBox="0 0 24 24" aria-hidden="true" fill="' + (_hIn ? 'currentColor' : 'none') +
         '" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="' + _starD + '"/></svg>' +
         '</button>';
+      // ⚠ DEAD CODE — meIco/archIco are BUILT HERE AND NEVER INSERTED. $side's
+      // innerHTML below is only enrichBtn + the Edit button, so these two never
+      // reach the page; the icons you actually see are the .mt-ico pair in the
+      // modal TITLE (search 'mt-acts'). Verified in the browser: 0 .mh-ico
+      // nodes, 2 .mt-ico. Left in place rather than deleted because the header
+      // may want them back, but DO NOT edit these expecting a visible change —
+      // I did, twice (Hurley 2026-08-05).
+      var _teamHidden = (rec.hidden === true);
       var archIco =
         '<button type="button" class="mh-ico' + (_hArch ? ' is-on' : '') + '" data-qa="archive" ' +
-        'title="' + (_hArch ? 'Archived for you — click to bring it back' : 'Archive — for you only; teammates still see it') + '" ' +
+        'title="' + (_teamHidden
+            ? 'Hidden for the WHOLE TEAM — click to bring it back for everyone'
+            : (_hArch ? 'Archived for you — click to bring it back' : 'Archive — for you only; teammates still see it')) + '" ' +
         'aria-pressed="' + (_hArch ? 'true' : 'false') + '" aria-label="Archive for me">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
         'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
