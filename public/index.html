@@ -685,16 +685,17 @@
     /* Interested + Archive in the modal header — the same star and struck
        eye the card face uses, so both surfaces read the same. */
     /* Beside the event name, revealed on hover — the card face's behaviour. */
+    /* ALWAYS VISIBLE. These were opacity:0 until you hovered the event NAME,
+       copied from the card face where hiding controls until hover keeps a dense
+       grid calm. A pop-up you deliberately opened is the opposite situation:
+       Hurley reported "when I click hide within the event card details, it
+       doesn't work", and the screenshot showed why — the header offered Enrich,
+       Edit and ✕ and nothing else, because the star and the eye were invisible
+       until the pointer happened to cross the title (Hurley 2026-08-05). */
     .mt-acts {
       display: inline-flex; align-items: center; gap: 2px; margin-left: 8px;
-      vertical-align: middle; opacity: 0; transition: opacity 130ms;
+      vertical-align: middle; opacity: 1;
     }
-    .modal-title:hover .mt-acts,
-    .modal-title:focus-within .mt-acts,
-    .mt-acts:focus-within { opacity: 1; }
-    .mt-acts .mt-ico.is-on { opacity: 1; }
-    .modal-title:hover .mt-ico, .mt-acts .mt-ico.is-on { opacity: 1; }
-    @media (hover: none) { .mt-acts { opacity: 1; } }
     .mt-ico {
       display: inline-flex; align-items: center; justify-content: center;
       width: 26px; height: 26px; padding: 0; border: 0; border-radius: 7px;
@@ -4290,6 +4291,9 @@
       if (!btn || !window.opsWrite) return;
       var qa = btn.dataset.qa;
       var patch = {};
+      // Set when an action deliberately CLOSED the pop-up, so the deferred
+      // re-render below doesn't re-open what we just dismissed.
+      var _qaClosed = false;
       if (qa === 'saved') { rec.saved = !rec.saved; patch.saved = rec.saved; }
       else if (qa === 'archive') {
         // Archive is PERSONAL (localStorage per signed-in name) — hides this from
@@ -4301,6 +4305,17 @@
         // Unarchiving a legacy team-wide hide also clears that shared flag (it
         // comes back for everyone) — there's no per-person record to remove.
         if (!_makeArch && rec.hidden === true) { rec.hidden = false; patch.hidden = false; }
+        // ARCHIVING CLOSES THE POP-UP. It worked before this and still read as
+        // broken: you clicked hide and were left looking at the very event you
+        // had just hidden, with the card behind the overlay. Closing shows you
+        // the thing disappear, which is the whole point of the action.
+        // Un-archiving does NOT close — you're bringing something back to look
+        // at it (Hurley 2026-08-05).
+        if (_makeArch) {
+          if (_qaFullTimer) { clearTimeout(_qaFullTimer); _qaFullTimer = null; }
+          if (window.closeEventModal) window.closeEventModal();
+          _qaClosed = true;
+        }
       }
       else if (qa === 'interested') {
         var me = (window.opsCurrentUser ? window.opsCurrentUser(true) : '') || '';
@@ -4446,6 +4461,10 @@
         return;
       }
       if (_qaFullTimer) clearTimeout(_qaFullTimer);
+      // Archiving closes the pop-up. Without this guard the close landed and
+      // then this timer re-opened the very event 500ms later, which looked
+      // exactly like the click had done nothing (Hurley 2026-08-05).
+      if (_qaClosed) { if (window.opsRefresh) window.opsRefresh(); return; }
       _qaFullTimer = setTimeout(function () {
         _qaFullTimer = null;
         var _sc0 = overlay.querySelector('.modal-scroll');
@@ -4914,7 +4933,16 @@
           '<path d="m2 2 20 20"/></svg></button>';
       $title.appendChild(wrap);
       wrap.querySelectorAll('[data-qa]').forEach(function (b5) {
-        b5.addEventListener('click', window.__qaClick);
+      // Bound through a wrapper, NOT as `window.__qaClick` directly. That
+      // property is REASSIGNED (with this event's `rec` closed over) further
+      // down in openEventModal, and addEventListener captures the function
+      // OBJECT at bind time — so binding it here caught whatever was left from
+      // the PREVIOUS pop-up, and on the first pop-up of a session it caught
+      // `undefined` and attached no handler at all. That is why "hide" in the
+      // event details did nothing (Hurley 2026-08-05); worse, on later opens it
+      // would have acted on the previously-viewed event. The indirection defers
+      // the lookup to click time, so it is always this event's handler.
+        b5.addEventListener('click', function (ev5) { if (window.__qaClick) window.__qaClick(ev5); });
       });
     })();
     // Just the city/venue — the region (MENA / Europe / …) is redundant next
@@ -5773,7 +5801,8 @@
         : '');
       // They drive the SAME handler the quickbar buttons did.
       $side.querySelectorAll('[data-qa]').forEach(function (b4) {
-        b4.addEventListener('click', window.__qaClick);
+        // Same deferred lookup as the title icons — see the note there.
+        b4.addEventListener('click', function (ev4) { if (window.__qaClick) window.__qaClick(ev4); });
       });
       wireEnrichButton(rec);
       var et = document.getElementById('modal-edit-toggle');
@@ -5824,6 +5853,11 @@
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
   window.openEventModal = openEventModal;
+  // Bridged for the same reason openEventModal is: the quick-action handler
+  // (window.__qaClick) is defined in a DIFFERENT closure and cannot see
+  // closeModal directly — calling it by name there throws a ReferenceError that
+  // silently kills the rest of the handler (Hurley 2026-08-05).
+  window.closeEventModal = closeModal;
   // Focus trap shared by both overlays (modal here, briefing drawer in the ops
   // closure) — keeps Tab inside the dialog instead of walking the page behind.
   window.trapTab = function (container, e) {
