@@ -6944,38 +6944,7 @@ def build():
       if (st.status_tags == null) return legacyToStages(st.status);
       return normalizeStageTags(st.status_tags);
     }}
-    // Some events were only ever marked through the LEGACY status marker
-    // ("Submitted", "Had Mtg", "Not Accepted") and never got a pipeline stage,
-    // so cardStatusLine had nothing to render — no status line and no mic even
-    // though we'd applied (Angela: "some of the ones we submitted to isn't
-    // showing up as an icon"). When an event carries NO stage tags at all, imply
-    // the stage from that legacy marker.
-    //
-    // Read-only: this derives what to DISPLAY and never writes. Stored data,
-    // status_tags and per-person archives are untouched. If real stage tags
-    // exist they win outright and this never runs.
-    var _LEGACY_STAGE = [
-      [/\\bnot accepted|\\brejected\\b/i,                    'Rejected'],
-      [/\\bbooked\\b/i,                                      'Booked'],
-      [/\\battending\\b/i,                                   'Attending'],
-      [/\\bhad mtg|\\bmeeting held|\\breceived intro/i,         'Meeting held'],
-      [/\\bfollowed up\\b/i,                                 'Followed up'],
-      [/\\bsubmitted|\\bsubmission|\\bfinish submission/i,      'Submitted']
-    ];
-    function _stagesFromLegacy(st) {{
-      var raw = String((st && (st.status || st.workflow_status)) || '');
-      if (!raw.trim() || raw === '__deleted__') return [];
-      var out = [];
-      for (var i = 0; i < _LEGACY_STAGE.length; i++) {{
-        if (_LEGACY_STAGE[i][0].test(raw) && out.indexOf(_LEGACY_STAGE[i][1]) === -1) out.push(_LEGACY_STAGE[i][1]);
-      }}
-      return out;
-    }}
-    function stageTagsOf(st) {{
-      var tags = stageTagsRaw(st);
-      if (!tags || !tags.length) tags = _stagesFromLegacy(st);
-      return _stageImply(tags);
-    }}
+    function stageTagsOf(st) {{ return _stageImply(stageTagsRaw(st)); }}
     window.abStageImply = _stageImply;
 
     // Pick the single most meaningful stage (for the calendar tint).
