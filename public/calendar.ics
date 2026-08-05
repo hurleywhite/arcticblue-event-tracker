@@ -1225,16 +1225,6 @@ DESCRIPTION:The 85th annual HRSouthwest Conference — the premier SHRM-affiliat
 URL:https://hrsouthwest.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-499@arcticblue-event-tracker
-DTSTAMP:20260805T000000Z
-DTSTART;VALUE=DATE:20260818
-DTEND;VALUE=DATE:20260820
-SUMMARY:iVentiv Learning Futures San Francisco 2026
-LOCATION:San Francisco\, CA
-DESCRIPTION:iVentiv's exclusive CLO/Head of L&D executive knowledge exchange in San Francisco — max 40 senior learning leaders from Forbes Global 2000 companies — AI in learning\, skills\, and leadership development themes perfectly match Joe's practice-based fluency and AI enablement message.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://iventiv.com/events/learning-futures/learning-futures-san-francisco-executive-knowledge-exchange-3
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-498@arcticblue-event-tracker
 DTSTAMP:20260805T000000Z
 DTSTART;VALUE=DATE:20260804
@@ -3484,16 +3474,6 @@ DESCRIPTION:The only US event fully dedicated to AI in lending and credit for fi
 URL:https://finai.events/lending/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-174@arcticblue-event-tracker
-DTSTAMP:20260805T000000Z
-DTSTART;VALUE=DATE:20261207
-DTEND;VALUE=DATE:20261210
-SUMMARY:U.S. BankTech Summit 2026
-LOCATION:Oak Brook\, IL\, USA
-DESCRIPTION:Premier banking technology conference for senior executives at DoubleTree Oak Brook\; AI in banking\, digital transformation and RegTech focus — connects ArcticBlue to bank and credit union C-suite actively evaluating AI adoption for 2027 strategy.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://usbanktechsummit.com/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-173@arcticblue-event-tracker
 DTSTAMP:20260805T000000Z
 DTSTART;VALUE=DATE:20261001
@@ -3712,16 +3692,6 @@ SUMMARY:Money20/20 Middle East 2026
 LOCATION:Riyadh\, Saudi Arabia
 DESCRIPTION:Inaugural second edition in Riyadh — 38\,500+ visitors\, 600+ investors\, 400+ speakers\; speaker applications open with June 30 deadline\; direct access to GCC's top regulated-finance decision-makers including banking\, insurance\, and capital markets C-suite — critical for ArcticBlue's Gulf client base.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://money2020middleeast.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-124@arcticblue-event-tracker
-DTSTAMP:20260805T000000Z
-DTSTART;VALUE=DATE:20260909
-DTEND;VALUE=DATE:20260912
-SUMMARY:Global Fintech Fest 2026
-LOCATION:Mumbai\, India
-DESCRIPTION:India's premier fintech event at Jio World Centre with India's Finance Minister confirmed\; open speaker application\; Verma's APAC/India fintech and regulated-banking audience — anchors ArcticBlue's South Asia presence for regulated-industry AI.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.globalfintechfest.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-121@arcticblue-event-tracker

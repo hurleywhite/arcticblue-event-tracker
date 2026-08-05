@@ -18159,6 +18159,21 @@ def write_calendar_ics(today_evs, upcoming):
     # Every manual event (Angela added these deliberately, they're always in)
     skipped_manual = 0
     for m in manual_rows:
+        # HIDDEN AND SOFT-DELETED EVENTS DO NOT GO IN THE PUBLIC FEED.
+        # calendar.ics is a subscribable URL — the whole point of hiding an
+        # event team-wide is that it stops appearing, and the feed was still
+        # publishing all of them (Hurley 2026-08-05: found iVentiv, Global
+        # Fintech Fest and U.S. BankTech Summit all live in the .ics while
+        # flagged hidden in the database). The grid, calendar view and map
+        # already honour this; the feed was the one surface that didn't.
+        # `__deleted__` is the soft-delete sentinel — none today, but a deleted
+        # event reaching subscribers would be worse than a hidden one.
+        if m.get('hidden') is True:
+            skipped_manual += 1
+            continue
+        if str(m.get('name') or '').strip() == '__deleted__':
+            skipped_manual += 1
+            continue
         sd = m.get('start_date')
         ed = m.get('end_date') or sd
         # Back-compat: older rows pre-date the JS-side date derivation and
