@@ -1937,6 +1937,13 @@ def build():
     }}
     .ops-stage-ico svg {{ width: 17px; height: 17px; display: block; }}
     .ops-stage-ico {{ gap: 3px; width: auto; min-width: 20px; }}
+    /* The interest star carries two letters INSIDE it, so it needs a few more
+       pixels than the mic/ticket to stay legible. */
+    .ops-stage-ico.is-star svg {{ width: 21px; height: 21px; }}
+    .ops-stage-ico.is-star {{ width: auto; min-width: 21px; height: 21px; }}
+    /* Lineup rows carry the same marks as the card, on their own line under the
+       date so they don't crowd the event name. */
+    .qrow-marks {{ display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin-top: 4px; }}
     /* The pipeline as a ROUTE, not a row of switches. Colours match the corner
        mark exactly: amber = in flight, green = landed, red = closed. */
     .qa-flow {{ display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }}
@@ -7603,7 +7610,13 @@ def build():
     var _stIconN = 0;
     window.abStageIcon = function (st, ev) {{
       var tags = stageTagsOf(st);
-      var who = window.abMineOnly(((st && st.speaker) || '').trim());
+      // Names are normalised to the SHORT display form here, not left raw:
+      // attendees are stored as lowercase keys ('jerome'), speakers as typed
+      // ('Thor'), so an untouched pool produced tooltips reading "Attending —
+      // jerome" next to "Rejected — Thor" on the very same event
+      // (Hurley 2026-08-05).
+      var who = window.abMineOnly(speakerTokens((st && st.speaker) || '')
+        .map(_personShort).filter(Boolean).join(', '));
       // Whether ANYONE is down to attend is a separate question from whose
       // names we're allowed to print. abMineOnly blanks your own name (your
       // card is self-evidently yours), so testing `att.names` meant Jerome's
@@ -7611,7 +7624,7 @@ def build():
       // attendees ['jerome'] and no Attending tag, so the ticket never drew,
       // for him or anyone (Hurley 2026-07-30). Ask the raw list instead.
       var attList = (((st && st.attendees) || (ev && ev.attendees) || [])
-                  .map(function (a) {{ return String(a || '').trim(); }}).filter(Boolean));
+                  .map(_personShort).filter(Boolean));
       var att = window.abMineOnly(attList.join(', '));
       var attOn = att.show && (attList.length > 0 || tags.indexOf('Attending') !== -1);
       // Speaking and attending are DIFFERENT tracks and an event can be both —
@@ -7652,20 +7665,52 @@ def build():
       // interested star, then a ticket, then the mic. The mic is the fixed
       // top-right mark and must not shift because someone else was added.
       var _out = '';
-      if (_intOn) _out += _drawStageMark('star', 'none', '#7c3aed', 'Interested', _intNames);
+      if (_intOn) _out += _drawInterestStars(_intNames.split(', ').filter(Boolean));
       if (attOn)  _out += _drawStageMark('ticket', 'none', '#15803d', 'Attending', att.names);
       if (mic)    _out += _drawStageMark('mic', mic[0], mic[1], mic[2], who.names);
       return _out;
     }};
+    // TWO letters, not one. This roster is Thor, Verma, JEROME, JOE, CARLOS and
+    // JIM — a single initial made three of them an identical "J" and left the
+    // colour doing all the work (Hurley 2026-08-05). A one-word name gives its
+    // first two letters (Je / Jo / Ji); a full name still gives first + last.
+    function _markInitials(n) {{
+      var w = String(n || '').trim().split(/\s+/).filter(Boolean);
+      if (!w.length) return '?';
+      if (w.length > 1) return (w[0].charAt(0) + w[w.length - 1].charAt(0)).toUpperCase();
+      return (w[0].charAt(0).toUpperCase() + (w[0].charAt(1) || '').toLowerCase());
+    }}
+    // INTEREST: one star PER PERSON, filled in their colour with their initials
+    // inside it (Hurley 2026-08-05: "make it so that their initials are inside
+    // the star, make the star different colours for each person"). Replaces the
+    // old single hollow star with separate initial discs trailing it — this says
+    // the same thing in one shape per person instead of two per person.
+    // The star is drawn fatter than a classic 5-point (inner radius 0.55 of the
+    // outer, not 0.38) purely so two letters fit legibly in the middle.
+    var _STAR_PATH = 'M12 1.5 L15.41 7.31 L21.99 8.76 L17.52 13.79 L18.17 20.49 ' +
+                     'L12 17.8 L5.83 20.49 L6.48 13.79 L2.01 8.76 L8.59 7.31 Z';
+    function _drawInterestStars(names) {{
+      var list = (names || []).filter(Boolean);
+      if (!list.length) return '';
+      var out = list.slice(0, 3).map(function (n) {{
+        var col = window.abPersonColor(n);
+        return '<span class="ops-stage-ico is-star" title="' + escapeHtml('Interested \u2014 ' + n) +
+               '" aria-label="' + escapeHtml('Interested \u2014 ' + n) + '" role="img">' +
+               '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                 '<path d="' + _STAR_PATH + '" fill="' + col + '"/>' +
+                 '<text x="12" y="12.2" text-anchor="middle" dominant-baseline="central" ' +
+                   'fill="#fff" font-size="8.6" font-weight="700" ' +
+                   'font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">' +
+                   escapeHtml(_markInitials(n)) + '</text>' +
+               '</svg></span>';
+      }}).join('');
+      if (list.length > 3) out += '<span class="ops-who-more">+' + (list.length - 3) + '</span>';
+      return out;
+    }}
     function _drawStageMark(kind, fill, col, label, pool) {{
       var id = 'stq' + (++_stIconN);
       var body;
-      if (kind === 'star') {{
-        // Hollow, not filled: interest is a MAYBE and must read lighter than the
-        // solid ticket/booked marks sitting next to it.
-        body = '<path d="M12 3.1l2.75 5.57 6.15.9-4.45 4.34 1.05 6.12L12 17.14l-5.5 2.89 1.05-6.12L3.1 9.57l6.15-.9z" ' +
-               'fill="none" stroke="' + col + '" stroke-width="1.7" stroke-linejoin="round"/>';
-      }} else if (kind === 'ticket') {{
+      if (kind === 'ticket') {{
         body = '<path d="M3 8.5a1.5 1.5 0 0 1 1.5-1.5h15A1.5 1.5 0 0 1 21 8.5v1.6a1.9 1.9 0 0 0 0 3.8v1.6a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 15.5v-1.6a1.9 1.9 0 0 0 0-3.8z" fill="' + col + '"/>' +
                '<path d="M14.5 8.6v6.8" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="1.6 1.8"/>';
       }} else {{
@@ -7691,10 +7736,7 @@ def build():
       // other than their own, since their own card is self-evidently theirs.
       var inits = String(pool || '').split(/\s*(?:,|;|&| and )\s*/)
         .map(function (n) {{ return String(n || '').trim(); }}).filter(Boolean)
-        .map(function (n) {{
-          var w = n.split(/\s+/);
-          return (w[0].charAt(0) + (w.length > 1 ? w[w.length - 1].charAt(0) : '')).toUpperCase();
-        }});
+        .map(_markInitials);
       var who2 = pool ? ' \u2014 ' + pool : '';
       // Was one grey run of letters ("JW V"). Now a disc each in that person's
       // colour, so the card says who it's for without being read (Hurley).
@@ -9453,7 +9495,15 @@ def build():
             if (!_attHit) on = false;
           }}
           if (opsStatFilter === 'buyer'   && (card.dataset.audience || '').toLowerCase().indexOf('buyer') === -1) on = false;
-          if (opsStatFilter === 'contacts' && card.dataset.contactFound !== '1') on = false;
+          // CONTACTS is a worklist of organisers still worth approaching, so a
+          // REJECTED event comes off it — the organiser has already said no, and
+          // Angela was still being handed their address (Hurley 2026-08-05).
+          // Same reasoning that makes Rejected terminal for Pending. The card's
+          // own ✉ badge is left alone: we do still hold a contact for it, that
+          // just isn't work any more.
+          if (opsStatFilter === 'contacts' &&
+              (card.dataset.contactFound !== '1' ||
+               (card.dataset.statusTags || '').split('|').indexOf('Rejected') !== -1)) on = false;
           if (opsStatFilter === 'interested' && card.dataset.interested !== '1') on = false;
           // ('myfits' retired 2026-08-05 — the per-person cut is the Person
           // dropdown now, which does the same job for ANY teammate rather than
@@ -9655,7 +9705,7 @@ def build():
         if (!isPastEvent(ev) && (st.urgent || isDeadlineUrgent(ev.deadline))) urgent++;
         // Contacts = an organizer email / POC we can reach out to (same test the
         // card's ✉ badge + the Contacts chip filter use). Upcoming only.
-        if (!isPastEvent(ev) && hasEmailContact(st, ev)) contacts++;
+        if (!isPastEvent(ev) && stageTagsOf(st).indexOf('Rejected') === -1 && hasEmailContact(st, ev)) contacts++;
       }});
       // Manual events carry their own stage tags + deadlines — fold them in.
       (manualRows || []).forEach(function (m) {{
@@ -9667,7 +9717,7 @@ def build():
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if (m.interested && m.interested.length) interestedCount++;
         if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
-        if (!isPastEvent(m) && hasEmailContact(m)) contacts++;
+        if (!isPastEvent(m) && stageTagsOf(m).indexOf('Rejected') === -1 && hasEmailContact(m)) contacts++;
       }});
       // ("My fits" counting retired 2026-08-05 with the chip — see the Person
       // dropdown, which cuts by ANY teammate's profile instead of only mine.)
@@ -10568,23 +10618,21 @@ def build():
           // with profiles merged every team event lands in the same bucket.
           var iAmOn = _mergedTeamView() ? true : (!!meFold && everyone.indexOf(meFold) !== -1);
           var _pastFlag = c.dataset.past === '1';
-          // Use the SAME derived status the card already rendered, so My Lineup
-          // reads identically to the grid ("Submitted to speak — Thor ·
-          // Attending — Jerome") instead of its own vocabulary.
-          //
-          // This CLONED the card's .ops-status-line, and the card stopped
-          // rendering one when the status moved to the corner mark — so every
-          // Lineup row silently lost its status and became a bare name + date
-          // (Hurley 2026-08-05). A grid card can say it in an icon because the
-          // icon sits next to the event; a list row has no such context, so the
-          // Lineup keeps the WORDS. Derive them from the card's own dataset —
-          // same inputs the mark used, so the two can't disagree.
-          var _slHtml = cardStatusLine(r, {{
+          // THE SAME MARKS AS THE CARD — mic / ticket / star with initials, not
+          // words (Hurley 2026-08-05: "no 'Attending — Jerome' anymore, just
+          // replace with the symbol and initial"). This row briefly carried the
+          // written form on the theory that a list has no context for an icon;
+          // one symbol language everywhere beats that, and the initials inside
+          // the marks already name the person.
+          // Regenerated rather than cloned from the card: the mic's half-fill
+          // uses a clipPath id, and copying the node would duplicate that id in
+          // the document. abStageIcon mints a fresh one each call.
+          var _slHtml = window.abStageIcon({{
             status_tags: (c.dataset.statusTags || '').split('|').filter(Boolean),
             speaker:     c.dataset.speaker || r.speaker || '',
             attendees:   atts,
             interested:  (c.dataset.interestedNames || '').split('|').filter(Boolean)
-          }});
+          }}, r);
           var item = {{
             kind: (r._table === 'manual_events') ? 'manual' : 'catalog',
             key: r._key, name: r.name || 'Event', date_str: r.date_str || '',
@@ -11401,8 +11449,8 @@ def build():
       }}
       function rowHtml(it, showWho) {{
         var loc = [it.location].filter(Boolean).join(' &middot; ');
-        // Same derived status the grid card shows — one vocabulary everywhere.
-        var statusHtml = it.statusHtml || '';
+        // The SAME marks the grid card shows — one symbol language everywhere.
+        var statusHtml = it.statusHtml ? '<div class="qrow-marks">' + it.statusHtml + '</div>' : '';
         // The Day-Of brief lives here (no separate tab) — on upcoming rows. A
         // private / invite-only event (no online footprint) can't be briefed,
         // so no brief button (see `briefable`). Briefs are Angela's tool — only
@@ -11414,18 +11462,13 @@ def build():
         // The whole row opens the event details on click (like the grid cards) —
         // no separate "Details" button. The brief button stops propagation so it
         // still fires its own action.
-        // Whose event is it — initials beside the name, same avatar the team
-        // roll-ups and "In the last week" use. Only on TEAM rows: on your own
-        // rows it would spell out your own initials on every line.
+        // The separate "whose event is it" avatar strip is GONE (2026-08-05).
+        // The status marks now carry the initials themselves — mic for the
+        // speaker, ticket for attendees, a coloured star per interested person —
+        // so a duplicate row of discs said the same names twice. `showWho` is
+        // kept in the signature because the callers still pass it.
+        void showWho;
         var whoHtml = '';
-        if (showWho && it.who && it.who.length) {{
-          whoHtml = '<span class="qrow-who" title="' + escapeHtml(it.who.join(', ')) + '">' +
-            it.who.slice(0, 4).map(function (n) {{
-              return '<span class="wn-avatar wn-avatar--sm" style="background:' + window.abPersonColor(n) + '" title="' + escapeHtml(n) + '">' + escapeHtml(_wnInitials(n)) + '</span>';
-            }}).join('') +
-            (it.who.length > 4 ? '<span class="qrow-who-more">+' + (it.who.length - 4) + '</span>' : '') +
-            '</span>';
-        }}
         return '<div class="queue-row queue-row-open" role="button" tabindex="0" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '"><div class="queue-main">' +
             '<span class="queue-name">' + escapeHtml(it.name) + '</span>' +
             '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
