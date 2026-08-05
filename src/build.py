@@ -11192,6 +11192,28 @@ def build():
       // 'stage' = there to speak (needs a topical reason); 'room' = there to
       // work the floor for buyers (geo + buyers is enough on its own).
       var mode = (P && P.mode) || 'room';
+      // Metro areas, not city limits. The geo gate matched a city NAME literally,
+      // so an event in Burlingame, Santa Clara or Palo Alto never counted as
+      // "San Francisco" — 18 Bay Area events were invisible to a persona
+      // targeting SF, and the same for Jersey City / Hoboken vs New York and
+      // Arlington / Reston vs Washington. Each hub below also answers to its
+      // suburbs. Kept to genuine same-metro commutes: these are places you'd
+      // fly into the hub for, not merely the same state.
+      var _METRO = {{
+        'san francisco': ['burlingame','millbrae','south san francisco','san mateo','foster city','palo alto','menlo park','redwood city','mountain view','sunnyvale','santa clara','cupertino','san jose','silicon valley','berkeley','oakland','emeryville'],
+        'new york':      ['jersey city','hoboken','newark','brooklyn','queens','bronx','long island city','white plains','stamford','greenwich'],
+        'washington':    ['arlington','alexandria','bethesda','tysons','national harbor','reston','mclean','loudoun county','crystal city'],
+        'los angeles':   ['anaheim','huntington beach','long beach','pasadena','santa monica','irvine','newport beach','dana point','monarch beach','burbank','culver city'],
+        'boston':        ['cambridge','somerville','waltham','newton'],
+        'chicago':       ['evanston','rosemont','oak brook','schaumburg'],
+        'dallas':        ['irving','plano','frisco','fort worth','grapevine'],
+        'miami':         ['miami beach','fort lauderdale','boca raton','coral gables','hollywood florida'],
+        'phoenix':       ['scottsdale','tempe','chandler','mesa'],
+        'seattle':       ['bellevue','redmond','kirkland'],
+        'toronto':       ['mississauga','markham'],
+        'london':        ['canary wharf','wembley','excel london']
+      }};
+
       // Region match. Broad-region tokens (us & canada, europe/emea, latin
       // america, asia-pacific, africa, mena) match the event's canonical
       // region. Anything else is a CITY or COUNTRY name, matched against the
@@ -11213,8 +11235,12 @@ def build():
           if (g === 'africa') return r.indexOf('africa') !== -1;
           if (g === 'mena' || g === 'middle east') return r.indexOf('mena') !== -1 || r.indexOf('middle east') !== -1;
           if (g === 'global-flagship') return true;
-          // City / country name — match the event's location text.
-          return g.length >= 4 && loc.indexOf(g) !== -1;
+          // City / country name — match the event's location text, and accept the
+          // hub's own metro suburbs as that hub (Burlingame counts as SF).
+          if (g.length < 4) return false;
+          if (loc.indexOf(g) !== -1) return true;
+          var subs = _METRO[g];
+          return !!subs && subs.some(function (sub) {{ return loc.indexOf(sub) !== -1; }});
         }});
       }}
       var skips = _sugSkips();

@@ -195,16 +195,6 @@ DESCRIPTION:The official TED Conference on AI (Europe edition) — flagship-tier
 URL:https://tedai-vienna.ted.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-627@arcticblue-event-tracker
-DTSTAMP:20260805T000000Z
-DTSTART;VALUE=DATE:20260917
-DTEND;VALUE=DATE:20260919
-SUMMARY:AGNTCon + MCPCon Europe
-LOCATION:Amsterdam\, Netherlands
-DESCRIPTION:Linux Foundation flagship conference on the agentic AI stack (MCP)\, directly relevant to enterprise agentic workflow adoption and interoperability.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.linuxfoundation.org/agntcon-mcpcon-europe/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-626@arcticblue-event-tracker
 DTSTAMP:20260805T000000Z
 DTSTART;VALUE=DATE:20260908
