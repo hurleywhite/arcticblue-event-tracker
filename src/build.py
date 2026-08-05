@@ -1952,8 +1952,8 @@ def build():
        pixels just to hold the mic at its old size — and Hurley asked for it a
        bit bigger than that. 26px puts the mic art ~22% up on the plain one and
        gives the two-letter badge real height. */
-    .ops-stage-ico.is-mic svg {{ width: 26px; height: 26px; }}
-    .ops-stage-ico.is-mic {{ width: auto; min-width: 26px; height: 26px; }}
+    .ops-stage-ico.is-mic svg {{ width: 28px; height: 28px; }}
+    .ops-stage-ico.is-mic {{ width: auto; min-width: 28px; height: 28px; }}
     /* Lineup rows carry the same marks as the card, on their own line under the
        date so they don't crowd the event name. */
     .qrow-marks {{ display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin-top: 4px; }}
@@ -7865,16 +7865,27 @@ def build():
       // A white ring separates the badge from the mic strokes it overlaps.
       var _badge = '';
       if (kind !== 'ticket' && _names.length) {{
+        // PROPORTIONS ARE TAKEN FROM HURLEY'S SKETCH: the badge is about half
+        // the mic's height and tucked into the bottom-right corner, so the MIC
+        // is what you see first and the initials answer "whose?" second.
+        // The first pass had r=8 in a 30-box — 84% of the mic's height — which
+        // read as a disc with a mic stuck to it. r=5.8 in a 28-box is ~61%, and
+        // the tighter box lets the mic art itself render bigger, which is the
+        // other half of what was asked for.
+        var _ini = _markInitials(_names[0]);
+        // One letter gets a big glyph; the three J's need two, so those step
+        // down to fit the same circle rather than the circle growing for them.
+        var _fs = (String(_ini).length > 1) ? 5.9 : 7.6;
         _badge =
-          '<circle cx="21.5" cy="21.5" r="8" fill="' + col + '" stroke="#fff" stroke-width="1.7"/>' +
-          '<text x="21.5" y="21.9" text-anchor="middle" dominant-baseline="central" ' +
-            'fill="#fff" font-size="9" font-weight="700" ' +
+          '<circle cx="21" cy="21" r="5.8" fill="' + col + '" stroke="#fff" stroke-width="1.5"/>' +
+          '<text x="21" y="21.3" text-anchor="middle" dominant-baseline="central" ' +
+            'fill="#fff" font-size="' + _fs + '" font-weight="700" ' +
             'font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">' +
-            escapeHtml(_markInitials(_names[0])) + '</text>';
+            escapeHtml(_ini) + '</text>';
       }}
       // The badge needs room the 24-box doesn't have, so a badged mic draws in a
-      // 30-box (the mic art itself is untouched) and is rendered bigger to suit.
-      var _vb = _badge ? '0 0 30 30' : '0 0 24 24';
+      // 28-box (the mic art itself is untouched) and is rendered bigger to suit.
+      var _vb = _badge ? '0 0 28 28' : '0 0 24 24';
       var _cls = 'ops-stage-ico' + (_badge ? ' is-mic' : '');
       // Only the FIRST speaker fits in the badge; a rare second one trails as +N.
       var _more = (kind !== 'ticket' && _names.length > 1)
