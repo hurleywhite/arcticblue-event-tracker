@@ -6412,7 +6412,38 @@
       if (st.status_tags == null) return legacyToStages(st.status);
       return normalizeStageTags(st.status_tags);
     }
-    function stageTagsOf(st) { return _stageImply(stageTagsRaw(st)); }
+    // Some events were only ever marked through the LEGACY status marker
+    // ("Submitted", "Had Mtg", "Not Accepted") and never got a pipeline stage,
+    // so cardStatusLine had nothing to render — no status line and no mic even
+    // though we'd applied (Angela: "some of the ones we submitted to isn't
+    // showing up as an icon"). When an event carries NO stage tags at all, imply
+    // the stage from that legacy marker.
+    //
+    // Read-only: this derives what to DISPLAY and never writes. Stored data,
+    // status_tags and per-person archives are untouched. If real stage tags
+    // exist they win outright and this never runs.
+    var _LEGACY_STAGE = [
+      [/\bnot accepted|\brejected\b/i,                    'Rejected'],
+      [/\bbooked\b/i,                                      'Booked'],
+      [/\battending\b/i,                                   'Attending'],
+      [/\bhad mtg|\bmeeting held|\breceived intro/i,         'Meeting held'],
+      [/\bfollowed up\b/i,                                 'Followed up'],
+      [/\bsubmitted|\bsubmission|\bfinish submission/i,      'Submitted']
+    ];
+    function _stagesFromLegacy(st) {
+      var raw = String((st && (st.status || st.workflow_status)) || '');
+      if (!raw.trim() || raw === '__deleted__') return [];
+      var out = [];
+      for (var i = 0; i < _LEGACY_STAGE.length; i++) {
+        if (_LEGACY_STAGE[i][0].test(raw) && out.indexOf(_LEGACY_STAGE[i][1]) === -1) out.push(_LEGACY_STAGE[i][1]);
+      }
+      return out;
+    }
+    function stageTagsOf(st) {
+      var tags = stageTagsRaw(st);
+      if (!tags || !tags.length) tags = _stagesFromLegacy(st);
+      return _stageImply(tags);
+    }
     window.abStageImply = _stageImply;
 
     // Pick the single most meaningful stage (for the calendar tint).
@@ -6464,6 +6495,15 @@
     // ArcticBlue sales-support staff: they run the tracker but don't attend
     // events, so they should never be auto-flagged "interested" on upload.
     var AB_SUPPORT_NAMES = ['hurley', 'angela'];
+    // Profiles are MERGED (Thor, 2026-08-01): everyone except Angela sees the
+    // same team-wide tracker rather than a view narrowed to their own persona.
+    // This is deliberately SEPARATE from isSupportPerson(), which still means
+    // "runs the tracker, doesn't attend" and still gates the things that are
+    // genuinely about support: the government-event rule (Jim + support only),
+    // profile-file uploads, and never auto-flagging Hurley/Angela as interested.
+    // Flip this to isSupportPerson(getCollabName() || '') to restore per-person views.
+    function _mergedTeamView() { return true; }
+
     function isSupportPerson(name) {
       var first = String(name || '').trim().toLowerCase().split(/[ @]/)[0];
       return AB_SUPPORT_NAMES.indexOf(first) !== -1;
@@ -8925,7 +8965,7 @@
       var buyerRich = 0, interestedCount = 0, myInterested = 0, contacts = 0;
       var me = (getCollabName() || 'Team').toLowerCase();
       var meFirst = me.split(/\s+/)[0];   // attendees are stored as lowercase first names
-      var _support = isSupportPerson(getCollabName() || '');   // Angela/Hurley -> team-wide
+      var _support = _mergedTeamView();   // merged: everyone sees the team-wide counts
       // A persona lands on "My fits"; support (no profile) stays on All. Applied
       // on every (re)render until the reader clicks a status chip — robust to the
       // load-order of profiles vs. the first stats render.
@@ -9891,7 +9931,7 @@
     function myEventsBuckets() {
       var me = getCollabName() || '';
       var meFold = abFold(me);
-      var support = !!me && isSupportPerson(me);
+      var support = !!me && _mergedTeamView();
       var named = !!meFold;
       // You're "attending" an event if you're a booked speaker there OR a listed
       // attendee. The attendee list is the source of truth (per-account), so this
@@ -9917,7 +9957,10 @@
           // Is anyone from the team on this at all, and is one of them me?
           var everyone = atts.concat(spks).filter(function (x, i, a) { return x && a.indexOf(x) === i; });
           if (!everyone.length) return;
-          var iAmOn = !!meFold && everyone.indexOf(meFold) !== -1;
+          // Merged view: ONE list for everyone. The "mine vs rest of the team"
+          // split was the last thing making each person's Lineup different, so
+          // with profiles merged every team event lands in the same bucket.
+          var iAmOn = _mergedTeamView() ? true : (!!meFold && everyone.indexOf(meFold) !== -1);
           var _pastFlag = c.dataset.past === '1';
           // Use the SAME derived status the card already rendered, so My Lineup
           // reads identically to the grid ("Submitted to speak — Thor ·
@@ -10695,7 +10738,7 @@
       var me = getCollabName() || '';
       if (!me) return [];
       var meFirst = abFold(me).split(/\s+/)[0];
-      var support = isSupportPerson(me);
+      var support = _mergedTeamView();
       var out = [];
       opsAllItems().forEach(function (it) {
         if (it.past || it.hidden) return;
@@ -11237,7 +11280,7 @@
       var me = getCollabName() || '';
       var first = abFold(me).split(/\s+/)[0];
       if (!first) return [];
-      if (isSupportPerson(me)) return planSort(Object.keys(window.AB_PERSONAS || {}));
+      if (_mergedTeamView()) return planSort(Object.keys(window.AB_PERSONAS || {}));
       return [first];
     }
     // The committed-travel role a given person has for an event (drives trip
@@ -11255,7 +11298,7 @@
     function _tripClusters() {
       var owners = _planOwners();
       if (!owners.length) return [];
-      var support = isSupportPerson(getCollabName() || '');
+      var support = _mergedTeamView();
       var BADt = /complian|regulat|regtech|gdpr|\baudit/i;
       var skips = _sugSkips();
       var DAY_MS = 86400000;
