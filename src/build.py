@@ -6996,6 +6996,15 @@ def build():
     // ArcticBlue sales-support staff: they run the tracker but don't attend
     // events, so they should never be auto-flagged "interested" on upload.
     var AB_SUPPORT_NAMES = ['hurley', 'angela'];
+    // Profiles are MERGED (Thor, 2026-08-01): everyone except Angela sees the
+    // same team-wide tracker rather than a view narrowed to their own persona.
+    // This is deliberately SEPARATE from isSupportPerson(), which still means
+    // "runs the tracker, doesn't attend" and still gates the things that are
+    // genuinely about support: the government-event rule (Jim + support only),
+    // profile-file uploads, and never auto-flagging Hurley/Angela as interested.
+    // Flip this to isSupportPerson(getCollabName() || '') to restore per-person views.
+    function _mergedTeamView() {{ return true; }}
+
     function isSupportPerson(name) {{
       var first = String(name || '').trim().toLowerCase().split(/[ @]/)[0];
       return AB_SUPPORT_NAMES.indexOf(first) !== -1;
@@ -9457,7 +9466,7 @@ def build():
       var buyerRich = 0, interestedCount = 0, myInterested = 0, contacts = 0;
       var me = (getCollabName() || 'Team').toLowerCase();
       var meFirst = me.split(/\\s+/)[0];   // attendees are stored as lowercase first names
-      var _support = isSupportPerson(getCollabName() || '');   // Angela/Hurley -> team-wide
+      var _support = _mergedTeamView();   // merged: everyone sees the team-wide counts
       // A persona lands on "My fits"; support (no profile) stays on All. Applied
       // on every (re)render until the reader clicks a status chip — robust to the
       // load-order of profiles vs. the first stats render.
@@ -10423,7 +10432,7 @@ def build():
     function myEventsBuckets() {{
       var me = getCollabName() || '';
       var meFold = abFold(me);
-      var support = !!me && isSupportPerson(me);
+      var support = !!me && _mergedTeamView();
       var named = !!meFold;
       // You're "attending" an event if you're a booked speaker there OR a listed
       // attendee. The attendee list is the source of truth (per-account), so this
@@ -11227,7 +11236,7 @@ def build():
       var me = getCollabName() || '';
       if (!me) return [];
       var meFirst = abFold(me).split(/\\s+/)[0];
-      var support = isSupportPerson(me);
+      var support = _mergedTeamView();
       var out = [];
       opsAllItems().forEach(function (it) {{
         if (it.past || it.hidden) return;
@@ -11769,7 +11778,7 @@ def build():
       var me = getCollabName() || '';
       var first = abFold(me).split(/\\s+/)[0];
       if (!first) return [];
-      if (isSupportPerson(me)) return planSort(Object.keys(window.AB_PERSONAS || {{}}));
+      if (_mergedTeamView()) return planSort(Object.keys(window.AB_PERSONAS || {{}}));
       return [first];
     }}
     // The committed-travel role a given person has for an event (drives trip
@@ -11787,7 +11796,7 @@ def build():
     function _tripClusters() {{
       var owners = _planOwners();
       if (!owners.length) return [];
-      var support = isSupportPerson(getCollabName() || '');
+      var support = _mergedTeamView();
       var BADt = /complian|regulat|regtech|gdpr|\\baudit/i;
       var skips = _sugSkips();
       var DAY_MS = 86400000;
