@@ -6792,8 +6792,34 @@ def build():
     // Best-effort map from a single legacy `status` to one stage. Mirrors
     // the SQL backfill in scripts/2026-06-02_add_status_tags.sql so the UI
     // shows the same thing pre- and post-migration. First match wins.
+    // ONE cleaner for the legacy status marker, used by BOTH derivations below.
+    // They must agree: legacyToStages() dropping a stage is pointless if
+    // _stagesFromLegacy() re-derives it a moment later from the same string,
+    // which is exactly what happened on the first attempt at this fix.
+    //
+    // 1. A MARKER ENDING IN "?" IS A MAYBE, and a maybe is not a stage.
+    //    "Attending?" matched /attending/ and was promoted to a confirmed
+    //    Attending, so 13 upcoming events drew a ticket for people who had only
+    //    been flagged interested — CV Summit Zurich among them, where Jerome is
+    //    interested and nothing in the pipeline is ticked (Hurley 2026-08-05:
+    //    "we should be under the assumption that he isn't attending"). Dropping
+    //    just the hedged token keeps the rest, so "Finish Submission,
+    //    Attending?" still reads as Submitted.
+    // 2. Event PROPERTIES describe the EVENT, not our progress on it: "you can
+    //    only speak here by invitation" says nothing about whether we applied.
+    //    Stripped because several contain the word "speaking", which the Booked
+    //    rule matches — remove the hedge from "Curated Speaking by Invite,
+    //    Attending?" and it would fall through to Booked, worse than the bug.
+    function _legacyClean(raw) {{
+      var s = String(raw == null ? '' : raw).trim();
+      if (!s || s === '__deleted__') return '';
+      s = s.split(',').filter(function (t) {{ return !/\\?\\s*$/.test(t.trim()); }}).join(',');
+      s = s.replace(/curated speaking by invite|curated industry invite|no external speakers|membership only[^,]*/ig, '');
+      return s.replace(/[,\\s]+/g, ' ').trim();
+    }}
     function legacyToStages(status) {{
       var s = (status == null ? '' : String(status)).trim();
+      s = _legacyClean(s);
       if (!s) return [];
       if (/attending|will attend|attend only/i.test(s)) return ['Attending'];
       if (/book|self submitted|speaking|confirmed/i.test(s)) return ['Booked'];
@@ -6987,8 +7013,8 @@ def build():
       [/\\bsubmitted|\\bsubmission|\\bfinish submission/i,      'Submitted']
     ];
     function _stagesFromLegacy(st) {{
-      var raw = String((st && (st.status || st.workflow_status)) || '');
-      if (!raw.trim() || raw === '__deleted__') return [];
+      var raw = _legacyClean((st && (st.status || st.workflow_status)) || '');
+      if (!raw) return [];
       var out = [];
       for (var i = 0; i < _LEGACY_STAGE.length; i++) {{
         if (_LEGACY_STAGE[i][0].test(raw) && out.indexOf(_LEGACY_STAGE[i][1]) === -1) out.push(_LEGACY_STAGE[i][1]);
@@ -9303,7 +9329,19 @@ def build():
       // Turned down for THEM — drop it, unless they're going anyway.
       if (isSpeaker && stages.indexOf('Rejected') !== -1 && !attending) return false;
       if (attending || interested) return true;
-      return isSpeaker && _SPEAK_LIVE.some(function (s) {{ return stages.indexOf(s) !== -1; }});
+      if (isSpeaker && _SPEAK_LIVE.some(function (s) {{ return stages.indexOf(s) !== -1; }})) return true;
+      // …and their FIT. Engagement alone can only ever hand back events someone
+      // has already touched, which is useless for the job Hurley actually wants
+      // this filter to do: cut 494 events down to the ones worth THIS person's
+      // time (2026-08-05, "based on the my-fit as well so that we can find more
+      // events"). A brand-new event has no engagement to match on, and those
+      // are exactly the ones worth surfacing. The profile PROPOSES, the
+      // engagement record CONFIRMS, and a rejection REMOVES (handled above) —
+      // so a stale profile can only ever over-offer, never hide real work.
+      var pf = AB_PROFILE_BY_LCKEY[k];
+      return !!pf && profileFits(pf, card.dataset.fitText, card.dataset.region,
+        _cardPriceNum(card), card.dataset.foreignLang === '1',
+        card.dataset.evName, card.dataset.evUrl);
     }}
 
     function applyFilters() {{
@@ -13421,25 +13459,176 @@ def build():
     // prose for the Ask-AI assistant). An event fits a profile if its canonical
     // region is in `regions`, OR any keyword hits the event's folded text blob
     // (matched as whole words). Keep keywords lowercase + punctuation-free.
-     // ── Teammate targeting profiles: REMOVED 2026-08-05 ─────────────
-    // AB_PROFILES / profileFits / AB_TERRITORIES used to guess what each person
-    // would want from keywords and geography, and that guess drove the grid's
-    // person filter and the Planner's coverage gaps. Hurley took them out:
-    // relevance is now what someone has actually DONE on an event — interested,
-    // submitted, booked or attending, minus anything they were rejected for.
-    // See _personRelevant() near applyFilters, which replaced profileFits, and
-    // the Untouched-events list in renderPlanner, which replaced territories.
+     // ── Teammate targeting profiles ────────────────────────────────
+    // RESTORED 2026-08-05, hours after being removed. Taking them out made the
+    // person filter answer only "what has <name> already touched?", and Hurley's
+    // point is that the filter also has to FIND things: "it should be based on
+    // the my-fit as well so that we can find more events, narrowing down the
+    // huge list for ones that are relevant to that specific person". Recall
+    // alone can't do that — an event nobody has looked at yet has no engagement
+    // to match on, and those are exactly the ones worth surfacing.
     //
-    // Gone with them, having had no other caller: AB_PROFILE_BY_KEY,
-    // AB_PROFILE_BY_LCKEY, _cardPriceNum, the HR gate (_HR_BLOB / _isHrEvent)
-    // and the clinical gate (_isClinicalEvent) — those two existed only to keep
-    // keyword matching from mis-assigning events, a job nothing now does.
-    // _ENGLISH_ONLY_PEOPLE and _isForeignLangEvent STAY: _langBlocked still uses
-    // them for Plan Ahead trip batching.
+    // So the person filter is now fit OR engagement (see _personRelevant):
+    // the profile proposes, the engagement record confirms, and a rejection
+    // removes. AB_TERRITORIES did NOT come back — the Planner runs on the flat
+    // "Untouched events" list now, which doesn't need a territory split.
+    var AB_PROFILES = [
+      {{ key: 'Jerome', label: 'Europe (enterprise)', regions: ['Europe'], locked: true,
+         kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','financial services','insurance','fintech','healthcare','telco','retail','ecommerce','media','gdpr'] }},
+      {{ key: 'Joe', label: 'HR & people (US)', regions: [],
+         kw: ['hr','human resources','chro','clo','chief people','people officer','vp of hr','talent','workforce','future of work','upskilling','reskilling','learning','l&d','people analytics','change management','human enablement','human capital','organizational development','employee experience'] }},
+      {{ key: 'Thor', label: 'Healthcare (exec)', regions: [],
+         // 'patient care', 'telehealth' and 'provider' pulled in care-delivery
+         // events directly — the exact thing the rule excludes. Buyer-side
+         // terms kept (Hurley 2026-07-31).
+         kw: ['healthcare','healthtech','health tech','digital health','medtech','med tech','life sciences','pharma','pharmaceutical','biotech','health system','healthcare ai','payer','health plan','hospital executive','chief medical officer'] }},
+      {{ key: 'Verma', label: 'Insurance & regulated (board-level)', regions: [],
+         kw: ['insurance','insurtech','life insurance','reinsurance','finance','financial services','bank','banking','capital markets','payments','fintech','board','chief data','regulated','compliance'] }},
+      // Carlos runs LatAm — no US cities (Hurley 2026-07-29). 'US & Canada' used
+      // to sit in his regions, and because he's region-LOCKED that single token
+      // was doing almost all the work: 393 of his 427 fits were US events
+      // (Las Vegas, Austin, Nashville…), swamping the 34 that are actually his.
+      // NOTE: `locked` returns on the region test, so the kw list below never
+      // runs for him — it's kept only as documentation of his territory.
+      {{ key: 'Carlos', label: 'Latin America (mid-market)', regions: ['Latin America'], locked: true,
+         kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] }},
+      // Jim is DEFINED by a place and a sector, but carries no region lock (an
+      // empty `regions` means the region test can never pass for him). Without
+      // minKw he matched on any single word below — see the note in
+      // profileFits. `strongKw` terms are unambiguous enough to stand alone;
+      // everything else needs two. 'washington' is deliberately NOT strong:
+      // on its own it's as likely to be Washington STATE as DC.
+      {{ key: 'Jim', label: 'Government (DC)', regions: [], minKw: 2,
+         strongKw: ['washington dc','public sector','govtech','fedramp','gsa','dod','nist','national security','defense'],
+         kw: ['government','public sector','federal','defense','national security','govtech','civic','municipal','state and local','washington','washington dc','capitol','congress','white house','agency','gsa','dod','nist','fedramp','public policy'] }},
+      // Hurley runs the tracker and doesn't speak — his "fits" are the ones he'd
+      // actually walk into: FREE AI events within reach of the Northeast. Unlike
+      // the others this is an AND, not a keyword OR: it must be an AI event, AND
+      // in the Northeast, AND free. Hence allKw (every group must hit) + freeOnly.
+      {{ key: 'Hurley', label: 'Free AI events (Northeast)', regions: [], kw: [], support: true,
+         freeOnly: true,
+         allKw: [
+           ['ai','a i','artificial intelligence','machine learning','deep learning','genai','gen ai','generative ai','llm','llms','agentic','data science','mlops','nlp'],
+           ['new york','new york city','nyc','manhattan','brooklyn','queens','bronx','long island','boston','cambridge','somerville','philadelphia','philly','pittsburgh','newark','jersey city','princeton','hoboken','stamford','hartford','new haven','greenwich','providence','portland maine','burlington','albany','buffalo','rochester','syracuse','new england','northeast','tri state','tri-state','connecticut','massachusetts','new jersey','rhode island','new hampshire','vermont','maine','pennsylvania','new york state']
+         ] }}
+    ];
+    var AB_PROFILE_BY_KEY = {{}};
+    AB_PROFILES.forEach(function (p) {{ AB_PROFILE_BY_KEY[p.key] = p; }});
+    // Profile keys are capitalized ("Thor"); the signed-in first name is folded
+    // lowercase ("thor"). Case-insensitive lookup for the "My fits" chip.
+    var AB_PROFILE_BY_LCKEY = {{}};
+    AB_PROFILES.forEach(function (p) {{ AB_PROFILE_BY_LCKEY[String(p.key).toLowerCase()] = p; }});
+    // True if an event (canonical region + folded text blob) fits a profile.
+    function _cardPriceNum(card) {{
+      var v = card && card.dataset ? card.dataset.price : '';
+      if (v === '' || v == null) return null;
+      var n = parseFloat(v);
+      return isNaN(n) ? null : n;
+    }}
+    // priceNum: the event's parsed ticket price (0 = free, null = unknown). Only
+    // consulted by a freeOnly profile; every other profile ignores it.
+    // isForeign: the event's title is in a non-English language. Thor, Verma and
+    // Joe present and sell in English, so a Spanish/Portuguese/French/German/
+    // Italian-language event is never their fit (Hurley 2026-07-29) — it stays
+    // available to Jerome and Carlos, whose territories it belongs to.
+    // Clinical / care-delivery events are NOT Thor's, even though healthcare is
+    // his industry. The rule the team actually follows is healthcare BUYERS yes,
+    // clinical-practice conferences no — they delete AIMed, GIANT Health NHS,
+    // BMJ Future Health and King's Fund while keeping HLTH, HIMSS and the
+    // Millennium Alliance healthcare assemblies (Hurley 2026-07-31, and now
+    // stated in personas.json thor.event_rules).
     //
-    // config/personas.json is untouched and still the roster — names, roles,
-    // colours, Day-Of briefing context, and the person list this filter is
-    // built from. Only the FIT-MATCHING configs went.
+    // Same two-test shape as the HR gate: the NAME/HOST catches the obvious
+    // ones, the BLOB catches events whose audience is clinicians even when the
+    // title says AI. Deliberately does NOT fire on "patient" alone — "patient
+    // outcomes" is standard language at a buyer event too.
+    var _CLIN_NAME = /\\baimed\\d*\\b|\\bbmj\\b|king'?s fund|giant health|\\bnhs\\b|clinical (trials?|research|practice|excellence)|\\bcme\\b|grand rounds|nursing|physicians?|clinicians?|oncolog|radiolog|cardiolog|surgical|surgery|\\bmedical (association|society|congress)\\b/i;
+    var _CLIN_HOST = /\\b(ai-med\.io|aimed\.com|bmj\.com|kingsfund\.org\.uk|giant\.health|nhs\.uk|americanhealthlaw\.org|ncqa\.org)\\b/i;
+    var _CLIN_BLOB = /\\b(practising|practicing) (clinicians?|physicians?)\\b|for (clinicians?|physicians?|nurses)\\b|clinical (trials?|research|workflows?|practice)\\b|bedside|point of care|care delivery/;
+    function _isClinicalEvent(name, url, blob) {{
+      return _CLIN_NAME.test(String(name || '')) ||
+             _CLIN_HOST.test(String(url || '')) ||
+             _CLIN_BLOB.test(String(blob || ''));
+    }}
+    window.abIsClinicalEvent = _isClinicalEvent;
+    var _HR_BLOB = /\\bchro\\b|shrm|chief (human resources|people)|people officer|\\bhr (summit|conference|forum|assembly|exchange|congress|leaders)\\b/;
+    // Title words that make HR/L&D the SUBJECT of the event, not a topic in it.
+    var _HR_NAME = /\\b(hr|chro|shrm|pshra|hrci|clo|cupa)\\b|human resources?|chief (human resources|people|learning) officer|people (officer|analytics)|talent (management|acquisition|strategy|forum)|workforce (summit|forum|conference|institute)|learning (futures|technologies)|\\bl&d\\b|employee experience|total rewards|compensation (and|&) benefits/i;
+    // Organisers whose whole business is HR / L&D / people events.
+    var _HR_HOST = /\\b(shrm\.org|eane\.org|pshra\.org|hrci\.org|cupahr\.org|iventiv\.com|joshbersin\.com|unleash\.ai|td\.org|corporatelearningnetwork\.com|hrexchangenetwork\.com|hrtechnologyconference\.com)\\b/i;
+    function _isHrEvent(name, url) {{
+      return _HR_NAME.test(String(name || '')) || _HR_HOST.test(String(url || ''));
+    }}
+    window.abIsHrEvent = _isHrEvent;
+    function profileFits(p, blob, region, priceNum, isForeign, evName, evUrl) {{
+      if (!p) return false;
+      if (isForeign && _ENGLISH_ONLY_PEOPLE[String(p.key || '').toLowerCase()]) return false;
+      // (Australia used to be carved out as Verma's exclusive territory. It was
+      // taken off his profile, so this gate went with it — kept on its own it
+      // would have left every AU event fitting NOBODY. Australian events now
+      // match on their own merits, like anywhere else: an AU insurance event
+      // still reaches Verma via 'insurance', an AU healthcare one reaches Thor.)
+      // HR / CHRO / people events are JOE'S audience only — keep them off everyone
+      // else's fit (a CHRO summit whose attendees span industries was matching
+      // Thor on a stray "healthcare"). Matched on the strong HR event signals.
+      // Two ways an event is an HR event, and it needs both. The blob test
+      // catches the ones whose BLURB gives them away (CultureCon, From Day One,
+      // People Leaders Summit — nothing in the title says HR). The name/host
+      // test catches the ones whose blurb talks about AI while the event itself
+      // is squarely HR or L&D: "EANE HR Connect", "CLO Exchange", "iVentiv
+      // Learning Futures", "PSHRA Annual Conference". 72 of those were reaching
+      // Thor (Hurley 2026-07-30). Deliberately on the NAME and the organiser's
+      // domain, never the blurb — an AI summit that merely mentions workforce
+      // is still his.
+      if (p.key !== 'Joe' && (_HR_BLOB.test(String(blob || '')) ||
+                              _isHrEvent(evName, evUrl))) return false;
+      // Healthcare BUYERS yes, clinical-practice conferences no. Thor's keyword
+      // list carries the healthcare terms that find the right events; this keeps
+      // the clinician ones out of the same net.
+      if (_isClinicalEvent(evName, evUrl, blob)) return false;
+      // AND-profile (Hurley): every keyword group must hit, and a freeOnly
+      // profile additionally requires a price we KNOW is zero — an unknown price
+      // is not "free", so it stays out rather than pretending.
+      if (p.allKw && p.allKw.length) {{
+        if (p.freeOnly && priceNum !== 0) return false;
+        var hb = ' ' + String(blob || '').replace(/[^a-z0-9]/g, ' ').replace(/ +/g, ' ').trim() + ' ';
+        for (var gi = 0; gi < p.allKw.length; gi++) {{
+          var grp = p.allKw[gi], hit = false;
+          for (var gj = 0; gj < grp.length; gj++) {{
+            if (hb.indexOf(' ' + grp[gj] + ' ') !== -1) {{ hit = true; break; }}
+          }}
+          if (!hit) return false;
+        }}
+        return true;
+      }}
+      var regionOk = !!(region && p.regions.indexOf(region) !== -1);
+      // Region-locked people (Jerome = Europe, Carlos = Latin America) fit ONLY
+      // their own region — a loose keyword (a city named in a blurb, or 'web
+      // summit') must not pull an out-of-region event to them.
+      if (p.locked) return regionOk;
+      if (regionOk) return true;
+      var b = ' ' + String(blob || '').replace(/[^a-z0-9 ]/g, ' ').replace(/ +/g, ' ').trim() + ' ';
+      // `strongKw` — terms that mean the event IS this person's on their own.
+      // `minKw`    — how many ordinary keywords it takes otherwise (default 1).
+      // Both exist for Jim. His remit is DC + government but his `regions` is
+      // empty, so he never passed the region test and fell straight through to
+      // a plain keyword OR — and a single "government" in the blurb of an AI
+      // summit was enough. 49 of his 65 matches were one stray word, pulling in
+      // Riyadh, Australia, Colombia and Puerto Rico (Hurley 2026-08-05).
+      // This is the SAME bar his Plan Ahead suggestions already applied
+      // ("in DC, or clearly gov, or 2+ themes") — the grid filter just never
+      // got it, which nobody noticed while he had no filter chip at all.
+      if (p.strongKw) {{
+        for (var s = 0; s < p.strongKw.length; s++) {{
+          if (b.indexOf(' ' + p.strongKw[s] + ' ') !== -1) return true;
+        }}
+      }}
+      var _need = p.minKw || 1, _hits = 0;
+      for (var i = 0; i < p.kw.length; i++) {{
+        if (b.indexOf(' ' + p.kw[i] + ' ') !== -1 && ++_hits >= _need) return true;
+      }}
+      return false;
+    }}
 
     function opsDateRange(o) {{
       var s = (o.start_date && /^\\d{{4}}-\\d{{2}}-\\d{{2}}/.test(o.start_date)) ? o.start_date.slice(0, 10) : null;
