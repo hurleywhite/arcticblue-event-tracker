@@ -7795,7 +7795,8 @@ def build():
       }}
       var _names = String(pool || '').split(/\s*(?:,|;|&| and )\s*/)
         .map(function (x) {{ return String(x || '').trim(); }}).filter(Boolean);
-      var who2 = pool ? ' \u2014 ' + pool : '';
+      var who2 = pool ? ' \u2014 ' + pool
+                      : ((kind !== 'ticket') ? ' \u2014 nobody recorded yet' : '');
       // THE MIC WEARS ITS INITIALS as a badge on the bottom-right, the way an
       // avatar wears a status dot (Hurley 2026-08-05). It used to trail a
       // separate coloured disc, which is what the star and the ticket also did
@@ -7809,7 +7810,14 @@ def build():
       // mark whose colour means something.
       // A white ring separates the badge from the mic strokes it overlaps.
       var _badge = '';
-      if (kind !== 'ticket' && _names.length) {{
+      // EVERY mic gets a badge — including one with nobody recorded, which
+      // shows "?" (Hurley 2026-08-05: "make sure that all of them have initials
+      // assigned … Tech Day Puerto Rico … there isn't an initial assigned at
+      // all"). 20 events carry a speaking stage with an empty speaker field, so
+      // a bare mic wasn't a rendering gap, it was a DATA gap being rendered
+      // silently. "?" says "we applied, but we never wrote down who" — which is
+      // a thing Angela can act on, where a blank corner is just noise.
+      if (kind !== 'ticket') {{
         // PROPORTIONS ARE TAKEN FROM HURLEY'S SKETCH: the badge is about half
         // the mic's height and tucked into the bottom-right corner, so the MIC
         // is what you see first and the initials answer "whose?" second.
@@ -7817,14 +7825,16 @@ def build():
         // read as a disc with a mic stuck to it. r=5.8 in a 28-box is ~61%, and
         // the tighter box lets the mic art itself render bigger, which is the
         // other half of what was asked for.
-        var _ini = _markInitials(_names[0]);
-        // One letter gets a big glyph; the three J's need two, so those step
-        // down to fit the same circle rather than the circle growing for them.
-        var _fs = (String(_ini).length > 1) ? 5.9 : 7.6;
+        var _ini = _names.length ? _markInitials(_names[0]) : '?';
+        // ONE size for every badge, whether it holds T or JW (Hurley: "a bit
+        // larger, and all the same size"). Two letters used to step down to 5.9
+        // so they'd fit the circle; the circle grew instead — r 5.8 -> 6.4 —
+        // which lets a single 7.8 serve both. "JW" is ~10.5 units wide inside a
+        // 12.8 circle, so it still clears the edge.
         _badge =
-          '<circle cx="21" cy="21" r="5.8" fill="' + col + '" stroke="#fff" stroke-width="1.5"/>' +
-          '<text x="21" y="21.3" text-anchor="middle" dominant-baseline="central" ' +
-            'fill="#fff" font-size="' + _fs + '" font-weight="700" ' +
+          '<circle cx="20.6" cy="20.6" r="6.4" fill="' + col + '" stroke="#fff" stroke-width="1.6"/>' +
+          '<text x="20.6" y="20.9" text-anchor="middle" dominant-baseline="central" ' +
+            'fill="#fff" font-size="7.8" font-weight="700" ' +
             'font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">' +
             escapeHtml(_ini) + '</text>';
       }}
