@@ -1392,11 +1392,11 @@
        should-attend outline below overrides it when both apply. */
     .ops-card.is-recent { border-color: #eab308; }
     .ops-card.is-saved { border-color: var(--ab-blue); }
-    .ops-card.is-mine  { border-color: var(--ab-blue); }   /* the signed-in person starred it */
-    /* Same signal on the pop-up, so "this one is mine" doesn't need saying in
-       words once you've opened it. */
-    .modal-card.is-mine { border-color: var(--ab-blue); box-shadow: 0 24px 60px rgba(31,160,220,0.22); }
-    .ops-card.is-sa    { border-color: var(--ab-blue); }   /* Angela flagged Should Attend (blue outline, like an interested card) */
+    /* (.ops-card.is-mine / .modal-card.is-mine retired 2026-08-05 with the
+       merged view — the per-person "I starred it" outline was the last thing
+       making two people's grids differ. The corner star mark names who's
+       interested instead. .chat-react.is-mine is unrelated and still live.) */
+    .ops-card.is-sa    { border-color: var(--ab-blue); }   /* Angela flagged Should Attend (her exception) */
     /* Hover-only card controls (star + archive/hide): hidden until you hover/focus the card. */
     .ops-hover { opacity: 0; pointer-events: none; transition: opacity 120ms ease; }
     .ops-card:hover .ops-hover, .ops-card:focus-within .ops-hover { opacity: 1; pointer-events: auto; }
@@ -4859,7 +4859,8 @@
     // replaces the "<Name> is interested" sentence that used to sit in the
     // quickbar saying the same thing in words (Hurley 2026-07-31).
     var _mCard = document.querySelector('.modal-card');
-    if (_mCard) _mCard.classList.toggle('is-mine', !!(window.meInInterested && window.meInInterested(rec.interested)));
+    // (no per-person 'is-mine' border — the merged view shows the same pop-up
+    // to everyone; who's interested is named in the quickbar instead.)
     // Top labels: NONE (Hurley 2026-07-30). Priority, event type, the pipeline
     // stages, Pay-to-play, Seed and Private all repeated something the reader
     // already has — the stages are the workflow route right below, and the rest
@@ -7397,9 +7398,16 @@
       card.dataset.past = _opsPast ? '1' : '';
       if (_opsPast) card.classList.add('is-past');
       if (st.saved)  card.classList.add('is-saved');
-      if (meInInterested(st.interested)) card.classList.add('is-mine');   // I starred it → blue outline
-      // Angela's Should-Attend now shows as the SAME blue outline (like an
-      // interested card), replacing the old "★ Should Attend" badge.
+      // The blue "I starred it" outline is GONE (merged view, 2026-08-05). It was
+      // the last thing that still made two people's grids look different — Thor
+      // saw 21 outlined cards, Verma 7, Jerome 14, on the same 649 events. Thor's
+      // own reasoning retires it: merge the views, and *say the name* instead.
+      // The star mark in the corner now names everyone interested, which is
+      // strictly more information than "one of these is yours". The star BUTTON
+      // still fills for you — that's a control reporting your own click, not a
+      // view difference.
+      // Angela's Should-Attend keeps the blue outline (her flag, her exception),
+      // replacing the old "★ Should Attend" badge.
       if (window.isAngelaUser && window.isAngelaUser() && shouldAttendKind(st.attend_verdict) === 'human') card.classList.add('is-sa');
       var _catArchivedMe = _isArchivedForMe(false, ev.num, st.hidden === true);
       if (_catArchivedMe) card.classList.add('is-archived');
@@ -7773,7 +7781,7 @@
 
       if (_isArchivedForMe(true, mev.id, mev.hidden === true)) card.classList.add('is-archived');
       if (mev.saved)  card.classList.add('is-saved');
-      if (meInInterested(mev.interested)) card.classList.add('is-mine');   // I starred it → blue outline
+      // (no is-mine outline — see the note on the catalog card above)
       // Angela's Should-Attend shows as the same blue outline (was the badge).
       if (window.isAngelaUser && window.isAngelaUser() && shouldAttendKind(mev.attend_verdict) === 'human') card.classList.add('is-sa');
       if (mev.urgent) card.classList.add('is-urgent');
@@ -8862,7 +8870,7 @@
         // Top stat-tile filter (one click on a stat shows only those events).
         if (opsStatFilter) {
           var tagsS = (card.dataset.statusTags || '');
-          if (opsStatFilter === 'myinterested' && (card.dataset.interestedNames || '').split('|').indexOf((getCollabName() || 'Team').toLowerCase()) === -1) on = false;
+          // ('myinterested' retired with the per-person chips — nothing emits it.)
           if (opsStatFilter === 'urgent'  && !card.classList.contains('is-urgent')) on = false;
           if (opsStatFilter === 'pipeline') {
             // "Pending" = my in-flight speaking application (Submitted / Followed
@@ -9043,7 +9051,7 @@
       var evByNum = {};
       (evs || []).forEach(function (e) { evByNum[e.num] = e; });
       var saved = 0, urgent = 0, inPipeline = 0, booked = 0, attending = 0;
-      var buyerRich = 0, interestedCount = 0, myInterested = 0, contacts = 0;
+      var buyerRich = 0, interestedCount = 0, contacts = 0;
       var me = (getCollabName() || 'Team').toLowerCase();
       var meFirst = me.split(/\s+/)[0];   // attendees are stored as lowercase first names
       var _support = _mergedTeamView();   // merged: everyone sees the team-wide counts
@@ -9051,7 +9059,6 @@
       // "My fits" the moment their profile loaded, which is the single biggest
       // reason two people looking at the same tracker saw different events. One
       // shared view means everyone opens on All (Thor 2026-08-05).
-      function _isMine(list) { return (list || []).some(function (n) { return String(n).toLowerCase() === me; }); }
       // "Attending" is PER-ACCOUNT: events where the signed-in person is an
       // assigned attendee — the attendee list is the source of truth (not the
       // Attending stage), so it stays accurate even if the stage wasn't synced,
@@ -9081,7 +9088,6 @@
         if (_up && stages.indexOf('Booked') !== -1) booked++;
         if (_up && _iAttend(r.attendees)) attending++;
         if (r.interested && r.interested.length) interestedCount++;
-        if (_isMine(r.interested)) myInterested++;
       });
       // Urgent = an apply/CFP deadline closing soon (or a manually-flagged
       // urgent event) — NOT merely an upcoming event. Counted per event.
@@ -9102,7 +9108,6 @@
         if (_mup && _iAttend(m.attendees)) attending++;
         if (((m.audience_type || '').toLowerCase()).indexOf('buyer') !== -1) buyerRich++;
         if (m.interested && m.interested.length) interestedCount++;
-        if (_isMine(m.interested)) myInterested++;
         if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
         if (!isPastEvent(m) && hasEmailContact(m)) contacts++;
       });
@@ -10531,15 +10536,9 @@
         text: abFold([o.name, base.about, base.focus_areas, base.type, base.industry, base.typical_attendees, base.past_speakers].filter(Boolean).join(' '))
       });
     }
-    // From a rendered card (the signals are stashed on its dataset at build time).
-    function _vetoedCard(card) {
-      if (!card || !card.dataset) return false;
-      return _vetoedSig({
-        org:  card.dataset.vetoOrg || '',
-        city: card.dataset.vetoCity || '',
-        text: card.dataset.fitText || ''
-      });
-    }
+    // (_vetoedCard removed 2026-08-05: its only caller was the "My fits" chip.
+    // The learned per-person "Not for me" veto still applies via _vetoedItem in
+    // Plan Ahead, which is Angela's surface.)
     // Plan-Ahead "hide this whole block" — dismisses a trip cluster or an Event
     // Radar group (keyed by its anchor event) from Plan Ahead only. Unlike
     // _sugSkip (a "not for me" on a single suggestion), this just declutters the
@@ -16879,10 +16878,11 @@
       var prev = getCollabName();
       try { localStorage.setItem('ab.collab.name', n); } catch (e) {}
       applyFilterVisibility();   // Angela-only "Filters" panel + urgent follow the name
-      // The signed-in name drives identity-specific views: the "My Event
-      // Interests" stat, the myinterested filter, and interested highlighting.
-      // Changing the name mid-session must recompute them (this was why
-      // "My Event Interests" read 0 right after switching to Jerome).
+      // Under the merged view the GRID no longer depends on who you are, so the
+      // re-render here is mostly about the things that still do: the star
+      // button's own filled state, your per-person archive, and Angela's extras.
+      // (It used to drive the "My Event Interests" stat, the myinterested filter
+      // and the blue interested outline — all retired 2026-08-05.)
       if (n.toLowerCase() !== (prev || '').toLowerCase() && $opsGrid && $opsGrid.querySelector('.ops-card')) {
         if (n) setView('myevents');   // Thor's ask: setting your name opens My events
         renderOps(n || 'Team');
