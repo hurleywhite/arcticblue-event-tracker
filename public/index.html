@@ -3400,7 +3400,7 @@
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Region</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"><!-- region chips injected by buildRegionFilters() --></div>
           </div>
-          <div class="filter-dd" id="filter-fits" title="Pick a person: shows events that match their target profile (geography, audience, industry, themes) or that they flagged interest in">
+          <div class="filter-dd" id="filter-fits" title="Pick a person: shows the events that are actually theirs — flagged interested, submitted, booked or attending. Events they were rejected for are left out.">
             <button type="button" class="filter-dd-btn" aria-haspopup="true" aria-expanded="false"><span class="dd-label">Person</span><span class="dd-count"></span> <span class="dd-caret" aria-hidden="true">&#9660;</span></button>
             <div class="filter-dd-menu"></div>
           </div>
@@ -8179,20 +8179,19 @@
         prc.appendChild(clrP);
         prc.dataset.built = '1';
       }
-      // Person: whose events are these? (multi-select bubbles). This is THE
-      // per-person filter now that the "My fits" chip is gone (Thor 2026-08-05,
-      // "make a filter based on the person instead of My fits") — one shared
-      // view, and you pick whose targeting you want to look through.
-      // Built from AB_PROFILES rather than a hardcoded list: the old literal
-      // ['Jerome','Joe','Thor','Verma','Carlos'] silently omitted JIM, so his
-      // government events were unfilterable, and Hurley's Northeast-free-AI
-      // profile had no control at all once "My fits" went. Thor leads (his ask).
+      // Person: whose events are these? (multi-select bubbles). THE per-person
+      // filter, and the only one — see _personRelevant for what it means.
+      // Built from the PERSONA ROSTER (config/personas.json), which is the list
+      // of people who actually go to events. It used to come from AB_PROFILES,
+      // the targeting configs, which no longer exist. Hurley and Angela are
+      // deliberately absent: they run the tracker and don't attend, so a
+      // relevance filter on them would always be empty. Thor leads (his ask).
       var fit = document.querySelector('#filter-fits .filter-dd-menu');
       if (fit && fit.dataset.built !== '1') {
-        var _fitKeys = (typeof AB_PROFILES !== 'undefined' ? AB_PROFILES : [])
-          .map(function (p) { return p.key; }).filter(Boolean);
+        var _fitKeys = Object.keys(window.AB_PERSONAS || {});
         (window.abPlanOrder ? window.abPlanOrder(_fitKeys) : _fitKeys).forEach(function (n) {
-          fit.appendChild(_makeExtraChip(n, n, 'fits-chip'));
+          var lbl = n.charAt(0).toUpperCase() + n.slice(1);
+          fit.appendChild(_makeExtraChip(lbl, lbl, 'fits-chip'));
         });
         var clrF = document.createElement('button');
         clrF.type = 'button'; clrF.className = 'extra-clear'; clrF.textContent = 'Clear';
@@ -8702,6 +8701,37 @@
       });
     }
 
+    // Is this event RELEVANT to `who`? Reads only recorded engagement — no
+    // targeting profile, no keyword guess (Hurley 2026-08-05, replacing
+    // profileFits). Relevant when they flagged interest, are down to attend, or
+    // are the speaker on a live application (submitted / chasing / meeting held
+    // / booked).
+    //
+    // REJECTED is the one exclusion, and it is judged PER PERSON: an event the
+    // organiser turned Thor down for is off Thor's list, but if Jerome is
+    // attending it is still very much Jerome's. Being down to attend also
+    // survives your own rejection — you were told no as a speaker, you are
+    // still going. Both speaking and attending are read straight off the card's
+    // dataset, the same values the corner mark and the chip counts use.
+    var _SPEAK_LIVE = ['Submitted', 'Initial outreach', 'Followed up', 'Meeting held', 'Booked'];
+    function _personRelevant(card, who) {
+      var k = abFold(String(who || '')).split(/\s+/)[0];
+      if (!k || !card || !card.dataset) return false;
+      function _has(field) {
+        return (card.dataset[field] || '').split('|').filter(Boolean)
+          .some(function (n) { return abFold(n).split(/\s+/)[0] === k; });
+      }
+      var attending  = _has('attendeeNames');
+      var interested = _has('interestedNames');
+      var stages     = (card.dataset.statusTags || '').split('|').filter(Boolean);
+      var isSpeaker  = speakerTokens(card.dataset.speaker || '')
+        .some(function (t) { return t.split(/\s+/)[0] === k; });
+      // Turned down for THEM — drop it, unless they're going anyway.
+      if (isSpeaker && stages.indexOf('Rejected') !== -1 && !attending) return false;
+      if (attending || interested) return true;
+      return isSpeaker && _SPEAK_LIVE.some(function (s) { return stages.indexOf(s) !== -1; });
+    }
+
     function applyFilters() {
       var $search  = document.getElementById('ops-search');
       var $saved   = document.getElementById('ops-f-saved');
@@ -8828,18 +8858,14 @@
         }
         if (activeRegions.length && activeRegions.indexOf(card.dataset.region) === -1) on = false;
         if (activeMonths.length && activeMonths.indexOf(card.dataset.month) === -1) on = false;
-        if (activeFits.length) {
-          var _intNames = (card.dataset.interestedNames || '').split('|').filter(Boolean);
-          var _fitHit = activeFits.some(function (k) {
-            var pf = AB_PROFILE_BY_KEY[k]; if (!pf) return false;
-            if (profileFits(pf, card.dataset.fitText, card.dataset.region, _cardPriceNum(card), card.dataset.foreignLang === '1', card.dataset.evName, card.dataset.evUrl)) return true;
-            // If that person flagged "I'm interested", the event fits THEM —
-            // keep it in their Fits filter even when the keywords don't match.
-            var kf = abFold(pf.key);
-            return _intNames.some(function (n) { return abFold(n).split(/\s+/)[0] === kf; });
-          });
-          if (!_fitHit) on = false;
-        }
+        // PERSON filter — "what is actually <name>'s?" (Hurley 2026-08-05).
+        // This used to run the targeting PROFILE: a keyword + geography guess at
+        // what someone might like. Those configs are gone; relevance is now what
+        // the person has actually DONE on the event. Their words: interests,
+        // submitted / booked / attending for that person, and no rejected one.
+        // Every signal below is recorded data, so the answer is checkable — no
+        // profile to drift out of date and nothing to re-tune.
+        if (activeFits.length && !activeFits.some(function (k) { return _personRelevant(card, k); })) on = false;
         if (fSaved && !card.classList.contains('is-saved'))  on = false;
         if (fUrgent && !card.classList.contains('is-urgent')) on = false;
         if (fSubmitted && (card.dataset.statusTags || '').split('|').indexOf('Submitted') === -1) on = false;
@@ -12820,176 +12846,25 @@
     // prose for the Ask-AI assistant). An event fits a profile if its canonical
     // region is in `regions`, OR any keyword hits the event's folded text blob
     // (matched as whole words). Keep keywords lowercase + punctuation-free.
-    var AB_PROFILES = [
-      { key: 'Jerome', label: 'Europe (enterprise)', regions: ['Europe'], locked: true,
-         kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','financial services','insurance','fintech','healthcare','telco','retail','ecommerce','media','gdpr'] },
-      { key: 'Joe', label: 'HR & people (US)', regions: [],
-         kw: ['hr','human resources','chro','clo','chief people','people officer','vp of hr','talent','workforce','future of work','upskilling','reskilling','learning','l&d','people analytics','change management','human enablement','human capital','organizational development','employee experience'] },
-      { key: 'Thor', label: 'Healthcare (exec)', regions: [],
-         // 'patient care', 'telehealth' and 'provider' pulled in care-delivery
-         // events directly — the exact thing the rule excludes. Buyer-side
-         // terms kept (Hurley 2026-07-31).
-         kw: ['healthcare','healthtech','health tech','digital health','medtech','med tech','life sciences','pharma','pharmaceutical','biotech','health system','healthcare ai','payer','health plan','hospital executive','chief medical officer'] },
-      { key: 'Verma', label: 'Insurance & regulated (board-level)', regions: [],
-         kw: ['insurance','insurtech','life insurance','reinsurance','finance','financial services','bank','banking','capital markets','payments','fintech','board','chief data','regulated','compliance'] },
-      // Carlos runs LatAm — no US cities (Hurley 2026-07-29). 'US & Canada' used
-      // to sit in his regions, and because he's region-LOCKED that single token
-      // was doing almost all the work: 393 of his 427 fits were US events
-      // (Las Vegas, Austin, Nashville…), swamping the 34 that are actually his.
-      // NOTE: `locked` returns on the region test, so the kw list below never
-      // runs for him — it's kept only as documentation of his territory.
-      { key: 'Carlos', label: 'Latin America (mid-market)', regions: ['Latin America'], locked: true,
-         kw: ['mexico city','monterrey','santo domingo','san juan','sao paulo','bogota','buenos aires','lima','santiago','quito','financial services','insurance','fintech','healthcare','saas','retail','telco','media'] },
-      // Jim is DEFINED by a place and a sector, but carries no region lock (an
-      // empty `regions` means the region test can never pass for him). Without
-      // minKw he matched on any single word below — see the note in
-      // profileFits. `strongKw` terms are unambiguous enough to stand alone;
-      // everything else needs two. 'washington' is deliberately NOT strong:
-      // on its own it's as likely to be Washington STATE as DC.
-      { key: 'Jim', label: 'Government (DC)', regions: [], minKw: 2,
-         strongKw: ['washington dc','public sector','govtech','fedramp','gsa','dod','nist','national security','defense'],
-         kw: ['government','public sector','federal','defense','national security','govtech','civic','municipal','state and local','washington','washington dc','capitol','congress','white house','agency','gsa','dod','nist','fedramp','public policy'] },
-      // Hurley runs the tracker and doesn't speak — his "fits" are the ones he'd
-      // actually walk into: FREE AI events within reach of the Northeast. Unlike
-      // the others this is an AND, not a keyword OR: it must be an AI event, AND
-      // in the Northeast, AND free. Hence allKw (every group must hit) + freeOnly.
-      { key: 'Hurley', label: 'Free AI events (Northeast)', regions: [], kw: [], support: true,
-         freeOnly: true,
-         allKw: [
-           ['ai','a i','artificial intelligence','machine learning','deep learning','genai','gen ai','generative ai','llm','llms','agentic','data science','mlops','nlp'],
-           ['new york','new york city','nyc','manhattan','brooklyn','queens','bronx','long island','boston','cambridge','somerville','philadelphia','philly','pittsburgh','newark','jersey city','princeton','hoboken','stamford','hartford','new haven','greenwich','providence','portland maine','burlington','albany','buffalo','rochester','syracuse','new england','northeast','tri state','tri-state','connecticut','massachusetts','new jersey','rhode island','new hampshire','vermont','maine','pennsylvania','new york state']
-         ] }
-    ];
-    var AB_PROFILE_BY_KEY = {};
-    AB_PROFILES.forEach(function (p) { AB_PROFILE_BY_KEY[p.key] = p; });
-    // Profile keys are capitalized ("Thor"); the signed-in first name is folded
-    // lowercase ("thor"). Case-insensitive lookup for the "My fits" chip.
-    var AB_PROFILE_BY_LCKEY = {};
-    AB_PROFILES.forEach(function (p) { AB_PROFILE_BY_LCKEY[String(p.key).toLowerCase()] = p; });
-    // True if an event (canonical region + folded text blob) fits a profile.
-    function _cardPriceNum(card) {
-      var v = card && card.dataset ? card.dataset.price : '';
-      if (v === '' || v == null) return null;
-      var n = parseFloat(v);
-      return isNaN(n) ? null : n;
-    }
-    // priceNum: the event's parsed ticket price (0 = free, null = unknown). Only
-    // consulted by a freeOnly profile; every other profile ignores it.
-    // isForeign: the event's title is in a non-English language. Thor, Verma and
-    // Joe present and sell in English, so a Spanish/Portuguese/French/German/
-    // Italian-language event is never their fit (Hurley 2026-07-29) — it stays
-    // available to Jerome and Carlos, whose territories it belongs to.
-    // Clinical / care-delivery events are NOT Thor's, even though healthcare is
-    // his industry. The rule the team actually follows is healthcare BUYERS yes,
-    // clinical-practice conferences no — they delete AIMed, GIANT Health NHS,
-    // BMJ Future Health and King's Fund while keeping HLTH, HIMSS and the
-    // Millennium Alliance healthcare assemblies (Hurley 2026-07-31, and now
-    // stated in personas.json thor.event_rules).
+     // ── Teammate targeting profiles: REMOVED 2026-08-05 ─────────────
+    // AB_PROFILES / profileFits / AB_TERRITORIES used to guess what each person
+    // would want from keywords and geography, and that guess drove the grid's
+    // person filter and the Planner's coverage gaps. Hurley took them out:
+    // relevance is now what someone has actually DONE on an event — interested,
+    // submitted, booked or attending, minus anything they were rejected for.
+    // See _personRelevant() near applyFilters, which replaced profileFits, and
+    // the Untouched-events list in renderPlanner, which replaced territories.
     //
-    // Same two-test shape as the HR gate: the NAME/HOST catches the obvious
-    // ones, the BLOB catches events whose audience is clinicians even when the
-    // title says AI. Deliberately does NOT fire on "patient" alone — "patient
-    // outcomes" is standard language at a buyer event too.
-    var _CLIN_NAME = /\baimed\d*\b|\bbmj\b|king'?s fund|giant health|\bnhs\b|clinical (trials?|research|practice|excellence)|\bcme\b|grand rounds|nursing|physicians?|clinicians?|oncolog|radiolog|cardiolog|surgical|surgery|\bmedical (association|society|congress)\b/i;
-    var _CLIN_HOST = /\b(ai-med\.io|aimed\.com|bmj\.com|kingsfund\.org\.uk|giant\.health|nhs\.uk|americanhealthlaw\.org|ncqa\.org)\b/i;
-    var _CLIN_BLOB = /\b(practising|practicing) (clinicians?|physicians?)\b|for (clinicians?|physicians?|nurses)\b|clinical (trials?|research|workflows?|practice)\b|bedside|point of care|care delivery/;
-    function _isClinicalEvent(name, url, blob) {
-      return _CLIN_NAME.test(String(name || '')) ||
-             _CLIN_HOST.test(String(url || '')) ||
-             _CLIN_BLOB.test(String(blob || ''));
-    }
-    window.abIsClinicalEvent = _isClinicalEvent;
-    var _HR_BLOB = /\bchro\b|shrm|chief (human resources|people)|people officer|\bhr (summit|conference|forum|assembly|exchange|congress|leaders)\b/;
-    // Title words that make HR/L&D the SUBJECT of the event, not a topic in it.
-    var _HR_NAME = /\b(hr|chro|shrm|pshra|hrci|clo|cupa)\b|human resources?|chief (human resources|people|learning) officer|people (officer|analytics)|talent (management|acquisition|strategy|forum)|workforce (summit|forum|conference|institute)|learning (futures|technologies)|\bl&d\b|employee experience|total rewards|compensation (and|&) benefits/i;
-    // Organisers whose whole business is HR / L&D / people events.
-    var _HR_HOST = /\b(shrm\.org|eane\.org|pshra\.org|hrci\.org|cupahr\.org|iventiv\.com|joshbersin\.com|unleash\.ai|td\.org|corporatelearningnetwork\.com|hrexchangenetwork\.com|hrtechnologyconference\.com)\b/i;
-    function _isHrEvent(name, url) {
-      return _HR_NAME.test(String(name || '')) || _HR_HOST.test(String(url || ''));
-    }
-    window.abIsHrEvent = _isHrEvent;
-    function profileFits(p, blob, region, priceNum, isForeign, evName, evUrl) {
-      if (!p) return false;
-      if (isForeign && _ENGLISH_ONLY_PEOPLE[String(p.key || '').toLowerCase()]) return false;
-      // (Australia used to be carved out as Verma's exclusive territory. It was
-      // taken off his profile, so this gate went with it — kept on its own it
-      // would have left every AU event fitting NOBODY. Australian events now
-      // match on their own merits, like anywhere else: an AU insurance event
-      // still reaches Verma via 'insurance', an AU healthcare one reaches Thor.)
-      // HR / CHRO / people events are JOE'S audience only — keep them off everyone
-      // else's fit (a CHRO summit whose attendees span industries was matching
-      // Thor on a stray "healthcare"). Matched on the strong HR event signals.
-      // Two ways an event is an HR event, and it needs both. The blob test
-      // catches the ones whose BLURB gives them away (CultureCon, From Day One,
-      // People Leaders Summit — nothing in the title says HR). The name/host
-      // test catches the ones whose blurb talks about AI while the event itself
-      // is squarely HR or L&D: "EANE HR Connect", "CLO Exchange", "iVentiv
-      // Learning Futures", "PSHRA Annual Conference". 72 of those were reaching
-      // Thor (Hurley 2026-07-30). Deliberately on the NAME and the organiser's
-      // domain, never the blurb — an AI summit that merely mentions workforce
-      // is still his.
-      if (p.key !== 'Joe' && (_HR_BLOB.test(String(blob || '')) ||
-                              _isHrEvent(evName, evUrl))) return false;
-      // Healthcare BUYERS yes, clinical-practice conferences no. Thor's keyword
-      // list carries the healthcare terms that find the right events; this keeps
-      // the clinician ones out of the same net.
-      if (_isClinicalEvent(evName, evUrl, blob)) return false;
-      // AND-profile (Hurley): every keyword group must hit, and a freeOnly
-      // profile additionally requires a price we KNOW is zero — an unknown price
-      // is not "free", so it stays out rather than pretending.
-      if (p.allKw && p.allKw.length) {
-        if (p.freeOnly && priceNum !== 0) return false;
-        var hb = ' ' + String(blob || '').replace(/[^a-z0-9]/g, ' ').replace(/ +/g, ' ').trim() + ' ';
-        for (var gi = 0; gi < p.allKw.length; gi++) {
-          var grp = p.allKw[gi], hit = false;
-          for (var gj = 0; gj < grp.length; gj++) {
-            if (hb.indexOf(' ' + grp[gj] + ' ') !== -1) { hit = true; break; }
-          }
-          if (!hit) return false;
-        }
-        return true;
-      }
-      var regionOk = !!(region && p.regions.indexOf(region) !== -1);
-      // Region-locked people (Jerome = Europe, Carlos = Latin America) fit ONLY
-      // their own region — a loose keyword (a city named in a blurb, or 'web
-      // summit') must not pull an out-of-region event to them.
-      if (p.locked) return regionOk;
-      if (regionOk) return true;
-      var b = ' ' + String(blob || '').replace(/[^a-z0-9 ]/g, ' ').replace(/ +/g, ' ').trim() + ' ';
-      // `strongKw` — terms that mean the event IS this person's on their own.
-      // `minKw`    — how many ordinary keywords it takes otherwise (default 1).
-      // Both exist for Jim. His remit is DC + government but his `regions` is
-      // empty, so he never passed the region test and fell straight through to
-      // a plain keyword OR — and a single "government" in the blurb of an AI
-      // summit was enough. 49 of his 65 matches were one stray word, pulling in
-      // Riyadh, Australia, Colombia and Puerto Rico (Hurley 2026-08-05).
-      // This is the SAME bar his Plan Ahead suggestions already applied
-      // ("in DC, or clearly gov, or 2+ themes") — the grid filter just never
-      // got it, which nobody noticed while he had no filter chip at all.
-      if (p.strongKw) {
-        for (var s = 0; s < p.strongKw.length; s++) {
-          if (b.indexOf(' ' + p.strongKw[s] + ' ') !== -1) return true;
-        }
-      }
-      var _need = p.minKw || 1, _hits = 0;
-      for (var i = 0; i < p.kw.length; i++) {
-        if (b.indexOf(' ' + p.kw[i] + ' ') !== -1 && ++_hits >= _need) return true;
-      }
-      return false;
-    }
-
-    // Planner coverage-gap territories, derived from the profiles above.
-    var AB_TERRITORIES = AB_PROFILES.filter(function (p) { return !p.support; }).map(function (p) {
-      return { who: p.key, label: p.label, test: function (it) { return profileFits(p, it.text, it.region, null, _isForeignLangEvent(it), it.name, it.url); } };
-    });
-    // Thor leads the coverage gaps — he's the priority, and this list was in
-    // whatever order AB_PROFILES happened to be written (Hurley 2026-07-30).
-    AB_TERRITORIES.sort(function (x, y) {
-      var ix = PLAN_ORDER.indexOf(String(x.who).toLowerCase());
-      var iy = PLAN_ORDER.indexOf(String(y.who).toLowerCase());
-      if (ix === -1) ix = 99; if (iy === -1) iy = 99;
-      return ix - iy || String(x.who).localeCompare(String(y.who));
-    });
+    // Gone with them, having had no other caller: AB_PROFILE_BY_KEY,
+    // AB_PROFILE_BY_LCKEY, _cardPriceNum, the HR gate (_HR_BLOB / _isHrEvent)
+    // and the clinical gate (_isClinicalEvent) — those two existed only to keep
+    // keyword matching from mis-assigning events, a job nothing now does.
+    // _ENGLISH_ONLY_PEOPLE and _isForeignLangEvent STAY: _langBlocked still uses
+    // them for Plan Ahead trip batching.
+    //
+    // config/personas.json is untouched and still the roster — names, roles,
+    // colours, Day-Of briefing context, and the person list this filter is
+    // built from. Only the FIT-MATCHING configs went.
 
     function opsDateRange(o) {
       var s = (o.start_date && /^\d{4}-\d{2}-\d{2}/.test(o.start_date)) ? o.start_date.slice(0, 10) : null;
@@ -13174,47 +13049,57 @@
               '</div>';
       html += '</div>';
 
-      html += '<div class="planner-section"><div class="planner-sec-head"><span class="planner-sec-title">&#128506; Coverage gaps by territory</span><span class="planner-sec-sub">upcoming events with no speaker assigned</span></div>';
-      var CAP = 12;
-      AB_TERRITORIES.forEach(function (terr) {
-        var inTerr = items.filter(function (it) { return !it.past && !it.hidden && terr.test(it); });
-        if (!inTerr.length) return;
-        var covered = inTerr.filter(function (it) { return it.speaker && it.speaker.trim(); });
-        // A "gap" is an event NOBODY has dealt with yet. Once Angela flags it for
-        // someone, tags it, notes it, or archives it, it drops off this list —
-        // it stayed put before (just re-labelled "✓ Flagged for X"), so the list
-        // never shrank as she worked it. opsHandled covers every such action.
-        var gaps = inTerr.filter(function (it) {
-          return !(it.speaker && it.speaker.trim()) && !opsHandled(it);
+      // UNTOUCHED EVENTS — was "Coverage gaps by territory", which split this
+      // list by whose targeting PROFILE an event matched. Those profiles are
+      // gone (Hurley 2026-08-05), and with them the idea of a territory. The
+      // work itself is unchanged and is what Angela actually uses this for:
+      // upcoming events with no speaker that nobody has dealt with yet.
+      // opsHandled() is the single "already dealt with" test — flagging,
+      // tagging, noting or archiving an event drops it off here, so the list
+      // shrinks as she works it.
+      //
+      // Better than what it replaced in one way: the flag button used to offer
+      // only the territory's owner, so an event in "Verma's" territory could be
+      // one-click flagged for Verma and nobody else. Each row now carries the
+      // whole roster in a picker, so she can flag it for whoever it actually
+      // suits — which is the judgement the profiles were guessing at.
+      var CAP = 25;
+      var gaps = items.filter(function (it) {
+        return !it.past && !it.hidden && !(it.speaker && it.speaker.trim()) && !opsHandled(it);
+      }).sort(function (a, b) { return a.sort - b.sort; });
+      var _upcoming = items.filter(function (it) { return !it.past && !it.hidden; });
+      var _covered = _upcoming.filter(function (it) { return it.speaker && it.speaker.trim(); });
+      html += '<div class="planner-section"><div class="planner-sec-head">' +
+        '<span class="planner-sec-title">&#128203; Untouched events</span>' +
+        '<span class="planner-sec-sub">upcoming, no speaker assigned, nothing done yet</span></div>';
+      html += '<div class="gap-owner"><div class="gap-owner-head">' +
+          '<span class="gap-owner-name">Whole catalogue</span>' +
+          '<span class="gap-owner-stat">' + _upcoming.length + ' upcoming &middot; ' + _covered.length +
+          ' covered &middot; <b>' + gaps.length + ' untouched</b></span>' +
+        '</div>';
+      if (!gaps.length) {
+        html += '<p class="gap-none">&#10003; Nothing left to triage &mdash; every upcoming event is assigned, flagged or already dealt with.</p>';
+      } else {
+        html += '<div class="gap-list">';
+        gaps.slice(0, CAP).forEach(function (it) {
+          var loc = [it.location].filter(Boolean).join(' &middot; ');
+          var selId = 'gapwho-' + it.kind + '-' + String(it.key).replace(/[^a-zA-Z0-9]/g, '');
+          html += '<div class="gap-row"><div>' +
+              '<button class="gap-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
+              '<p class="gap-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
+            '</div>' +
+            '<div class="gap-actions">' +
+              '<select class="gap-who" id="' + selId + '" aria-label="Flag ' + escapeHtml(it.name) + ' for">' +
+                OPS_ROSTER.map(function (n) { return '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + '</option>'; }).join('') +
+              '</select>' +
+              '<button class="q-btn primary" data-flag-sel="' + selId + '" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ Flag</button>' +
+            '</div>' +
+            '</div>';
         });
-        gaps.sort(function (a, b) { return a.sort - b.sort; });
-        html += '<div class="gap-owner"><div class="gap-owner-head">' +
-            '<span class="gap-owner-name">' + escapeHtml(terr.who) + '</span>' +
-            '<span class="gap-owner-stat">' + inTerr.length + ' events &middot; ' + covered.length + ' covered &middot; <b>' + gaps.length + ' untouched</b></span>' +
-          '</div>';
-        if (!gaps.length) {
-          html += '<p class="gap-none">&#10003; Nothing left to triage here &mdash; every event is assigned, flagged or already dealt with.</p>';
-        } else {
-          html += '<div class="gap-list">';
-          gaps.slice(0, CAP).forEach(function (it) {
-            var loc = [it.location].filter(Boolean).join(' &middot; ');
-            // No "✓ Flagged for X" state any more — flagging removes the row
-            // from the gap list entirely (that's the point: the list is work
-            // still to do, and it should shrink as she works it).
-            html += '<div class="gap-row"><div>' +
-                '<button class="gap-name" data-ref-kind="' + it.kind + '" data-ref-key="' + escapeHtml(String(it.key)) + '">' + escapeHtml(it.name) + '</button>' +
-                '<p class="gap-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
-              '</div>' +
-              '<div class="gap-actions">' +
-                '<button class="q-btn primary" data-flag="' + escapeHtml(terr.who) + '" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">+ Flag for ' + escapeHtml(terr.who) + '</button>' +
-              '</div>' +
-              '</div>';
-          });
-          if (gaps.length > CAP) html += '<p class="gap-more">Showing first ' + CAP + ' of ' + gaps.length + ' &mdash; assign or flag some to clear the list.</p>';
-          html += '</div>';
-        }
+        if (gaps.length > CAP) html += '<p class="gap-more">Showing first ' + CAP + ' of ' + gaps.length + ' &mdash; assign or flag some to clear the list.</p>';
         html += '</div>';
-      });
+      }
+      html += '</div>';
       html += '</div>';
       // Warm-intro connections uploader — powers "warm via …" on Deep Targets.
       html += '<div class="planner-section conn-panel"><div class="planner-sec-head">' +
@@ -13339,10 +13224,18 @@
           if (e.key === 'Escape') { e.preventDefault(); cfClose(); }
         });
       }
-      host.querySelectorAll('[data-flag]').forEach(function (btn) {
+      // Two shapes: a fixed data-flag (used elsewhere), or data-flag-sel naming
+      // the row's own person picker (the Untouched list, which lets Angela pick
+      // anyone rather than a territory's owner).
+      host.querySelectorAll('[data-flag], [data-flag-sel]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
           var who = btn.getAttribute('data-flag');
+          if (!who) {
+            var sel = document.getElementById(btn.getAttribute('data-flag-sel') || '');
+            who = sel ? sel.value : '';
+          }
+          if (!who) return;
           var kind = btn.getAttribute('data-k'), key = btn.getAttribute('data-key');
           var it = items.filter(function (x) { return x.kind === kind && String(x.key) === key; })[0];
           if (!it) return;
