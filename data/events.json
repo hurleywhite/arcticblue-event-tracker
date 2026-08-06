@@ -5400,7 +5400,10 @@
    "external_id": "1ab479b9-c8d3-48bc-9531-22160a353d3a",
    "source": "arcticscout",
    "start_date": "2026-10-18",
-   "end_date": "2026-10-21"
+   "end_date": "2026-10-21",
+   "pricing": "Standard Pass starts at $2,899; Early Stage Startup Pass starts at $1,545; Growth Stage Startup Pass starts at $1,855; Platinum Pass is $5,995; retailer pass $1,645; government/nonprofit/credit-union pass $2,845; Hosted Buyer and Press passes may be free for qualified applicants",
+   "meeting_formats": "Show floor networking; roundtables; meetups; agenda sessions with networking",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 222,
@@ -6236,7 +6239,12 @@
    "external_id": "1e3fae96-b822-4dfd-ae17-92f773aa65dd",
    "source": "arcticscout",
    "start_date": "2026-05-20",
-   "end_date": "2026-05-20"
+   "end_date": "2026-05-20",
+   "pricing": "$2,499 all-access pass; free passes available for qualified non-vendor senior attendees from non-vendor organizations with 5K+ employees",
+   "pay_to_play": "Yes",
+   "meeting_formats": "Invitation to at least one executive roundtable; networking reception; attendee app for agenda/speakers/sponsors and networking",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "150+"
   },
   {
    "num": 252,
@@ -6346,7 +6354,10 @@
    "external_id": "3d75ada2-c412-4e29-acb3-053b37471c74",
    "source": "arcticscout",
    "start_date": "2026-10-21",
-   "end_date": "2026-10-22"
+   "end_date": "2026-10-22",
+   "pricing": "Super Early Bird: $1,399; Early Bird: $1,599; Standard Pass: $1,799; Late/Full price: $1,999; Premium/Delegate tier shown in brochure: $3,399",
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 256,
@@ -7122,7 +7133,12 @@
    "pay_to_play": "Yes",
    "city": "Austin",
    "country": "USA",
-   "external_id": "replit-217"
+   "external_id": "replit-217",
+   "pricing": "Invite-only / application only; USD 0.00 listed by third-party listings",
+   "past_speakers": "Anthony Moisant, Chief Information Officer and Chief Security Officer, Indeed; Dave Duvall, CIO, Warner Bros.; Kristie Richardson, Chief Product and Services Officer, Indeed; Ampily Vijay, Chief Digital and Technology Officer, CBRE; Stephen Fefferman, EVP, Deputy General Counsel",
+   "meeting_formats": "Curated attendee mix; interactive sessions; roundtables not explicitly confirmed in the provided results",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "500+"
   },
   {
    "num": 288,
@@ -7294,7 +7310,9 @@
    "pay_to_play": "Yes",
    "city": "London",
    "country": "UK",
-   "external_id": "replit-222"
+   "external_id": "replit-222",
+   "venue": "London, UK",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 295,
