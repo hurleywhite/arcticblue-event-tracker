@@ -5972,7 +5972,7 @@
     // 'past' = the date has gone by. Two different things, two different words.
     var opsCollapsedMonths = { archived: true, past: true };
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
-    // | 'attending' | 'buyer' | 'interested' | 'contacts') — click a top stat to
+    // | 'attending' | 'buyer' | 'interested' | 'contacts' | 'myinterests') — click a top stat to
     // show only those events. Starts empty (All) for everyone; nothing
     // auto-selects a chip any more, so two people opening the tracker see the
     // same grid (the "My fits" auto-default was retired 2026-08-05).
@@ -9128,9 +9128,11 @@
               (card.dataset.contactFound !== '1' ||
                (card.dataset.statusTags || '').split('|').indexOf('Rejected') !== -1)) on = false;
           if (opsStatFilter === 'interested' && card.dataset.interested !== '1') on = false;
-          // ('myfits' retired 2026-08-05 — the per-person cut is the Person
-          // dropdown now, which does the same job for ANY teammate rather than
-          // only the one signed in. See the Person filter in the drawer.)
+          // MY INTERESTS = the Person filter aimed at whoever is signed in. Same
+          // _personRelevant() as the Person dropdown and as the chip's count,
+          // so picking your own name in the drawer and clicking this chip give
+          // identical results by construction rather than by coincidence.
+          if (opsStatFilter === 'myinterests' && !_personRelevant(card, _attMe)) on = false;
         }
         if (activeStages.length > 0) {
           var cardStages = (card.dataset.statusTags || '').split('|').filter(Boolean);
@@ -9342,8 +9344,21 @@
         if (!isPastEvent(m) && isDeadlineUrgent(m.deadline)) urgent++;
         if (!isPastEvent(m) && stageTagsOf(m).indexOf('Rejected') === -1 && hasEmailContact(m)) contacts++;
       });
-      // ("My fits" counting retired 2026-08-05 with the chip — see the Person
-      // dropdown, which cuts by ANY teammate's profile instead of only mine.)
+      // "MY INTERESTS" — the signed-in person's own slice, counted with the
+      // very same _personRelevant() the filter runs, off the very same rendered
+      // cards. Not a row-based twin: a parallel implementation is how the chip
+      // and the list it opens drift apart, which has bitten this file twice.
+      // Upcoming, not archived, not a hidden duplicate — the same exclusions
+      // the grid applies, so the number matches what you actually see.
+      var _meKey = abFold(getCollabName() || '').split(/\s+/)[0];
+      var myInterests = 0;
+      if (_meKey && $opsGrid) {
+        Array.prototype.forEach.call($opsGrid.querySelectorAll('.ops-card'), function (c) {
+          if (c.dataset.past === '1' || c.dataset.dupHidden === '1') return;
+          if (c.classList.contains('is-archived')) return;
+          if (_personRelevant(c, _meKey)) myInterests++;
+        });
+      }
       // A cut-and-dry segmented status filter (data-stat). 'All' clears the
       // status filter; the rest are one-click chips. Other filters (region,
       // months, pipeline stages, …) live behind the filter icon beside search.
@@ -9366,7 +9381,11 @@
       // "Contacts" = events where we have an organizer email / POC — Angela-only
       // (like the ✉ badge), sits after Attending. The one remaining difference
       // between her row and everyone else's, and it is hers by job, not persona.
-      $stats.innerHTML = _coreTiles + (_isAngelaView ? tile('contacts', contacts, 'Contacts') : '');
+      // "My Interests" leads the row — left of All — where "My fits" used to sit
+      // (Hurley's own placement). Angela doesn't get it: she books FOR the team
+      // and never flags herself, so hers would read a permanent 0.
+      var _myIntTile = (_isAngelaView || !_meKey) ? '' : tile('myinterests', myInterests, 'My Interests');
+      $stats.innerHTML = _myIntTile + _coreTiles + (_isAngelaView ? tile('contacts', contacts, 'Contacts') : '');
       $stats.removeAttribute('hidden');
       Array.prototype.forEach.call($stats.querySelectorAll('[data-stat]'), function (t) {
         t.addEventListener('click', function () {
@@ -14057,10 +14076,15 @@
           wireManualCard(card, email);
         });
         updateOpsCount();
-        renderStats(evs, stateRows, manualRows);
         rebuildSpeakerFilter(stateRows, manualRows);
         dedupeOpsCards();   // collapse scraped duplicate cards before layout
         regroupOpsByMonth();
+        // renderStats AFTER the dedupe pass: the "My Interests" count is derived
+        // from the rendered cards (so it can share _personRelevant with the
+        // filter and never drift from it), and before dedupeOpsCards runs those
+        // cards still include duplicates the grid is about to hide. Counting
+        // early is exactly what makes a chip say 62 and its list show 61.
+        renderStats(evs, stateRows, manualRows);
         applyFilters();
         loadChatCounts();   // fill the little "💬 N" chat badges on the cards
         // Rebuild the dedup index from this fresh fetch — realtime
