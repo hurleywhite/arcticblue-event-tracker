@@ -14242,7 +14242,9 @@ def build():
       var ckEl = card.querySelector('.chat-count[data-chatkey]');
       var ck = ckEl ? ckEl.getAttribute('data-chatkey') : null;
       var meta = (ck && _chatMeta[ck]) || null;
-      var msgs = (meta && meta.msgs ? meta.msgs.slice() : []);
+      // Same exclusion as the thread and the badge — an AI question is not a
+      // message, so it must not surface in the hover preview either.
+      var msgs = (meta && meta.msgs ? meta.msgs.filter(function (mm) {{ return !window.abIsAskRow(mm.body); }}) : []);
       msgs.sort(function (a2, b2) {{ return (a2.at || '') < (b2.at || '') ? 1 : -1; }});
       msgs = msgs.slice(0, 3);
 
@@ -17519,9 +17521,19 @@ def build():
         resp.data.forEach(function (r) {{
           var k = (r.manual_id != null) ? ('m' + r.manual_id) : (r.event_num != null ? ('c' + r.event_num) : null);
           if (!k) return;
-          counts[k] = (counts[k] || 0) + 1;
+          // THE BADGE MUST COUNT WHAT THE THREAD SHOWS. "Asked AI" rows are
+          // stored in event_chat but never rendered as conversation, so an
+          // event whose only row was an AI question wore a "💬 1" over an empty
+          // thread — you clicked in expecting a message and found nothing
+          // (Hurley 2026-08-05, Colombia Tech Week: one row, "❓ Asked AI:
+          // What's the status on this?"). Same abIsAskRow() the thread filters
+          // with, so the two can't disagree again.
+          // They STAY in meta.msgs: "In the last week" splits asks from real
+          // messages itself and needs both.
+          var _isAsk = window.abIsAskRow(r.body);
+          if (!_isAsk) counts[k] = (counts[k] || 0) + 1;
           var m = (meta[k] = meta[k] || {{ count: 0, latest: '', msgs: [] }});
-          m.count++;
+          if (!_isAsk) m.count++;
           if ((r.created_at || '') > m.latest) m.latest = r.created_at || '';
           m.msgs.push({{ author: r.author || '', at: r.created_at || '', body: r.body || '' }});
         }});
