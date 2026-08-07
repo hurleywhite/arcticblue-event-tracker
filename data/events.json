@@ -2569,7 +2569,9 @@
    "external_id": "68c8f648-2d9e-4bbe-bb81-d847f0697dc7",
    "source": "arcticscout",
    "start_date": "2026-06-04",
-   "end_date": "2026-06-04"
+   "end_date": "2026-06-04",
+   "past_speakers": "Daniel Saroff, IDC; Alessandro Perilli, IDC; Meredith Whalen, IDC",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 120,
@@ -3322,7 +3324,10 @@
    "external_id": "76dc4979-40d5-45d5-b98e-90a959ac40b2",
    "source": "arcticscout",
    "start_date": "2026-04-16",
-   "end_date": "2026-04-16"
+   "end_date": "2026-04-16",
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "300 expected"
   },
   {
    "num": 148,
@@ -3456,7 +3461,8 @@
    "external_id": "8f35bcaf-d437-4b67-bd37-31bdde418c31",
    "source": "arcticscout",
    "start_date": "2026-06-23",
-   "end_date": "2026-06-24"
+   "end_date": "2026-06-24",
+   "audience_type": "Mixed"
   },
   {
    "num": 154,
@@ -6692,7 +6698,13 @@
    "focus_areas": "Generative and agentic AI for the enterprise; AI governance and digital identity; Enterprise transformation with AI; Automation and operational AI deployment; Human-AI collaboration at scale",
    "seed": false,
    "urgent": false,
-   "external_id": "d897673c-993b-4410-a7aa-0b0eb9442638"
+   "external_id": "d897673c-993b-4410-a7aa-0b0eb9442638",
+   "venue": "Olympia London",
+   "pricing": "£354.00 - £1194.00",
+   "past_speakers": "Professor Kirstine Dale, Chief AI Officer at Met Office; Dr. Ben E. Kuzey, Chief Data & AI Officer at Microsoft Netherlands; Marcos Angelides, Managing Director of L'Oréal Lab & Head of AI Operations at Publicis Groupe; Eric Vaughan, CEO of IgniteTech",
+   "meeting_formats": "hosted executive workshops; immersive expo/demo environment; in-person networking opportunities",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "2,000+"
   },
   {
    "num": 269,
