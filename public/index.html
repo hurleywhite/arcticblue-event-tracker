@@ -4249,13 +4249,9 @@
       else if (qa === 'archive') {
         // Archive is PERSONAL (localStorage per signed-in name) — hides this from
         // MY view only. No DB write unless we're clearing a legacy team-wide hide.
-        var _isMan = rec._table === 'manual_events';
-        var _wasArchived = (window.opsIsArchivedForMe ? window.opsIsArchivedForMe(_isMan, rec._key, rec.hidden === true) : !!rec.hidden);
-        var _makeArch = !_wasArchived;
-        if (window.opsSetArchivedMine) window.opsSetArchivedMine(_isMan, rec._key, _makeArch);
-        // Unarchiving a legacy team-wide hide also clears that shared flag (it
-        // comes back for everyone) — there's no per-person record to remove.
-        if (!_makeArch && rec.hidden === true) { rec.hidden = false; patch.hidden = false; }
+        var _makeArch = (rec.hidden !== true);
+        rec.hidden = _makeArch;
+        patch.hidden = _makeArch;   // one shared flag — archiving hides it for everyone
         // ARCHIVING CLOSES THE POP-UP. It worked before this and still read as
         // broken: you clicked hide and were left looking at the very event you
         // had just hidden, with the card behind the overlay. Closing shows you
@@ -4875,9 +4871,9 @@
         // it caught me while testing (Hurley 2026-08-05).
         '<button type="button" class="mt-ico' + (_tArch ? ' is-on' : '') + '" data-qa="archive" ' +
           'title="' + (rec.hidden === true
-              ? 'Hidden for the WHOLE TEAM — click to bring it back for everyone'
-              : (_tArch ? 'Archived for you — click to bring it back' : 'Archive — for you only; teammates still see it')) +
-          '" aria-label="' + (rec.hidden === true ? 'Un-hide for the whole team' : 'Archive for me') + '">' +
+              ? 'Archived for the team — click to bring it back for everyone'
+              : (_tArch ? 'Archived for the team — click to bring it back' : 'Archive — hides this event for the whole team')) +
+          '" aria-label="' + (rec.hidden === true ? 'Un-archive for the whole team' : 'Archive for the whole team') + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>' +
           '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>' +
@@ -5749,8 +5745,8 @@
       var archIco =
         '<button type="button" class="mh-ico' + (_hArch ? ' is-on' : '') + '" data-qa="archive" ' +
         'title="' + (_teamHidden
-            ? 'Hidden for the WHOLE TEAM — click to bring it back for everyone'
-            : (_hArch ? 'Archived for you — click to bring it back' : 'Archive — for you only; teammates still see it')) + '" ' +
+            ? 'Archived for the team — click to bring it back for everyone'
+            : (_hArch ? 'Archived for the team — click to bring it back' : 'Archive — hides this event for the whole team')) + '" ' +
         'aria-pressed="' + (_hArch ? 'true' : 'false') + '" aria-label="Archive for me">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
         'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -7636,8 +7632,8 @@
             starButtonHtml(st.interested, st.attend_verdict) +
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (_catArchivedMe
-              ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — for you only; teammates still see it" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
+              ? '<span class="ops-archived-tag" title="Archived for the team — open the event to bring it back">Archived</span>'
+              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — hides this event for the whole team" aria-label="Archive event for everyone">' + OPS_HIDE_ICON + '</button>') +
             decBadge + saBadge +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
             window.abStageIcon(st, ev) +
@@ -7894,8 +7890,8 @@
             starButtonHtml(mev.interested, mev.attend_verdict) +
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (_isArchivedForMe(true, mev.id, mev.hidden === true)
-              ? '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — for you only; teammates still see it" aria-label="Archive event for me">' + OPS_HIDE_ICON + '</button>') +
+              ? '<span class="ops-archived-tag" title="Archived for the team — open the event to bring it back">Archived</span>'
+              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — hides this event for the whole team" aria-label="Archive event for everyone">' + OPS_HIDE_ICON + '</button>') +
             mDecBadge + mSaBadge + mRecentBadge +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
             window.abStageIcon(mev, mev) +
@@ -7979,9 +7975,10 @@
       // Archive (hover ×) — personal, localStorage only (hides from MY grid).
       var _manArch = card.querySelector('[data-archive]');
       if (_manArch) _manArch.addEventListener('click', function () {
-        _archSetMine(true, mev.id, true);
+        // Team-wide: write the shared flag, not a personal list.
+        if (window.opsWrite) window.opsWrite('manual_events', mev.id, { hidden: true });
         card.classList.add('is-archived');
-        _manArch.outerHTML = '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>';
+        _manArch.outerHTML = '<span class="ops-archived-tag" title="Archived for the team — open the event to bring it back">Archived</span>';
         regroupOpsByMonth();
         applyFilters();
         flashOk();
@@ -8183,9 +8180,10 @@
       // teammates. Un-archive is done from the Details pop-up.
       var _catArch = card.querySelector('[data-archive]');
       if (_catArch) _catArch.addEventListener('click', function () {
-        _archSetMine(false, num, true);
+        // Team-wide: write the shared flag, not a personal list.
+        if (window.opsWrite) window.opsWrite('event_state', num, { hidden: true });
         card.classList.add('is-archived');
-        _catArch.outerHTML = '<span class="ops-archived-tag" title="Archived for you — open the event to bring it back">Archived</span>';
+        _catArch.outerHTML = '<span class="ops-archived-tag" title="Archived for the team — open the event to bring it back">Archived</span>';
         regroupOpsByMonth();
         applyFilters();
         flashOk();
@@ -9442,41 +9440,23 @@
     }
 
     // Normalise a catalog or manual row into the one shape the new views share.
-    // ── Per-person ARCHIVE (hide from MY view only) ──────────────────
-    // Archiving is now personal: it lives in localStorage keyed by the signed-in
-    // name (like the dismiss / skip / hide-suggestion state), so hiding an event
-    // takes it off MY grid without touching anyone else's. A legacy team-wide
-    // event_state.hidden === true is still honored as a shared hide until someone
-    // unarchives it (which clears that global flag). No DB column, no migration.
-    function _archStoreKey() { return 'ab.arch.' + (getCollabName() || '').toLowerCase(); }
-    // Memoized so a full render's thousands of _isArchivedForMe() calls don't each
-    // hit localStorage. Invalidated on save + whenever the signed-in name changes.
-    var _archCache = null, _archCacheKey = null;
-    function _archList() {
-      var k = _archStoreKey();
-      if (_archCache && _archCacheKey === k) return _archCache;
-      try { _archCache = JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { _archCache = []; }
-      _archCacheKey = k;
-      return _archCache;
-    }
-    function _archSave(list) {
-      _archCacheKey = _archStoreKey(); _archCache = list;
-      try { localStorage.setItem(_archCacheKey, JSON.stringify(list)); } catch (e) {}
-    }
-    function _archId(isManual, key) { return (isManual ? 'm' : 'e') + key; }
+    // ── ARCHIVE (team-wide) ─────────────────────────────────────────
+    // ARCHIVE IS TEAM-WIDE (Hurley 2026-08-05: "make it so that the event is
+    // archived for everyone when someone archives it"). It used to be a
+    // per-person localStorage list, with `hidden` surviving only as a "legacy"
+    // team-wide flag on 11 events that consequently behaved unlike every other
+    // hide in the app. Collapsing the two removes that whole class of oddity:
+    // `hidden` IS the archive now, one mechanism, same for everybody.
+    //
+    // The old per-person list is deliberately NOT read any more. Anything a
+    // person archived only for themselves comes back into view — re-archiving
+    // it now hides it for the team, which is the point.
     function _isArchivedForMe(isManual, key, legacyHidden) {
-      if (legacyHidden === true) return true;   // legacy team-wide archive
-      return _archList().indexOf(_archId(isManual, key)) !== -1;
+      return legacyHidden === true;
     }
-    function _archSetMine(isManual, key, on) {
-      var list = _archList(), id = _archId(isManual, key), i = list.indexOf(id);
-      if (on && i === -1) list.push(id);
-      else if (!on && i !== -1) list.splice(i, 1);
-      _archSave(list);
-    }
-    // Bridge for the modal closure (quick-actions).
+    // Bridge for the modal closure (quick-actions). opsSetArchivedMine is gone
+    // with the per-person store — archiving is an ordinary opsWrite of `hidden`.
     window.opsIsArchivedForMe = _isArchivedForMe;
-    window.opsSetArchivedMine = _archSetMine;
 
     function opsItem(kind, base, st) {
       var stages = stageTagsOf(st || base);
