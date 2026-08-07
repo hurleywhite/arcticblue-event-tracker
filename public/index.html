@@ -4819,6 +4819,14 @@
   var MD_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
   var MD_PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 
+  // The record the pop-up is CURRENTLY showing. #modal-body is one permanent
+  // node that every event re-renders into, so anything delegated on it must
+  // read the event from here rather than from a closure — see wirePocActions.
+  var _pocRec = null;
+  // Same trap, smaller blast radius: the "Add event" menu closes on any
+  // document click, and that listener was re-added on every render.
+  var _sibCloser = null;
+
   function openEventModal(rec) {
     if (!rec) return;
     // Blue border when it's yours, exactly as the card face reads — this
@@ -5375,11 +5383,24 @@
     // Two ways in: link an event we already track, or add one we don't have.
     // Both write the same org_group key on BOTH sides, so the link is explicit
     // on each event and survives either being edited (Hurley 2026-07-31).
+    // ONE listener for the life of the page, reading the event from _pocRec.
+    // It used to re-bind whenever the key changed — but #modal-body is never
+    // replaced, so every event you opened left its own listener behind, each
+    // holding its own record. Clicking "Find someone to contact" then ran all
+    // of them (stopPropagation doesn't stop siblings on the same node): the
+    // oldest one looked up ITS event and re-opened ITS pop-up, so you landed
+    // back on the event you'd viewed before and burned an Apollo credit on it.
+    // Keying by _key alone was wrong twice over — catalog and manual numbering
+    // overlap, so a collision skipped the wiring and left the button dead
+    // (Hurley 2026-08-07).
     function wirePocActions(rec) {
+      _pocRec = rec;
       var host = $body;
-      if (!host || host.dataset.pocWired === String(rec._key)) return;
-      host.dataset.pocWired = String(rec._key);
+      if (!host || host.dataset.pocWired === '1') return;
+      host.dataset.pocWired = '1';
       host.addEventListener('click', function (e) {
+        var rec = _pocRec;                       // whatever is on screen NOW
+        if (!rec) return;
         var use = e.target.closest ? e.target.closest('[data-poc-use]') : null;
         if (use) {
           e.stopPropagation();
@@ -5412,8 +5433,12 @@
           if (more.getAttribute('aria-busy')) return;
           more.setAttribute('aria-busy', '1');
           more.textContent = 'Looking…';
-          window.abFindContact(rec, function () { openEventModal(rec); },
-                               { force: true, want: 4 });
+          // Only re-draw if this is still the event on screen. The lookup takes
+          // seconds; if they've moved on, the contact is already saved and
+          // opsRefresh has run — dragging them back would be the same rudeness.
+          window.abFindContact(rec, function () {
+            if (_pocRec === rec) openEventModal(rec);
+          }, { force: true, want: 4 });
           // No callback fires when nothing new turns up, so say so either way.
           setTimeout(function () {
             if (!more.isConnected) return;
@@ -5442,6 +5467,8 @@
         addMenu.hidden = !open;
         addBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
       });
+      if (_sibCloser) document.removeEventListener('click', _sibCloser);
+      _sibCloser = closeMenu;
       document.addEventListener('click', closeMenu);
       function show(form) {
         closeMenu();
