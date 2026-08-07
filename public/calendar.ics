@@ -195,16 +195,6 @@ DESCRIPTION:The official TED Conference on AI (Europe edition) — flagship-tier
 URL:https://tedai-vienna.ted.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-626@arcticblue-event-tracker
-DTSTAMP:20260807T000000Z
-DTSTART;VALUE=DATE:20260908
-DTEND;VALUE=DATE:20260910
-SUMMARY:8th Annual Artificial Intelligence in Financial Services Conference (AIFS London)
-LOCATION:London\, UK
-DESCRIPTION:Dedicated financial-services AI summit with 350+ senior leaders (Goldman Sachs\, Deutsche Bank\, HSBC-adjacent) covering agentic AI\, regulatory compliance and responsible AI de-risking in regulated banking/insurance.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://aiinfinancesummit.com/live/en/page/home
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-625@arcticblue-event-tracker
 DTSTAMP:20260807T000000Z
 DTSTART;VALUE=DATE:20260928
@@ -1295,16 +1285,6 @@ DESCRIPTION:CeFPro's 100-person European financial services AI governance forum 
 URL:https://emea.cefpro.events/ai-governance-europe/homepage-new/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-485@arcticblue-event-tracker
-DTSTAMP:20260807T000000Z
-DTSTART;VALUE=DATE:20261007
-DTEND;VALUE=DATE:20261009
-SUMMARY:Enterprise AI Summit — Charlotte\, NC
-LOCATION:Charlotte\, NC
-DESCRIPTION:IT Revolution's intimate 50–100 practitioner enterprise AI summit at Carolina Theatre — past participants from Vanguard\, American Express\, Fidelity\, Disney\, Amazon\; 100% NPS\; earned experience-report speaker format gives ArcticBlue's AI deployment narrative strong credibility.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://events.itrevolution.com/2026-charlotte/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-483@arcticblue-event-tracker
 DTSTAMP:20260807T000000Z
 DTSTART;VALUE=DATE:20261005
@@ -1553,26 +1533,6 @@ SUMMARY:Agentic AI North America 2026
 LOCATION:Loudoun County / Reston\, VA\, USA
 DESCRIPTION:The Global Agentic AI Summit brings together enterprise CAIOs and AI practitioners from telecom\, healthcare\, fintech\, and defense — precisely Carlos's buyer profile — in an intimate two-venue format with KPMG and Dataiku as sponsors.\nPriority: High\nAdded by: dust@arcticblue.ai
 URL:https://gotoagentic.ai/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-451@arcticblue-event-tracker
-DTSTAMP:20260807T000000Z
-DTSTART;VALUE=DATE:20261110
-DTEND;VALUE=DATE:20261112
-SUMMARY:Learning Futures LA\, Executive Knowledge Exchange
-LOCATION:Los Angeles\, CA
-DESCRIPTION:iVentiv CLO executive forum in LA—gives Joe facilitated access to Global Heads of L&D from West Coast and national enterprises in an intimate\, peer-led setting ideal for relationship-building with ArcticBlue's ICP.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://iventiv.com/events/learning-futures/learning-futures-la-executive-knowledge-exchange-2026
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-450@arcticblue-event-tracker
-DTSTAMP:20260807T000000Z
-DTSTART;VALUE=DATE:20261020
-DTEND;VALUE=DATE:20261022
-SUMMARY:Learning Futures New York\, Executive Knowledge Exchange
-LOCATION:New York\, NY
-DESCRIPTION:Exclusive CLO-level executive forum hosted at Moody's NYC HQ—chaired by Microsoft's GM of Global Learning—with confirmed facilitators from Experian\, S&P Global\, Citizens Bank\, Marsh\, and Regions Financial\; Joe's NYC base makes this a no-travel earned opportunity.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://iventiv.com/events/learning-futures/learning-futures-new-york-executive-knowledge-exchange-8
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-448@arcticblue-event-tracker
@@ -2274,16 +2234,6 @@ DESCRIPTION:Luxatia International's cross-industry AI governance summit (Hotel R
 URL:https://www.luxatiainternational.com/product/2nd-world-ai-governance-regulation-summit
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-356@arcticblue-event-tracker
-DTSTAMP:20260807T000000Z
-DTSTART;VALUE=DATE:20261006
-DTEND;VALUE=DATE:20261009
-SUMMARY:SPARK TALENT 2026
-LOCATION:Orlando\, FL
-DESCRIPTION:HCI's SPARK TALENT is the premier conference for talent management\, talent development\, and leadership professionals — immersive 3-day workshop format at Disney Springs with a direct audience of CLOs\, Heads of Talent\, and VP L&D makes it a top-tier earned speaking target for Joe.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.hci.org/spark-talent-conference-2026
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-355@arcticblue-event-tracker
 DTSTAMP:20260807T000000Z
 DTSTART;VALUE=DATE:20260921
@@ -2664,16 +2614,6 @@ DESCRIPTION:C-level LatAm executive event on applied AI and data strategy at Hot
 URL:https://cumbre-ia.cl/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-298@arcticblue-event-tracker
-DTSTAMP:20260807T000000Z
-DTSTART;VALUE=DATE:20261118
-DTEND;VALUE=DATE:20261119
-SUMMARY:Washington\, DC CHRO Executive Summit 2026
-LOCATION:Washington\, DC
-DESCRIPTION:Gartner Evanta’s peer-driven CHRO summit at Convene 1201 Wilson Blvd brings DC-area CHROs together — sponsorship route gives ArcticBlue direct CHRO access in the capital region.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://www.evanta.com/chro/washington-dc/washington-dc-chro-executive-summit-9388
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-297@arcticblue-event-tracker
 DTSTAMP:20260807T000000Z
 DTSTART;VALUE=DATE:20261102
@@ -2862,16 +2802,6 @@ SUMMARY:Chatbot Summit Amsterdam 2026
 LOCATION:Amsterdam\, Netherlands
 DESCRIPTION:World's #1 agentic AI conference in its 13th edition in Amsterdam\, bringing enterprise AI builders and executives together — strong platform for ArcticBlue's agentic AI for enterprise positioning.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.chatbotsummit.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-269@arcticblue-event-tracker
-DTSTAMP:20260807T000000Z
-DTSTART;VALUE=DATE:20261112
-DTEND;VALUE=DATE:20261114
-SUMMARY:Digital Enterprise CIO Transformation Assembly November 2026
-LOCATION:Miami\, FL\, USA
-DESCRIPTION:Millennium Alliance CIO assembly at JW Marriott Turnberry Miami (76% Fortune 100 claimed attendance) — small-group peer format focused on digital transformation and AI operating models with a clear speaker application route.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/digital-enterprise-cio-transformation-assembly-november-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-268@arcticblue-event-tracker
@@ -3362,16 +3292,6 @@ SUMMARY:Tech Hub Islands Summit (T.H.I.S.) 2026
 LOCATION:Port of Spain\, Trinidad and Tobago
 DESCRIPTION:Premier Caribbean technology and business innovation summit at Hyatt Regency Trinidad\; English-speaking Caribbean market directly adjacent to Carlos’s home region — network-building in Trinidad & Tobago enterprise and government sector.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.techislands.net/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-190@arcticblue-event-tracker
-DTSTAMP:20260807T000000Z
-DTSTART;VALUE=DATE:20261103
-DTEND;VALUE=DATE:20261105
-SUMMARY:Digital Enterprise CIO Transformation Assembly Barcelona 2026
-LOCATION:Barcelona\, Spain
-DESCRIPTION:Exclusive Millennium Alliance C-suite CIO summit at Atzavara Hotel & Spa Barcelona\; CIOs from Generali Life Insurance\, AXA Health\, NATO CDO — key beachhead for ArcticBlue’s Spain market expansion and Carlos’s European LatAm-adjacent pipeline.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/digital-enterprise-cio-transformation-assembly-europe-november-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-189@arcticblue-event-tracker
