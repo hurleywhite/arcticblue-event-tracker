@@ -1697,7 +1697,11 @@
    "notes": "Attending. Speaker apps open mid-May; June 12 deadline. Not pay-to-play. No complimentary guest passes for speaker teams.\n\nDeadline: 5pm June 12th, 2026",
    "workflow_status": "Attending",
    "external_id": "1cadaf02-cb5f-4673-a028-dc062e8e8027",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Early prices start at $1,500 for clinicians, startups, and government/nonprofit attendees; $2,295 for provider, payer, employer executives, and investors; $2,795 for solution providers and vendors",
+   "meeting_formats": "curated 1:1 meetings; attendee app for pre-booking meetings",
+   "audience_type": "Mixed",
+   "attendee_count": "12,250+"
   },
   {
    "num": 47,
@@ -2542,7 +2546,10 @@
    "source": "arcticscout",
    "start_date": "2026-05-20",
    "end_date": "2026-05-20",
-   "past_speakers": "Robert Jaggers, CEO of the Institute for AI Transformation"
+   "past_speakers": "Robert Jaggers, CEO of the Institute for AI Transformation",
+   "meeting_formats": "invite-only executive think tank dinners; private hands-on workshops",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "20+ executive speakers; 250 exclusive seats (related summit "
   },
   {
    "num": 119,
@@ -4363,7 +4370,11 @@
    "external_id": "6abbb7a3-9e42-4fd9-bcd4-b322d3c7db6a",
    "source": "arcticscout",
    "start_date": "2026-10-26",
-   "end_date": "2026-10-27"
+   "end_date": "2026-10-27",
+   "pricing": "$50 attendee pass",
+   "past_speakers": "His Excellency Arif Amiri, DIFC Authority; government AI leaders; global tech executives",
+   "meeting_formats": "Curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Mixed"
   },
   {
    "num": 186,
