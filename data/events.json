@@ -493,7 +493,12 @@
    "city": "Paris",
    "country": "France",
    "external_id": "c5551c3e-33da-4761-984e-55296bcd63db",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "€599",
+   "past_speakers": "Yann LeCun, Chief AI Scientist at Meta; Arthur Mensch, CEO of Mistral AI; Mark Cuban, Entrepreneur; Eric Schmidt, Former CEO & Chairman of Google; Jim Fan, AI Researcher at NVIDIA",
+   "meeting_formats": "curated networking; closed-door sessions; attendee app for live and recorded content",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "9,000+"
   },
   {
    "num": 33,
@@ -1035,7 +1040,8 @@
    "focus_areas": "Applied enterprise AI deployment and operations; Agentic AI systems in production; AI governance and alignment; Generative AI enterprise use cases; AI safety and responsible deployment",
    "venue": "Pier 48 (Shed A and B)",
    "audience_type": "Buyer-rich",
-   "attendee_count": "5,500+"
+   "attendee_count": "5,500+",
+   "meeting_formats": "Startup Showdown; Innovation Hub; networking events; Party in the Park social"
   },
   {
    "num": 89,
@@ -1480,7 +1486,12 @@
    "speaking_route": "Exhibitor/sponsor route: gartner.com/en/conferences/na/hr-symposium-us/exhibitors. Contact: GlobalConferences@gartner.com",
    "contact_info": "GlobalConferences@gartner.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Human-AI collaboration and workforce transformation; CHRO priorities: AI workforce readiness and skills; Redesigning operating models for AI-augmented work; People analytics and AI-driven talent strategy; AI change management and organizational culture"
+   "focus_areas": "Human-AI collaboration and workforce transformation; CHRO priorities: AI workforce readiness and skills; Redesigning operating models for AI-augmented work; People analytics and AI-driven talent strategy; AI change management and organizational culture",
+   "venue": "Walt Disney World Swan and Dolphin Resorts",
+   "pricing": "USD 4,550",
+   "meeting_formats": "Attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "6,000+"
   },
   {
    "num": 45,
@@ -3306,7 +3317,9 @@
    "external_id": "ff65d10d-02c8-478e-8a76-5e0910fbd58d",
    "source": "arcticscout",
    "start_date": "2026-04-15",
-   "end_date": "2026-04-15"
+   "end_date": "2026-04-15",
+   "meeting_formats": "Attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 147,
@@ -3905,7 +3918,12 @@
    "external_id": "18c2408d-6855-405e-b953-87d2eeeb98fe",
    "source": "arcticscout",
    "start_date": "2026-06-08",
-   "end_date": "2026-06-11"
+   "end_date": "2026-06-11",
+   "pricing": "General Attendee: $1,999; Practitioner / FinOps Foundation Member Organization: $999; separate pre-conference Monday workshops/chalk talks ticket required",
+   "past_speakers": "AWS Cloud Financial Management leaders, AWS; Google Cloud leaders, Google Cloud; Microsoft cloud financial management leaders, Microsoft; Capital One FinOps leaders, Capital One; JPMorgan Chase FinOps leaders, JPMorgan Chase; Canva FinOps leaders, Canva",
+   "meeting_formats": "attendee app for pre-booking meetings; hosted 1:1 meetings; curated workshops/chalk talks",
+   "audience_type": "Mixed",
+   "attendee_count": "2,500+"
   },
   {
    "num": 171,
