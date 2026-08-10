@@ -657,7 +657,8 @@
    "pay_to_play": "Yes",
    "meeting_formats": "Co-located tracks (Generative & Agentic AI) with one pass unlocking both",
    "audience_type": "Mixed",
-   "typical_attendees": "AI builders, execs, and engineers shipping production-ready AI systems"
+   "typical_attendees": "AI builders, execs, and engineers shipping production-ready AI systems",
+   "attendee_count": "300+"
   },
   {
    "num": 34,
@@ -2531,7 +2532,8 @@
    "external_id": "c79bb352-06ed-43b8-8c97-6e187e021058",
    "source": "arcticscout",
    "start_date": "2026-04-29",
-   "end_date": "2026-04-30"
+   "end_date": "2026-04-30",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 118,
@@ -2830,7 +2832,11 @@
    "external_id": "40ff0ff8-f1e1-461d-9e2d-2fb65c793022",
    "source": "arcticscout",
    "start_date": "2026-08-11",
-   "end_date": "2026-08-12"
+   "end_date": "2026-08-12",
+   "pricing": "Full Experience Pass $1,895 until August 7, 2026; Full Conference $2,195",
+   "meeting_formats": "In-person only conference; concurrent tracks and networking at the Ritz-Carlton; VIP dinner reception and welcome reception included",
+   "audience_type": "Mixed",
+   "attendee_count": "115+"
   },
   {
    "num": 128,
@@ -6616,7 +6622,8 @@
    "focus_areas": "CIO and CAIO strategic AI priorities for 2027 planning; Enterprise agentic AI adoption and governance; AI-driven operating model transformation; Responsible AI deployment in regulated industries; AI ROI accountability and executive alignment",
    "seed": false,
    "urgent": false,
-   "external_id": "d7f4ec99-5b06-42e6-8498-065f06ed8b49"
+   "external_id": "d7f4ec99-5b06-42e6-8498-065f06ed8b49",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 264,
