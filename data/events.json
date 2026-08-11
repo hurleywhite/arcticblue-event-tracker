@@ -1350,7 +1350,8 @@
    "venue": "Walt Disney World Swan & Dolphin Resort",
    "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
    "audience_type": "Buyer-rich",
-   "attendee_count": "7,000+"
+   "attendee_count": "7,000+",
+   "pricing": "Standard: $8,200; Public sector: $6,125"
   },
   {
    "num": 44,
@@ -4897,7 +4898,8 @@
    "source": "arcticscout",
    "start_date": "2026-02-13",
    "end_date": "2026-02-13",
-   "url": "https://summer.gwu.edu/6-week"
+   "url": "https://summer.gwu.edu/6-week",
+   "audience_type": "Mixed"
   },
   {
    "num": 203,
@@ -7012,7 +7014,11 @@
    "pay_to_play": "Yes",
    "city": "Gold Coast",
    "country": "Australia",
-   "external_id": "replit-211"
+   "external_id": "replit-211",
+   "venue": "Gold Coast Convention and Exhibition Centre",
+   "meeting_formats": "Private analyst meetings; Gartner Xpo exhibitor area; conference sessions",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "5,000+"
   },
   {
    "num": 282,
