@@ -493,6 +493,113 @@ def _row3(row):
     return row[0], row[1], ''
 
 
+def _row4(row):
+    """As _row3, plus location ('' when the row predates it)."""
+    n, d, u = _row3(row)
+    return n, d, u, (row[3] if len(row) >= 4 else '')
+
+
+# ── Same event, reworded ──────────────────────────────────────────────
+# The strict-subset rule below catches a title that merely GAINED a word. What
+# repeatedly got past it is the shape where each side carries a word the other
+# lacks — "Learning Futures New York, Executive Knowledge Exchange" against
+# "iVentiv Learning Futures New York 2026". Neither is a subset, yet it is one
+# event entered twice (Hurley 2026-08-09).
+#
+# The fix is NOT a similarity ratio. Measured over the whole live tracker, a
+# containment threshold loose enough to pair those also pairs "Chicago CIO
+# Executive Summit" with "Evanta Seattle CIO Community Executive Summit" — 29
+# real events it would have swallowed. A skipped event is invisible: nobody
+# ever learns it was dropped. So this stays a SUBSET rule, and only removes
+# tokens that provably carry no distinguishing power first:
+#   · the organiser's own name, when the domain already says it (iventiv.com,
+#     itrevolution.com) — one side prints the brand, the other doesn't
+#   · month names and ordinals ("… – November", "8th Annual")
+#   · region words, but NEVER city words (see below)
+#
+# CITY IS THE GUARD RAIL, not noise. Two events on the same organiser's site on
+# the same day in DIFFERENT cities are different events — that single check is
+# what keeps every Evanta / Red Hat / Gartner city series apart. Only when the
+# cities agree (or one side doesn't say) are the shared city words dropped so
+# "… Barcelona" and "… Europe" can meet.
+_DUP_MONTHS = {
+    'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august',
+    'september', 'october', 'november', 'december',
+    'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
+}
+_DUP_REGIONS = {
+    'uk', 'europe', 'european', 'emea', 'emeia', 'apac', 'americas', 'america',
+    'mena', 'latam', 'international', 'global', 'worldwide', 'national', 'annual',
+}
+_ORDINAL_RE = re.compile(r'^\d+$|^(?:st|nd|rd|th)$')
+
+
+def _city_tokens(location):
+    """Distinctive PLACE words — everything except the trailing country/state.
+
+    'Barcelona, Spain'            -> {'barcelona'}
+    '155 Bishopsgate, London, UK' -> {'bishopsgate', 'london'}
+    'Charlotte, NC'               -> {'charlotte'}
+
+    Dropping only the LAST segment matters: taking just the first would read the
+    venue street as the city, and '155 Bishopsgate' shares no word with 'London',
+    so one event would look like it was somewhere else entirely. Keeping the
+    middle segments means an address and a bare city still meet on 'london',
+    while Charlotte and Raleigh — which share only the state we dropped — still
+    read as different places. House numbers go: they are not place names.
+    """
+    parts = [p for p in (location or '').split(',') if p.strip()]
+    if len(parts) > 1:
+        parts = parts[:-1]
+    text = re.sub(r'[^a-z0-9]+', ' ', ' '.join(parts).lower())
+    return {t for t in text.split()
+            if t and t not in _DUP_REGIONS and not _ORDINAL_RE.match(t)}
+
+
+def _brand_tokens(domain):
+    """Words the domain itself already tells us, e.g. 'iventiv.com' -> tokens
+    that appear inside 'iventiv'. Substring test, not equality, because domains
+    run the words together ('itrevolution.com' covers both 'it' and
+    'revolution')."""
+    stem = (domain or '').split('.')[0]
+    return stem if len(stem) >= 3 else ''
+
+
+def _dedupe_noise(tokens, brand, drop_city):
+    """Strip the tokens that cannot distinguish two events by the same organiser
+    on the same day."""
+    out = set()
+    for t in tokens:
+        if t in _DUP_MONTHS or t in _DUP_REGIONS or _ORDINAL_RE.match(t):
+            continue
+        if t in drop_city:
+            continue
+        if brand and len(t) >= 2 and t in brand:
+            continue
+        out.add(t)
+    return out
+
+
+def _cities_conflict(a, b):
+    """True when both sides name a city and they share no word — the one check
+    that keeps a city series (Evanta, Red Hat, Gartner) from collapsing."""
+    return bool(a) and bool(b) and not (a & b)
+
+
+def _same_event_reworded(a, b, domain, city_a, city_b):
+    """Same organiser + same date + same (or unstated) city, and once the
+    non-distinguishing words are gone one title is a subset of the other."""
+    if _cities_conflict(city_a, city_b):
+        return False
+    brand = _brand_tokens(domain)
+    shared_city = city_a & city_b
+    ta = _dedupe_noise(a, brand, shared_city)
+    tb = _dedupe_noise(b, brand, shared_city)
+    if not ta or not tb:
+        return False
+    return _same_event_on_date(ta, tb)
+
+
 def _year_index(pairs):
     """{year: [(token_set, date, domain), ...]} for near-date dup matching."""
     idx = {}
@@ -1016,16 +1123,17 @@ def _row_has_fact_gaps(row):
 
 
 def _existing_manual_dated():
-    """(name, start_date, url) for every manual event — either may be ''."""
+    """(name, start_date, url, location) for every manual event — any may be ''."""
     status, rows = _http_json(
-        'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name,start_date,url',
+        'GET', SUPABASE_URL + '/rest/v1/manual_events?select=name,start_date,url,location',
         headers=_svc_headers(), timeout=15)
     out = []
     if status == 200 and isinstance(rows, list):
         for r in rows:
             n = (r.get('name') or '').strip()
             if n:
-                out.append((n, (r.get('start_date') or '').strip(), (r.get('url') or '').strip()))
+                out.append((n, (r.get('start_date') or '').strip(),
+                            (r.get('url') or '').strip(), (r.get('location') or '').strip()))
     return out
 
 
@@ -1041,17 +1149,19 @@ def _catalog_dated(host):
         for e in (data.get('events') or []):
             n = (e.get('name') or '').strip()
             if n:
-                out.append((n, (e.get('start_date') or '').strip(), (e.get('url') or '').strip()))
+                out.append((n, (e.get('start_date') or '').strip(),
+                            (e.get('url') or '').strip(), (e.get('location') or '').strip()))
     return out
 
 
 def _date_index(dated):
-    """start_date -> [(name token-set, domain)], for date-scoped dup matching."""
+    """start_date -> [(name token-set, domain, city tokens)], for date-scoped
+    dup matching."""
     idx = {}
     for row in dated:
-        n, d, u = _row3(row)
+        n, d, u, loc = _row4(row)
         if d:
-            idx.setdefault(d, []).append((_name_token_set(n), _domain_of(u)))
+            idx.setdefault(d, []).append((_name_token_set(n), _domain_of(u), _city_tokens(loc)))
     return idx
 
 
@@ -1335,10 +1445,10 @@ class handler(BaseHTTPRequestHandler):
         # organizer/edition word is caught even when its fingerprint differs).
         manual_dated   = _existing_manual_dated()
         catalog_dated  = _catalog_dated(self.headers.get('Host', ''))
-        existing_names = {n.lower() for n, _d, _u in manual_dated}
-        catalog_names  = {n.lower() for n, _d, _u in catalog_dated}
-        existing_fps   = _fps_of(n for n, _d, _u in manual_dated)
-        catalog_fps    = _fps_of(n for n, _d, _u in catalog_dated)
+        existing_names = {n.lower() for n, _d, _u, _l in manual_dated}
+        catalog_names  = {n.lower() for n, _d, _u, _l in catalog_dated}
+        existing_fps   = _fps_of(n for n, _d, _u, _l in manual_dated)
+        catalog_fps    = _fps_of(n for n, _d, _u, _l in catalog_dated)
         date_index     = _date_index(manual_dated + catalog_dated)
         # Same event re-added a day or two off (organisers shift dates, or the
         # scrape lands on the wrong day of a multi-day run) escaped the
@@ -1406,11 +1516,24 @@ class handler(BaseHTTPRequestHandler):
                 # word the fingerprint keeps) — e.g. "CDAO New York" vs
                 # "CDAO New York 2026 - Corinium" both on 2026-06-10.
                 sd = (row.get('start_date') or '').strip()
+                rcity = _city_tokens(row.get('location') or '')
                 if sd and sd in date_index:
                     rt = _name_token_set(name)
-                    if any(_same_event_on_date(rt, ot) and not _domains_conflict(dom, od_dom)
-                           for ot, od_dom in date_index[sd]):
-                        dup_reason = 'duplicate (same title + date)'
+                    for ot, od_dom, ocity in date_index[sd]:
+                        if _domains_conflict(dom, od_dom):
+                            continue
+                        if _same_event_on_date(rt, ot):
+                            dup_reason = 'duplicate (same title + date)'
+                            break
+                        # Same organiser, same day, same city, one title a subset
+                        # of the other once the organiser's own name / month /
+                        # region words are set aside. Requires a KNOWN shared
+                        # domain — on an unknown domain the plain subset rule
+                        # above stands alone, exactly as before.
+                        if (dom and od_dom and dom == od_dom
+                                and _same_event_reworded(rt, ot, dom, rcity, ocity)):
+                            dup_reason = 'duplicate (same event, reworded title)'
+                            break
                 # Same title-shape a few days off, WITHIN THE SAME YEAR. The year
                 # bound is deliberate: "Chief AI Officer Summit New York" in 2026
                 # and in 2027 are different editions and must both be kept, so a
@@ -1443,12 +1566,22 @@ class handler(BaseHTTPRequestHandler):
                     'reason': verdict['reason'] or 'not worthy',
                     'score':  verdict['score'],
                 })
+                # Don't re-judge the same name later in this batch.
+                #
+                # THIS BLOCK BELONGS TO THE REJECT BRANCH. It was dedented one
+                # level in 92556a8 (2026-07-29), which made the `continue` run
+                # for EVERY event that had a parsable start_date — so the ingest
+                # skipped every dated event before it could be inserted and the
+                # Dust feed went silently dead the same day. Nothing was added
+                # for the next two weeks and nothing reported an error, because
+                # a skip is a normal outcome (Hurley 2026-08-09).
                 seen_names.add(lname)
-            _nd = _iso_day((row.get('start_date') or '').strip())
-            if _nd:
-                year_index.setdefault(_nd.year, []).append((_name_token_set(name), _nd))  # don't re-judge same name in this batch
                 if fp:
                     seen_fps.add(fp)
+                _nd = _iso_day((row.get('start_date') or '').strip())
+                if _nd:
+                    year_index.setdefault(_nd.year, []).append(
+                        (_name_token_set(name), _nd, dom))
                 continue
 
             # Buyer/seller read from the gate. Persist the canonical audience
@@ -1514,9 +1647,22 @@ class handler(BaseHTTPRequestHandler):
                 if fp:
                     seen_fps.add(fp)
                     existing_fps.add(fp)
+                # Index what we just inserted so the REST of this batch is
+                # checked against it too — two rewordings of one event arriving
+                # in the same payload is exactly how several of the duplicates
+                # deleted on 2026-08-08 got in. The shapes must match what the
+                # readers unpack: date_index holds (tokens, domain, city) and
+                # year_index (tokens, day, domain). They were appending a bare
+                # token set and a 2-tuple, which unpacked into nonsense — or
+                # raised — on the next same-date event (Hurley 2026-08-09).
                 _isd = (row.get('start_date') or '').strip()
                 if _isd:
-                    date_index.setdefault(_isd, []).append(_name_token_set(name))
+                    date_index.setdefault(_isd, []).append(
+                        (_name_token_set(name), dom, rcity))
+                    _iday = _iso_day(_isd)
+                    if _iday:
+                        year_index.setdefault(_iday.year, []).append(
+                            (_name_token_set(name), _iday, dom))
             elif status == 409 or (isinstance(data, dict) and str(data.get('code')) == '23505'):
                 skipped.append({'name': name, 'reason': 'duplicate (db unique index)'})
             else:
