@@ -4159,15 +4159,73 @@
       }
       // A stage toggle DOES change the row's shape — an outcome retires and
       // locks the in-flight steps — so rebuild just the bar, not the modal.
-      var _bar = $body.querySelector('.modal-quickbar');
-      if (!_bar) return;
-      var _tmp = document.createElement('div');
-      _tmp.innerHTML = quickBarHtml(rec);
-      var _fresh = _tmp.firstElementChild;
-      if (!_fresh) return;
-      _bar.parentNode.replaceChild(_fresh, _bar);
-      wireQuickBar(rec);
+      _repaintStageSurfaces(rec);
     }
+    // ── The pop-up shows the SAME stages twice ────────────────────────
+    // Once in the quick bar at the top, once as the buttons in the edit area.
+    // Both write rec.stage_tags, so whichever one you click, BOTH have to be
+    // redrawn — and redrawn from the data, never by flipping a class.
+    //
+    // This was Angela's "I have to keep clicking Submitted" (2026-08-13). The
+    // quick bar repainted itself and left the edit-area button showing the old
+    // state. Clicking that stale button then did the OPPOSITE of what it looked
+    // like it would: the record already had Submitted, so the click removed it
+    // while `classList.toggle` lit the button up. It looked like the click had
+    // finally worked, and it had actually undone the save — which is also why
+    // the speaker stuck but Submitted came back empty. Every other click
+    // appeared to work, because two wrongs put the parity back.
+    //
+    // Redrawing from rec is not optional tidiness: abStageImply lights stages
+    // the click never touched (Followed up implies Submitted), so a single
+    // button's class can never describe the outcome on its own.
+    function _syncEditFormStages(rec) {
+      var tags = rec.stage_tags || [];
+      Array.prototype.forEach.call($body.querySelectorAll('.modal-editform .me-stage'), function (b) {
+        b.classList.toggle('on', tags.indexOf(b.dataset.stage) !== -1);
+      });
+      var _sf = $body.querySelector('.me-submitted-field');
+      if (_sf) _sf.style.display = (tags.indexOf('Submitted') !== -1) ? '' : 'none';
+    }
+    function _repaintStageSurfaces(rec) {
+      var _bar = $body.querySelector('.modal-quickbar');
+      if (_bar) {
+        var _tmp = document.createElement('div');
+        _tmp.innerHTML = quickBarHtml(rec);
+        var _fresh = _tmp.firstElementChild;
+        if (_fresh) {
+          _bar.parentNode.replaceChild(_fresh, _bar);
+          wireQuickBar(rec);
+        }
+      }
+      _syncEditFormStages(rec);
+    }
+    // The ONE rule for turning a stage on or off, so the two surfaces cannot
+    // disagree about what a click MEANS. The edit-area buttons used to skip the
+    // end-state rules entirely: clicking Booked there left Rejected standing and
+    // never retired the in-flight steps, while the same click in the quick bar
+    // did both. Returns the new tags and whether this turned the stage ON.
+    function _applyStageToggle(rec, stage) {
+      var tags = (rec.stage_tags || []).slice();
+      var idx = tags.indexOf(stage);
+      if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
+      // Reaching an END STATE retires the in-flight ones: Booked and Rejected
+      // each clear Followed up / Initial outreach, and they are the same
+      // question answered two ways, so turning one on turns the other off.
+      if ((stage === 'Booked' || stage === 'Rejected') && idx === -1) {
+        var _other = tags.indexOf(stage === 'Booked' ? 'Rejected' : 'Booked');
+        if (_other !== -1) tags.splice(_other, 1);
+        tags = _abRetireInFlight(tags);
+      }
+      tags = window.abStageImply(tags);
+      rec.stage_tags = tags;
+      return { tags: tags, turnedOn: idx === -1 };
+    }
+    // The edit form lives in the OUTER modal closure and cannot see either
+    // helper — which is precisely why it grew its own copy of the toggle rule
+    // and drifted out of step. Bridge them rather than duplicating again
+    // (same pattern as window.abStageImply / window.closeEventModal).
+    window.abApplyStageToggle = _applyStageToggle;
+    window.abRepaintStages    = _repaintStageSurfaces;
     // An outcome retires the steps still IN FLIGHT, but no longer erases the
     // fact that we applied — "submitted, then rejected" is the useful record,
     // and clearing Submitted also fought the implication above (Hurley).
@@ -4353,23 +4411,10 @@
         var stage = qa === 'submitted' ? 'Submitted'
                   : (qa === 'outreach' ? 'Initial outreach'
                   : (qa === 'booked' ? 'Booked' : 'Rejected'));
-        var tags = (rec.stage_tags || []).slice();
-        var idx = tags.indexOf(stage);
-        if (idx === -1) tags.push(stage); else tags.splice(idx, 1);
-        // Reaching an END STATE retires the in-flight ones: Booked, Rejected
-        // and Attending each clear Submitted and Followed up (Hurley
-        // 2026-07-30). Booked and Rejected are also the same question answered
-        // two ways, so turning one on turns the other off.
-        if ((stage === 'Booked' || stage === 'Rejected') && idx === -1) {
-          var _other = tags.indexOf(stage === 'Booked' ? 'Rejected' : 'Booked');
-          if (_other !== -1) tags.splice(_other, 1);
-          tags = _abRetireInFlight(tags);
-        }
-        tags = window.abStageImply(tags);
-        rec.stage_tags = tags;
-        patch.status_tags = tags;
+        var _st = _applyStageToggle(rec, stage);
+        patch.status_tags = _st.tags;
         // Submitted means the outreach email is next — have the contact ready.
-        if (stage === 'Submitted' && idx === -1 && window.abFindContact) window.abFindContact(rec);
+        if (stage === 'Submitted' && _st.turnedOn && window.abFindContact) window.abFindContact(rec);
       }
       else if (qa === 'should-attend') {
         // human -> clear; AI-suggested OR none -> set a CONFIRMED human
@@ -4635,19 +4680,18 @@
     box.querySelectorAll('.me-stage').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var s = btn.dataset.stage;
-        var tags = (rec.stage_tags || []).slice();
-        var i = tags.indexOf(s);
-        if (i === -1) tags.push(s); else tags.splice(i, 1);
-        var ord = window.opsStageOrder || [];
-        if (ord.length) tags = ord.filter(function (x) { return tags.indexOf(x) !== -1; });
-        rec.stage_tags = tags;
-        btn.classList.toggle('on');
-        window.opsWrite(rec._table, rec._key, { status_tags: tags });
-        // The "Submitted on" date field rides with the Submitted stage.
-        if (s === 'Submitted') {
-          var _sf = box.querySelector('.me-submitted-field');
-          if (_sf) _sf.style.display = (tags.indexOf('Submitted') !== -1) ? '' : 'none';
-        }
+        // Same rule as the quick bar, and repaint BOTH surfaces from the record
+        // — never `classList.toggle` this button on its own. See
+        // _repaintStageSurfaces for what that cost Angela.
+        var _st = window.abApplyStageToggle(rec, s);
+        window.opsWrite(rec._table, rec._key, { status_tags: _st.tags });
+        window.abRepaintStages(rec);
+        // Submitted means the outreach email is next — have the contact ready.
+        // The quick bar has always done this; the same click here used not to,
+        // so which button you pressed decided whether we looked (Hurley
+        // 2026-08-13). abFindContact only spends a lookup when there is NO
+        // contact on file, at most once a week per event.
+        if (s === 'Submitted' && _st.turnedOn && window.abFindContact) window.abFindContact(rec);
       });
     });
     box.querySelectorAll('[data-interested]').forEach(function (cb) {
@@ -4701,6 +4745,10 @@
         if (sOrder.length) tags = sOrder.filter(function (s) { return tags.indexOf(s) !== -1; });
         rec.stage_tags = tags;
         window.opsWrite(rec._table, rec._key, { attendees: list, status_tags: tags });
+        // This ticks the Attending stage on or off behind the scenes, so both
+        // stage surfaces have to catch up or the next stage click reads a stale
+        // button and undoes it.
+        window.abRepaintStages(rec);
       });
     });
     // "Ask a teammate to reach out" bubbles — collect the checked first names

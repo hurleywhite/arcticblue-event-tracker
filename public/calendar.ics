@@ -26,6 +26,16 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-650@arcticblue-event-tracker
+DTSTAMP:20260813T000000Z
+DTSTART;VALUE=DATE:20261102
+DTEND;VALUE=DATE:20261105
+SUMMARY:AI DevCon Fall
+LOCATION:New York\, United States
+DESCRIPTION:Priority: Medium\nAdded by: Angela
+URL:https://tessl.io/devcon
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-649@arcticblue-event-tracker
 DTSTAMP:20260813T000000Z
 DTSTART;VALUE=DATE:20261103
