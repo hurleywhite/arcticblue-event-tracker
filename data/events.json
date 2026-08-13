@@ -573,7 +573,8 @@
    "attendee_count": "100+",
    "pricing": "As of this writing, specific ticket prices have not been publicly detailed; prospective attendees are advised to check aim.media/discover-events for current pricing tiers and early-bird discounts[1]",
    "past_speakers": "Chief Data Officer, Global Tech Corp; Chief Analytics Officer, Enterprise Solutions Inc; AI Leader, Data Innovations Group[3]",
-   "deadline": "Ticket sale ends by 24 Jul, 3 PM (not a call-for-speakers deadline)"
+   "deadline": "Ticket sale ends by 24 Jul, 3 PM (not a call-for-speakers deadline)",
+   "pay_to_play": "Yes"
   },
   {
    "num": 85,
@@ -5772,7 +5773,9 @@
    "meeting_formats": "In-person and digital pass; attendee networking with peers",
    "audience_type": "Buyer-rich",
    "deadline": "2026 agenda now available; no call-for-speakers deadline published",
-   "past_speakers": "Senior figures in strategy, technology, data and policy; global leaders across technology, business and policy"
+   "past_speakers": "Senior figures in strategy, technology, data and policy; global leaders across technology, business and policy",
+   "pricing": "£2,479 full price; £2,729 final release",
+   "speaking_route": "Apply to speak: https://fixed-income.live.ft.com/private-credit-connect-london/call-speakers"
   },
   {
    "num": 234,
@@ -7529,7 +7532,9 @@
    "contact_info": "albert@pmmalliance.com",
    "venue": "Hilton Austin",
    "audience_type": "Buyer-rich",
-   "attendee_count": "250+"
+   "attendee_count": "250+",
+   "pricing": "Individual Pass: $595; Teams of 3 or more: $495",
+   "meeting_formats": "Networking opportunities"
   },
   {
    "num": 301,
