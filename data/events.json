@@ -1043,7 +1043,8 @@
    "venue": "Pier 48 (Shed A and B)",
    "audience_type": "Buyer-rich",
    "attendee_count": "5,500+",
-   "meeting_formats": "Startup Showdown; Innovation Hub; networking events; Party in the Park social"
+   "meeting_formats": "Startup Showdown; Innovation Hub; networking events; Party in the Park social",
+   "pricing": "$1,675.00"
   },
   {
    "num": 89,
@@ -3382,7 +3383,10 @@
    "external_id": "9f99109f-2dca-47e2-90ab-732f6310b117",
    "source": "arcticscout",
    "start_date": "2026-04-16",
-   "end_date": "2026-04-17"
+   "end_date": "2026-04-17",
+   "pricing": "End User Core Pass: €490.00 + €12.25 fee; End User VIP Pass: €590.00 + €14.75 fee; Solution Provider Pass: €890.00 + €22.25 fee",
+   "meeting_formats": "networking lounge; curated roundtables; conference networking app",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 150,
@@ -5126,7 +5130,8 @@
    "end_date": "2026-05-14",
    "past_speakers": "Ukrainian Ambassador to the UK; former UK Defence Ministers; Generals and Admirals; current members of the House of Commons and House of Lords; leading academics and experts on Middle-East Geopolitics",
    "meeting_formats": "panels on key global and regional geopolitical dynamics",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "attendee_count": "150+"
   },
   {
    "num": 211,
@@ -6152,7 +6157,11 @@
    "start_date": "2026-10-21",
    "end_date": "2026-10-21",
    "why": "Data Science Connect's Dallas edition of the ALIGN AI Summit Series — 150+ senior enterprise data and AI executives; open speaker interest form; same organizer and format as ALIGN AI SF, AI Enterprise Conference NYC, and COLLIDE Atlanta.",
-   "contact_info": "datasciconnect.com"
+   "contact_info": "datasciconnect.com",
+   "pricing": "$2,499 all-access pass; complimentary passes available for qualified non-vendor senior executives",
+   "meeting_formats": "Executive roundtables; networking reception; exhibit hall; panels",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "150+"
   },
   {
    "num": 247,
