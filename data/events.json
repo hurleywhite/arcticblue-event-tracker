@@ -757,7 +757,8 @@
    "focus_areas": "CAIO role and enterprise AI strategy; Scaling AI from pilot to enterprise production; AI governance, compliance, and organizational risk; Enterprise AI operating model design; AI leadership and talent transformation",
    "venue": "The Ritz Carlton, 3 Potsdamer Platz, Berlin",
    "pricing": "Request complimentary pass; attendee pricing not publicly listed",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Prashanth Halady, Bosch; Dr. Marion Legler, Bayer; Dr. Gerhard Koch, Siemens Energy"
   },
   {
    "num": 36,
@@ -1072,7 +1073,9 @@
    "venue": "Waldorf Astoria Monarch Beach Resort & Club",
    "meeting_formats": "Exclusive three-day summit for exchanging ideas and validating strategies",
    "audience_type": "Buyer-rich",
-   "attendee_count": "Exclusive (exact count not published)"
+   "attendee_count": "Exclusive (exact count not published)",
+   "past_speakers": "Venus Williams, Tennis Icon & Entrepreneur; Michelle Greene, CIO, Cardinal Health; Wendi Whitmore, Chief Security Intelligence Officer, Palo Alto Networks; Jena Holtberg-Benge, Chief Digital & Information Officer, AGCO Corporation; Kian Mossanen, CIO / CDO, Siemens Energy; Graham Crisp, SVP & CIO, TechnipFMC",
+   "deadline": "September 4, 2026"
   },
   {
    "num": 90,
@@ -2242,7 +2245,9 @@
    "external_id": "cdecb4e3-998a-4cd1-b3ce-a2b97733f05f",
    "source": "arcticscout",
    "start_date": "2026-05-06",
-   "end_date": "2026-05-06"
+   "end_date": "2026-05-06",
+   "meeting_formats": "Curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 106,
@@ -5014,7 +5019,12 @@
    "source": "arcticscout",
    "start_date": "2026-03-23",
    "end_date": "2026-03-23",
-   "url": "https://www.innoveytion-summit.com/"
+   "url": "https://www.innoveytion-summit.com/",
+   "pricing": "Free / entrada libre",
+   "past_speakers": "Alberto Afiuni, Presidente Ejecutivo de EY Venezuela; Simon Nestel, Industry expert; Jairam Navas, Host/Interviewer",
+   "meeting_formats": "attendee app for pre-booking meetings; curated panels and immersion spaces",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "1,200+"
   },
   {
    "num": 207,
@@ -6669,7 +6679,8 @@
    "pricing": "In-person: $1,400–$2,200; Microsoft partners often receive discounted or complimentary passes through partnership agreements",
    "past_speakers": "IT Leaders, Microsoft; Cloud Architects, Microsoft; Enterprise Technology Decision-Makers, Microsoft",
    "meeting_formats": "Digital registration includes virtual interactive experiences; in-person attendees can connect with Microsoft engineering teams and industry experts",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "attendee_count": "30,000+ in-person"
   },
   {
    "num": 265,
