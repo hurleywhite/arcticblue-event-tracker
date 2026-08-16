@@ -1661,7 +1661,9 @@
    "speaking_route": "Exhibitor/Solution Provider sessions: gartner.com/en/conferences/emea/symposium-spain/exhibitors/become-an-exhibitor. Contact: GlobalConferences@gartner.com",
    "contact_info": "GlobalConferences@gartner.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Agentic AI for enterprise operations (European CIO perspective); AI infrastructure and technology strategy; CIO strategic planning and operating model transformation; Enterprise AI governance and EU AI Act compliance; Digital transformation across European enterprises"
+   "focus_areas": "Agentic AI for enterprise operations (European CIO perspective); AI infrastructure and technology strategy; CIO strategic planning and operating model transformation; Enterprise AI governance and EU AI Act compliance; Digital transformation across European enterprises",
+   "pricing": "EUR 5,350–7,225",
+   "attendee_count": "6,000+"
   },
   {
    "num": 64,
@@ -5682,7 +5684,10 @@
    "external_id": "9bbd78e3-6f2d-4377-846c-8980d8b30d22",
    "source": "arcticscout",
    "start_date": "2026-06-15",
-   "end_date": "2026-06-15"
+   "end_date": "2026-06-15",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Rising second-year Columbia Business School MBA students working on startups",
+   "attendee_count": "130"
   },
   {
    "num": 230,
@@ -6396,7 +6401,10 @@
    "external_id": "f6a9d460-200d-4af2-8922-7b5007db545f",
    "source": "arcticscout",
    "start_date": "2026-06-25",
-   "end_date": "2026-06-25"
+   "end_date": "2026-06-25",
+   "meeting_formats": "Curated meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "250+"
   },
   {
    "num": 255,
