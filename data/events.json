@@ -3309,7 +3309,8 @@
    "start_date": "2026-08-31",
    "end_date": "2026-09-03",
    "audience_type": "Mixed",
-   "meeting_formats": "attendee app for pre-booking meetings; curated networking areas"
+   "meeting_formats": "attendee app for pre-booking meetings; curated networking areas",
+   "pricing": "Free general pass; Priority pass US$600; Founder pass US$450; VIP pass US$3,150; student pass free"
   },
   {
    "num": 146,
@@ -6992,7 +6993,10 @@
    "city": "New Orleans",
    "country": "USA",
    "external_id": "replit-208",
-   "deadline": "Rolling Deadlines all year"
+   "deadline": "Rolling Deadlines all year",
+   "venue": "The Ritz-Carlton, New Orleans",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "500-1000 delegates"
   },
   {
    "num": 279,
@@ -7723,12 +7727,18 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "Chief AI Officers, Chief Data Officers, Chief Technology Officers, VP and Senior Director AI/Technology/Data leaders",
    "url": "https://world.aiacceleratorinstitute.com/location/caionewyork",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-caionewyork",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "Convene 360 Madison Avenue",
+   "pricing": "Chief AI Officer Summit Pass: FREE (complimentary pass, invite/request required); Vendor Pass: $2495",
+   "past_speakers": "Ali Abeini, Metropolitan Commercial Bank; Abhiushek Mittal, AML RightSource; Ganesh Sivakumar, Mead Johnson Nutrition",
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "125+"
   },
   {
    "num": 309,
