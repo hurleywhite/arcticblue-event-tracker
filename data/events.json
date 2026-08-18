@@ -4649,7 +4649,8 @@
    "start_date": "2026-11-02",
    "end_date": "2026-11-05",
    "audience_type": "Mixed",
-   "attendee_count": "30,000+"
+   "attendee_count": "30,000+",
+   "meeting_formats": "Structured networking sessions; attendee app for pre-booking meetings; hosted business matchmaking/1:1 meetings not verified"
   },
   {
    "num": 194,
@@ -5553,7 +5554,10 @@
    "external_id": "08842478-f118-4e9a-b06c-06659cd9656d",
    "source": "arcticscout",
    "start_date": "2026-10-05",
-   "end_date": "2026-10-07"
+   "end_date": "2026-10-07",
+   "pricing": "Full access ticket: $595 (increases to $695 on June 1, 2026); Workshop Day is a separate add-on, with pricing not yet open",
+   "meeting_formats": "attendee app for pre-booking meetings; curated roundtables; hosted 1:1 meetings",
+   "audience_type": "Mixed"
   },
   {
    "num": 225,
