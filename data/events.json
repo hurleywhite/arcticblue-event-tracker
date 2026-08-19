@@ -1418,7 +1418,8 @@
    "past_speakers": "Microsoft executive; SAP executive; BP executive; L'Oréal executive; Visa executive",
    "meeting_formats": "hosted meetings; curated summit/salon experiences; invitation-only forums; attendee networking",
    "audience_type": "Mixed",
-   "attendee_count": "10,000+"
+   "attendee_count": "10,000+",
+   "pricing": "Paid; pricing details not verified from the provided results"
   },
   {
    "num": 78,
@@ -4769,7 +4770,8 @@
    "meeting_formats": "event app for pre-booking meetings (available November); exclusive Hackathon with industry scouts; dedicated Happy Hour",
    "audience_type": "Mixed",
    "attendee_count": "5,000+",
-   "deadline": "TBC"
+   "deadline": "TBC",
+   "pricing": "VIP All Access $2,499; Delegate $1,799; Solution Provider Delegate $2,299; Data Excellence Pass $749; Expo Pass $49"
   },
   {
    "num": 198,
@@ -6833,7 +6835,8 @@
    "seed": false,
    "urgent": false,
    "external_id": "50f6fe5e-bcce-4797-b014-13a6d73d4c7b",
-   "venue": "Ritz Carlton - Bachelors Gulch"
+   "venue": "Ritz Carlton - Bachelors Gulch",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 272,
