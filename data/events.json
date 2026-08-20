@@ -1158,7 +1158,12 @@
    "speaking_route": "Exhibitor/Solution Provider: gartner.com/en/conferences/emea/cio-uae/exhibitors/become-an-exhibitor. Contact: GlobalConferences@gartner.com",
    "contact_info": "GlobalConferences@gartner.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Enterprise AI strategy for GCC/MENA organizations; CIO technology leadership and AI investment in the Middle East; AI governance and digital transformation for Gulf enterprises; IT operating model transformation in Saudi Arabia, UAE, and GCC; AI-driven enterprise productivity and measurable ROI"
+   "focus_areas": "Enterprise AI strategy for GCC/MENA organizations; CIO technology leadership and AI investment in the Middle East; AI governance and digital transformation for Gulf enterprises; IT operating model transformation in Saudi Arabia, UAE, and GCC; AI-driven enterprise productivity and measurable ROI",
+   "venue": "Grand Hyatt Dubai, Dubai, United Arab Emirates",
+   "pricing": "USD 5,051",
+   "meeting_formats": "Curated roundtables; hosted networking; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "500+"
   },
   {
    "num": 75,
@@ -1269,7 +1274,11 @@
    "typical_attendees": "VP Operations, Head of Digital Innovation, enterprise IT leaders, COOs, CDOs from manufacturing, aerospace, energy, and professional services; 1,200+ attendees",
    "speaking_route": "Contact organizers: augmentedenterprisesummit.com",
    "contact_info": "augmentedenterprisesummit.com",
-   "focus_areas": "Enterprise AI applications and measurable ROI; Digital twins for enterprise operations; AI-driven operational transformation and process automation; XR + AI for workforce and training; Enterprise AI governance and deployment strategy"
+   "focus_areas": "Enterprise AI applications and measurable ROI; Digital twins for enterprise operations; AI-driven operational transformation and process automation; XR + AI for workforce and training; Enterprise AI governance and deployment strategy",
+   "venue": "Atlanta Marriott Marquis",
+   "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "1,200+"
   },
   {
    "num": 76,
@@ -6918,7 +6927,10 @@
    "focus_areas": "WorkTech; AI; Enterprise transformation; Humans + AI; Workforce design; Skills; Productivity; Growth; HR innovation",
    "seed": false,
    "urgent": false,
-   "external_id": "d32ddc72-5219-4d1b-9bd6-145b8273959f"
+   "external_id": "d32ddc72-5219-4d1b-9bd6-145b8273959f",
+   "venue": "Miami Beach Convention Center",
+   "meeting_formats": "Hosted networking and conversations; summits; AI & skills deep dives; start-up showcases; live demos; innovation stages; exclusive site visits",
+   "audience_type": "Mixed"
   },
   {
    "num": 275,
@@ -7410,7 +7422,8 @@
    "country": "UK",
    "external_id": "replit-222",
    "venue": "London, UK",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Rob Middleton, Royal London Asset Management"
   },
   {
    "num": 295,
@@ -7489,12 +7502,18 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "AI engineers, builders, technical leaders, and AI/tech executives",
    "url": "https://world.aiacceleratorinstitute.com/location/losangeles",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-losangeles",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "Conrad Los Angeles",
+   "pricing": "USD 495 in-person individual pass; USD 495 per person team pass for groups of three or more; USD 299 OnDemand pass",
+   "past_speakers": "Karl Zhao, PhD, Foundational Model Evangelist, DeepSeek",
+   "meeting_formats": "Curated workshops, live builds, and hackathons; one pass also grants access to both co-located Generative AI and Agentic AI tracks",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "300"
   },
   {
    "num": 298,
