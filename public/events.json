@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-20T00:00:00Z",
-  "build_date": "2026-08-20",
+  "generated_at": "2026-08-21T00:00:00Z",
+  "build_date": "2026-08-21",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -977,7 +977,9 @@
       "contact_info": "itcvegas.com",
       "attendee_count": "9,000+",
       "pay_to_play": "Both",
+      "pricing": "Paid; exact 2026 delegate/ticket prices not visible in the provided results",
       "audience_type": "Mixed",
+      "past_speakers": "Not confidently verifiable from the provided results for this exact 2026 edition",
       "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
       "seed": false,
       "urgent": false,
