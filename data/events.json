@@ -3089,7 +3089,9 @@
    "past_speakers": "Visionaries, industry leaders, and technology pioneers (specific names not listed in search results)",
    "meeting_formats": "1:1 session booking (guaranteed/hosted 1:1 meetings); Booth #416 and Meeting Room #5007 for vendor-hosted meetings",
    "audience_type": "Buyer-rich",
-   "attendee_count": "15,000+"
+   "attendee_count": "15,000+",
+   "pay_to_play": "Yes",
+   "deadline": "Friday, February 6, 2026"
   },
   {
    "num": 138,
@@ -4953,7 +4955,11 @@
    "external_id": "8967884f-b150-4eda-b1cc-fa503e4fd723",
    "source": "arcticscout",
    "start_date": "2026-02-06",
-   "end_date": "2026-02-09"
+   "end_date": "2026-02-09",
+   "pricing": "$2,500 tuition (includes all meals)",
+   "meeting_formats": "No panels; small moderated seminar groups of up to 24 participants per seminar; meals and programming shared across all concurrent seminars",
+   "audience_type": "Mixed",
+   "attendee_count": "180+"
   },
   {
    "num": 204,
