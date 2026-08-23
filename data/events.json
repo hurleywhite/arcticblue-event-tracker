@@ -1479,7 +1479,12 @@
    "speaking_route": "Sponsorship prospectus: go.oracle.com/LP=152088 (sponsor-driven speaking route). Contact: oracle.com/ai-world",
    "contact_info": "oracle.com/ai-world",
    "pay_to_play": "Yes",
-   "focus_areas": "Enterprise agentic AI (Oracle AI agents and automation); Oracle Fusion Cloud AI applications (HCM, ERP, CX); AI data infrastructure and cloud architecture; Enterprise AI governance and security; AI-driven ERP/HCM digital transformation"
+   "focus_areas": "Enterprise agentic AI (Oracle AI agents and automation); Oracle Fusion Cloud AI applications (HCM, ERP, CX); AI data infrastructure and cloud architecture; Enterprise AI governance and security; AI-driven ERP/HCM digital transformation",
+   "venue": "The Venetian Convention and Expo Center, Las Vegas",
+   "pricing": "General attendee pass starts at $1,999; group pass (5+ from same company) starts at $1,899 per person; public-sector pass starts at $1,399",
+   "meeting_formats": "attendee app for sessions and networking; hosted peer networking and expert access",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "25,000+"
   },
   {
    "num": 62,
@@ -5665,7 +5670,8 @@
    "external_id": "c500eb1f-44db-4439-b2a1-b8a0fb9d251b",
    "source": "arcticscout",
    "start_date": "2026-05-28",
-   "end_date": "2026-05-28"
+   "end_date": "2026-05-28",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 228,
@@ -6284,7 +6290,10 @@
    "external_id": "6fdfc16e-24d5-49bc-9a70-99cfcae3b807",
    "source": "arcticscout",
    "start_date": "2026-11-17",
-   "end_date": "2026-11-18"
+   "end_date": "2026-11-18",
+   "past_speakers": "Bethany J. Adams, MA, SHRM-SCP, Villanova University; Keyantee Davis, Trinity Health Michigan; Melanie Tinto, Grainger; Calvin Banks, Pyramid Global Hospitality; Kishore GR, Mphasis Limited; Gayle, Parfums Christian Dior; Craig F., Qualcomm; André Lessears, UAB Health System",
+   "meeting_formats": "personal invitation or approved application for delegates; Become A Sponsor, Become A Delegate, Become A Speaker",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 250,
