@@ -1513,7 +1513,8 @@
    "pricing": "USD 4,550",
    "meeting_formats": "Attendee app for pre-booking meetings",
    "audience_type": "Buyer-rich",
-   "attendee_count": "6,000+"
+   "attendee_count": "6,000+",
+   "deadline": "08/28/2026"
   },
   {
    "num": 45,
@@ -4607,7 +4608,11 @@
    "external_id": "8c276165-3b5d-4658-a0f6-ba8409978993",
    "source": "arcticscout",
    "start_date": "2026-09-22",
-   "end_date": "2026-09-24"
+   "end_date": "2026-09-24",
+   "pricing": "€999–€2,499",
+   "meeting_formats": "curated roundtables; attendee app for pre-booking meetings; hosted application-based 1:1 style networking programs",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "2,500+"
   },
   {
    "num": 192,
