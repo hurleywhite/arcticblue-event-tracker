@@ -2236,7 +2236,8 @@
    "past_speakers": "Amit Zavery, ServiceNow; Bill McDermott, ServiceNow; Amy Lokey, ServiceNow; Eric McGrath, ServiceNow; Taimur Rashid, ServiceNow",
    "meeting_formats": "Attendee portal for pre-booked meetings; expo floor; hosted sponsor meeting spaces and executive receptions",
    "audience_type": "Mixed",
-   "deadline": "October 1, 2025 (Submission Portal Opens); Submission Deadline not specified in results"
+   "deadline": "October 1, 2025 (Submission Portal Opens); Submission Deadline not specified in results",
+   "pricing": "Full-conference pass: $2,195"
   },
   {
    "num": 105,
@@ -3609,7 +3610,8 @@
    "start_date": "2026-04-13",
    "end_date": "2026-04-15",
    "pricing": "£899–£2,899; alternative listing shows passes from £799 to £2,799",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "attendee_count": "65+ speakers; attendance not verified"
   },
   {
    "num": 157,
@@ -4519,7 +4521,8 @@
    "external_id": "311e0fcc-c505-4c88-9c76-2cea7bd68fcd",
    "source": "arcticscout",
    "start_date": "2026-08-30",
-   "end_date": "2026-08-30"
+   "end_date": "2026-08-30",
+   "audience_type": "Mixed"
   },
   {
    "num": 189,
@@ -5409,7 +5412,9 @@
    "source": "arcticscout",
    "start_date": "2027-03-01",
    "end_date": "2027-03-04",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "pricing": "US $12,500",
+   "meeting_formats": "attendee app for pre-booking meetings"
   },
   {
    "num": 219,
@@ -7183,7 +7188,8 @@
    "meeting_formats": "Roundtables",
    "audience_type": "Mixed",
    "attendee_count": "1,600+",
-   "deadline": "July 17, 2026 (early-bird registration deadline)"
+   "deadline": "July 17, 2026 (early-bird registration deadline)",
+   "past_speakers": "Gisele Antunes, Gartner; Tim Berichon, Gartner; Daniel Hebda, Gartner; Devanshu Mehrotra, Gartner; Nancy Queally, Gartner; Nicholas Sworek, Gartner; Jie Zhang, Gartner; Tegan Gebert, Gartner"
   },
   {
    "num": 285,
@@ -7240,7 +7246,12 @@
    "pay_to_play": "Yes",
    "city": "Mumbai",
    "country": "India",
-   "external_id": "replit-216"
+   "external_id": "replit-216",
+   "venue": "Grand Hyatt Mumbai Hotel & Residences",
+   "pricing": "₹45,000 registration (per listing)",
+   "meeting_formats": "analyst one-on-ones; curated peer networking",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "1,500+"
   },
   {
    "num": 287,
