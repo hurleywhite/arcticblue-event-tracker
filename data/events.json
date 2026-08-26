@@ -2205,7 +2205,9 @@
    "past_speakers": "Humayum Sheikh, Fetch.ai; Rajashekar Vennavelli, AI Engineer",
    "meeting_formats": "Demo Stage sessions, Agentic Hall Expo & Lunch for connection",
    "audience_type": "Mixed",
-   "attendee_count": "0+"
+   "attendee_count": "0+",
+   "pricing": "$1,499.00 USD Full Access 2-Day Pass",
+   "deadline": "April 15, 2026"
   },
   {
    "num": 104,
@@ -2984,7 +2986,10 @@
    "external_id": "10046ac1-8d4c-4dd2-a4a1-6ca1db412947",
    "source": "arcticscout",
    "start_date": "2026-06-23",
-   "end_date": "2026-06-24"
+   "end_date": "2026-06-24",
+   "meeting_formats": "Curated executive networking and face-to-face peer exchange",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "5,000+"
   },
   {
    "num": 134,
@@ -3267,7 +3272,8 @@
    "end_date": "2026-04-09",
    "past_speakers": "Daniel Lurie, Mayor of San Francisco; Jon Weiner, Co-Founder of HumanX; Stefan Weitz, Co-Founder of HumanX; Alex Karp, CEO of Palantir; Fei-Fei Li, Professor at Stanford University; Arvind Krishna, Chairman and CEO of IBM",
    "meeting_formats": "hosted networking opportunities; curated sessions and workshops; attendee networking events",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "pricing": "All-Access Pass from $3,395; VIP Pass $5,999; Startups Pass from $950"
   },
   {
    "num": 144,
