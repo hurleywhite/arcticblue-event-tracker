@@ -659,7 +659,9 @@
    "meeting_formats": "Co-located tracks (Generative & Agentic AI) with one pass unlocking both",
    "audience_type": "Mixed",
    "typical_attendees": "AI builders, execs, and engineers shipping production-ready AI systems",
-   "attendee_count": "300+"
+   "attendee_count": "300+",
+   "pricing": "USD 495",
+   "deadline": "September 27, 2026"
   },
   {
    "num": 34,
@@ -2741,7 +2743,8 @@
    "end_date": "2026-07-23",
    "pricing": "Onsite registration available with a special discount for the 20th anniversary (contact team@cdoiq.org for code); Virtual registration: 80% off with code Virtual80% [7]",
    "past_speakers": "Senior leaders in data, analytics, and AI from around the world; CDOs, senior data leaders, and AI practitioners [7][8]",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "meeting_formats": "Agenda lists session details and the site references an event platform; 1:1 meetings, roundtables, or pre-booked meetings are not verified from the provided results"
   },
   {
    "num": 124,
@@ -5807,7 +5810,11 @@
    "source": "arcticscout",
    "start_date": "2026-11-04",
    "end_date": "2026-11-05",
-   "about": "Reuters Events: Pharma Commercial Data & Tech is a 250-attendee conference on turning data and technology into commercial results, through case studies, collaborative roundtables, panel discussions and networking."
+   "about": "Reuters Events: Pharma Commercial Data & Tech is a 250-attendee conference on turning data and technology into commercial results, through case studies, collaborative roundtables, panel discussions and networking.",
+   "pricing": "£699 (super early end users); £2,799 (super early vendors); £849 (earlybird end users); £3,099 (earlybird vendors); £999 (standard end users); £3,399 (standard vendors); £1,199 (late end users); £3,799 (late vendors)",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Senior pharma leaders across commercial, customer engagement, data, digital, AI, and technology",
+   "attendee_count": "250+"
   },
   {
    "num": 233,
@@ -7682,7 +7689,10 @@
    "seed": false,
    "contact_info": "albert@pmmalliance.com",
    "venue": "Doubletree by Hilton Hotel",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "pricing": "Chief AI Officer Summit Pass: FREE; Vendor Pass: $2495",
+   "pay_to_play": "Yes",
+   "meeting_formats": "Request-an-invite pass application; access to all 4 co-located summits with one pass"
   },
   {
    "num": 303,
@@ -7769,12 +7779,17 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "Engineering leaders, AI practitioners, executives, and security leaders building and shipping production AI systems",
    "url": "https://world.aiacceleratorinstitute.com/location/newyork",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-newyork",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "Convene 360 Madison Avenue",
+   "pricing": "Individual Pass: $795; Teams of 3 or more: $595",
+   "meeting_formats": "Attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "500+"
   },
   {
    "num": 308,
