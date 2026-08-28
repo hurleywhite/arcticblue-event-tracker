@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-27T00:00:00Z",
-  "build_date": "2026-08-27",
+  "generated_at": "2026-08-28T00:00:00Z",
+  "build_date": "2026-08-28",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -2915,6 +2915,7 @@
       "speaking_route": "Contact: event.idc.com/event/cio-summit-awards-canada/. Sponsor inquiry: idc.com/events",
       "contact_info": "event.idc.com/event/cio-summit-awards-canada; idc.com/events",
       "deadline": "Nominations closed (May 29, 2026); Winners celebrated November 19, 2026",
+      "attendee_count": "150+",
       "audience_type": "Buyer-rich",
       "past_speakers": "Scaling AI for the Agentic Future: Closing the Enterprise Gaps, IDC Keynote",
       "meeting_formats": "One-day summit with keynote presentations, panels, and peer-led discussions",
@@ -4897,6 +4898,7 @@
       "pay_to_play": "Yes",
       "pricing": "$1,499.00",
       "audience_type": "Buyer-rich",
+      "past_speakers": "Walmart, Company not specified; AstraZeneca, Company not specified; Citi, Company not specified; Capital One, Company not specified; Prudential Financial, Company not specified; Lenovo, Company not specified",
       "meeting_formats": "Closed-door summit with dual streams; no verified hosted 1:1 meetings, roundtables, or attendee app for pre-booking meetings found",
       "seed": false,
       "urgent": false,
