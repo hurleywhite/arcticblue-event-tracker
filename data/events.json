@@ -2389,7 +2389,11 @@
    "external_id": "23107d9f-2710-404b-bbd1-c65707cd5dba",
    "source": "arcticscout",
    "start_date": "2026-05-14",
-   "end_date": "2026-05-14"
+   "end_date": "2026-05-14",
+   "pricing": "Request your free pass / complimentary invitation only",
+   "meeting_formats": "Attendance is by complimentary invitation only; application/first-come-first-serve basis; attendee cap of 125 spots",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "125+"
   },
   {
    "num": 110,
@@ -7612,7 +7616,8 @@
    "pricing": "Individual Pass: $595; early-bird Individual Pass: $495; vendor/supplier pass: $395",
    "meeting_formats": "attendee app for pre-booking meetings",
    "audience_type": "Mixed",
-   "attendee_count": "0-300 delegates"
+   "attendee_count": "0-300 delegates",
+   "past_speakers": "OpenAI; Microsoft; Atlassian; Netflix"
   },
   {
    "num": 300,
