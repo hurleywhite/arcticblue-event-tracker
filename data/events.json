@@ -168,7 +168,9 @@
    "external_id": "8042a1a6-299c-4f73-9329-41eaf2dd63ba",
    "source": "arcticscout",
    "audience_type": "Buyer-rich",
-   "attendee_count": "500+"
+   "attendee_count": "500+",
+   "past_speakers": "Aveek Roy Chowdhury, Microsoft; Jorge Reis-Filho, AstraZeneca; Steve Sewell, Builder.io; Brian Dalessandro, Meta; Ben Santosh Kumar Radha, Agentfield; Abdellah Ibarzaq, Walmart; Bowen Zhang, Unknown",
+   "meeting_formats": "Networking & exhibition; attendee app/pre-booking not verified"
   },
   {
    "num": 21,
@@ -7001,7 +7003,8 @@
    "pay_to_play": "Yes",
    "city": "New York",
    "country": "USA",
-   "external_id": "replit-206"
+   "external_id": "replit-206",
+   "audience_type": "Mixed"
   },
   {
    "num": 276,
@@ -7386,7 +7389,10 @@
    "pay_to_play": null,
    "city": "Riyadh",
    "country": "Saudi Arabia",
-   "external_id": "replit-220"
+   "external_id": "replit-220",
+   "venue": "King Abdulaziz International Conference Center",
+   "audience_type": "Mixed",
+   "attendee_count": "6,000+"
   },
   {
    "num": 291,
