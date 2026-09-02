@@ -900,7 +900,10 @@
    "speaking_route": "Exhibitor/Solution Provider sessions: gartner.com/en/conferences/la/cio-brazil/exhibitors. Contact: GlobalConferences@gartner.com",
    "contact_info": "GlobalConferences@gartner.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Enterprise AI strategy for LATAM organizations; Agentic AI and CIO technology leadership; IT operating model transformation; AI governance and technology risk in regulated LATAM industries; AI-driven digital transformation and ROI strategy"
+   "focus_areas": "Enterprise AI strategy for LATAM organizations; Agentic AI and CIO technology leadership; IT operating model transformation; AI governance and technology risk in regulated LATAM industries; AI-driven digital transformation and ROI strategy",
+   "venue": "Sheraton São Paulo WTC Hotel",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "5,000+"
   },
   {
    "num": 55,
@@ -3953,7 +3956,11 @@
    "external_id": "d1c032e2-261e-4180-8906-d9793eef69e1",
    "source": "arcticscout",
    "start_date": "2026-05-21",
-   "end_date": "2026-05-21"
+   "end_date": "2026-05-21",
+   "pricing": "299+",
+   "past_speakers": "Jeff LoCastro, CEO, Neener Analytics, Inc.",
+   "meeting_formats": "AI-powered networking matching",
+   "audience_type": "Mixed"
   },
   {
    "num": 169,
@@ -5223,7 +5230,9 @@
    "pricing": "Public ticket pricing is not verifiable from the provided results; the official site says attendees must submit an application to register and mentions a regularly priced Forum Pass, with separate student/financial-assistance handling.",
    "pay_to_play": "Yes",
    "meeting_formats": "Interactive workshops and networking; attendee application/registration process",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "Maria Corina Machado, Venezuelan opposition leader; Pavel Durov, Founder, Telegram; Richard Gere, Actor and activist",
+   "attendee_count": "5,000+"
   },
   {
    "num": 212,
@@ -5461,7 +5470,9 @@
    "source": "arcticscout",
    "start_date": "2026-05-28",
    "end_date": "2026-05-29",
-   "priority_full": "High"
+   "priority_full": "High",
+   "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Mixed"
   },
   {
    "num": 220,
