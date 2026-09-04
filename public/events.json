@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-03T00:00:00Z",
-  "build_date": "2026-09-03",
+  "generated_at": "2026-09-04T00:00:00Z",
+  "build_date": "2026-09-04",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -1988,6 +1988,7 @@
       "contact_info": "aidataanalytics.network",
       "deadline": "No call-for-speakers deadline published",
       "audience_type": "Buyer-rich",
+      "meeting_formats": "Vendor Specific Interactive Roundtable Discussions; networking and drinks reception",
       "venue": "Amsterdam Marriott Hotel",
       "city": "Amsterdam",
       "country": "Netherlands",
@@ -3341,6 +3342,7 @@
       "speaking_route": "Submit a proposal via the event's 'Apply to Speak' process on the bottom of the speaker page: https://www.unleash.ai/events/unleash-world/apply-to-speak?_gl=1*1rpxk8c*_up*MQ..*_ga*MjU5MDA2NzE3LjE3Nzg4NjI0ODM.*_ga_SS75KJCH57*czE3ODA5MzgzNDckbzUkZzEkdDE3ODA5MzgzNDckajYwJGwwJGgyMDYzMjY0NTQz\n\nCan apply for below events in one application:\n- UNLEASH America\n- UNLEASH World\n- ONGOING: Editorial - News, Opinion, Interview, Insight, Feature, and/or Case Studies",
       "attendee_count": "4,000+",
       "audience_type": "Mixed",
+      "past_speakers": "Sir Richard Branson, Virgin Group; Arianna Huffington, Thrive Global; Josh Bersin, Josh Bersin Company; Gary Vaynerchuk, VaynerMedia",
       "meeting_formats": "Hosted networking and conversations; summits; AI & skills deep dives; start-up showcases; live demos; innovation stages; exclusive site visits",
       "seed": false,
       "urgent": false,
@@ -7925,6 +7927,7 @@
       "contact_info": "communications@fii-institute.org",
       "attendee_count": "1,500+",
       "audience_type": "Mixed",
+      "past_speakers": "Yasir Al-Rumayyan, Public Investment Fund; Mohammed Al-Jadaan, Saudi Ministry of Finance; Eric Schmidt, former Google CEO; Robert F. Smith, Vista Equity Partners; Gianni Infantino, FIFA",
       "meeting_formats": "Closed-door strategic roundtables; invite-only sessions; attendee app for pre-booking meetings",
       "seed": false,
       "urgent": false,

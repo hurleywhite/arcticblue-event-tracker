@@ -1604,7 +1604,8 @@
    "focus_areas": "Enterprise agentic AI design and architecture; Scaling agentic AI across enterprise operations; AI governance and responsible agentic deployment; Agentic AI for business transformation (COO/operations focus); Measuring ROI of enterprise agentic systems",
    "venue": "Amsterdam Marriott Hotel",
    "deadline": "No call-for-speakers deadline published",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "meeting_formats": "Vendor Specific Interactive Roundtable Discussions; networking and drinks reception"
   },
   {
    "num": 93,
@@ -5112,7 +5113,8 @@
    "end_date": "2026-03-27",
    "meeting_formats": "Closed-door strategic roundtables; invite-only sessions; attendee app for pre-booking meetings",
    "audience_type": "Mixed",
-   "attendee_count": "1,500+"
+   "attendee_count": "1,500+",
+   "past_speakers": "Yasir Al-Rumayyan, Public Investment Fund; Mohammed Al-Jadaan, Saudi Ministry of Finance; Eric Schmidt, former Google CEO; Robert F. Smith, Vista Equity Partners; Gianni Infantino, FIFA"
   },
   {
    "num": 208,
@@ -6992,7 +6994,8 @@
    "external_id": "d32ddc72-5219-4d1b-9bd6-145b8273959f",
    "venue": "Miami Beach Convention Center",
    "meeting_formats": "Hosted networking and conversations; summits; AI & skills deep dives; start-up showcases; live demos; innovation stages; exclusive site visits",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "Sir Richard Branson, Virgin Group; Arianna Huffington, Thrive Global; Josh Bersin, Josh Bersin Company; Gary Vaynerchuk, VaynerMedia"
   },
   {
    "num": 275,
