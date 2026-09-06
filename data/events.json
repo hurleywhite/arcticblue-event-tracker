@@ -233,7 +233,8 @@
    "audience_type": "Mixed",
    "pricing": "Paid tickets; exact 2026 delegate pricing not verified from the provided results",
    "past_speakers": "notable companies represented include PayPal; Bank of America; Meta; HelloFresh; United Nations; Capital One",
-   "deadline": "May 19, 2026"
+   "deadline": "May 19, 2026",
+   "pay_to_play": "No"
   },
   {
    "num": 22,
@@ -7763,12 +7764,16 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "technical builders, developers, and senior leaders",
    "url": "https://world.aiacceleratorinstitute.com/location/siliconvalley",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-siliconvalley",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "DoubleTree by Hilton San Jose",
+   "pricing": "Teams of 3 or more: $595 and $495 (early/discounted tier shown)",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "400+"
   },
   {
    "num": 306,
