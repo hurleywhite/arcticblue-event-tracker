@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-06T00:00:00Z",
-  "build_date": "2026-09-06",
+  "generated_at": "2026-09-07T00:00:00Z",
+  "build_date": "2026-09-07",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -8502,6 +8502,7 @@
       "speaking_route": "Reached out personally to conference organizers.",
       "deadline": "2025-11-19",
       "audience_type": "Mixed",
+      "meeting_formats": "Hybrid (online and in-person); virtual classrooms for online presentations",
       "seed": false,
       "urgent": false,
       "venue": "Bahrain",
