@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-07T00:00:00Z",
-  "build_date": "2026-09-07",
+  "generated_at": "2026-09-08T00:00:00Z",
+  "build_date": "2026-09-08",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -4228,7 +4228,9 @@
       "deadline": "Rolling Deadlines all year",
       "attendee_count": "500-1000 delegates",
       "pay_to_play": "No",
+      "pricing": "Invitation-only / pricing not publicly listed",
       "audience_type": "Buyer-rich",
+      "meeting_formats": "Curated peer-to-peer networking; face-to-face meetings",
       "venue": "The Ritz-Carlton, New Orleans",
       "city": "New Orleans",
       "country": "USA",
