@@ -3380,7 +3380,8 @@
    "start_date": "2026-04-15",
    "end_date": "2026-04-15",
    "meeting_formats": "Attendee app for pre-booking meetings",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Rajlakshmi Shankaran, Unknown Company"
   },
   {
    "num": 147,
@@ -5055,7 +5056,11 @@
    "source": "arcticscout",
    "start_date": "2026-03-15",
    "end_date": "2026-03-19",
-   "meeting_formats": "attendee app for pre-booking meetings; curated sessions, labs, certifications, and meetups"
+   "meeting_formats": "attendee app for pre-booking meetings; curated sessions, labs, certifications, and meetups",
+   "pricing": "Paid; specific public prices not verified from the provided results",
+   "audience_type": "Mixed",
+   "attendee_count": "30,000+",
+   "deadline": "Poster Call for Submissions and Content Interest Survey are now closed"
   },
   {
    "num": 206,
