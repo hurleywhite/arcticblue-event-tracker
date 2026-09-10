@@ -3763,15 +3763,18 @@
     rows=raw.map(r=>C.normalize(r,by.get(r._table+':'+r._key),today())).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999') || String(a.name||'').localeCompare(String(b.name||'')));
   }
   function filtered() {return rows.filter(r=>(!owner || C.fold(r.owner).includes(owner)) && (!query || C.fold([r.name,r.location,r.owner,r.b.next_action,r.poc_name].join(' ')).includes(C.fold(query))));}
-  function eventRow(r) {
+  // opts.chase adds the one-click chase button. It is passed ONLY by the
+  // follow-ups section: a third button on every row everywhere would cost more
+  // attention than it earns.
+  function eventRow(r,opts) {
     const action=r.b.next_action || (r.submitted?'Set the next organizer follow-up':r.wake?'Review: '+(r.b.recheck_trigger||'scheduled recheck'):'Choose an action, owner and deadline');
     const when=r.start?esc(r.start)+(r.end&&r.end!==r.start?'–'+esc(r.end.slice(5)):''):'';
     const evid=r.realApplication?'Application on record'+(r.evidence.length?' ('+esc(r.evidence.join(', '))+')':''):(r.submitted==='tag-only'?'"Submitted" tag only — nothing corroborates it':r.q.label);
-    return '<article class="ac-row'+(r.derived?' ac-derived':'')+'"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+(r.derived?'<span class="ac-badge ac-auto" title="Derived from the record — open Update action to confirm or change it">auto</span>':'')+esc(title(r.owner)||'Owner needed')+' · '+esc(r.city?title(r.city):(r.location||'Location unknown'))+(when?' · '+when:'')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+evid+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?C.diff(r.due,today())+' days late · ':'Due ')+esc(r.due)+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions"><button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action&&!r.derived?'Update action':r.derived?'Confirm / change':'Decide')+'</button></div></article>';
+    return '<article class="ac-row'+(r.derived?' ac-derived':'')+'"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+(r.derived?'<span class="ac-badge ac-auto" title="Derived from the record — open Update action to confirm or change it">auto</span>':'')+esc(title(r.owner)||'Owner needed')+' · '+esc(r.city?title(r.city):(r.location||'Location unknown'))+(when?' · '+when:'')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+evid+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?C.diff(r.due,today())+' days late · ':'Due ')+esc(r.due)+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions">'+(opts&&opts.chase?'<button data-chase="'+esc(r._id)+'">Chased today</button>':'')+'<button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action&&!r.derived?'Update action':r.derived?'Confirm / change':'Decide')+'</button></div></article>';
   }
-  function section(key,label,list) {
+  function section(key,label,list,opts) {
     const show=expanded.has(key)?list:list.slice(0,4);
-    return '<section class="ac-section" id="ac-'+key+'"><div class="ac-section-head"><h3>'+esc(label)+' <span class="ac-badge">'+list.length+'</span></h3>'+(list.length>4?'<button data-expand="'+key+'">'+(expanded.has(key)?'Show fewer':'Show all '+list.length)+'</button>':'')+'</div>'+(show.length?show.map(eventRow).join(''):'<p class="ac-empty">Nothing due here.</p>')+'</section>';
+    return '<section class="ac-section" id="ac-'+key+'"><div class="ac-section-head"><h3>'+esc(label)+' <span class="ac-badge">'+list.length+'</span></h3>'+(list.length>4?'<button data-expand="'+key+'">'+(expanded.has(key)?'Show fewer':'Show all '+list.length)+'</button>':'')+'</div>'+(show.length?show.map(r=>eventRow(r,opts)).join(''):'<p class="ac-empty">Nothing due here.</p>')+'</section>';
   }
   function render() {
     const h=host();if(!h)return;
@@ -3787,7 +3790,7 @@
       html+=renderHealth(rs)+renderAgenda(rs);
       html+='<div class="ac-stats">'+[['applications','Applications due in 7 days'],['contacts','Organizers to contact'],['meetings','Meetings to book'],['followups','Follow-ups due'],['decisions','Decisions needed']].map(([k,l])=>'<button class="ac-stat" data-jump="'+k+'"><strong>'+g[k].length+'</strong><span>'+l+'</span></button>').join('')+'</div>';
       html+='<p class="ac-note">'+(tripMatches.length?tripMatches.length+' recorded trips have nearby event opportunities. Open Trips to review.':(!cal?.configured?'Live calendar feeds are not connected. Open Trips to add or review recorded travel.':'No nearby event matches for recorded travel.'))+'</p>';
-      html+=section('applications','Applications due soon',g.applications)+section('contacts','Organizer outreach',g.contacts)+section('meetings','Meetings to book',g.meetings)+section('followups','Follow-ups due',g.followups)+section('decisions','Decisions required',g.decisions);
+      html+=section('applications','Applications due soon',g.applications)+section('contacts','Organizer outreach',g.contacts)+section('meetings','Meetings to book',g.meetings)+section('followups','Follow-ups due',g.followups,{chase:true})+section('decisions','Decisions required',g.decisions);
       const later=rs.filter(r=>r.active && !Object.values(g).flat().includes(r));
       html+=section('later','Planned actions',later);
     } else if(mode==='pipeline') {
@@ -3934,6 +3937,7 @@
     else if(b.hasAttribute('data-refresh')){window.opsRefresh();load();}
     else if(b.dataset.expand){expanded.has(b.dataset.expand)?expanded.delete(b.dataset.expand):expanded.add(b.dataset.expand);render();}
     else if(b.dataset.jump)document.getElementById('ac-'+b.dataset.jump)?.scrollIntoView({behavior:'smooth'});
+    else if(b.dataset.chase)chase(b,rows.find(r=>r._id===b.dataset.chase));
     else if(b.dataset.manage){const r=rows.find(r=>r._id===b.dataset.manage);if(r)manage(r);}
     else if(b.dataset.detail){const r=rows.find(r=>r._id===b.dataset.detail);if(r)window.abOpenRef(r._table==='manual_events'?'manual':'catalog',r._key);}
     else if(b.hasAttribute('data-signin'))signIn();
@@ -3946,6 +3950,22 @@
   });
   document.addEventListener('change',e=>{if(e.target.id==='ac-owner'){owner=e.target.value;render();}});
   document.addEventListener('input',e=>{if(e.target.id==='ac-search'){const pos=e.target.selectionStart;query=e.target.value;render();const i=document.getElementById('ac-search');i.focus();i.setSelectionRange(pos,pos);}});
+  // Record a chase without opening the drawer. Appends to follow_ups (which is
+  // also what applicationEvidence() reads as 'chased') and pushes the next due
+  // date out a week, so the row leaves this list until it is genuinely due
+  // again. opsWrite stamps updated_by/updated_at and goes through sbWriteRetry.
+  async function chase(btn,r) {
+    if(!r||!window.opsWrite)return;
+    const label=btn.textContent;btn.disabled=true;btn.textContent='Saving…';
+    const t=today();
+    try {
+      await Promise.resolve(window.opsWrite(r._table,r._key,{
+        follow_ups:[...(r.follow_ups||[]),{date:t,note:'Chased the organiser'}],
+        booking:{...(r.booking||{}),follow_up_due:C.plus(t,7)}
+      }));
+      window.opsRefresh&&window.opsRefresh();load();
+    } catch(e) { btn.disabled=false;btn.textContent=label==='Chased today'?'Retry':label; }
+  }
   window.ActionCenter={update(records){raw=records;ready=true;recompute();render();},show(){render();if(!this.started){this.started=true;load();window._ab.auth.onAuthStateChange(()=>setTimeout(load,0));}},manage};
 })();
 
