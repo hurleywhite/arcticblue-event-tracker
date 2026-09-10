@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ArcticBlue — Event Opportunities</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fragment+Mono&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/opportunities-unified.css">
+</head>
+<body><div class="wrap">
+<div class="brand"><img src="/arcticblue-logo.png" alt="ArcticBlue"><span>ARCTICBLUE</span><span class="sep"></span><span class="sub">COMMERCIAL OPERATING SYSTEM</span></div>
+<div class="hero"><div><h1>Event Opportunities</h1><p>One place to decide what matters, see where it fits on the calendar, and move the next action forward.</p></div><div class="actions"><a class="btn" href="/events">All events</a><button class="btn primary" id="reload">Refresh</button></div></div>
+<div class="notice" id="note"><span class="i">i</span><span>Loading live opportunity pipeline…</span></div>
+<div class="viewbar"><div class="views"><button class="view on" data-view="list">List</button><button class="view" data-view="calendar">Calendar</button></div><div class="searchrow"><input id="q" class="search" placeholder="Search opportunities…"></div></div>
+<div class="actionbar" id="actions"></div>
+<div class="filters"><span class="label">Person</span><button class="owner on" data-owner="all"><span class="av">AB</span>All</button><button class="owner" data-owner="thor"><span class="av">TE</span>Thor</button><button class="owner" data-owner="verma"><span class="av">AV</span>Verma</button><button class="owner" data-owner="jerome"><span class="av">JW</span>Jerome</button><button class="owner" data-owner="carlos"><span class="av">CC</span>Carlos</button><span class="spacer"></span><select class="more" id="more"><option value="focus">Best opportunities</option><option value="all">All active</option><option value="in_flight">In flight</option><option value="watchlist">Watchlist</option><option value="partner_opportunities">Partners</option></select></div>
+<div id="listView"><div class="sectionhead"><div><div class="ey">Working queue</div><h2 id="heading">Best opportunities</h2></div><div class="count" id="count"></div></div><div class="grid" id="cards"></div></div>
+<div id="calendarView" class="hidden"><div class="calhead"><div><div class="ey">Calendar view</div><div class="monthleft"><div class="nav"><button class="iconbtn" id="prev">‹</button><button class="iconbtn" id="today">Today</button><button class="iconbtn" id="next">›</button></div><h2 id="monthTitle"></h2></div></div><div class="count" id="monthCount"></div></div><div class="calendarwrap"><div class="calbox"><div class="dow"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div><div class="days" id="days"></div></div><div class="side"><div class="panel"><div class="panelhead">Selected opportunity</div><div class="panelbody" id="selected"><div class="muted">Click an event to see the next action.</div></div></div><div class="panel"><div class="panelhead">Color key</div><div class="panelbody legend"><div><i style="--c:var(--apply)"></i>Apply</div><div><i style="--c:var(--reach)"></i>Reach out</div><div><i style="--c:var(--route)"></i>Travel fit</div><div><i style="--c:var(--conf)"></i>Conflict/deadline</div><div><i style="--c:var(--flight)"></i>In flight</div><div><i style="--c:var(--watch)"></i>Watchlist</div></div></div></div></div></div>
+<details class="learning"><summary id="learnsummary">Learning loop</summary><div class="learnbody" id="learning"><span class="muted">Open to load postmortems due.</span></div></details>
+</div>
+<script src="/opportunities-unified.js"></script>
+</body></html>
