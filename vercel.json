@@ -23,8 +23,10 @@
       ]
     }
   ],
+  "redirects": [
+    {"source": "/", "destination": "/opportunities", "permanent": false}
+  ],
   "rewrites": [
-    {"source": "/", "destination": "/opportunity-dashboard.html"},
     {"source": "/opportunities", "destination": "/opportunity-dashboard.html"},
     {"source": "/opportunities/", "destination": "/opportunity-dashboard.html"},
     {"source": "/events", "destination": "/index.html"},
