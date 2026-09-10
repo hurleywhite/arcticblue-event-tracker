@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "commercial_priority": {
+    "tier_1": ["thor", "verma", "jerome"],
+    "tier_2": ["carlos"],
+    "partners": ["joe", "jim", "scott"]
+  },
+  "default_bases": {
+    "thor": {"city": "New York", "country": "United States"},
+    "verma": {"city": "New York", "country": "United States"},
+    "jerome": {"city": "London", "country": "United Kingdom"}
+  },
+  "research_budget": {
+    "tier_1_pct": 75,
+    "tier_2_pct": 20,
+    "partners_pct": 5
+  },
+  "active_queue": {
+    "max_pursue": 20,
+    "max_monitor": 40,
+    "actions": [
+      "apply",
+      "organizer_outreach",
+      "attend_for_buyers",
+      "exploit_existing_trip",
+      "monitor_specific_opening"
+    ],
+    "views": [
+      "apply_now",
+      "reach_out",
+      "along_the_route",
+      "conflicts",
+      "watchlist",
+      "partner_opportunities"
+    ]
+  },
+  "logistics": {
+    "lookaround_days": 4,
+    "statuses": [
+      "already_nearby",
+      "nearby_trip",
+      "requires_new_trip",
+      "geographic_conflict",
+      "unknown"
+    ],
+    "calendar_location_overrides_default_base": true,
+    "same_city_bonus": 25,
+    "nearby_region_bonus": 12,
+    "new_trip_penalty": -5,
+    "geographic_conflict_penalty": -40
+  },
+  "scoring": {
+    "dimensions": {
+      "commercial_fit": 35,
+      "persona_fit": 25,
+      "access_actionability": 20,
+      "logistics_fit": 15,
+      "strategic_signal": 5
+    },
+    "pursue_threshold": 75,
+    "monitor_threshold": 60,
+    "high_priority_rule": "High is rare: strong regulated-industry buyer density plus a credible action path.",
+    "auto_reject": [
+      "past_event",
+      "duplicate_or_deleted",
+      "crypto_first",
+      "developer_or_infra_first_without_regulated_buyer_track",
+      "vendor_to_vendor_expo",
+      "pure_pay_to_play_without_speaking_route",
+      "off_topic_generic_ai",
+      "clinician_heavy_for_thor",
+      "hr_ld_for_thor"
+    ]
+  },
+  "discovery": {
+    "modes": [
+      "event_first",
+      "target_account_first",
+      "travel_triggered"
+    ],
+    "target_titles": [
+      "CEO",
+      "CIO",
+      "CTO",
+      "Chief AI Officer",
+      "Chief Data Officer",
+      "COO",
+      "Chief Product Officer",
+      "Head of Digital Transformation",
+      "Chief Innovation Officer"
+    ],
+    "prefer_end_user_speakers_over_vendor_speakers": true
+  },
+  "postmortem": {
+    "required_for_attended_events": true,
+    "fields": [
+      "speaking_achieved",
+      "senior_buyer_conversations",
+      "qualified_leads",
+      "follow_up_meetings",
+      "useful_partnerships",
+      "estimated_trip_cost",
+      "would_attend_again",
+      "why"
+    ]
+  }
+}
