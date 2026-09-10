@@ -3504,6 +3504,14 @@
     const iso = raw.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/);
     let y, mo, d;
     if (iso) { y=+iso[1]; mo=+iso[2]; d=+iso[3]; }
+    else if (/\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/.test(raw)) {
+      // "03/31/26". Read as US month-first, and fall back to day-first when
+      // that gives an impossible month (13/05/26). Two-digit years are 2000s.
+      const m = raw.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{2,4})\b/);
+      mo=+m[1]; d=+m[2]; y=+m[3];
+      if (mo>12 && d<=12) { const t=mo; mo=d; d=t; }
+      if (y<100) y+=2000;
+    }
     else {
       // "24th July 2026" / "16 November 2026"
       let m = raw.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,9})\.?,?\s*(\d{4})?/);

@@ -670,7 +670,16 @@ def merge_missing(row, facts, rewrite=None):
         patch['attendee_count'] = str(facts['attendee_count']).strip()[:60]
     if empty('deadline') and not _junk(facts.get('deadline')):
         dl = str(facts['deadline']).strip()[:120]
-        if _deadline_sane(dl, row.get('start_date')):
+        # `deadline` is a DATE field, so refuse prose that never names one.
+        # _junk() only matches a junk phrase at the START of the string, so
+        # "CFP deadline not publicly listed" slipped past it, and
+        # _deadline_sane() returns True when there is no date to check --
+        # between them, 25 of the 79 stored deadlines were sentences like
+        # "Not confirmed in search results" (audited 2026-09-10). The wording
+        # is still kept whenever a real date is in there: "Tickets close June
+        # 22, 2026" says which deadline it is, and the reader loses that if
+        # this is narrowed to a bare date.
+        if _parse_concrete_date(dl) and _deadline_sane(dl, row.get('start_date')):
             patch['deadline'] = dl
     # The "bigger" descriptive sections Angela wants filled (not just small facts).
     if empty('about') and not _junk(facts.get('about')):
