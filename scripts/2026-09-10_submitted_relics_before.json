@@ -1,0 +1,195 @@
+{
+ "event_state:194": {
+  "event_num": 194,
+  "name": null,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "event_state:290": {
+  "event_num": 290,
+  "name": null,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "event_state:72": {
+  "event_num": 72,
+  "name": null,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "No Openings"
+ },
+ "event_state:302": {
+  "event_num": 302,
+  "name": null,
+  "status_tags": [
+   "Submitted",
+   "Followed up",
+   "Rejected"
+  ],
+  "status": null
+ },
+ "manual_events:421": {
+  "id": 421,
+  "name": "Millennium Alliance Transformational CHRO Assembly \u2013 November 2026",
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "manual_events:67": {
+  "id": 67,
+  "name": "Enterprise AI CHRO Transformation Assembly \u2013 November",
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "event_state:186": {
+  "event_num": 186,
+  "name": null,
+  "status_tags": [
+   "Submitted",
+   "Followed up"
+  ],
+  "status": null
+ },
+ "event_state:299": {
+  "event_num": 299,
+  "name": null,
+  "status_tags": [
+   "Submitted",
+   "Followed up",
+   "Rejected"
+  ],
+  "status": null
+ },
+ "event_state:244": {
+  "event_num": 244,
+  "name": null,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "event_state:308": {
+  "event_num": 308,
+  "name": null,
+  "status_tags": [
+   "Submitted",
+   "Followed up",
+   "Rejected"
+  ],
+  "status": null
+ },
+ "event_state:44": {
+  "event_num": 44,
+  "name": null,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "event_state:192": {
+  "event_num": 192,
+  "name": null,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "manual_events:27": {
+  "id": 27,
+  "name": "Millennium Alliance Digital Enterprise CIO Transformation Assembly Europe \u2014 November 2026",
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "event_state:300": {
+  "event_num": 300,
+  "name": null,
+  "status_tags": [
+   "Submitted",
+   "Followed up",
+   "Rejected"
+  ],
+  "status": null
+ },
+ "event_state:178": {
+  "event_num": 178,
+  "name": null,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": "Submitted, Not Accepted This Yr"
+ },
+ "event_state:274": {
+  "event_num": 274,
+  "name": null,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "event_state:309": {
+  "event_num": 309,
+  "name": null,
+  "status_tags": [
+   "Submitted",
+   "Followed up",
+   "Rejected"
+  ],
+  "status": null
+ },
+ "event_state:91": {
+  "event_num": 91,
+  "name": null,
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "event_state:306": {
+  "event_num": 306,
+  "name": null,
+  "status_tags": [
+   "Submitted",
+   "Followed up",
+   "Rejected"
+  ],
+  "status": null
+ },
+ "manual_events:103": {
+  "id": 103,
+  "name": "Millennium Alliance Enterprise AI Marketing Transformation Assembly",
+  "status_tags": [
+   "Submitted"
+  ],
+  "status": null
+ },
+ "event_state:301": {
+  "event_num": 301,
+  "name": null,
+  "status_tags": [
+   "Submitted",
+   "Followed up",
+   "Rejected"
+  ],
+  "status": null
+ },
+ "event_state:307": {
+  "event_num": 307,
+  "name": null,
+  "status_tags": [
+   "Submitted",
+   "Followed up",
+   "Rejected"
+  ],
+  "status": null
+ }
+}

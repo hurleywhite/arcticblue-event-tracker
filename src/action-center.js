@@ -25,7 +25,9 @@
   function filtered() {return rows.filter(r=>(!owner || C.fold(r.owner).includes(owner)) && (!query || C.fold([r.name,r.location,r.owner,r.b.next_action,r.poc_name].join(' ')).includes(C.fold(query))));}
   function eventRow(r) {
     const action=r.b.next_action || (r.submitted?'Set the next organizer follow-up':r.wake?'Review: '+(r.b.recheck_trigger||'scheduled recheck'):'Choose an action, owner and deadline');
-    return '<article class="ac-row"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+esc(title(r.owner)||'Owner needed')+' · '+esc(r.location||'Location unknown')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+esc(r.q.label)+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?'Overdue · ':'Due ')+esc(r.due)+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions"><button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action?'Update action':'Decide')+'</button></div></article>';
+    const when=r.start?esc(r.start)+(r.end&&r.end!==r.start?'–'+esc(r.end.slice(5)):''):'';
+    const evid=r.realApplication?'Application on record'+(r.evidence.length?' ('+esc(r.evidence.join(', '))+')':''):(r.submitted==='tag-only'?'"Submitted" tag only — nothing corroborates it':r.q.label);
+    return '<article class="ac-row'+(r.derived?' ac-derived':'')+'"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+(r.derived?'<span class="ac-badge ac-auto" title="Derived from the record — open Update action to confirm or change it">auto</span>':'')+esc(title(r.owner)||'Owner needed')+' · '+esc(r.city?title(r.city):(r.location||'Location unknown'))+(when?' · '+when:'')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+evid+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?'Overdue · ':'Due ')+esc(r.due)+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions"><button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action&&!r.derived?'Update action':r.derived?'Confirm / change':'Decide')+'</button></div></article>';
   }
   function section(key,label,list) {
     const show=expanded.has(key)?list:list.slice(0,4);
@@ -37,11 +39,12 @@
     const tripMatches=(context.travel_windows||[]).filter(t=>t.end_date>=today()&&(!owner||C.fold(t.person_key).includes(owner))).map(t=>C.tripPack(t,rs,context.target_accounts||[])).filter(p=>p.nearby.length);
     const buttons=[['today','Today'],['pipeline','Applications'],['trips','Trips'],['targets','Target accounts'],['background','Background']];
     let html='<div class="ac-head"><div><h2>Action Center</h2><p class="ac-note">'+esc(today())+' · Get the next application, conversation and meeting booked.</p></div><button class="ab-btn" data-refresh>Refresh</button></div>';
-    html+='<div class="ac-toolbar">'+buttons.map(([k,v])=>'<button data-mode="'+k+'" aria-pressed="'+(mode===k)+'">'+v+'</button>').join('')+'<select aria-label="Action owner" id="ac-owner"><option value="">All owners</option>'+['thor','verma','jerome','carlos'].map(p=>'<option '+(owner===p?'selected':'')+' value="'+p+'">'+title(p)+'</option>').join('')+'</select><input type="search" id="ac-search" placeholder="Find an event or owner" aria-label="Search action center" value="'+esc(query)+'"></div>';
+    html+='<div class="ac-toolbar">'+buttons.map(([k,v])=>'<button data-mode="'+k+'" aria-pressed="'+(mode===k)+'">'+v+'</button>').join('')+'<select aria-label="Action owner" id="ac-owner"><option value="">All owners</option>'+C.PEOPLE.map(p=>'<option '+(owner===p?'selected':'')+' value="'+p+'">'+title(p)+'</option>').join('')+'</select><input type="search" id="ac-search" placeholder="Find an event or owner" aria-label="Search action center" value="'+esc(query)+'"></div>';
     if(loading)html+='<p class="ac-note" role="status">Refreshing qualification and travel…</p>';
     if(error)html+='<p class="ac-health">'+esc(error)+'</p>';
     if(!ready)html+='<p class="ac-empty">Loading live event records…</p>';
     else if(mode==='today') {
+      html+=renderHealth(rs)+renderAgenda(rs);
       html+='<div class="ac-stats">'+[['applications','Applications due in 7 days'],['contacts','Organizers to contact'],['meetings','Meetings to book'],['followups','Follow-ups due'],['decisions','Decisions needed']].map(([k,l])=>'<button class="ac-stat" data-jump="'+k+'"><strong>'+g[k].length+'</strong><span>'+l+'</span></button>').join('')+'</div>';
       html+='<p class="ac-note">'+(tripMatches.length?tripMatches.length+' recorded trips have nearby event opportunities. Open Trips to review.':(!cal?.configured?'Live calendar feeds are not connected. Open Trips to add or review recorded travel.':'No nearby event matches for recorded travel.'))+'</p>';
       html+=section('applications','Applications due soon',g.applications)+section('contacts','Organizer outreach',g.contacts)+section('meetings','Meetings to book',g.meetings)+section('followups','Follow-ups due',g.followups)+section('decisions','Decisions required',g.decisions);
@@ -57,10 +60,36 @@
     } else if(mode==='background') {
       html+='<p class="ac-note">Unqualified events, future rechecks and passes stay here until there is a concrete next action. Search this list to bring an event into the working queue.</p>';
       html+=section('background','Background universe',rs.filter(r=>!r.active&&!r.needsDecision&&!r.hidden&&!r.past));
+      const relics=rs.filter(r=>r.submitted==='tag-only'&&!r.past&&!r.hidden);
+      if(relics.length) html+=section('relics','"Submitted" tag with nothing behind it (legacy import)',relics);
     } else if(mode==='trips') html+=renderTrips(rs);
     else html+=renderTargets();
     if(ready)html+='<section class="ac-section"><h3>Booking outcomes</h3><p class="ac-note">All recorded history'+(owner?' · '+esc(title(owner)):'')+'. Applications, replies and speaking slots count events; meetings and qualified opportunities count recorded totals. Unknown outcomes are not counted.</p><div class="ac-metrics">'+[['applications','Applications sent'],['replies','Organizer replies'],['slots','Speaking slots'],['meetings','Meetings booked'],['attended','Events attended'],['opportunities','Qualified opportunities'],['trips','Trips stacked']].map(([k,l])=>'<div><strong>'+m[k]+'</strong><span>'+l+'</span></div>').join('')+'</div></section>';
     h.innerHTML=html;
+  }
+  // Pipeline health per person — applications out, accepted, rejected, deadlines
+  // inside 30 days, chases overdue. This is the line Thor asked for and never got.
+  function renderHealth(rs) {
+    const h=C.health(rs,today());
+    const people=(owner?[owner]:C.PEOPLE);
+    return '<section class="ac-section ac-health-strip"><div class="ac-section-head"><h3>Pipeline health</h3><span class="ac-note">applications are counted when there is a date, a chase, a contact or a note behind them</span></div><div class="ac-metrics">'+people.map(p=>{const x=h[p]||{};return '<div class="ac-person"><strong>'+esc(title(p))+'</strong><span>'+x.applications+' applications out</span><span>'+x.booked+' booked · '+x.attending+' attending'+(x.undated?' · '+x.undated+' undated':'')+'</span><span>'+x.rejected+' rejected (all time)</span><span'+(x.deadlines?' class="ac-warn"':'')+'>'+x.deadlines+' deadlines in 30 days</span><span'+(x.overdue?' class="ac-overdue"':'')+'>'+x.overdue+' chases overdue</span></div>';}).join('')+'</div></section>';
+  }
+  // What people are ACTUALLY going to (Booked / Attending), with hard clashes,
+  // same-city stacking and where two of them coincide. Applications are not
+  // commitments; a clash between two wishes is normal and not shown here.
+  function renderAgenda(rs) {
+    const a=C.agenda(rs,today());
+    const people=(owner?[owner]:C.PEOPLE).filter(p=>(a.people[p]||{}).list?.length);
+    const mini=r=>'<li><span>'+esc(r.start)+(r.end&&r.end!==r.start?'–'+esc(r.end.slice(5)):'')+'</span> <button class="ac-linklike" data-detail="'+esc(r._id)+'">'+esc(r.name)+'</button> <span class="ac-note">'+esc(r.city?title(r.city):(r.location||''))+' · '+esc(r.why)+'</span></li>';
+    let html='<section class="ac-section"><div class="ac-section-head"><h3>Commitments & conflicts</h3><span class="ac-note">'+(cal&&cal.configured?'Booked/attending plus live calendar locations.':'Booked and attending events only — connect calendar feeds to add travel.')+'</span></div>';
+    if(!people.length) html+='<p class="ac-empty">Nobody is booked or attending anything upcoming'+(owner?' for '+esc(title(owner)):'')+'.</p>';
+    people.forEach(p=>{const x=a.people[p];
+      html+='<div class="ac-agenda"><h4>'+esc(title(p))+' <span class="ac-badge">'+x.list.length+'</span></h4><ul>'+x.list.map(mini).join('')+'</ul>';
+      x.clashes.forEach(([e1,e2])=>html+='<p class="ac-overdue">Clash: '+esc(e1.name)+' overlaps '+esc(e2.name)+' ('+esc(e1.start)+')</p>');
+      x.stacks.forEach(([e1,e2])=>html+='<p class="ac-warn">Same trip: '+esc(e1.name)+' and '+esc(e2.name)+' are both in '+esc(title(e1.city))+' within 4 days.</p>');
+      html+='</div>';});
+    if(!owner&&a.cross.length) html+='<h4>Where two of them coincide</h4><ul>'+a.cross.map(c=>'<li>'+esc(title(c.a))+' ('+esc(c.ea.name)+') and '+esc(title(c.b))+' ('+esc(c.eb.name)+') are both in '+esc(title(c.city))+' around '+esc(c.ea.start)+'</li>').join('')+'</ul>';
+    return html+'</section>';
   }
   function renderTrips(rs) {
     let html='<p class="ac-note">Match event dates within four days of recorded travel in the same city. Check transport and calendar availability before confirming.</p>';

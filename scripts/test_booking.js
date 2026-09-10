@@ -33,6 +33,53 @@ assert.equal(C.sameCity('Munich, Germany','Munich'),true);assert.equal(C.sameCit
 const pack=C.tripPack({start_date:'2026-09-28',end_date:'2026-09-30',city:'Munich'},[qualified,normalize({location:'London, UK'})],[{name:'Buyer',city:'Munich'}]);
 assert.equal(pack.nearby.length,1);assert.equal(pack.targets.length,1);
 assert.equal(C.tripPack({start_date:'2026-11-01',end_date:'2026-11-03',city:'Munich'},[qualified],[]).nearby.length,0);
+// ── Derived actions: the Action Center must be populated from the record itself ──
+// A real application (date behind it) becomes an Outreach item with owner+due, marked derived.
+const realApp=normalize({speaker:'Thor',status_tags:['Submitted'],submitted_at:'2026-09-01'});
+assert.equal(realApp.realApplication,true);assert.equal(realApp.action,'Outreach');assert.equal(realApp.derived,true);
+assert.equal(realApp.owner,'thor');assert.equal(realApp.active,true);assert.equal(realApp.due,'2026-09-08');
+// A bare "Submitted" tag with nothing behind it is a relic: not an application, not a follow-up, not active.
+const relic=normalize({speaker:'Thor',status_tags:['Submitted']});
+assert.equal(relic.submitted,'tag-only');assert.equal(relic.realApplication,false);assert.equal(relic.active,false);
+assert.equal(C.groups([relic],now).followups.length,0);
+// A chase, a contact or a note also count as evidence.
+assert.equal(normalize({status_tags:['Submitted'],poc_email:'x@y.z'}).realApplication,true);
+assert.equal(normalize({status_tags:['Submitted'],notes:'Applied via CFP portal'}).realApplication,true);
+// Booked / attending become Attend with the event date as the due date.
+const booked=normalize({speaker:'Verma',status_tags:['Booked']});
+assert.equal(booked.action,'Attend');assert.equal(booked.due,'2026-10-01');assert.equal(booked.active,true);
+assert.equal(normalize({attendees:['jerome'],status_tags:['Attending']}).owner,'jerome');
+// A live deadline inside 45 days with a known owner becomes an Apply decision; outside 45 days it doesn't.
+assert.equal(normalize({speaker:'Thor',deadline:'2026-10-01'}).action,'Apply');
+assert.equal(normalize({speaker:'Thor',deadline:'2027-01-01'}).action,'');
+// A typed decision always beats a derived one.
+const typed=normalize({speaker:'Thor',submitted_at:'2026-09-01',booking:{action:'Pass',reason:'Not our audience'}});
+assert.equal(typed.action,'Pass');assert.equal(typed.derived,false);
+// Rejected -> Pass, never active.
+assert.equal(normalize({status_tags:['Rejected','Submitted'],submitted_at:'2026-08-01'}).action,'Pass');
+// ── cityOf: venue-first locations resolve to a city; a bare venue does not ──
+assert.equal(C.cityOf({location:'Hynes Convention Center, Boston, MA'}),'boston');
+assert.equal(C.cityOf({location:'Cape Town International Convention Centre, Cape Town, South Africa'}),'cape town');
+assert.equal(C.cityOf({location:'New York City, NY'}),'new york');
+assert.equal(C.cityOf({location:'Washington, DC'}),'washington');
+assert.equal(C.cityOf({location:'22 Bishopsgate'}),'');
+assert.equal(C.cityOf({location:'Online'}),'');
+assert.equal(C.cityOf({city:'München'}),'munich');
+assert.equal(C.sameCity('Olympia London, London, UK','London'),true);
+// ── agenda: commitments only, clashes and stacking ──
+const A=normalize({name:'A',speaker:'Thor',status_tags:['Booked'],start_date:'2026-10-01',end_date:'2026-10-02',location:'Munich, Germany'});
+const B=normalize({name:'B',attendees:['thor'],status_tags:['Attending'],start_date:'2026-10-02',end_date:'2026-10-03',location:'London, UK'});
+const Cc=normalize({name:'C',attendees:['thor'],status_tags:['Attending'],start_date:'2026-10-05',end_date:'2026-10-05',location:'Munich, Germany'});
+const W=normalize({name:'W',speaker:'Thor',status_tags:['Submitted'],submitted_at:'2026-09-01',start_date:'2026-10-01',location:'Paris, France'});
+const V=normalize({name:'V',attendees:['verma'],status_tags:['Attending'],start_date:'2026-10-03',end_date:'2026-10-03',location:'Munich, Germany'});
+const ag=C.agenda([A,B,Cc,W,V],now);
+assert.equal(ag.people.thor.list.length,3);            // W is a wish, not a commitment
+assert.equal(ag.people.thor.clashes.length,1);          // A overlaps B
+assert.equal(ag.people.thor.stacks.length,1);           // A and C both Munich within 4 days
+assert.equal(ag.cross.length,2);assert.ok(ag.cross.every(c=>c.city==='munich'));  // Verma's Munich day sits within 4 days of BOTH of Thor's Munich events
+// ── health ──
+const hl=C.health([realApp,relic,booked,W,normalize({speaker:'Thor',status_tags:['Rejected'],submitted_at:'2026-08-01'})],now);
+assert.equal(hl.thor.applications,2);assert.equal(hl.thor.rejected,1);assert.equal(hl.verma.booked,1);
 // Parse every executable script emitted by the Python f-string generator.
 const html=fs.readFileSync('public/index.html','utf8');let count=0;
 for(const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)){if(/application\/json|src=/.test(match[1]))continue;new vm.Script(match[2]);count++;}
