@@ -27,8 +27,8 @@
     {"source": "/", "destination": "/opportunities", "permanent": false}
   ],
   "rewrites": [
-    {"source": "/opportunities", "destination": "/opportunity-dashboard.html"},
-    {"source": "/opportunities/", "destination": "/opportunity-dashboard.html"},
+    {"source": "/opportunities", "destination": "/opportunities-v2.html"},
+    {"source": "/opportunities/", "destination": "/opportunities-v2.html"},
     {"source": "/events", "destination": "/index.html"},
     {"source": "/events/", "destination": "/index.html"},
     {"source": "/angela", "destination": "/index.html"},
