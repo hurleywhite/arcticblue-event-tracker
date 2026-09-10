@@ -13,7 +13,7 @@ It's **one app** — everyone can read it; signing in unlocks editing.
 
 - **Anyone (no login)** — the whole tracker is public and read-only. Browse every tracked event across four views — **My Events · All Events · Calendar · Map** — with a stats bar (Upcoming · My Interests · Pending · Booked · Team Interests · Attending) and filters (keyword search · **Pipeline · Region · Fits · Months**). **Click any card** to open its full detail pop-up. Cards show date, location, type, a **priority** read (High / Medium / Low), pipeline **stage** (Submitted = blue, Booked = green, …), an **Apply to speak** link, and verified event URLs only (no invented URLs — see AGENT-CONTEXT.md Rule 2). An **Ask Anything** AI box ranks and answers questions over the current events.
 
-- **ArcticBlue editors (magic-link sign-in)** — editing is gated to team emails on the `allowed_editors` allow-list (managed in Supabase). RLS on `event_state` and `manual_events` blocks any other authenticated user even if they bypass the UI. Pick who you are ("Viewing as …") and you can:
+- **Anyone with the URL can edit — there is no sign-in gate.** `scripts/2026-06_open_collaboration.sql` (June 2026) deliberately replaced the email-gated write policies with open ones so the team could collaborate without logging in. `allowed_editors` still exists and is still read, but **it no longer gates writes to `event_state` or `manual_events`** — removing someone from it does not revoke their editing ability. Verified against prod 2026-09-10. "Viewing as …" is attribution, not authentication. Pick who you are and you can:
   - **★ Star events you're interested in** — feeds the per-person **My Events** view and the My / Team Interests stats
   - **Set pipeline stage, speaker, priority, notes and links** from a card's detail pop-up → **Edit**
   - **Archive** events you're setting aside (from the pop-up; the card then shows an "Archived" label)
@@ -112,7 +112,7 @@ To add one manually:
 
 - **Build:** Python 3.11 + stdlib (`urllib`, `json`, `re`, `datetime`). No third-party deps required at build time (the lazy `python-docx` import is only used as a fallback when `events.json` is missing).
 - **Frontend:** Single self-contained HTML file with inline CSS + JS. No bundler, no framework, no React. Page must still work when opened with `file:///` (auth tab won't, but the public read-only view will).
-- **Auth + data:** Supabase (Postgres + Auth + Realtime). Magic-link sign-in; RLS gates writes on `auth.email() in allowed_editors`.
+- **Auth + data:** Supabase (Postgres + Auth + Realtime). Magic-link sign-in exists, but RLS does **not** gate writes — `event_state`, `manual_events`, `team_profiles`, `event_chat` and `deleted_events` all accept anonymous writes from the publishable key. Treat the site URL as the only secret.
 - **Hosting:** Vercel — auto-deploys on push to `main`. `public/` is the deploy root.
 - **Fonts:** Hanken Grotesk + Fragment Mono from Google Fonts. No other third-party CDNs except the Supabase JS client.
 
@@ -122,8 +122,8 @@ To add one manually:
 
 `supabase/migrations/0001_init.sql` defines three tables:
 
-- `allowed_editors (email PK, added_by, created_at)` — whitelist of editor emails. Public read; not writable from the client (admin via SQL Editor only).
-- `event_state (event_num PK, status, speaker, priority_override, track, saved, hidden, urgent, notes, updated_by, updated_at)` — ops mutations per event, keyed on the integer `num` from `events.json`. Public read; writes gated to `auth.email() in allowed_editors` by RLS.
+- `allowed_editors (email PK, added_by, created_at)` — legacy editor allow-list. Public read; not writable from the client (admin via SQL Editor only). **Vestigial for write access since the June 2026 open-collaboration migration** — kept for the record and for a future re-lock, but it currently gates nothing.
+- `event_state (event_num PK, status, speaker, priority_override, track, saved, hidden, urgent, notes, updated_by, updated_at, org_group, type)` — ops mutations per event, keyed on the integer `num` from `events.json`. Public read **and public write** (policy `es_open_all`).
 - `manual_events (id bigserial PK, name, date_str, start_date, end_date, location, region, type, priority, why, url, created_by, created_at)` — events added through the For Angela tab's "+ Add event" form. Same RLS rules.
 
 Realtime publication is enabled on both `event_state` and `manual_events` so the For Angela tab updates live across tabs / users.

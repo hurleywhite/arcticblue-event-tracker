@@ -15072,7 +15072,15 @@ def build():
     // fields just stay blank until the migration runs).
     // Internal/audit columns: strip SILENTLY on a missing-column error (they
     // aren't user-entered data, so don't warn that they "weren't saved").
-    var SILENT_STRIP_COLS = ['updated_by', 'updated_at'];
+    //
+    // EMPTY SINCE 2026-09-10. This held ['updated_by','updated_at'], which is
+    // why manual_events lost its edit trail for six weeks without one visible
+    // symptom: the column was missing, the write was stripped, and the silence
+    // was deliberate. Both columns exist on both tables now, so a strip here
+    // would mean something is genuinely wrong -- let it warn.
+    // Only add a column back if it is truly optional AND its absence is
+    // something nobody would ever need to see.
+    var SILENT_STRIP_COLS = [];
     function missingColFromErr(err) {{
       // The column name Postgres/PostgREST reports as missing, for either:
       //   PGRST204  "Could not find the 'updated_by' column of 'manual_events' in the schema cache"
@@ -17429,9 +17437,8 @@ def build():
         // recorded only created_at / created_by, so once a row existed there
         // was no record it had ever changed — and "In the last week" had
         // nothing to date a manual-event edit from, which is why those edits
-        // never surfaced. Until scripts/2026-07-31_manual_events_updated_at.sql
-        // runs, sbWriteRetry strips both columns silently (SILENT_STRIP_COLS)
-        // and the save behaves exactly as it did before.
+        // never surfaced. The migration landed 2026-09-10, so these now
+        // persist; a missing-column error here is a real fault and warns.
         patch.updated_by = who;
         patch.updated_at = new Date().toISOString();
         run = sbWriteRetry(patch, function (p) {{ return sb.from('manual_events').update(p).eq('id', key); }});
