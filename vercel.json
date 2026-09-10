@@ -8,6 +8,7 @@
     "api/enrich.py": {"maxDuration": 120},
     "api/calendars.py": {"maxDuration": 60},
     "api/opportunities.py": {"maxDuration": 60},
+    "api/postmortems.py": {"maxDuration": 60},
     "api/briefing.py": {"maxDuration": 300, "includeFiles": "config/personas.json"}
   },
   "crons": [
@@ -23,9 +24,9 @@
     }
   ],
   "rewrites": [
-    {"source": "/", "destination": "/opportunities.html"},
-    {"source": "/opportunities", "destination": "/opportunities.html"},
-    {"source": "/opportunities/", "destination": "/opportunities.html"},
+    {"source": "/", "destination": "/opportunity-dashboard.html"},
+    {"source": "/opportunities", "destination": "/opportunity-dashboard.html"},
+    {"source": "/opportunities/", "destination": "/opportunity-dashboard.html"},
     {"source": "/events", "destination": "/index.html"},
     {"source": "/events/", "destination": "/index.html"},
     {"source": "/angela", "destination": "/index.html"},
