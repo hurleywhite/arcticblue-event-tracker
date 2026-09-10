@@ -204,6 +204,7 @@ def _get_payload(editor_email):
         'people': people,
         'legacy': legacy,
         'travel_windows': travel,
+        'target_accounts': _select('target_accounts', 'select=*&active=eq.true&order=priority.asc,name.asc&limit=500') if editor_email else [],
         'defaults': {'thor': 'New York', 'verma': 'New York', 'jerome': 'London'},
     }
 
@@ -212,8 +213,10 @@ def _clean_date(value):
     value = str(value or '').strip()
     if not value:
         return None
-    if len(value) == 10 and value[4] == '-' and value[7] == '-':
-        return value
+    try:
+        return __import__('datetime').date.fromisoformat(value).isoformat()
+    except ValueError:
+        pass
     raise ValueError('date must be YYYY-MM-DD')
 
 
@@ -226,6 +229,28 @@ def _post(handler, editor_email, body):
     if not editor_email:
         return 403, {'error': 'editor authorization required'}
     action = str(body.get('action') or '').strip()
+
+    if action == 'save_target_account':
+        name = str(body.get('name') or '').strip()[:250]
+        if not name:
+            raise ValueError('company name required')
+        payload = {'name': name, 'active': True}
+        for key in ('industry', 'city', 'owner_person', 'executive_roles'):
+            payload[key] = str(body.get(key) or '').strip()[:500] or None
+        if body.get('id'):
+            return 200, {'ok': True, 'rows': _patch('target_accounts', int(body['id']), payload)}
+        return 200, {'ok': True, 'rows': _insert('target_accounts', payload, resolution='')}
+
+    if action == 'add_travel_window':
+        person = str(body.get('person_key') or '').lower()
+        city = str(body.get('city') or '').strip()[:250]
+        source = str(body.get('source') or '').strip()[:500]
+        start, end = _clean_date(body.get('start_date')), _clean_date(body.get('end_date'))
+        if person not in ('thor', 'verma', 'jerome', 'carlos') or not city or not source or not start or not end or end < start:
+            raise ValueError('person, city, source and a valid date range are required')
+        payload = {'person_key': person, 'city': city, 'start_date': start, 'end_date': end,
+                   'source': source, 'confidence': 'confirmed'}
+        return 200, {'ok': True, 'rows': _insert('travel_windows', payload, resolution='')}
 
     if action == 'update_opportunity':
         row_id = int(body.get('id'))

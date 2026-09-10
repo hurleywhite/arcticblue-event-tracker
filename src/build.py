@@ -3834,7 +3834,8 @@ def build():
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
-          <button type="button" role="tab" data-view="myevents" class="active" aria-selected="true">Lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
+          <button type="button" role="tab" data-view="action" class="active" aria-selected="true">Action Center</button>
+          <button type="button" role="tab" data-view="myevents" aria-selected="false">Lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
           <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Events</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
@@ -3947,6 +3948,7 @@ def build():
         </div>
         <div class="ops-myevents" id="ops-myevents"></div>
         <div class="ops-myprofile" id="ops-myprofile"></div>
+        <section id="ops-action" hidden aria-label="Action Center"></section>
         <div class="ops-queue" id="ops-queue"></div>
         <div class="ops-planner" id="ops-planner"></div>
         <div class="ops-dayof" id="ops-dayof"></div>
@@ -14688,6 +14690,19 @@ def build():
         // Cache for the Queue + Planner views; refresh whichever is active plus
         // the tab-count badges (so flagging / conflicts update live).
         _lastEvs = evs; _lastStateMap = stateMap; _lastStateRows = stateRows; _lastManual = manualRows;
+        var bookingDuplicates = new Set();
+        $opsGrid.querySelectorAll('.ops-card[data-dup-hidden="1"]').forEach(function(card) {{
+          bookingDuplicates.add(card.dataset.manualId ? 'm'+card.dataset.manualId : 'e'+card.dataset.eventNum);
+        }});
+        if (window.ActionCenter) window.ActionCenter.update(
+          allEvs.map(function(ev) {{
+            var merged = Object.assign({{}}, ev), overlay = stateMap[ev.num] || {{}};
+            Object.keys(overlay).forEach(function(k) {{ if (overlay[k] != null && overlay[k] !== '') merged[k] = overlay[k] === '__cleared__' ? '' : overlay[k]; }});
+            return Object.assign(merged, {{_table:'event_state', _key:ev.num, _id:'e'+ev.num}});
+          }})
+          .concat(manualRows.map(function(m) {{ return Object.assign({{}}, m, {{_table:'manual_events', _key:m.id, _id:'m'+m.id}}); }})).filter(function(r) {{ return !bookingDuplicates.has(r._id); }})
+        );
+
         opsInvalidateItems();   // new data — the memo must not survive it
         // Diff this load against the last one BEFORE anything renders, so
         // "In the last week" can say what actually changed.
@@ -15478,7 +15493,7 @@ def build():
     // so returning to it lands you back where you were.
     var _lastEventsSub = 'grid';
 
-    var VIEW_NAMES = ['myevents', 'myprofile', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];   // 'planahead' merged into 'myevents'
+    var VIEW_NAMES = ['action', 'myevents', 'myprofile', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];   // 'planahead' merged into 'myevents'
     function setView(name) {{
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
       // The Day-Of brief now lives inside My Events — no standalone tab.
@@ -15491,6 +15506,9 @@ def build():
       if ((name === 'planner' || name === 'queue') &&
           window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
       currentView = name;
+      var actionHost = document.getElementById('ops-action');
+      if (actionHost) actionHost.hidden = name !== 'action';
+      if (name === 'action' && window.ActionCenter) window.ActionCenter.show();
       var isEventsView = (name === 'grid' || name === 'calendar' || name === 'map');
       if (isEventsView) _lastEventsSub = name;
       document.querySelectorAll('.view-toggle button[data-view]').forEach(function (b) {{
@@ -15556,6 +15574,7 @@ def build():
       try {{ localStorage.setItem(VIEW_KEY, name); }} catch (e) {{}}
     }}
 
+    window.abBookingView = setView;
     function wireViewToggle() {{
       document.querySelectorAll('.view-toggle button[data-view]').forEach(function (b) {{
         // Clone-replace to avoid duplicate listeners on re-route
@@ -15575,15 +15594,10 @@ def build():
         b.dataset.wired = '1';
         b.addEventListener('click', function () {{ setView(b.dataset.view); }});
       }});
-      // A refresh keeps you on the view you were last on (Calendar / All Events
-      // / Map / My Events). Only a FIRST-time visitor with no saved view lands
-      // on My Events (if named) or the grid (if not).
-      try {{
-        var saved = localStorage.getItem(VIEW_KEY);
-        if (VIEW_NAMES.indexOf(saved) !== -1) setView(saved);
-        else if (getCollabName()) setView('myevents');
-        else setView('grid');
-      }} catch (e) {{ setView(getCollabName() ? 'myevents' : 'grid'); }}
+      // The working homepage always opens Action Center; explicit view links
+      // can still open the original calendar or other tracker views.
+      var requested = new URLSearchParams(window.location.search).get('view');
+      setView(VIEW_NAMES.indexOf(requested) !== -1 ? requested : 'action');
     }}
 
     // ── Map view ─────────────────────────────────────────────────────
@@ -18040,6 +18054,9 @@ def build():
     # Public catalog sections (today/upcoming/archive) were retired with the
     # Public view — the Event Tracker is now the sole, fully client-rendered view.
     html = head + foot
+    html = html.replace('</style>', (HERE / 'src/action-center.css').read_text() + '\n</style>', 1)
+    booking_scripts = '<script>\n' + (HERE / 'src/booking-core.js').read_text() + '\n' + (HERE / 'src/action-center.js').read_text() + '\n</script>\n'
+    html = html.replace('<script type="application/json" id="catalog-data">', booking_scripts + '<script type="application/json" id="catalog-data">', 1)
     OUT_SHIP.parent.mkdir(parents=True, exist_ok=True)
     OUT_SHIP.write_text(html, encoding='utf-8')
     print(f'WROTE {OUT_SHIP}  ({len(html):,} bytes)')

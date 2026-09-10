@@ -24,11 +24,11 @@
     }
   ],
   "redirects": [
-    {"source": "/", "destination": "/opportunities", "permanent": false},
+    {"source": "/", "destination": "/events", "permanent": false},
     {"source": "/opportunities/calendar", "destination": "/opportunities?view=calendar", "permanent": false},
     {"source": "/opportunities/calendar/", "destination": "/opportunities?view=calendar", "permanent": false},
-    {"source": "/calendar", "destination": "/opportunities?view=calendar", "permanent": false},
-    {"source": "/calendar/", "destination": "/opportunities?view=calendar", "permanent": false}
+    {"source": "/calendar", "destination": "/events?view=calendar", "permanent": false},
+    {"source": "/calendar/", "destination": "/events?view=calendar", "permanent": false}
   ],
   "rewrites": [
     {"source": "/opportunities", "destination": "/opportunities-unified.html"},

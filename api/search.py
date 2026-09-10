@@ -487,6 +487,24 @@ class handler(BaseHTTPRequestHandler):
         ask = min(max(count * 3, 12), 18)
         prompt = _build_prompt(ask, types, quarters, regions, tracked, recurring,
                                location, date_from, date_to, exclude)
+        targets = body.get('target_accounts') or []
+        if isinstance(targets, list):
+            targets = [{'name': str(t.get('name') or '')[:250], 'roles': str(t.get('roles') or '')[:500]}
+                       for t in targets[:100] if isinstance(t, dict) and t.get('name')]
+        else:
+            targets = []
+        if targets:
+            prompt += ('\nTARGET-ACCOUNT DISCOVERY: Research where executives of these companies are speaking, '
+                       'serving on advisory boards, or publicly announcing attendance: ' + json.dumps(targets) +
+                       '\nPrioritize CIO, CAIO, CTO, COO, CDO, CPO, digital transformation and innovation leaders. '
+                       'Explain the public evidence and link to it in reasoning. Speakers do not prove who else attends. '
+                       'Do not invent attendees, private guest lists, executive roles or email addresses. Treat '
+                       'organizer audience claims as claims. Target-company presence must be tied to this edition.')
+        prompt += ('\nQUALIFICATION: Prefer concentrated senior end-user buyer rooms and earned speaking routes. '
+                   'Exclude generic vendor-heavy AI expos, sponsorship-only CAIO summits and broad governance forums '
+                   'without clear commercial buyers. Rank buyer quality ahead of geographic convenience. '
+                   'Find an application route and deadline when public; otherwise state what remains unknown. '
+                   'Never label inferred audience members as confirmed or verified attendees.')
         engine = 'perplexity' if PPLX_API_KEY else 'dust'
         if engine == 'perplexity':
             try:
