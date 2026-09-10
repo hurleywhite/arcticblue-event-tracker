@@ -1390,7 +1390,20 @@ class handler(BaseHTTPRequestHandler):
         st, data = _http_json('GET', 'https://%s/events.json' % host, timeout=20)
         st2, states = _http_json('GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,attendees,speaker,speaker_topic,status_tags,briefing_generated_at,briefing_json,targets_json,targets_generated_at',
                                  headers=_sb_headers(service=True))
-        smap = {r.get('event_num'): r for r in states if isinstance(r, dict)} if isinstance(states, list) else {}
+        # SAY SO when this query fails instead of quietly doing nothing.
+        # targets_json/targets_generated_at were missing in prod from 2026-06-21
+        # to 2026-09-10, so this select 400'd ("column ... does not exist"),
+        # states came back as an error dict, smap fell through to {}, and every
+        # event then failed `resolve_attendees({})` and hit `continue`. The cron
+        # reported a clean run with done=[] every night for ~11 weeks: no brief
+        # was ever generated, no target ever pre-cached, and nothing looked
+        # wrong. One missing column silently disabled the whole nightly job.
+        if not isinstance(states, list):
+            errors.append({'num': 'event_state', 'err':
+                           'state query failed (%s) — no catalog event can be '
+                           'processed this run: %s' % (st2, str(states)[:160])})
+            states = []
+        smap = {r.get('event_num'): r for r in states if isinstance(r, dict)}
         for e in (data.get('events') or []) if isinstance(data, dict) else []:
             s = smap.get(e.get('num'), {})
             lo, hi = e.get('start_date'), e.get('end_date') or e.get('start_date')
