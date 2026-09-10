@@ -29,6 +29,10 @@
   "rewrites": [
     {"source": "/opportunities", "destination": "/opportunities-v2.html"},
     {"source": "/opportunities/", "destination": "/opportunities-v2.html"},
+    {"source": "/opportunities/calendar", "destination": "/opportunity-calendar.html"},
+    {"source": "/opportunities/calendar/", "destination": "/opportunity-calendar.html"},
+    {"source": "/calendar", "destination": "/opportunity-calendar.html"},
+    {"source": "/calendar/", "destination": "/opportunity-calendar.html"},
     {"source": "/events", "destination": "/index.html"},
     {"source": "/events/", "destination": "/index.html"},
     {"source": "/angela", "destination": "/index.html"},
