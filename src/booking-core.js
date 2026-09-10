@@ -18,6 +18,52 @@
   const plus = (d,n) => new Date(Date.parse(d+'T12:00:00Z')+n*86400000).toISOString().slice(0,10);
   const diff = (a,b) => Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/86400000);
   const safeUrl = s => { try { const u=new URL(s); return ['http:','https:'].includes(u.protocol) ? u.href : ''; } catch(e) { return ''; } };
+
+  // ── Free-text deadlines ─────────────────────────────────────────────
+  // `deadline` is typed by hand and written by enrichment, so it arrives as
+  // "1 September 2026", "October 3rd (draft presentation submission)", "Oct 6"
+  // — and as prose that is not a date at all ("CFP deadline not publicly
+  // listed"). day() is deliberately strict, so on 2026-09-10 only 5 of 78
+  // stored deadlines parsed and the Apply lane could never fire. This recovers
+  // the real ones and refuses the rest.
+  const MONTHS = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  // Prose that merely MENTIONS a month must not become a deadline.
+  const NOT_A_DATE = /\b(not\s+(confirmed|stated|listed|specified|found|verifiable|explicitly|publicly)|no\s+deadline|unknown|tbd|tbc|rolling|now\s+open|closing\s+in|contact\s+\S+@)/i;
+  function parseDate(text, ref) {
+    const raw = String(text || '').trim();
+    if (!raw) return '';
+    if (day(raw)) return raw;                       // already YYYY-MM-DD
+    if (NOT_A_DATE.test(raw)) return '';
+    const iso = raw.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/);
+    let y, mo, d;
+    if (iso) { y=+iso[1]; mo=+iso[2]; d=+iso[3]; }
+    else {
+      // "24th July 2026" / "16 November 2026"
+      let m = raw.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,9})\.?,?\s*(\d{4})?/);
+      if (m && MONTHS[m[2].slice(0,3).toLowerCase()]) { d=+m[1]; mo=MONTHS[m[2].slice(0,3).toLowerCase()]; y=m[3]?+m[3]:0; }
+      else {
+        // "July 29, 2026" / "October 3rd" / "Oct 6"
+        m = raw.match(/\b([A-Za-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})?/);
+        if (!m || !MONTHS[m[1].slice(0,3).toLowerCase()]) return '';
+        mo=MONTHS[m[1].slice(0,3).toLowerCase()]; d=+m[2]; y=m[3]?+m[3]:0;
+      }
+    }
+    if (!(mo>=1&&mo<=12&&d>=1&&d<=31)) return '';
+    // No year written down: take it from the event, then step back a year if
+    // that would put the deadline AFTER the event — a CFP closes beforehand.
+    if (!y) {
+      const base = day(ref) || '';
+      y = base ? +base.slice(0,4) : new Date().getUTCFullYear();
+      const guess = fmt(y,mo,d);
+      if (base && guess > base) y -= 1;
+    }
+    const out = fmt(y,mo,d);
+    return day(out) ? out : '';
+  }
+  const fmt = (y,m,d) => String(y).padStart(4,'0')+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  // The deadline the engine should act on: a strict date if one is stored,
+  // otherwise whatever can be recovered from the free text.
+  const deadlineOf = r => day(r && r.deadline) || parseDate(r && r.deadline, r && r.start_date);
   const first = s => fold(s).split(/[\s,]+/)[0] || '';
   const weight = {end_user_speakers:20,audience_breakdown:30,advisory_board:10,prior_attendees:15,sponsors:5,public_attendance:20,company_event_page:20,organizer_claim:10};
 
@@ -91,7 +137,7 @@
     const completed=!!b.completed_at;
     const start=day(r.start_date), end=day(r.end_date)||start;
     const past=!!(end && end<today);
-    const deadline=day(r.deadline);
+    const deadline=deadlineOf(r);
     const owner=fold(b.owner) || (op && fold(op.owner_person)) || first(r.speaker) || first((r.attendees || [])[0]) || first((r.outreach_assignees || [])[0]) || '';
     const sleeping=!!b.recheck_on && b.recheck_on>today;
     const wake=!!day(b.recheck_on) && b.recheck_on<=today;
@@ -108,7 +154,14 @@
       else if (booked) { action='Attend'; derived=true; due=due||start; next=next||'Confirm logistics, prep the talk, book buyer meetings around it'; reason=reason||'Speaking slot booked'; }
       else if (attending) { action='Attend'; derived=true; due=due||start; next=next||'Confirm travel and book buyer meetings around it'; reason=reason||'Marked attending'; }
       else if (realApplication) { action='Outreach'; derived=true; due=due||followup||plus(today,7); next=next||(b.organizer_reply_at?'Organiser replied — get to a decision':'Chase the organiser for a decision'); reason=reason||('Application on record ('+evidence.join(', ')+')'); }
-      else if (deadline && deadline>=today && diff(today,deadline)<=45 && owner && PEOPLE.includes(owner)) { action='Apply'; derived=true; due=due||deadline; next=next||'Decide whether to apply — deadline '+deadline; reason=reason||'Deadline inside 45 days'; }
+      // No owner requirement. It used to need `owner && PEOPLE.includes(owner)`,
+      // which meant a live deadline on an unassigned event produced NO action at
+      // all -- 12 of the 14 real deadlines on 2026-09-10 were invisible for
+      // exactly this reason, which is backwards: nobody owning an event that
+      // closes in three weeks is the thing you most need to see. Unowned rows
+      // fail the `active` test below and surface under "Decisions required",
+      // so they land in an existing section rather than adding a new one.
+      else if (deadline && deadline>=today && diff(today,deadline)<=45) { action='Apply'; derived=true; due=due||deadline; next=next||((owner?'Decide whether to apply':'Assign an owner, then decide whether to apply')+' — deadline '+deadline); reason=reason||'Deadline inside 45 days'; }
     }
     const active=!!action && action!=='Pass' && !!owner && !!next && !!due && !!reason && !sleeping && !past && !r.hidden && !completed;
     const working=!r.hidden && !past && !sleeping && action!=='Pass' && !completed;
@@ -126,12 +179,17 @@
 
   function groups(rows,today) {
     const active=rows.filter(r=>r.active), soon=plus(today,7);
+    // Every list is sorted worst-first. The UI caps each section at four rows
+    // behind a "Show all", so the ORDER decides what anyone actually sees --
+    // unsorted, the four visible follow-ups were arbitrary while one of them
+    // was 94 days late. Oldest due date first == most overdue first.
+    const byDue=k=>(a,b)=>String(a[k]||'9999').localeCompare(String(b[k]||'9999'));
     return {
-      applications:active.filter(r=>r.action==='Apply' && !r.realApplication && r.due<=soon),
-      contacts:active.filter(r=>r.action==='Outreach' && !(r.followup && r.followup<=today)),
-      meetings:active.filter(r=>r.action==='Book Meetings'),
-      followups:rows.filter(r=>!r.hidden && !r.past && !r.sleeping && !r.completed && r.action!=='Pass' && r.realApplication && r.followup && r.followup<=today && !r.booked && !r.attending),
-      decisions:rows.filter(r=>r.needsDecision)
+      applications:active.filter(r=>r.action==='Apply' && !r.realApplication && r.due<=soon).sort(byDue('due')),
+      contacts:active.filter(r=>r.action==='Outreach' && !(r.followup && r.followup<=today)).sort(byDue('due')),
+      meetings:active.filter(r=>r.action==='Book Meetings').sort(byDue('due')),
+      followups:rows.filter(r=>!r.hidden && !r.past && !r.sleeping && !r.completed && r.action!=='Pass' && r.realApplication && r.followup && r.followup<=today && !r.booked && !r.attending).sort(byDue('followup')),
+      decisions:rows.filter(r=>r.needsDecision).sort(byDue('due'))
     };
   }
 
@@ -208,7 +266,7 @@
     const targets=accounts.filter(a=>cityOf({city:a.city})===tc && !!tc);
     return {trip,nearby,targets,lo,hi};
   }
-  const api={STATES,PEOPLE,fold,day,plus,diff,safeUrl,cityOf,sameCity,qualify,applicationEvidence,normalize,groups,agenda,health,metrics,tripPack};
+  const api={STATES,PEOPLE,fold,day,plus,diff,safeUrl,parseDate,deadlineOf,cityOf,sameCity,qualify,applicationEvidence,normalize,groups,agenda,health,metrics,tripPack};
   if(typeof module!=='undefined') module.exports=api;
   else root.BookingCore=api;
 })(typeof window!=='undefined'?window:this);
