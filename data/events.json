@@ -1200,7 +1200,9 @@
    "speaking_route": "Exhibitor/sponsor route: gartner.com/en/conferences/emea/hr-symposium-uk/exhibitors. Contact: GlobalConferences@gartner.com",
    "contact_info": "GlobalConferences@gartner.com",
    "pay_to_play": "Yes",
-   "focus_areas": "Human-AI collaboration and workforce transformation (Europe); CHRO priorities for AI-enabled HR strategy and workforce redesign; Skills-based organization and AI workforce readiness; People analytics and AI-driven talent management; EU employment law considerations for responsible AI in the workforce"
+   "focus_areas": "Human-AI collaboration and workforce transformation (Europe); CHRO priorities for AI-enabled HR strategy and workforce redesign; Skills-based organization and AI workforce readiness; People analytics and AI-driven talent management; EU employment law considerations for responsible AI in the workforce",
+   "pricing": "USD 4,094",
+   "past_speakers": "Alain Proietti, Siemens Energy"
   },
   {
    "num": 41,
@@ -1881,7 +1883,11 @@
    "country": "USA",
    "workflow_status": "Attending",
    "external_id": "5de45fbb-e28e-4b67-ace6-3cd2384adc48",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Pricing is published on the official pricing page, but the exact pass price was not exposed in the search results provided[11]",
+   "meeting_formats": "Session catalog includes workshops, labs, chalk talks, builder sessions, and a large expo; the official results also mention session content across venues, but no specific hosted 1:1 meeting program was verified from the provided results[2][14]",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "5,000+"
   },
   {
    "num": 49,
@@ -2152,7 +2158,11 @@
    "external_id": "977c2145-fa3a-488d-b140-f34f0eb2c7d3",
    "source": "arcticscout",
    "start_date": "2026-04-27",
-   "end_date": "2026-04-28"
+   "end_date": "2026-04-28",
+   "pricing": "Super Earlybird Rate: $3,399; Standard Rate: $3,999; additional late-rate pricing is listed on the registration page but not fully visible in the search results",
+   "past_speakers": "Fiona Tan, Wayfair; Jim Swanson, Johnson & Johnson; Sandeep Dave, CBRE; Hans Brown, BNY Mellon; Sarah Hatchett, Cleveland Clinic",
+   "meeting_formats": "Interactive sessions and networking opportunities are explicitly mentioned; no confirmed hosted 1:1 meeting program or attendee app for pre-booking meetings was visible in the results",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 102,
@@ -3463,7 +3473,13 @@
    "external_id": "3ddada38-1268-4253-92d0-b7732507b2de",
    "source": "arcticscout",
    "start_date": "2026-04-28",
-   "end_date": "2026-04-30"
+   "end_date": "2026-04-30",
+   "pricing": "$1,630 standard pricing after February 15, 2026; members save 10% with code 0JXAMY8SXYES; public sector (GOV) and nonprofits save $100 with code 4ZBT2J0CWN90",
+   "pay_to_play": "Yes",
+   "meeting_formats": "integrated networking, strategic roundtables, hands-on workshops, networking cohorts, attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "400 total participants; 300+ qualified decision-makers",
+   "deadline": "September 26, 2025"
   },
   {
    "num": 151,
@@ -3548,7 +3564,9 @@
    "source": "arcticscout",
    "start_date": "2026-06-23",
    "end_date": "2026-06-24",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "pricing": "Full Price: £2,295",
+   "attendee_count": "250+"
   },
   {
    "num": 154,
@@ -7150,7 +7168,9 @@
    "venue": "Gold Coast Convention and Exhibition Centre",
    "meeting_formats": "Private analyst meetings; Gartner Xpo exhibitor area; conference sessions",
    "audience_type": "Buyer-rich",
-   "attendee_count": "5,000+"
+   "attendee_count": "5,000+",
+   "pricing": "A public attendee price of 5,375 AUD is listed; no separate buyer/vendor tier pricing was verified",
+   "past_speakers": "Sally Parker, Sr Director Analyst, Gartner; Neil Osmond, Distinguished VP Analyst, Gartner; Neha Kumar, Sr Director Analyst, Gartner; Richard Addiscott, VP Analyst, Gartner"
   },
   {
    "num": 282,
