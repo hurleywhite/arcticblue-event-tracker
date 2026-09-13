@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-12T00:00:00Z",
-  "build_date": "2026-09-12",
+  "generated_at": "2026-09-13T00:00:00Z",
+  "build_date": "2026-09-13",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -963,6 +963,7 @@
       "focus_areas": "Agentic AI; Physical AI (robots, edge, embodied intelligence); Sovereign AI (national infrastructure & data sovereignty); Core AI infrastructure; Security & governance; Developer tools & orchestration; Foundation models & multimodal AI; Data pipelines & vector databases; Observability, testing, and deployability; Workforce augmentation & enterprise automation",
       "typical_attendees": "Builders, AI engineers and researchers, enterprise technology leaders, product and engineering executives",
       "speaking_route": "Sponsorship Speaking only:\nEarned speaking spots are available to practitioner executives only (e.g. hospitals, banks, retailers, etc.). \nThose with an AI or tech-related product/service must apply to speak via our sponsorship request form. Thanks for your understanding.",
+      "deadline": "Call for speakers applications are open; no deadline published in provided results",
       "attendee_count": "1,500+",
       "pay_to_play": "Yes",
       "pricing": "Full access ticket: $595 (increases to $695 on June 1, 2026); Workshop Day is a separate add-on, with pricing not yet open",
