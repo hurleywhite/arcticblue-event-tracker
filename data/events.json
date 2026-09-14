@@ -4429,7 +4429,8 @@
    "past_speakers": "Ikhlaq Sidhu, Dean of IE School of Science & Technology; Senior executives from strategy, technology, operations and data (diverse industries)",
    "meeting_formats": "Networking opportunities, insightful discussions, panels, sessions, end-of-day drinks reception",
    "audience_type": "Buyer-rich",
-   "contact_info": "Caitlin Mehta — speaker manager, The Economist — caitlinmehta@economist.com (reached personally, skipping the online form)"
+   "contact_info": "Caitlin Mehta — speaker manager, The Economist — caitlinmehta@economist.com (reached personally, skipping the online form)",
+   "pricing": "£1,759"
   },
   {
    "num": 184,
@@ -4785,7 +4786,10 @@
    "external_id": "f5bbc096-9fac-48d1-859a-14b033189415",
    "source": "arcticscout",
    "start_date": "2026-11-17",
-   "end_date": "2026-11-19"
+   "end_date": "2026-11-19",
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "audience_type": "Mixed",
+   "attendee_count": "5,000+"
   },
   {
    "num": 196,
@@ -7116,7 +7120,8 @@
    "audience_type": "Buyer-rich",
    "attendee_count": "500-1000 delegates",
    "pricing": "Invitation-only / pricing not publicly listed",
-   "meeting_formats": "Curated peer-to-peer networking; face-to-face meetings"
+   "meeting_formats": "Curated peer-to-peer networking; face-to-face meetings",
+   "past_speakers": "Jennifer Stephens, Chief Medical Officer of Jefferson Health Meridian Health; Kim Kranza, President of Cathotic Health"
   },
   {
    "num": 279,
@@ -7889,7 +7894,8 @@
    "past_speakers": "Ali Abeini, Metropolitan Commercial Bank; Abhiushek Mittal, AML RightSource; Ganesh Sivakumar, Mead Johnson Nutrition",
    "meeting_formats": "attendee app for pre-booking meetings",
    "audience_type": "Buyer-rich",
-   "attendee_count": "125+"
+   "attendee_count": "125+",
+   "pay_to_play": "Yes"
   },
   {
    "num": 309,
