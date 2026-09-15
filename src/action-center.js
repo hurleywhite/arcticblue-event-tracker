@@ -167,7 +167,24 @@
   }
   function renderTargets() {
     const accounts=context.target_accounts||[];
-    return '<p class="ac-note">Discover where target-company CIOs, CAIOs, CTOs, COOs, CDOs and product or innovation leaders speak. Public evidence indicates a likely buyer room; it does not prove attendance.</p><div class="ac-toolbar"><button data-account-add>Add target account</button><button data-discover>Find events for targets</button></div>'+(accounts.length?accounts.map(a=>'<article class="ac-row"><div><h4>'+esc(a.name)+'</h4><p>'+esc(a.industry||'Industry not recorded')+' · '+esc(a.city||'Office city not recorded')+' · '+esc(title(a.owner_person))+'</p><p class="ac-note">'+esc(a.executive_roles||'CIO, CAIO, CTO, COO, CDO, CPO, digital transformation, innovation')+'</p></div><button data-account="'+a.id+'">Edit</button></article>').join(''):'<p class="ac-empty">No target accounts loaded. Add the companies the team actually wants to sell to.</p>')+'<div id="ac-discovery-results"></div>';
+    const oppById=new Map((context.opportunities||[]).map(o=>[String(o.id),o]));
+    const proofs=new Map();
+    (context.people||[]).forEach(p=>{
+      if(!p.target_account_id) return;
+      const o=oppById.get(String(p.opportunity_id));
+      if(!o) return;
+      const key=String(p.target_account_id);
+      if(!proofs.has(key)) proofs.set(key,[]);
+      proofs.get(key).push({opportunity:o,person:p});
+    });
+    const accountCards=accounts.map(a=>{
+      const matches=proofs.get(String(a.id))||[];
+      const seen=new Set();
+      const evidence=matches.filter(m=>{const k=m.opportunity.id+'|'+m.person.full_name; if(seen.has(k)) return false; seen.add(k); return true;});
+      const proofHtml=evidence.length?'<p class="ac-note"><strong>Verified event access</strong></p><ul class="ac-target-proof">'+evidence.map(m=>'<li><button class="ac-inline-link" data-account-event="'+esc(m.opportunity.id)+'">'+esc(m.opportunity.name)+'</button> · '+esc(m.person.full_name)+(m.person.title?' — '+esc(m.person.title):'')+' '+link(m.person.source_url,'public roster')+'</li>').join('')+'</ul>':'<p class="ac-note">No linked public speaker/attendee record yet — keep this account in research until an event roster or meeting route is verified.</p>';
+      return '<article class="ac-row"><div><h4>'+esc(a.name)+(a.priority?'<span class="ac-badge">Priority '+esc(a.priority)+'</span>':'')+'</h4><p>'+esc(a.industry||'Industry not recorded')+' · '+esc(a.city||'Office city not recorded')+' · '+esc(title(a.owner_person))+'</p><p class="ac-note">'+esc(a.executive_roles||'CIO, CAIO, CTO, COO, CDO, CPO, digital transformation, innovation')+'</p>'+(a.notes?'<p class="ac-note">'+esc(a.notes)+'</p>':'')+proofHtml+'</div><button data-account="'+a.id+'">Edit</button></article>';
+    }).join('');
+    return '<p class="ac-note">Only keep companies where a public event roster, agenda, or structured meeting route puts the right buyer in reach. A broad audience claim alone is not enough.</p><div class="ac-toolbar"><button data-account-add>Add target account</button><button data-discover>Find events for targets</button><button data-signin>Editor sign-in</button></div>'+(!context.editor?'<p class="ac-health">Sign in to manage and search the team’s private target-account list.</p>':'')+(accounts.length?accountCards:'<p class="ac-empty">No target accounts loaded. Add the companies the team actually wants to sell to.</p>')+'<div id="ac-discovery-results"></div>';
   }
   function openDialog(name,body) {
     if(dialog)dialog.remove();
@@ -275,6 +292,7 @@
     else if(b.hasAttribute('data-signin'))signIn();
     else if(b.hasAttribute('data-account-add'))accountForm();
     else if(b.dataset.account)accountForm(context.target_accounts.find(a=>String(a.id)===b.dataset.account));
+    else if(b.dataset.accountEvent){const o=context.opportunities.find(x=>String(x.id)===b.dataset.accountEvent);if(o)window.abOpenRef(o.source_table==='manual_events'?'manual':'catalog',o.source_key);}
     else if(b.hasAttribute('data-trip-add'))tripForm();
     else if(b.hasAttribute('data-calendar'))window.abBookingView('calendar');
     else if(b.hasAttribute('data-discover'))discover();
