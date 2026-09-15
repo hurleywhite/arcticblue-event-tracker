@@ -476,6 +476,17 @@
       "quotes",
       "speaker claims",
       "event details not in the source data or web-confirmed"
-    ]
+    ],
+    "event_focus": {
+      "primary": "Technology and product innovation, especially consumer-facing technology and its intersection with finance.",
+      "requirement": "Cite a concrete agenda track, session or product leader showing relevance to building, adopting or improving customer-facing products. Finance affiliation, senior titles or a token AI panel are insufficient.",
+      "exclude": [
+        "Traditional trade finance, correspondent banking, treasury, compliance and payment operations without a central customer-product innovation focus."
+      ],
+      "negative_examples": [
+        "BAFT 2027 International Trade and Payments Conference"
+      ],
+      "uncertain": "Keep in Background for fit review. Do not recommend applying based on deadlines alone."
+    }
   }
 }

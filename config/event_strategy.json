@@ -1,14 +1,33 @@
 {
-  "version": 1,
+  "version": 2,
   "commercial_priority": {
-    "tier_1": ["thor", "verma", "jerome"],
-    "tier_2": ["carlos"],
-    "partners": ["joe", "jim", "scott"]
+    "tier_1": [
+      "thor",
+      "verma",
+      "jerome"
+    ],
+    "tier_2": [
+      "carlos"
+    ],
+    "partners": [
+      "joe",
+      "jim",
+      "scott"
+    ]
   },
   "default_bases": {
-    "thor": {"city": "New York", "country": "United States"},
-    "verma": {"city": "New York", "country": "United States"},
-    "jerome": {"city": "London", "country": "United Kingdom"}
+    "thor": {
+      "city": "New York",
+      "country": "United States"
+    },
+    "verma": {
+      "city": "New York",
+      "country": "United States"
+    },
+    "jerome": {
+      "city": "London",
+      "country": "United Kingdom"
+    }
   },
   "research_budget": {
     "tier_1_pct": 75,
@@ -59,7 +78,7 @@
     },
     "pursue_threshold": 75,
     "monitor_threshold": 60,
-    "high_priority_rule": "High is rare: strong regulated-industry buyer density plus a credible action path.",
+    "high_priority_rule": "High requires verified product / innovation relevance, credible buyer evidence and a practical participation route.",
     "auto_reject": [
       "past_event",
       "duplicate_or_deleted",
@@ -103,5 +122,16 @@
       "would_attend_again",
       "why"
     ]
+  },
+  "focus": {
+    "primary": "Technology and product innovation, especially consumer-facing technology and its intersection with finance.",
+    "requirement": "Cite a concrete agenda track, session or product leader showing relevance to building, adopting or improving customer-facing products. Finance affiliation, senior titles or a token AI panel are insufficient.",
+    "exclude": [
+      "Traditional trade finance, correspondent banking, treasury, compliance and payment operations without a central customer-product innovation focus."
+    ],
+    "negative_examples": [
+      "BAFT 2027 International Trade and Payments Conference"
+    ],
+    "uncertain": "Keep in Background for fit review. Do not recommend applying based on deadlines alone."
   }
 }

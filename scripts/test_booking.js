@@ -22,7 +22,7 @@ const submitted=normalize({submitted_at:'2026-09-01'});
 assert.equal(C.groups([submitted],now).followups.length,1);
 assert.equal(C.groups([normalize({submitted_at:'2026-09-01',booking:{organizer_reply_at:now}})],now).followups.length,0);
 const evidence=[{kind:'end_user_speakers',url:'https://example.com/speakers',checked:now,note:'Published end-user speakers'}, {kind:'audience_breakdown',url:'https://example.com/audience',checked:now,note:'Published job titles'}];
-const qualified=normalize({booking:{buyer_fit:'strong',evidence}});assert.equal(qualified.q.score,50);assert.equal(qualified.q.strong,true);
+const qualified=normalize({booking:{buyer_fit:'strong',topic_fit:'core',topic_reason:'Customer-facing fintech product development track',topic_source:'https://example.com/agenda',evidence}});assert.equal(qualified.q.score,50);assert.equal(qualified.q.strong,true);
 assert.equal(normalize({booking:{evidence:[...evidence,...evidence]}}).q.score,50);
 assert.equal(normalize({booking:{evidence:[{...evidence[0],checked:'2024-01-01'}]}}).q.score,null);
 assert.equal(normalize({booking:{evidence:[{...evidence[0],url:'javascript:bad'}]}}).q.score,null);
@@ -33,6 +33,14 @@ assert.equal(C.sameCity('Munich, Germany','Munich'),true);assert.equal(C.sameCit
 const pack=C.tripPack({start_date:'2026-09-28',end_date:'2026-09-30',city:'Munich'},[qualified,normalize({location:'London, UK'})],[{name:'Buyer',city:'Munich'}]);
 assert.equal(pack.nearby.length,1);assert.equal(pack.targets.length,1);
 assert.equal(C.tripPack({start_date:'2026-11-01',end_date:'2026-11-03',city:'Munich'},[qualified],[]).nearby.length,0);
+// A deadline or buyer audience cannot override topic fit or an explicit pass.
+const baft=normalize({name:'2027 International Trade and Payments Conference',deadline:'2026-09-28',speaker:'Thor'});
+assert.equal(baft.q.excluded,true);assert.equal(baft.active,false);assert.equal(baft.needsDecision,false);assert.equal(baft.recommendation,'Pass');
+assert.equal(normalize({booking:{buyer_fit:'strong',evidence}}).q.strong,false);
+const deadlineReview=normalize({speaker:'Thor',deadline:'2026-10-01'});
+assert.equal(deadlineReview.active,false);assert.equal(deadlineReview.needsDecision,true);
+const draft=require('../src/application-workflow.js').buildDraft(base,{owner:'thor',route:'Meeting request',angle:'Compare lessons from testing consumer finance products.'});
+assert.ok(draft.body.includes('Compare lessons'));assert.ok(!draft.body.includes('I will be attending'));
 // ── Derived actions: the Action Center must be populated from the record itself ──
 // A real application (date behind it) becomes an Outreach item with owner+due, marked derived.
 const realApp=normalize({speaker:'Thor',status_tags:['Submitted'],submitted_at:'2026-09-01'});

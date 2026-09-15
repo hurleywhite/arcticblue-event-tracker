@@ -2,6 +2,7 @@
   'use strict';
   const C=window.BookingCore, esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let raw=[], rows=[], context={opportunities:[],travel_windows:[],target_accounts:[]}, cal=null, error='', loading=true, ready=false, owner='',mode='today',query='', expanded=new Set(), dialog=null;
+  let workflow={workspaces:[],calendars:[]},workflowError='';
   const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
   const title=s=>String(s||'').replace(/\b\w/g,c=>c.toUpperCase());
   const link=(url,label)=>C.safeUrl(url)?'<a class="ac-link" target="_blank" rel="noopener noreferrer" href="'+esc(C.safeUrl(url))+'">'+esc(label)+'</a>':'';
@@ -12,10 +13,12 @@
     const j=await r.json(); if(!r.ok || j.error)throw Error(j.error || 'Request failed'); return j;
   }
   async function load() {
-    loading=true;error='';render();
+    loading=true;error='';context={...context,editor:false,travel_windows:[],target_accounts:[]};cal=null;workflow={workspaces:[],calendars:[]};render();
     const results=await Promise.allSettled([request('/api/opportunities'),request('/api/calendars')]);
     if(results[0].status==='fulfilled')context=results[0].value;else error='Qualification and recorded travel could not load. '+results[0].reason.message;
     if(results[1].status==='fulfilled')cal=results[1].value;else cal={configured:false,unavailable:true};
+    workflow={workspaces:[],calendars:[]};workflowError='';
+    if(context.editor){try{workflow=await request('/api/workflow');}catch(e){workflowError=e.message;}}
     loading=false;recompute();render();
   }
   function recompute() {
@@ -30,7 +33,7 @@
     const action=r.b.next_action || (r.submitted?'Set the next organizer follow-up':r.wake?'Review: '+(r.b.recheck_trigger||'scheduled recheck'):'Choose an action, owner and deadline');
     const when=r.start?esc(r.start)+(r.end&&r.end!==r.start?'–'+esc(r.end.slice(5)):''):'';
     const evid=r.realApplication?'Application on record'+(r.evidence.length?' ('+esc(r.evidence.join(', '))+')':''):(r.submitted==='tag-only'?'"Submitted" tag only — nothing corroborates it':r.q.label);
-    return '<article class="ac-row'+(r.derived?' ac-derived':'')+'"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+(r.derived?'<span class="ac-badge ac-auto" title="Derived from the record — open Update action to confirm or change it">auto</span>':'')+esc(title(r.owner)||'Owner needed')+' · '+esc(r.city?title(r.city):(r.location||'Location unknown'))+(when?' · '+when:'')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+evid+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?C.diff(r.due,today())+' days late · ':'Due ')+esc(r.due)+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions">'+(opts&&opts.chase?'<button data-chase="'+esc(r._id)+'">Chased today</button>':'')+'<button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action&&!r.derived?'Update action':r.derived?'Confirm / change':'Decide')+'</button></div></article>';
+    return '<article class="ac-row'+(r.derived?' ac-derived':'')+'"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+(r.derived?'<span class="ac-badge ac-auto" title="Suggested from the recorded status, deadline or history — not submitted or sent. Confirm or change it.">suggested</span>':'')+esc(title(r.owner)||'Owner needed')+' · '+esc(r.city?title(r.city):(r.location||'Location unknown'))+(when?' · '+when:'')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+evid+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?C.diff(r.due,today())+' days late · ':'Due ')+esc(r.due)+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions">'+(opts&&opts.chase?'<button data-chase="'+esc(r._id)+'">Chased today</button>':'')+'<button data-workspace="'+esc(r._id)+'">Prepare & contact</button><button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action&&!r.derived?'Update action':r.derived?'Confirm / change':'Decide')+'</button></div></article>';
   }
   function section(key,label,list,opts) {
     const show=expanded.has(key)?list:list.slice(0,4);
@@ -50,12 +53,15 @@
       html+=renderHealth(rs)+renderAgenda(rs);
       html+='<div class="ac-stats">'+[['applications','Applications due in 7 days'],['contacts','Organizers to contact'],['meetings','Meetings to book'],['followups','Follow-ups due'],['decisions','Decisions needed']].map(([k,l])=>'<button class="ac-stat" data-jump="'+k+'"><strong>'+g[k].length+'</strong><span>'+l+'</span></button>').join('')+'</div>';
       html+='<p class="ac-note">'+(tripMatches.length?tripMatches.length+' recorded trips have nearby event opportunities. Open Trips to review.':(!cal?.configured?'Live calendar feeds are not connected. Open Trips to add or review recorded travel.':'No nearby event matches for recorded travel.'))+'</p>';
-      html+=section('applications','Applications due soon',g.applications)+section('contacts','Organizer outreach',g.contacts)+section('meetings','Meetings to book',g.meetings)+section('followups','Follow-ups due',g.followups,{chase:true})+section('decisions','Decisions required',g.decisions);
+      html+=renderOutreach(rs);
+      html+='<p class="ac-note">Suggested = inferred from the record and waiting for your confirmation. Organizer contact / follow-up is human work: draft, review and hand off the message; nothing sends automatically.</p>';
+      html+=section('applications','Applications due soon',g.applications)+section('contacts','Organizer contact / follow-up',g.contacts)+section('meetings','Meetings to book',g.meetings)+section('followups','Follow-ups due',g.followups,{chase:true})+section('decisions','Decisions required',g.decisions);
       const later=rs.filter(r=>r.active && !Object.values(g).flat().includes(r));
       html+=section('later','Planned actions',later);
     } else if(mode==='pipeline') {
       html+='<p class="ac-note">Applications and speaking bookings from the original event records. Submission history remains visible after a pass or completed event.</p>';
-      html+=section('prepare','Prepare application',rs.filter(r=>!r.past&&!r.hidden&&(r.action==='Apply'||r.recommendation==='Apply')&&!r.submitted&&!r.booked&&!r.sleeping&&r.action!=='Pass'));
+      html+='<div class="ac-toolbar"><button data-attio-connect>'+ (workflow.attio_configured?'Manage Attio connection':'Connect Attio')+'</button></div>'+renderOutreach(rs);
+      html+=section('prepare','Prepare application',rs.filter(r=>!r.past&&!r.hidden&&(r.action==='Apply'||r.recommendation==='Apply')&&!r.submitted&&!r.booked&&!r.sleeping&&r.action!=='Pass'&&!r.q.excluded));
       html+=section('submitted','Submitted · awaiting outcome',rs.filter(r=>r.submitted&&!r.booked&&!r.b.organizer_reply_at&&r.action!=='Pass'&&!r.past));
       html+=section('reply','Organizer replied',rs.filter(r=>r.b.organizer_reply_at&&!r.booked&&!r.past));
       html+=section('booked','Speaking slots booked',rs.filter(r=>r.booked));
@@ -94,16 +100,29 @@
     if(!owner&&a.cross.length) html+='<h4>Where two of them coincide</h4><ul>'+a.cross.map(c=>'<li>'+esc(title(c.a))+' ('+esc(c.ea.name)+') and '+esc(title(c.b))+' ('+esc(c.eb.name)+') are both in '+esc(title(c.city))+' around '+esc(c.ea.start)+'</li>').join('')+'</ul>';
     return html+'</section>';
   }
+  function workflowUi() {return {request,input,area,select,openDialog,signIn,manage,editor:context.editor,reload:load};}
+  function renderOutreach(rs) {
+    if(workflowError)return '<p class="ac-health">Private outreach could not load: '+esc(workflowError)+'</p>';
+    const list=(workflow.workspaces||[]).map(w=>({...w,event:rs.find(r=>r._table+':'+r._key===w.event_key)})).filter(w=>w.event&&!w.event.hidden&&w.document.status!=='Closed');
+    if(!list.length)return '';
+    const order={'Replied':0,'Ready':1,'Drafting':2,'Sent':3,'Not started':4};
+    list.sort((a,b)=>(a.document.follow_up_due||'9999').localeCompare(b.document.follow_up_due||'9999') || order[a.document.status]-order[b.document.status]);
+    return '<section class="ac-section"><h3>Outreach in progress <span class="ac-badge">'+list.length+'</span></h3><p class="ac-note">Outreach means a human-reviewed organizer contact: choose a person, draft the email, then copy it to your mail client or open a mailto link. The tracker never sends automatically.</p>'+list.map(w=>{const d=w.document;return '<article class="ac-row"><div><h4>'+esc(w.event.name)+'</h4><p>'+esc(d.status)+' · '+esc(d.contact_name||'Choose a contact')+' · '+esc(title(d.owner))+'</p><p class="ac-note">'+esc(d.route)+(d.warm_via?' · Introduction via '+esc(d.warm_via):'')+'</p>'+(d.follow_up_due?'<p class="'+(d.follow_up_due<=today()?'ac-overdue':'ac-note')+'">Follow up '+esc(d.follow_up_due)+'</p>':'')+'</div><button data-workspace="'+esc(w.event._id)+'">Continue outreach</button></article>';}).join('')+'</section>';
+  }
   function renderTrips(rs) {
-    let html='<p class="ac-note">Match event dates within four days of recorded travel in the same city. Check transport and calendar availability before confirming.</p>';
-    if(!cal || !cal.configured)html+='<p class="ac-health">'+(cal?.unavailable?'Calendar connection could not be checked.':'Live calendar feeds are not connected.')+' Recorded trips can still be used. Open time slots cannot be confirmed.</p>';
-    else html+='<p class="ac-note">Calendar feeds connected · '+(cal.detail_visible?'private details visible to your editor session.':'sign in as an editor to use private travel locations.')+' Recurring entries are not expanded; verify availability in Calendar.</p>';
-    html+='<div class="ac-toolbar"><button data-trip-add>Add recorded trip</button><button data-signin>Editor sign-in</button><button data-calendar>Open event calendar</button></div>';
-    let trips=(context.travel_windows||[]).slice();
-    (cal?.events||[]).filter(e=>e.kind==='person'&&e.location&&e.all_day&&C.day(e.start)&&C.day(e.end)).forEach(e=>{if(!trips.some(t=>C.fold(t.person_key)===C.fold(e.owner)&&t.start_date===e.start))trips.push({id:'calendar:'+e.owner+':'+e.start,person_key:e.owner,start_date:e.start,end_date:e.end,city:e.location,source:'Live calendar location'});});
-    trips=trips.filter(t=>t.end_date>=today()&&(!owner||C.fold(t.person_key).includes(owner)));
-    if(!trips.length)html+='<p class="ac-empty">'+(context.editor?'No upcoming travel recorded.':'Sign in to load protected recorded travel.')+'</p>';
-    trips.forEach(t=>{const p=C.tripPack(t,rs,context.target_accounts||[]);html+='<article class="ac-trip"><h3>'+esc(title(t.person_key))+' · '+esc(t.city)+'</h3><p class="ac-note">'+esc(t.start_date)+' – '+esc(t.end_date)+' · '+esc(t.source||'Recorded travel')+'</p><h4>Nearby event opportunities</h4>'+(p.nearby.length?p.nearby.map(eventRow).join(''):'<p class="ac-note">No matching events in the current tracker.</p>')+'<h4>Target accounts in this city</h4>'+(p.targets.length?'<ul>'+p.targets.map(a=>'<li>'+esc(a.name)+(a.executive_roles?' · '+esc(a.executive_roles):'')+'</li>').join('')+'</ul>':'<p class="ac-note">No target accounts with a confirmed office city recorded.</p>')+'<p class="ac-note">Plan: request buyer meetings; consider a small dinner, roundtable or podcast with confirmed contacts. Relationship data and open slots are not yet connected.</p><button class="ab-btn" data-trip-search="'+esc(t.id)+'">Find events around this trip</button></article>';});
+    let html='<p class="ac-note">Find relevant events in the same city within four days of a trip. Review calendar suggestions before adding them to recorded travel.</p>';
+    html+='<div class="ac-calendar-connections">'+['thor','verma','jerome'].map(p=>{const c=(cal?.connections||[]).find(c=>c.person===p),configured=c?.configured||(workflow.calendars||[]).some(c=>c.person===p&&c.configured);return '<article class="ac-person"><strong>'+title(p)+'</strong><span>'+(!context.editor?'Sign in to check calendar':c?.healthy?'Live calendar checked':configured?'Connected · feed needs checking':'Calendar not connected')+'</span><button data-connect-calendar="'+p+'">'+(configured?'Manage connection':'Connect calendar')+'</button></article>';}).join('')+'</div>';
+    if(cal?.unavailable)html+='<p class="ac-health">Calendar connection could not be checked. Recorded trips remain available.</p>';
+    if(cal?.errors?.length)html+='<p class="ac-health">'+cal.errors.map(e=>esc(title(e.name))+': '+esc(e.reason)).join(' · ')+'</p>';
+    if(cal?.recurring_skipped)html+='<p class="ac-note">'+cal.recurring_skipped+' recurring calendar entries were skipped. Check those separately in Calendar.</p>';
+    html+='<p class="ac-note">Calendar data identifies dates and possible destinations. It does not establish free meeting slots.</p><div class="ac-toolbar"><button data-calendar-import>Import calendar export</button><button data-trip-add>Add recorded trip</button>'+(!context.editor?'<button data-signin>Editor sign-in</button>':'')+'<button data-calendar>Open event calendar</button></div>';
+    const allTrips=context.travel_windows||[];
+    const candidates=(cal?.trip_candidates||[]).filter(t=>t.end_date>=today()&&(!owner||t.person_key===owner)&&!allTrips.some(s=>C.fold(s.person_key)===t.person_key&&s.source_event_id===t.source_event_id&&s.start_date===t.start_date&&s.end_date===t.end_date&&C.sameCity(s,t)));
+    if(candidates.length)html+='<section class="ac-section"><h3>Calendar trips to review <span class="ac-badge">'+candidates.length+'</span></h3>'+candidates.map((t,i)=>'<article class="ac-row"><div><h4>'+esc(title(t.person_key))+' · '+esc(t.city)+'</h4><p>'+esc(t.start_date)+' – '+esc(t.end_date)+'</p><p class="ac-note">'+esc(t.title)+' · Needs review</p></div><button data-calendar-trip="'+i+'">Review & save trip</button></article>').join('')+'</section>';
+    window._acCalendarCandidates=candidates;
+    const trips=allTrips.filter(t=>t.end_date>=today()&&(!owner||C.fold(t.person_key).includes(owner)));
+    if(!trips.length)html+='<p class="ac-empty">'+(context.editor?'No upcoming travel recorded. Connect a calendar or import an export to find trips.':'Sign in to load protected recorded travel.')+'</p>';
+    trips.forEach(t=>{const p=C.tripPack(t,rs,context.target_accounts||[]);html+='<article class="ac-trip"><h3>'+esc(title(t.person_key))+' · '+esc(t.city)+'</h3><p class="ac-note">'+esc(t.start_date)+' – '+esc(t.end_date)+' · '+esc(t.source||'Recorded travel')+'</p><h4>Nearby event opportunities</h4>'+(p.nearby.length?p.nearby.map(eventRow).join(''):'<p class="ac-note">No matching events in the current tracker.</p>')+'<h4>Target accounts in this city</h4>'+(p.targets.length?'<ul>'+p.targets.map(a=>'<li>'+esc(a.name)+(a.executive_roles?' · '+esc(a.executive_roles):'')+'</li>').join('')+'</ul>':'<p class="ac-note">No target accounts with a confirmed office city recorded.</p>')+'<button class="ab-btn" data-trip-search="'+esc(t.id)+'">Find events around this trip</button></article>';});
     window._acTrips=trips;return html;
   }
   function renderTargets() {
@@ -114,7 +133,8 @@
     if(dialog)dialog.remove();
     dialog=document.createElement('dialog');dialog.className='ac-dialog';dialog.innerHTML='<h2 id="ac-dialog-title">'+esc(name)+'</h2>'+body;dialog.setAttribute('aria-labelledby','ac-dialog-title');document.body.appendChild(dialog);dialog.showModal();
     dialog.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>dialog.close());
-    dialog.addEventListener('close',()=>{dialog.remove();dialog=null;});return dialog;
+    const current=dialog;
+    current.addEventListener('close',()=>{current.remove();if(dialog===current)dialog=null;});return current;
   }
   const input=(label,name,value,type='text',wide=false)=>'<label class="'+(wide?'ac-wide':'')+'">'+esc(label)+'<input name="'+name+'" type="'+type+'" value="'+esc(value||'')+'" '+(type==='number'?'min="0" max="10000" step="1"':'')+'></label>';
   const area=(label,name,value)=>'<label class="ac-wide">'+esc(label)+'<textarea name="'+name+'">'+esc(value||'')+'</textarea></label>';
@@ -123,7 +143,8 @@
   function manage(r) {
     const b=r.b;
     let body='<p class="ac-note">'+esc(r.name)+'</p><p class="ac-note">Suggested: '+esc(r.recommendation||'Keep in background until qualified')+'. Public evidence score: '+(r.q.score===null?'Unknown':r.q.score+'/100')+'; this is not an attendee count or probability.</p><form id="ac-edit"><div class="ac-form">';
-    body+=select('Decision','action',b.action||'', ['',...C.STATES])+input('Owner','owner',b.owner||r.owner)+input('Next action due','due',b.due||r.due,'date')+input('Application deadline','deadline',C.day(r.deadline),'date')+area('Next action','next_action',b.next_action||r.suggestedNextAction)+area('Reason for this decision','reason',b.reason||r.suggestedReason);
+    body+=select('Decision','action',b.action||'', ['',...C.STATES])+input('Owner','owner',b.owner||r.owner)+input('Next action due','due',b.due||r.due,'date')+input('Application / speaking deadline','deadline',C.day(r.applicationDeadline||r.deadline),'date')+area('Next action','next_action',b.next_action||r.suggestedNextAction)+area('Reason for this decision','reason',b.reason||r.suggestedReason);
+    body+=select('Product / innovation fit','topic_fit',b.topic_fit||'review',['review','core','off_focus'])+area('Specific product or innovation relevance','topic_reason',b.topic_reason)+input('Agenda / session source','topic_source',b.topic_source,'url',true);
     body+=input('Application link','apply_url',r.apply_url,'url',true)+select('Draft status','draft_status',b.draft_status||'Not started',['Not started','Drafting','Ready','Submitted'])+input('Follow-up due','follow_up_due',b.follow_up_due||r.followup,'date')+area('Application draft / pitch','draft',b.draft);
     body+=input('Recheck on (keeps event in background until then)','recheck_on',b.recheck_on,'date')+input('Recheck trigger','recheck_trigger',b.recheck_trigger)+select('Buyer fit','buyer_fit',b.buyer_fit||'unknown',['unknown','strong','mixed','weak'])+select('Speaking route quality','speaking_quality',b.speaking_quality||'unknown',['unknown','earned','invited','paid','closed'])+input('Exclusion reason','exclusion',b.exclusion,'text',true);
     body+='</div><details><summary>Public buyer-room evidence</summary><p class="ac-note">Keep likely buyers, publicly confirmed speakers/attendees and verified portal attendees separate. Record public sources here. Private attendee lists stay in the authorized portal.</p>'+(b.evidence||[]).map((e,i)=>'<div class="ac-evidence">'+esc(e.kind)+' · '+esc(e.checked)+'<br>'+esc(e.note)+' '+link(e.url,'Source')+' <label><input type="checkbox" name="remove_evidence" value="'+i+'"> Remove</label></div>').join('')+'<div class="ac-form">'+select('New evidence type','evidence_kind','',['','end_user_speakers','audience_breakdown','advisory_board','prior_attendees','sponsors','public_attendance','company_event_page','organizer_claim'])+input('Checked on','evidence_checked',today(),'date')+input('Public source URL','evidence_url','','url',true)+area('What this source confirms','evidence_note','')+'</div></details>';
@@ -131,7 +152,7 @@
     const d=openDialog('Manage booking',body), form=d.querySelector('form');
     form.onsubmit=async e=>{
       e.preventDefault();const f=new FormData(form),v=k=>String(f.get(k)||'').trim(),next={...b};
-      ['action','owner','due','next_action','reason','draft_status','follow_up_due','draft','recheck_on','recheck_trigger','buyer_fit','speaking_quality','exclusion','organizer_reply_at','speaking_booked_at','attended_at','trip_id','completed_at'].forEach(k=>next[k]=v(k));
+      ['topic_fit','topic_reason','topic_source','action','owner','due','next_action','reason','draft_status','follow_up_due','draft','recheck_on','recheck_trigger','buyer_fit','speaking_quality','exclusion','organizer_reply_at','speaking_booked_at','attended_at','trip_id','completed_at'].forEach(k=>next[k]=v(k));
       next.meetings_booked=Number(v('meetings_booked'));next.qualified_opportunities=Number(v('qualified_opportunities'));next.trip_confirmed=v('trip_confirmed')==='Yes';
       next.evidence=(b.evidence||[]).filter((_,i)=>!f.getAll('remove_evidence').includes(String(i)));
       const err=d.querySelector('.ac-error'),btn=form.querySelector('[type=submit]');
@@ -142,6 +163,7 @@
         if(!v('evidence_kind')||!C.safeUrl(v('evidence_url'))||!v('evidence_note')||!C.day(v('evidence_checked'))||v('evidence_checked')>today()){err.textContent='Evidence needs a type, public URL, observation and valid checked date.';return;}
         next.evidence.push({kind:v('evidence_kind'),url:C.safeUrl(v('evidence_url')),note:v('evidence_note'),checked:v('evidence_checked')});
       }
+      if(next.action==='Apply' && (next.topic_fit!=='core'||!next.topic_reason||!C.safeUrl(next.topic_source)||next.exclusion)){err.textContent='Before applying, record core product / innovation fit, its reason and an agenda source. Clear any exclusion only after reviewing it.';return;}
       if(next.action==='Apply'&&next.speaking_quality==='paid'){err.textContent='A paid speaking route is not an earned application. Choose Outreach or another decision.';return;}
       if(next.trip_confirmed&&!next.trip_id){err.textContent='Choose a recorded trip before confirming stacking.';return;}
       for(const k of ['submitted_at','organizer_reply_at','speaking_booked_at','attended_at','completed_at'])if(v(k)>today()){err.textContent='Completed outcomes cannot have future dates.';return;}
@@ -155,7 +177,7 @@
         if(!next.speaking_booked_at&&b.speaking_booked_at)patch.status_tags=(patch.status_tags||r.status_tags||[]).filter(t=>t!=='Booked');
         const sb=window._ab,col=r._table==='manual_events'?'id':'event_num';
         if(r._table==='event_state') {const init=await sb.from(r._table).upsert({event_num:r._key},{onConflict:'event_num',ignoreDuplicates:true});if(init.error)throw init.error;}
-        const saved=await sb.from(r._table).update(patch).eq(col,r._key).eq('booking',JSON.stringify(b)).select(col);
+        const saved=await sb.from(r._table).update(patch).eq(col,r._key).eq('booking',JSON.stringify(r.booking||{})).select(col);
         if(saved.error)throw saved.error;if(!saved.data?.length)throw Error('This booking changed in another session. Close, refresh and retry.');
         d.close();await window.opsRefresh();
       } catch(ex){err.textContent='Save failed: '+ex.message;btn.disabled=false;}
@@ -199,6 +221,11 @@
     else if(b.dataset.jump)document.getElementById('ac-'+b.dataset.jump)?.scrollIntoView({behavior:'smooth'});
     else if(b.dataset.chase)chase(b,rows.find(r=>r._id===b.dataset.chase));
     else if(b.dataset.manage){const r=rows.find(r=>r._id===b.dataset.manage);if(r)manage(r);}
+    else if(b.dataset.workspace){const r=rows.find(r=>r._id===b.dataset.workspace);if(r)window.ApplicationWorkflow.open(r,workflowUi());}
+    else if(b.hasAttribute('data-attio-connect'))window.ApplicationWorkflow.connections('attio',workflowUi());
+    else if(b.dataset.connectCalendar)window.ApplicationWorkflow.connections(b.dataset.connectCalendar,workflowUi());
+    else if(b.hasAttribute('data-calendar-import'))window.ApplicationWorkflow.importCalendar(workflowUi());
+    else if(b.hasAttribute('data-calendar-trip'))window.ApplicationWorkflow.reviewTrip(window._acCalendarCandidates[Number(b.dataset.calendarTrip)],workflowUi());
     else if(b.dataset.detail){const r=rows.find(r=>r._id===b.dataset.detail);if(r)window.abOpenRef(r._table==='manual_events'?'manual':'catalog',r._key);}
     else if(b.hasAttribute('data-signin'))signIn();
     else if(b.hasAttribute('data-account-add'))accountForm();
@@ -226,5 +253,5 @@
       window.opsRefresh&&window.opsRefresh();load();
     } catch(e) { btn.disabled=false;btn.textContent=label==='Chased today'?'Retry':label; }
   }
-  window.ActionCenter={update(records){raw=records;ready=true;recompute();render();},show(){render();if(!this.started){this.started=true;load();window._ab.auth.onAuthStateChange(()=>setTimeout(load,0));}},manage};
+  window.ActionCenter={update(records){raw=records;ready=true;recompute();render();},show(){render();if(!this.started){this.started=true;load();window._ab.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT'&&dialog)dialog.close();setTimeout(load,0);});}},manage};
 })();

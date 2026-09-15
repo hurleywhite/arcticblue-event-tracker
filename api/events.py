@@ -198,64 +198,34 @@ OPENAI_MODEL   = _env('OPENAI_MODEL', 'gpt-5.4')
 OPENAI_BASE    = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
 # On an OpenAI error/timeout: keep the event (fail-open, default) so a flaky
 # API never silently loses a real opportunity, or drop it (fail-closed).
-_GATE_FAIL_OPEN_RAW = _env('OPENAI_GATE_FAIL_OPEN', 'true')
+_GATE_FAIL_OPEN_RAW = _env('OPENAI_GATE_FAIL_OPEN', 'false')
 
 # ---- EDIT ME ---------------------------------------------------------
 # Who ArcticBlue is + what makes an event worth tracking. This text is the
 # judge's ENTIRE world view — tune it freely; no code change needed.
-ARCTICBLUE_PROFILE = (
-    "ArcticBlue AI (arcticblue.ai) is an AI company. This tracker collects "
-    "SPEAKING opportunities -- conferences, summits, panels, and industry "
-    "events where ArcticBlue could put a speaker on stage in front of the "
-    "right audience (enterprise leaders and AI/technology decision-makers).\n"
-    "ArcticBlue wants stage time in front of BUYERS -- in-house enterprise "
-    "leaders, operators, and AI/technology decision-makers who could become "
-    "clients -- NOT rooms full of other AI vendors, agencies, consultancies, "
-    "and sales reps selling to each other. Buyer-rich audiences are far more "
-    "valuable than vendor-heavy, sponsor-driven expos."
-)
+ARCTICBLUE_PROFILE = """ArcticBlue helps teams understand customers, improve products,
+and adopt AI. Prioritize the forefront of technology and product innovation,
+especially consumer-facing technology and its intersection with finance.
+A financial-services audience alone does not establish fit."""
 
-WORTHINESS_RUBRIC = (
-    "Decide whether a candidate event belongs in ArcticBlue's speaking tracker.\n"
-    "\n"
-    "ACCEPT when ALL of these hold:\n"
-    "  - It is a real conference / summit / panel / industry event (not a spam\n"
-    "    webinar blast, a product launch, or an unrelated social meetup).\n"
-    "  - There is, or plausibly could be, a SPEAKING slot (talk, panel,\n"
-    "    keynote, fireside) -- not sponsorship-only with zero stage time.\n"
-    "  - The topic overlaps AI, data, or enterprise technology (or ArcticBlue's\n"
-    "    focus areas) and the audience plausibly includes target decision-makers.\n"
-    "  - It is upcoming (a future date), or the date is unknown but the event\n"
-    "    is clearly real.\n"
-    "\n"
-    "BUYERS-OVER-SELLERS (the most important ranking signal):\n"
-    "  - Strongly PREFER events whose audience is buyer-rich -- in-house\n"
-    "    enterprise leaders, operators, practitioners, and end-user\n"
-    "    decision-makers who buy / adopt AI -- over vendor-heavy, sponsor-driven\n"
-    "    expos where most attendees are sales / business-development / vendors\n"
-    "    selling to each other.\n"
-    "  - A buyer-rich audience should raise the score; a vendor-heavy one should\n"
-    "    lower it. A high ticket price and senior job titles usually signal a\n"
-    "    buyer-rich room; a free or sponsor-funded expo floor usually signals a\n"
-    "    seller-heavy one.\n"
-    "  - Senior past/announced speakers (C-suite titles at well-known end-user\n"
-    "    companies, not vendor CEOs pitching) are a strong buyer signal.\n"
-    "  - Built-in meeting mechanisms -- guaranteed 1:1 meetings, hosted\n"
-    "    roundtables, or an attendee app for pre-booking meetings -- raise the\n"
-    "    score: they make it easy to actually talk to buyers in the room.\n"
-    "\n"
-    "REJECT when ANY of these hold:\n"
-    "  - Clearly off-topic industry with no AI / tech angle.\n"
-    "  - It already happened (a past date).\n"
-    "  - Pure pay-to-play sponsorship with NO speaking slot of any kind.\n"
-    "  - A pure vendor-to-vendor lead-gen expo with little or no buyer / end-user\n"
-    "    audience (everyone in the room is there to sell).\n"
-    "  - Obvious spam, a duplicate of an event already tracked, or missing both\n"
-    "    a usable name and any topic signal.\n"
-    "\n"
-    "When genuinely on the fence, lean ACCEPT -- a human reviews the tracker, "
-    "and missing a real opportunity costs more than a borderline extra row."
-)
+WORTHINESS_RUBRIC = """Accept only real upcoming events with a credible participation
+route and concrete agenda evidence of customer-facing product / technology
+innovation. Look for product leaders, founders, digital product builders and
+innovation leaders from end-user businesses. Consumer fintech, digital banking
+products, customer experience, AI-enabled products and product adoption are
+relevant when central to the agenda. Do not require every technology event to
+be a finance event.
+Reject traditional trade finance, correspondent banking, treasury, compliance,
+payment operations, vendor-to-vendor expos, or generic enterprise AI without a
+substantial customer / product innovation focus. A token AI, embedded finance
+or agentic commerce session does not rescue an otherwise off-focus event.
+BAFT 2027 International Trade and Payments Conference is an explicit negative
+example and must not be added. Ticket price, brand prestige, senior titles and
+an imminent application deadline do not establish topic or buyer fit.
+Cite the specific session, track or product leader supporting your decision.
+If evidence is insufficient, reject from automated discovery with a clear
+needs-review reason; do not assume fit or invent attendees or speaking routes.
+"""
 
 # Columns the caller is allowed to set. Mirrors the live manual_events table
 # (minus server-managed id / created_at). Anything outside this set is dropped.
@@ -735,6 +705,8 @@ def _evaluate_event(row, known_names):
              'reason': str, 'error': str|None}. If the gate is disabled
     (no OPENAI_API_KEY) this auto-accepts. On an OpenAI error it honors
     GATE_FAIL_OPEN (keep vs drop)."""
+    if re.search(r'international trade and payments conference', row.get('name') or '', re.I) or 'baft.org/event/2027-international-trade-and-payments-conference' in (row.get('url') or ''):
+        return {'decision':'reject', 'score':0, 'audience':None, 'audience_note':None, 'reason':'Explicitly excluded: traditional trade/payments conference outside product innovation focus', 'error':None}
     if not _gate_enabled():
         return {'decision': 'accept', 'score': None, 'audience': None,
                 'audience_note': None, 'reason': 'gate disabled', 'error': None}
@@ -1372,6 +1344,7 @@ class handler(BaseHTTPRequestHandler):
         backlog = _deleted_backlog()
         out = {
             'authenticated_as': who,
+            'event_focus': _personas().get('arcticblue', {}).get('event_focus', {}),
             'people': [_person_payload(k, people[k]) for k in wanted if k in people],
             'deleted_events': [{'name': n, 'start_date': d or None} for n, d in backlog],
             'deleted_count': len(backlog),
@@ -1379,7 +1352,7 @@ class handler(BaseHTTPRequestHandler):
             'note':  'deleted_events are events a human deleted in the tracker. Do not submit '
                      'these again. A dated entry blocks re-adds in that year only, so a later '
                      'edition of an annual event is still welcome.',
-            'how_to_use': 'Search for events matching each person in `people`: target_industries '
+            'how_to_use': 'Apply event_focus first: product / innovation relevance requires concrete evidence; buyer titles alone are insufficient. Then search for events matching each person in `people`: target_industries '
                           'plus buyer_titles plus themes, honouring `event_rules.exclude_when` and '
                           '`rules`. Treat `geo` as a preference, not a hard filter. Then POST what '
                           'you find back to this same endpoint.',

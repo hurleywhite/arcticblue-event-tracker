@@ -6,7 +6,8 @@
     "api/events.py": {"maxDuration": 60, "includeFiles": "config/personas.json"},
     "api/mcp.py": {"maxDuration": 120},
     "api/enrich.py": {"maxDuration": 120},
-    "api/calendars.py": {"maxDuration": 60},
+    "api/calendars.py": {"maxDuration": 60, "includeFiles": "api/**"},
+    "api/workflow.py": {"maxDuration": 60, "includeFiles": "api/**"},
     "api/opportunities.py": {"maxDuration": 60},
     "api/postmortems.py": {"maxDuration": 60},
     "api/briefing.py": {"maxDuration": 300, "includeFiles": "config/personas.json"}

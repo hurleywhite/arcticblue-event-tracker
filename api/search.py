@@ -214,7 +214,15 @@ def _extract_json_array(text):
     return None
 
 
-SEARCH_PROMPT = """You're sourcing in-person AI events for ArcticBlue (applied-AI
+SEARCH_PROMPT = """FOCUS: Prioritize technology and product innovation, especially consumer-facing
+technology and its intersection with finance. Require a specific agenda track,
+session or product leader showing fit. Traditional trade finance, treasury,
+correspondent banking, compliance and payment operations are not sufficient;
+a token AI session, bank logo, senior audience or deadline cannot rescue weak
+fit. Exclude BAFT International Trade and Payments Conference. Uncertain fit
+belongs in Background for review. Do not invent attendees or relationships.
+
+You're sourcing in-person AI events for ArcticBlue (applied-AI
 consultancy that does enterprise + halo events). Find {count} upcoming
 events that match the criteria below. Prefer well-known, reputable
 events with verified websites, and STRONGLY prefer buyer-rich audiences
@@ -293,7 +301,7 @@ def _build_prompt(count, types, quarters, regions, tracked, recurring=None,
             f"{location} in the quarter(s) below and wants MORE events to stack onto "
             f"it. Strongly prefer events happening IN OR NEAR {location} — same city "
             f"or metro first, then an easy day-trip / same-country, then the wider "
-            f"region — that fall within a couple of weeks of that trip. Only if you "
+            f"region — that fall within four days of that trip. Only if you "
             f"genuinely can't find enough near {location}, widen to the regions "
             f"below. Ignore the tracked list's geography here; {location} is the "
             f"target.\n\n"
@@ -313,7 +321,7 @@ def _build_prompt(count, types, quarters, regions, tracked, recurring=None,
         window_block = (
             f"DATE WINDOW (HARD — overrides the quarter): the trip is booked for "
             f"{date_from} to {date_to}. Return ONLY events whose dates fall within about "
-            f"two weeks BEFORE {date_from} through two weeks AFTER {date_to}, so a single "
+            f"four days BEFORE {date_from} through four days AFTER {date_to}, so a single "
             f"trip can cover them. IGNORE the quarter list where it conflicts — do NOT "
             f"return events in other months of the same quarter, and do NOT return events "
             f"in other years.\n\n"

@@ -26,24 +26,14 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-659@arcticblue-event-tracker
+UID:manual-654@arcticblue-event-tracker
 DTSTAMP:20260915T000000Z
-DTSTART;VALUE=DATE:20270223
-DTEND;VALUE=DATE:20270226
-SUMMARY:2027 International Trade and Payments Conference
-LOCATION:Brooklyn\, NY\, United States
-DESCRIPTION:Strong Verma fit: concentrated transaction-banking/payments audience\, explicit AI-powered banking and regulated-finance themes\, and a live earned CFP with a near-term deadline. New York default base makes logistics favorable without asserting confirmed travel.\nPriority: High\nAdded by: ChatGPT scheduled research
-URL:https://baft.org/event/2027-international-trade-and-payments-conference/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-653@arcticblue-event-tracker
-DTSTAMP:20260915T000000Z
-DTSTART;VALUE=DATE:20270315
+DTSTART;VALUE=DATE:20270314
 DTEND;VALUE=DATE:20270318
-SUMMARY:FDX Global Summit 2027
-LOCATION:Gaylord National Resort & Convention Center\, National Harbor\, MD
-DESCRIPTION:Excellent Verma fit: bank and payments leaders focused on agentic AI\, secure financial-data sharing\, open finance\, consent and interoperability.\nPriority: High\nAdded by: ChatGPT curated research
-URL:https://financialdataexchange.org/fdx-global-summit-2027/
+SUMMARY:ViVE 2027
+LOCATION:Music City Center\, Nashville\, TN
+DESCRIPTION:Excellent Thor fit: healthcare technology buyers\, 2\,000+ C-suite attendees\, thousands of meetings\, and a non-pay-to-play main-stage application route.\nPriority: High\nAdded by: ChatGPT curated research
+URL:https://hlth.com/events/vive/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-656@arcticblue-event-tracker
@@ -56,14 +46,14 @@ DESCRIPTION:Strong Verma fit: payments executives and regulated-industry leaders
 URL:https://www.ipa.org/ipc.html
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-654@arcticblue-event-tracker
+UID:manual-653@arcticblue-event-tracker
 DTSTAMP:20260915T000000Z
-DTSTART;VALUE=DATE:20270314
+DTSTART;VALUE=DATE:20270315
 DTEND;VALUE=DATE:20270318
-SUMMARY:ViVE 2027
-LOCATION:Music City Center\, Nashville\, TN
-DESCRIPTION:Excellent Thor fit: healthcare technology buyers\, 2\,000+ C-suite attendees\, thousands of meetings\, and a non-pay-to-play main-stage application route.\nPriority: High\nAdded by: ChatGPT curated research
-URL:https://hlth.com/events/vive/
+SUMMARY:FDX Global Summit 2027
+LOCATION:Gaylord National Resort & Convention Center\, National Harbor\, MD
+DESCRIPTION:Excellent Verma fit: bank and payments leaders focused on agentic AI\, secure financial-data sharing\, open finance\, consent and interoperability.\nPriority: High\nAdded by: ChatGPT curated research
+URL:https://financialdataexchange.org/fdx-global-summit-2027/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-655@arcticblue-event-tracker

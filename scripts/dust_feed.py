@@ -245,7 +245,15 @@ def _extract_new_events(text):
     return None
 
 
-FEED_PROMPT = """Run your standard event-sourcing routine for ArcticBlue.
+FEED_PROMPT = """FOCUS: Prioritize technology and product innovation, especially consumer-facing
+technology and its intersection with finance. Require a specific agenda track,
+session or product leader showing fit. Traditional trade finance, treasury,
+correspondent banking, compliance and payment operations are not sufficient;
+a token AI session, bank logo, senior audience or deadline cannot rescue weak
+fit. Exclude BAFT International Trade and Payments Conference. Uncertain fit
+belongs in Background for review. Do not invent attendees or relationships.
+
+Run your standard event-sourcing routine for ArcticBlue.
 
 Find up to {count} upcoming, real, in-person AI / enterprise-technology events
 (conferences, summits, panels) where ArcticBlue could put a speaker on stage.

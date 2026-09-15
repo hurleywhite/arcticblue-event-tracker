@@ -72,6 +72,14 @@
   // The deadline the engine should act on: a strict date if one is stored,
   // otherwise whatever can be recovered from the free text.
   const deadlineOf = r => day(r && r.deadline) || parseDate(r && r.deadline, r && r.start_date);
+  // Registration, ticketing, pricing and early-bird dates are useful context,
+  // but they are not application/speaking deadlines and must not create an
+  // Apply task in the Action Center.
+  const NON_APPLICATION_DEADLINE = /\b(early[- ]?bird|registration|register|ticket(?:s)?|pricing|rate|discount|payment|enrollment|booking(?:s)?)\b/i;
+  const applicationDeadlineOf = r => {
+    const raw=String(r && r.deadline || '').trim();
+    return raw && !NON_APPLICATION_DEADLINE.test(raw) ? deadlineOf(r) : '';
+  };
   const first = s => fold(s).split(/[\s,]+/)[0] || '';
   const weight = {end_user_speakers:20,audience_breakdown:30,advisory_board:10,prior_attendees:15,sponsors:5,public_attendance:20,company_event_page:20,organizer_claim:10};
 
@@ -116,8 +124,9 @@
     let score=0;
     evidence.forEach(e=>{if(!seen.has(e.kind)){score+=weight[e.kind];seen.add(e.kind);}});
     score=Math.min(score,100);
-    const excluded=!!b.exclusion || /african internet governance|afigf|chief ai officer summit boston/i.test(r.name || '');
-    return {score: evidence.length ? score : null, evidence, excluded, strong: score>=40 && b.buyer_fit==='strong', label: !evidence.length ? 'Buyer evidence unknown' : score>=60 ? 'Strong buyer evidence' : score>=30 ? 'Some buyer evidence' : 'Limited buyer evidence'};
+    const excluded=!!b.exclusion || b.topic_fit==='off_focus' || /african internet governance|afigf|chief ai officer summit boston|international trade and payments conference/i.test(r.name || '') || /baft\.org\/event\/2027-international-trade-and-payments-conference/i.test(r.url || '');
+    const topicVerified=b.topic_fit==='core' && !!String(b.topic_reason||'').trim() && !!safeUrl(b.topic_source);
+    return {score: evidence.length ? score : null, evidence, excluded, topicVerified, strong: !excluded && topicVerified && score>=40 && b.buyer_fit==='strong', label: excluded ? 'Outside ArcticBlue focus' : !topicVerified ? 'Product / innovation fit needs review' : !evidence.length ? 'Buyer evidence unknown' : score>=60 ? 'Strong buyer evidence' : score>=30 ? 'Some buyer evidence' : 'Limited buyer evidence'};
   }
 
   // Is there any sign a human actually applied? A bare "Submitted" tag with
@@ -145,7 +154,7 @@
     const completed=!!b.completed_at;
     const start=day(r.start_date), end=day(r.end_date)||start;
     const past=!!(end && end<today);
-    const deadline=deadlineOf(r);
+    const deadline=applicationDeadlineOf(r);
     const owner=fold(b.owner) || (op && fold(op.owner_person)) || first(r.speaker) || first((r.attendees || [])[0]) || first((r.outreach_assignees || [])[0]) || '';
     const sleeping=!!b.recheck_on && b.recheck_on>today;
     const wake=!!day(b.recheck_on) && b.recheck_on<=today;
@@ -169,18 +178,18 @@
       // closes in three weeks is the thing you most need to see. Unowned rows
       // fail the `active` test below and surface under "Decisions required",
       // so they land in an existing section rather than adding a new one.
-      else if (deadline && deadline>=today && diff(today,deadline)<=45) { action='Apply'; derived=true; due=due||deadline; next=next||((owner?'Decide whether to apply':'Assign an owner, then decide whether to apply')+' — deadline '+deadline); reason=reason||'Deadline inside 45 days'; }
+      else if (!q.excluded && deadline && deadline>=today && diff(today,deadline)<=45) { action='Apply'; derived=true; due=due||deadline; next=next||((q.topicVerified?'Decide whether to apply':'Verify product / innovation fit before applying')+' — deadline '+deadline); reason=reason||'Deadline inside 45 days'; }
     }
-    const active=!!action && action!=='Pass' && !!owner && !!next && !!due && !!reason && !sleeping && !past && !r.hidden && !completed;
-    const working=!r.hidden && !past && !sleeping && action!=='Pass' && !completed;
+    const active=!!action && action!=='Pass' && !q.excluded && (!derived || action!=='Apply' || q.topicVerified) && !!owner && !!next && !!due && !!reason && !sleeping && !past && !r.hidden && !completed;
+    const working=!r.hidden && !past && !sleeping && action!=='Pass' && !q.excluded && !completed;
     const needsDecision=working && !active && (wake || !!action || realApplication || !!booked || !!attending || q.strong || !!(op && ['apply_now','reach_out','conflicts'].includes(op.queue_stage)));
-    let recommendation=action;
+    let recommendation=q.excluded?'Pass':action;
     if(!recommendation) {
       if(q.excluded) recommendation='Pass';
       else if(q.strong && b.speaking_quality==='earned' && safeUrl(r.apply_url)) recommendation='Apply';
       else if(q.strong) recommendation=r.poc_name || r.contact_info ? 'Outreach' : 'Book Meetings';
-      else if(op && op.queue_stage==='apply_now') recommendation='Apply';
-      else if(op && op.queue_stage==='reach_out') recommendation='Outreach';
+      else if(q.topicVerified && op && op.queue_stage==='apply_now') recommendation='Apply';
+      else if(q.topicVerified && op && op.queue_stage==='reach_out') recommendation='Outreach';
     }
     return {...r,suggestedNextAction:op?.next_action||next||'',suggestedReason:op?.rationale||reason||'',b:{...b,next_action:b.next_action||next,reason:b.reason||reason},q,owner,due,action,recommendation,derived,submitted,realApplication,evidence,booked,attending,rejected,followup,past,active,needsDecision,sleeping,wake,completed,city:cityOf(r),start,end};
   }
@@ -196,7 +205,7 @@
       applications:active.filter(r=>r.action==='Apply' && !r.realApplication && r.due<=soon).sort(byDue('due')),
       contacts:active.filter(r=>r.action==='Outreach' && !(r.followup && r.followup<=today)).sort(byDue('due')),
       meetings:active.filter(r=>r.action==='Book Meetings').sort(byDue('due')),
-      followups:rows.filter(r=>!r.hidden && !r.past && !r.sleeping && !r.completed && r.action!=='Pass' && r.realApplication && r.followup && r.followup<=today && !r.booked && !r.attending).sort(byDue('followup')),
+      followups:rows.filter(r=>!r.q.excluded && !r.hidden && !r.past && !r.sleeping && !r.completed && r.action!=='Pass' && r.realApplication && r.followup && r.followup<=today && !r.booked && !r.attending).sort(byDue('followup')),
       decisions:rows.filter(r=>r.needsDecision).sort(byDue('due'))
     };
   }
@@ -274,7 +283,7 @@
     const targets=accounts.filter(a=>cityOf({city:a.city})===tc && !!tc);
     return {trip,nearby,targets,lo,hi};
   }
-  const api={STATES,PEOPLE,fold,day,plus,diff,safeUrl,parseDate,deadlineOf,cityOf,sameCity,qualify,applicationEvidence,normalize,groups,agenda,health,metrics,tripPack};
+  const api={STATES,PEOPLE,fold,day,plus,diff,safeUrl,parseDate,deadlineOf,applicationDeadlineOf,cityOf,sameCity,qualify,applicationEvidence,normalize,groups,agenda,health,metrics,tripPack};
   if(typeof module!=='undefined') module.exports=api;
   else root.BookingCore=api;
 })(typeof window!=='undefined'?window:this);

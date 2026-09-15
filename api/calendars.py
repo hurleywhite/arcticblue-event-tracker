@@ -51,6 +51,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 from datetime import date, timedelta
+import hashlib
 
 
 def _env(k, d=''):
@@ -153,6 +154,8 @@ def _parse_ics(text):
                 cur['transp'] = value.strip().upper()
             elif prop == 'RRULE':
                 cur['rrule'] = value.strip()
+            elif prop == 'UID':
+                cur['uid'] = value.strip()
     return events
 
 
@@ -167,8 +170,6 @@ def _normalize(raw, lo, hi):
             continue
         if e.get('status') == 'CANCELLED':
             continue
-        if e.get('transp') == 'TRANSPARENT':   # marked "free", not busy
-            continue
         if e.get('rrule'):                      # v1: recurring events not expanded
             recurring += 1
             continue
@@ -182,12 +183,19 @@ def _normalize(raw, lo, hi):
                 pass
         if end < start:
             end = start
+        try:
+            date.fromisoformat(start)
+            date.fromisoformat(end)
+        except ValueError:
+            continue
         if end < lo or start > hi:              # outside the window
             continue
         blocks.append({
             'start': start, 'end': end, 'all_day': bool(e.get('all_day')),
             'summary': (e.get('summary') or '').strip(),
             'location': (e.get('location') or '').strip(),
+            'uid': e.get('uid') or hashlib.sha256((start+end+e.get('summary','')).encode()).hexdigest(),
+            'transparent': e.get('transp') == 'TRANSPARENT',
         })
     blocks.sort(key=lambda b: b['start'])
     return blocks[:MAX_EVENTS_PER_FEED], recurring
@@ -220,12 +228,10 @@ def _is_editor(handler):
 def _feeds():
     """Parse TEAM_CALENDARS env into a clean list of {name, url, kind}."""
     raw = _env('TEAM_CALENDARS')
-    if not raw:
-        return []
     try:
-        data = json.loads(raw)
+        data = json.loads(raw or '[]')
     except json.JSONDecodeError:
-        return []
+        data = []
     out = []
     for f in (data if isinstance(data, list) else []):
         if not isinstance(f, dict):
@@ -236,7 +242,64 @@ def _feeds():
         if name and url.startswith(('http://', 'https://', 'webcal://')):
             out.append({'name': name, 'url': url.replace('webcal://', 'https://', 1),
                         'kind': 'events' if kind == 'events' else 'person'})
+    if SUPABASE_SERVICE_ROLE:
+        from api import opportunities as db
+        rows = db._select('event_integrations', 'select=key,config&key=like.calendar:*')
+        for row in rows:
+            person = row['key'].split(':',1)[1]
+            if person not in ('thor','verma','jerome'):
+                continue
+            out = [f for f in out if f['name'].lower() != person]
+            out.append({'name':person,'url':row['config']['url'],'kind':'person','stored':True})
     return out
+
+
+def _fetch_google_feed(url):
+    """Only an HTTPS Google ICS URL; never follow redirects or echo its secret."""
+    parsed = urllib.parse.urlsplit(url)
+    if (parsed.scheme != 'https' or parsed.hostname != 'calendar.google.com' or
+        parsed.port not in (None,443) or parsed.username or parsed.password or parsed.query or parsed.fragment or
+        not re.fullmatch(r'/calendar/ical/[^/]+/(?:private-[a-zA-Z0-9]+|public)/basic\.ics', parsed.path)):
+        raise ValueError('Use the Google Calendar Secret address in iCal format (HTTPS).')
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *args, **kwargs): return None
+    try:
+        opener = urllib.request.build_opener(NoRedirect)
+        with opener.open(urllib.request.Request(url,headers={'User-Agent':'ArcticBlueTracker/1.0'}),timeout=12) as response:
+            data = response.read(2000001)
+            if len(data)>2000000: raise ValueError('Calendar exceeds the 2 MB limit. Use a travel-only calendar.')
+            text = data.decode('utf-8-sig')
+            if 'BEGIN:VCALENDAR' not in text: raise ValueError('Not a calendar feed.')
+            return text
+    except Exception:
+        raise ValueError('Could not read that calendar. Check the iCal address or use a calendar export.') from None
+
+
+_CITIES = ['New York','NYC','London','Munich','Manama','Bahrain','Riyadh','Dubai','Abu Dhabi',
+           'Singapore','Amsterdam','Lisbon','Istanbul','Las Vegas','San Francisco','Boston',
+           'Paris','Berlin','Madrid','Barcelona','Zurich','Geneva','Dublin','Copenhagen','Stockholm',
+           'Los Angeles','Chicago','Miami','Austin','Dallas','Washington','Toronto','Montreal',
+           'Hong Kong','Tokyo','Seoul','Sydney','Melbourne','Mumbai','Bengaluru','Doha','Jeddah']
+
+
+def _trip_candidates(person, blocks, source='Live calendar'):
+    if person.lower() not in ('thor','verma','jerome'): return []
+    candidates = []
+    for b in blocks:
+        title,location = b.get('summary',''),b.get('location','')
+        if re.search(r'\b(zoom|virtual|remote|online)\b|meet\.google|teams\.microsoft',location,re.I): continue
+        travel = bool(re.search(r'\b(flight|flying|travel|trip|hotel|train|airport)\b',title,re.I))
+        matches = [(m.start(),city) for city in _CITIES for m in re.finditer(r'(?<!\w)'+re.escape(city)+r'(?!\w)',location or title,re.I)]
+        city = max(matches)[1] if matches else ''
+        if not b['all_day'] and not travel: continue
+        if not city and b['all_day'] and location: city = location
+        if not city: continue
+        if city=='NYC': city='New York'
+        if city=='Bahrain': city='Manama'
+        candidates.append({'person_key':person.lower(),'city':city,'start_date':b['start'],
+                           'end_date':b['end'],'source_event_id':b['uid'],'source':source,
+                           'title':title,'confidence':'Needs review'})
+    return candidates
 
 
 def _gather(detail_ok):
@@ -246,10 +309,18 @@ def _gather(detail_ok):
     hi = (today + timedelta(days=WINDOW_FUTURE)).isoformat()
     busy, events, errors = {}, [], []
     fetched, recurring_skipped = 0, 0
+    candidates, connections = [], []
     people = [f['name'] for f in feeds if f['kind'] == 'person']
     for f in feeds:
-        st, body = _http('GET', f['url'], timeout=15, raw=True,
-                         headers={'User-Agent': 'ArcticBlueTracker/1.0'})
+        if f['kind']=='person' and not detail_ok:
+            connections.append({'person':f['name'].lower(),'configured':True,'healthy':None})
+            continue
+        try:
+            if f.get('stored'): st,body = 200,_fetch_google_feed(f['url'])
+            else: st,body = _http('GET', f['url'], timeout=15, raw=True,headers={'User-Agent': 'ArcticBlueTracker/1.0'})
+        except ValueError:
+            st,body = 0,''
+        connections.append({'person':f['name'].lower(),'configured':True,'healthy':st==200})
         if st != 200 or not isinstance(body, str) or 'BEGIN:VCALENDAR' not in body:
             errors.append({'name': f['name'],
                            'reason': 'fetch failed (%s)' % (st if st else 'network')})
@@ -259,10 +330,11 @@ def _gather(detail_ok):
         recurring_skipped += rec
         is_events = f['kind'] == 'events'
         show_detail = is_events or detail_ok
-        if not is_events:
-            # free/busy (no titles) — always safe to expose
+        if not is_events and detail_ok:
+            # Personal schedules are protected by the same editor boundary.
             busy[f['name']] = [{'start': b['start'], 'end': b['end'],
-                                'all_day': b['all_day']} for b in blocks]
+                                'all_day': b['all_day']} for b in blocks if not b['transparent']]
+            candidates.extend(_trip_candidates(f['name'], blocks))
         for b in blocks:
             if not show_detail:
                 continue
@@ -282,6 +354,8 @@ def _gather(detail_ok):
         'fetched': fetched,
         'recurring_skipped': recurring_skipped,
         'errors': errors,
+        'trip_candidates':candidates,
+        'connections':connections,
         'window': {'from': lo, 'to': hi},
     }
 
