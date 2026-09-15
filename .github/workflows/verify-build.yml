@@ -1,0 +1,78 @@
+name: Verify build
+
+# Why this exists: on 2026-09-15 commit 91a8881 landed a src/build.py whose
+# second half had been replaced with bit-shifted binary, plus the truncated
+# public/index.html generated from it. Vercel served that half-written HTML,
+# browsers rendered the partial document without complaining, and the tracker
+# sat on "Loading your session..." for every user -- the <script> defining the
+# Supabase client was past the truncation point and never ran. Nothing in CI
+# looked at the artifact before it went live, and the daily build that would
+# have failed was still hours away. These four checks take seconds and would
+# have caught it at push time.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Every tracked text file is real text
+        run: |
+          python3 - <<'PY'
+          import subprocess, sys
+          exts = ('.py','.js','.html','.css','.json','.md','.sql','.yml','.yaml','.txt')
+          files = subprocess.run(['git','ls-files'],capture_output=True,text=True).stdout.split()
+          bad = []
+          for f in files:
+              if not f.endswith(exts):
+                  continue
+              b = open(f,'rb').read()
+              ctrl = sum(1 for c in b if c < 9 or 13 < c < 32)
+              if ctrl:
+                  bad.append((f, b.count(b'\x00'), ctrl))
+          for f, n, c in bad:
+              print("CORRUPT %s: %d null bytes, %d control bytes" % (f, n, c))
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: build.py is valid Python
+        run: python3 -c "import ast;ast.parse(open('src/build.py',encoding='utf-8').read())"
+
+      - name: build.py runs and emits a complete page
+        run: |
+          python3 src/build.py
+          python3 - <<'PY'
+          import sys
+          b = open('public/index.html','rb').read()
+          ctrl = sum(1 for c in b if c < 9 or 13 < c < 32)
+          problems = []
+          if not b.rstrip().endswith(b'</html>'):
+              problems.append('does not end with </html> -- the page is truncated')
+          if ctrl:
+              problems.append('%d control bytes in the generated HTML' % ctrl)
+          # The client is what the whole app waits on; if it is missing the page
+          # hangs on "Loading your session..." exactly as it did on 2026-09-15.
+          if b.count(b'createClient') < 1:
+              problems.append('no createClient() -- the Supabase client would never be built')
+          if len(b) < 900_000:
+              problems.append('only %d bytes; a full page is ~1.5MB' % len(b))
+          for p in problems:
+              print('FAIL: ' + p)
+          print('page: %d bytes, %d control bytes' % (len(b), ctrl))
+          sys.exit(1 if problems else 0)
+          PY
+
+      - name: Injected scripts are valid JavaScript
+        run: |
+          for f in src/booking-core.js src/action-center.js; do
+            node --check "$f" && echo "ok $f"
+          done
