@@ -84,6 +84,33 @@ def _access_token(handler):
     return ''
 
 
+def _caller(handler, body=None):
+    """Who is acting, for attribution only -- never for permission.
+
+    OPEN ACCESS (Hurley 2026-09-15): this endpoint used to demand a magic-link
+    session for target accounts, recorded travel, contact emails and every
+    POST. That gate was the last sign-in left in the product and it was also
+    the odd one out -- `2026-06_open_collaboration.sql` dropped the RLS write
+    policies in June, so event_state and manual_events have been editable by
+    anyone with the tracker URL ever since. One endpoint asking for a login
+    while the rest of the app did not was friction without protection.
+
+    A verified editor token still wins when one is present, so a signed-in
+    person is attributed by their real email. Otherwise fall back to the
+    display name the tracker already uses for attribution ("Viewing as ...").
+
+    `_same_origin()` still applies: requests must come from the tracker site.
+    That is not access control either -- see README.
+    """
+    email = _editor_email(handler)
+    if email:
+        return email
+    who = ''
+    if isinstance(body, dict):
+        who = str(body.get('who') or body.get('acting_as') or '').strip()[:120]
+    return who or 'open access'
+
+
 def _editor_email(handler):
     token = _access_token(handler)
     if not token or not (SUPABASE_PUBLISHABLE and SERVICE_ROLE):
@@ -179,24 +206,21 @@ def _get_payload(editor_email):
                 'select=id,location,status,submission_status,submitted_at,speaker,poc_name,poc_email,poc_linkedin,additional_contacts,notes,outreach_assignees,outreach_note,follow_ups,deadline,speaking_route,apply_url,priority,interested,attend_verdict,postmortem&id=in.' + urllib.parse.quote(inside, safe='(),') + '&limit=300'
             )
 
-    if not editor_email:
-        for c in contacts:
-            c.pop('email', None)
-            c.pop('notes', None)
-        for row in legacy:
-            row.pop('poc_email', None)
-            row.pop('additional_contacts', None)
-            row.pop('notes', None)
-            row.pop('outreach_note', None)
-            row.pop('follow_ups', None)
-        travel = []
-    else:
-        travel = _select('travel_windows', 'select=*&end_date=gte.' + urllib.parse.quote(__import__('datetime').date.today().isoformat()) + '&order=start_date.asc&limit=200')
+    # Nothing is withheld any more. Contact emails, notes, follow-ups, recorded
+    # travel and the target-account list all used to be blanked for anyone
+    # without a magic-link session; they are the working data of the board, and
+    # the board has no sign-in (see _caller).
+    travel = _select('travel_windows', 'select=*&end_date=gte.' + urllib.parse.quote(__import__('datetime').date.today().isoformat()) + '&order=start_date.asc&limit=200')
 
     return {
         'ok': True,
-        'editor': bool(editor_email),
-        'editor_email': editor_email or None,
+        'editor': True,          # no gate; kept so the client keeps working
+        # `signed_in` is the ONLY thing left that a magic link changes. It
+        # gates api/workflow.py, which holds the Attio access token and proxies
+        # CRM reads -- a credential, not board data, so it stays behind a real
+        # session even though everything else here is open.
+        'signed_in': '@' in str(editor_email or ''),
+        'editor_email': editor_email if '@' in str(editor_email or '') else None,
         'summary': _summary(opps),
         'opportunities': opps,
         'fits': fits,
@@ -204,7 +228,7 @@ def _get_payload(editor_email):
         'people': people,
         'legacy': legacy,
         'travel_windows': travel,
-        'target_accounts': _select('target_accounts', 'select=*&active=eq.true&order=priority.asc,name.asc&limit=500') if editor_email else [],
+        'target_accounts': _select('target_accounts', 'select=*&active=eq.true&order=priority.asc,name.asc&limit=500'),
         'defaults': {'thor': 'New York', 'verma': 'New York', 'jerome': 'London'},
     }
 
@@ -226,8 +250,6 @@ ALLOWED_CONTACT_STATUS = {'not_started','drafted','contacted','followed_up','rep
 
 
 def _post(handler, editor_email, body):
-    if not editor_email:
-        return 403, {'error': 'editor authorization required'}
     action = str(body.get('action') or '').strip()
 
     if action == 'save_target_account':
@@ -349,7 +371,7 @@ class handler(BaseHTTPRequestHandler):
                 return _send(self, 403, {'error': 'forbidden: call from tracker site'})
             if not SERVICE_ROLE:
                 return _send(self, 500, {'error': 'SUPABASE_SERVICE_ROLE_KEY missing'})
-            email = _editor_email(self)
+            email = _caller(self)
             return _send(self, 200, _get_payload(email))
         except Exception as e:  # noqa: BLE001
             return _send(self, 500, {'error': type(e).__name__, 'msg': str(e)[:500]})
@@ -362,8 +384,9 @@ class handler(BaseHTTPRequestHandler):
                 return _send(self, 500, {'error': 'SUPABASE_SERVICE_ROLE_KEY missing'})
             length = min(int(self.headers.get('Content-Length', '0') or '0'), 200000)
             body = json.loads(self.rfile.read(length).decode('utf-8') or '{}')
-            email = _editor_email(self)
-            status, payload = _post(self, email, body if isinstance(body, dict) else {})
+            body = body if isinstance(body, dict) else {}
+            email = _caller(self, body)
+            status, payload = _post(self, email, body)
             return _send(self, status, payload)
         except ValueError as e:
             return _send(self, 400, {'error': str(e)})

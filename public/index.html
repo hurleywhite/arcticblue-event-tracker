@@ -3481,7 +3481,13 @@
 (function(root) {
   'use strict';
   const STATES = ['Apply','Outreach','Book Meetings','Attend','Stack Trip','Pass'];
-  const PEOPLE = ['thor','verma','jerome','carlos'];
+  // Action Center roster. Carlos came out 2026-09-15 (Hurley) -- he owned
+  // nothing here and his empty lane was a fifth of Pipeline health. This list
+  // drives Pipeline health, the per-person agenda and the owner filter; it is
+  // NOT the company roster, which still includes him for LatAm in build.py.
+  // NOTE: 'joe' is deliberately absent, though he owns 3 live events including
+  // the oldest overdue chase -- so those never appear in Pipeline health.
+  const PEOPLE = ['thor','verma','jerome'];
   const fold = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const day = d => /^\d{4}-\d{2}-\d{2}$/.test(d || '') && !isNaN(Date.parse(d)) && new Date(d).toISOString().slice(0,10)===d ? d : '';
   const plus = (d,n) => new Date(Date.parse(d+'T12:00:00Z')+n*86400000).toISOString().slice(0,10);
@@ -3783,7 +3789,11 @@
     if(results[0].status==='fulfilled')context=results[0].value;else error='Qualification and recorded travel could not load. '+results[0].reason.message;
     if(results[1].status==='fulfilled')cal=results[1].value;else cal={configured:false,unavailable:true};
     workflow={workspaces:[],calendars:[]};workflowError='';
-    if(context.editor){try{workflow=await request('/api/workflow');}catch(e){workflowError=e.message;}}
+    // /api/workflow is the one thing a magic link still changes: it holds the
+    // Attio token and proxies CRM reads. Everything else on this board is open
+    // (Hurley 2026-09-15), so ask for it only when actually signed in rather
+    // than showing everyone a 403 they can do nothing about.
+    if(context.signed_in){try{workflow=await request('/api/workflow');}catch(e){workflowError=e.message;}}
     loading=false;recompute();render();
   }
   function recompute() {
@@ -3800,7 +3810,11 @@
     const evid=r.realApplication?'Application on record'+(r.evidence.length?' ('+esc(r.evidence.join(', '))+')':''):(r.submitted==='tag-only'?'"Submitted" tag only — nothing corroborates it':r.q.label);
     return '<article class="ac-row'+(r.derived?' ac-derived':'')+'"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+(r.derived?'<span class="ac-badge ac-auto" title="Suggested from the recorded status, deadline or history — not submitted or sent. Confirm or change it.">suggested</span>':'')+esc(title(r.owner)||'Owner needed')+' · '+esc(r.city?title(r.city):(r.location||'Location unknown'))+(when?' · '+when:'')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+evid+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?C.diff(r.due,today())+' days late · ':'Due ')+esc(r.due)+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions">'+(opts&&opts.chase?'<button data-chase="'+esc(r._id)+'">Chased today</button>':'')+'<button data-workspace="'+esc(r._id)+'">Prepare & contact</button><button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action&&!r.derived?'Update action':r.derived?'Confirm / change':'Decide')+'</button></div></article>';
   }
+  // An empty section used to render a heading, a zero badge and "Nothing due
+  // here." -- 270px of furniture on the live board for two lanes that were
+  // simply clear. Nothing to show means nothing to draw (Hurley 2026-09-15).
   function section(key,label,list,opts) {
+    if(!list.length) return '';
     const show=expanded.has(key)?list:list.slice(0,4);
     return '<section class="ac-section" id="ac-'+key+'"><div class="ac-section-head"><h3>'+esc(label)+' <span class="ac-badge">'+list.length+'</span></h3>'+(list.length>4?'<button data-expand="'+key+'">'+(expanded.has(key)?'Show fewer':'Show all '+list.length)+'</button>':'')+'</div>'+(show.length?show.map(r=>eventRow(r,opts)).join(''):'<p class="ac-empty">Nothing due here.</p>')+'</section>';
   }
@@ -3816,13 +3830,17 @@
     if(!ready)html+='<p class="ac-empty">Loading live event records…</p>';
     else if(mode==='today') {
       html+=renderHealth(rs)+renderAgenda(rs);
-      html+='<div class="ac-stats">'+[['applications','Applications due in 7 days'],['contacts','Organizers to contact'],['meetings','Meetings to book'],['followups','Follow-ups due'],['decisions','Decisions needed']].map(([k,l])=>'<button class="ac-stat" data-jump="'+k+'"><strong>'+g[k].length+'</strong><span>'+l+'</span></button>').join('')+'</div>';
+      // The five stat tiles that used to sit here repeated the count already
+      // printed on every section heading below, so the same five numbers were
+      // on screen twice (Hurley 2026-09-15). Removed with the empty sections.
       html+='<p class="ac-note">'+(tripMatches.length?tripMatches.length+' recorded trips have nearby event opportunities. Open Trips to review.':(!cal?.configured?'Live calendar feeds are not connected. Open Trips to add or review recorded travel.':'No nearby event matches for recorded travel.'))+'</p>';
       html+=renderOutreach(rs);
       html+='<p class="ac-note">Suggested = inferred from the record and waiting for your confirmation. Organizer contact / follow-up is human work: draft, review and hand off the message; nothing sends automatically.</p>';
-      html+=section('applications','Applications due soon',g.applications)+section('contacts','Organizer contact / follow-up',g.contacts)+section('meetings','Meetings to book',g.meetings)+section('followups','Follow-ups due',g.followups,{chase:true})+section('decisions','Decisions required',g.decisions);
       const later=rs.filter(r=>r.active && !Object.values(g).flat().includes(r));
-      html+=section('later','Planned actions',later);
+      const work=section('applications','Applications due soon',g.applications)+section('contacts','Organizer contact / follow-up',g.contacts)+section('meetings','Meetings to book',g.meetings)+section('followups','Follow-ups due',g.followups,{chase:true})+section('decisions','Decisions required',g.decisions)+section('later','Planned actions',later);
+      // Sections hide themselves when empty, so a clear board would otherwise
+      // render as blank space under the health panel. Say it instead.
+      html+=work||'<p class="ac-empty">Nothing due right now'+(owner?' for '+esc(title(owner)):'')+(query?' matching that search':'')+'.</p>';
     } else if(mode==='pipeline') {
       html+='<p class="ac-note">Applications and speaking bookings from the original event records. Submission history remains visible after a pass or completed event.</p>';
       html+='<div class="ac-toolbar"><button data-attio-connect>'+ (workflow.attio_configured?'Manage Attio connection':'Connect Attio')+'</button></div>'+renderOutreach(rs);
@@ -3876,23 +3894,23 @@
   }
   function renderTrips(rs) {
     let html='<p class="ac-note">Find relevant events in the same city within four days of a trip. Review calendar suggestions before adding them to recorded travel.</p>';
-    html+='<div class="ac-calendar-connections">'+['thor','verma','jerome'].map(p=>{const c=(cal?.connections||[]).find(c=>c.person===p),configured=c?.configured||(workflow.calendars||[]).some(c=>c.person===p&&c.configured);return '<article class="ac-person"><strong>'+title(p)+'</strong><span>'+(!context.editor?'Sign in to check calendar':c?.healthy?'Live calendar checked':configured?'Connected · feed needs checking':'Calendar not connected')+'</span><button data-connect-calendar="'+p+'">'+(configured?'Manage connection':'Connect calendar')+'</button></article>';}).join('')+'</div>';
+    html+='<div class="ac-calendar-connections">'+['thor','verma','jerome'].map(p=>{const c=(cal?.connections||[]).find(c=>c.person===p),configured=c?.configured||(workflow.calendars||[]).some(c=>c.person===p&&c.configured);return '<article class="ac-person"><strong>'+title(p)+'</strong><span>'+(c?.healthy?'Live calendar checked':configured?'Connected · feed needs checking':'Calendar not connected')+'</span><button data-connect-calendar="'+p+'">'+(configured?'Manage connection':'Connect calendar')+'</button></article>';}).join('')+'</div>';
     if(cal?.unavailable)html+='<p class="ac-health">Calendar connection could not be checked. Recorded trips remain available.</p>';
     if(cal?.errors?.length)html+='<p class="ac-health">'+cal.errors.map(e=>esc(title(e.name))+': '+esc(e.reason)).join(' · ')+'</p>';
     if(cal?.recurring_skipped)html+='<p class="ac-note">'+cal.recurring_skipped+' recurring calendar entries were skipped. Check those separately in Calendar.</p>';
-    html+='<p class="ac-note">Calendar data identifies dates and possible destinations. It does not establish free meeting slots.</p><div class="ac-toolbar"><button data-calendar-import>Import calendar export</button><button data-trip-add>Add recorded trip</button>'+(!context.editor?'<button data-signin>Editor sign-in</button>':'')+'<button data-calendar>Open event calendar</button></div>';
+    html+='<p class="ac-note">Calendar data identifies dates and possible destinations. It does not establish free meeting slots.</p><div class="ac-toolbar"><button data-calendar-import>Import calendar export</button><button data-trip-add>Add recorded trip</button>'+'<button data-calendar>Open event calendar</button></div>';
     const allTrips=context.travel_windows||[];
     const candidates=(cal?.trip_candidates||[]).filter(t=>t.end_date>=today()&&(!owner||t.person_key===owner)&&!allTrips.some(s=>C.fold(s.person_key)===t.person_key&&s.source_event_id===t.source_event_id&&s.start_date===t.start_date&&s.end_date===t.end_date&&C.sameCity(s,t)));
     if(candidates.length)html+='<section class="ac-section"><h3>Calendar trips to review <span class="ac-badge">'+candidates.length+'</span></h3>'+candidates.map((t,i)=>'<article class="ac-row"><div><h4>'+esc(title(t.person_key))+' · '+esc(t.city)+'</h4><p>'+esc(t.start_date)+' – '+esc(t.end_date)+'</p><p class="ac-note">'+esc(t.title)+' · Needs review</p></div><button data-calendar-trip="'+i+'">Review & save trip</button></article>').join('')+'</section>';
     window._acCalendarCandidates=candidates;
     const trips=allTrips.filter(t=>t.end_date>=today()&&(!owner||C.fold(t.person_key).includes(owner)));
-    if(!trips.length)html+='<p class="ac-empty">'+(context.editor?'No upcoming travel recorded. Connect a calendar or import an export to find trips.':'Sign in to load protected recorded travel.')+'</p>';
+    if(!trips.length)html+='<p class="ac-empty">No upcoming travel recorded. Connect a calendar or import an export to find trips.</p>';
     trips.forEach(t=>{const p=C.tripPack(t,rs,context.target_accounts||[]);html+='<article class="ac-trip"><h3>'+esc(title(t.person_key))+' · '+esc(t.city)+'</h3><p class="ac-note">'+esc(t.start_date)+' – '+esc(t.end_date)+' · '+esc(t.source||'Recorded travel')+'</p><h4>Nearby event opportunities</h4>'+(p.nearby.length?p.nearby.map(eventRow).join(''):'<p class="ac-note">No matching events in the current tracker.</p>')+'<h4>Target accounts in this city</h4>'+(p.targets.length?'<ul>'+p.targets.map(a=>'<li>'+esc(a.name)+(a.executive_roles?' · '+esc(a.executive_roles):'')+'</li>').join('')+'</ul>':'<p class="ac-note">No target accounts with a confirmed office city recorded.</p>')+'<button class="ab-btn" data-trip-search="'+esc(t.id)+'">Find events around this trip</button></article>';});
     window._acTrips=trips;return html;
   }
   function renderTargets() {
     const accounts=context.target_accounts||[];
-    return '<p class="ac-note">Discover where target-company CIOs, CAIOs, CTOs, COOs, CDOs and product or innovation leaders speak. Public evidence indicates a likely buyer room; it does not prove attendance.</p><div class="ac-toolbar"><button data-account-add>Add target account</button><button data-discover>Find events for targets</button><button data-signin>Editor sign-in</button></div>'+(!context.editor?'<p class="ac-health">Sign in to manage and search the team’s private target-account list.</p>':'')+(accounts.length?accounts.map(a=>'<article class="ac-row"><div><h4>'+esc(a.name)+'</h4><p>'+esc(a.industry||'Industry not recorded')+' · '+esc(a.city||'Office city not recorded')+' · '+esc(title(a.owner_person))+'</p><p class="ac-note">'+esc(a.executive_roles||'CIO, CAIO, CTO, COO, CDO, CPO, digital transformation, innovation')+'</p></div><button data-account="'+a.id+'">Edit</button></article>').join(''):'<p class="ac-empty">No target accounts loaded. Add the companies the team actually wants to sell to.</p>')+'<div id="ac-discovery-results"></div>';
+    return '<p class="ac-note">Discover where target-company CIOs, CAIOs, CTOs, COOs, CDOs and product or innovation leaders speak. Public evidence indicates a likely buyer room; it does not prove attendance.</p><div class="ac-toolbar"><button data-account-add>Add target account</button><button data-discover>Find events for targets</button></div>'+(accounts.length?accounts.map(a=>'<article class="ac-row"><div><h4>'+esc(a.name)+'</h4><p>'+esc(a.industry||'Industry not recorded')+' · '+esc(a.city||'Office city not recorded')+' · '+esc(title(a.owner_person))+'</p><p class="ac-note">'+esc(a.executive_roles||'CIO, CAIO, CTO, COO, CDO, CPO, digital transformation, innovation')+'</p></div><button data-account="'+a.id+'">Edit</button></article>').join(''):'<p class="ac-empty">No target accounts loaded. Add the companies the team actually wants to sell to.</p>')+'<div id="ac-discovery-results"></div>';
   }
   function openDialog(name,body) {
     if(dialog)dialog.remove();
@@ -3949,7 +3967,6 @@
     };
   }
   function accountForm(account={}) {
-    if(!context.editor)return signIn();
     const d=openDialog(account.id?'Edit target account':'Add target account','<form><div class="ac-form">'+input('Company','name',account.name)+input('Industry','industry',account.industry)+input('Confirmed office city','city',account.city)+input('Owner','owner_person',account.owner_person)+input('Executive roles to track','executive_roles',account.executive_roles||'CIO, CAIO, CTO, COO, CDO, CPO, digital transformation, innovation','text',true)+'</div>'+footer()+'</form>');
     d.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));await formRequest(d,{action:'save_target_account',...f,...(account.id?{id:account.id}:{})});};
   }
@@ -3958,8 +3975,7 @@
     try{await request('/api/opportunities',body);d.close();await load();}catch(e){d.querySelector('.ac-error').textContent=e.message;btn.disabled=false;}
   }
   function tripForm() {
-    if(!context.editor)return signIn();
-    const d=openDialog('Record a confirmed trip','<p class="ac-note">Use travel already in a calendar or confirmed plan.</p><form><div class="ac-form">'+select('Person','person_key',owner||'thor',['thor','verma','jerome','carlos'])+input('City','city','')+input('Starts','start_date','','date')+input('Ends','end_date','','date')+input('Source (calendar or confirmed plan)','source','','text',true)+'</div>'+footer()+'</form>');
+    const d=openDialog('Record a confirmed trip','<p class="ac-note">Use travel already in a calendar or confirmed plan.</p><form><div class="ac-form">'+select('Person','person_key',owner||'thor',C.PEOPLE)+input('City','city','')+input('Starts','start_date','','date')+input('Ends','end_date','','date')+input('Source (calendar or confirmed plan)','source','','text',true)+'</div>'+footer()+'</form>');
     d.querySelector('form').onsubmit=async e=>{e.preventDefault();await formRequest(d,{action:'add_travel_window',...Object.fromEntries(new FormData(e.target))});};
   }
   function signIn() {
@@ -3968,7 +3984,7 @@
   }
   async function discover(trip) {
     const accounts=context.target_accounts||[];
-    if(!trip&&!accounts.length){if(!context.editor)return signIn();return accountForm();}
+    if(!trip&&!accounts.length){return accountForm();}
     const d=openDialog('Discover qualified events','<p class="ac-note">Searching public sources for buyer evidence and actionable booking routes…</p><div id="ac-found"></div><footer><button data-close>Close</button></footer>');
     try {
       const result=await request('/api/search',{count:5,target_accounts:accounts.map(a=>({name:a.name,roles:a.executive_roles})),...(trip?{location:trip.city,date_from:trip.start_date,date_to:trip.end_date}:{})});
@@ -3988,7 +4004,13 @@
     else if(b.dataset.manage){const r=rows.find(r=>r._id===b.dataset.manage);if(r)manage(r);}
     else if(b.dataset.workspace){const r=rows.find(r=>r._id===b.dataset.workspace);if(r)window.ApplicationWorkflow.open(r,workflowUi());}
     else if(b.hasAttribute('data-attio-connect'))window.ApplicationWorkflow.connections('attio',workflowUi());
-    else if(b.dataset.connectCalendar)window.ApplicationWorkflow.connections(b.dataset.connectCalendar,workflowUi());
+    // src/application-workflow.js defines window.ApplicationWorkflow but is not
+    // injected by build.py (arrived orphaned in 91a8881), so this threw a
+    // TypeError on click. Say what is wrong instead of dying silently.
+    else if(b.dataset.connectCalendar){
+      if(window.ApplicationWorkflow&&window.ApplicationWorkflow.connections)window.ApplicationWorkflow.connections(b.dataset.connectCalendar,workflowUi());
+      else alert('Calendar connections are not available in this build — src/application-workflow.js is not bundled yet.');
+    }
     else if(b.hasAttribute('data-calendar-import'))window.ApplicationWorkflow.importCalendar(workflowUi());
     else if(b.hasAttribute('data-calendar-trip'))window.ApplicationWorkflow.reviewTrip(window._acCalendarCandidates[Number(b.dataset.calendarTrip)],workflowUi());
     else if(b.dataset.detail){const r=rows.find(r=>r._id===b.dataset.detail);if(r)window.abOpenRef(r._table==='manual_events'?'manual':'catalog',r._key);}

@@ -12,7 +12,13 @@
 (function(root) {
   'use strict';
   const STATES = ['Apply','Outreach','Book Meetings','Attend','Stack Trip','Pass'];
-  const PEOPLE = ['thor','verma','jerome','carlos'];
+  // Action Center roster. Carlos came out 2026-09-15 (Hurley) -- he owned
+  // nothing here and his empty lane was a fifth of Pipeline health. This list
+  // drives Pipeline health, the per-person agenda and the owner filter; it is
+  // NOT the company roster, which still includes him for LatAm in build.py.
+  // NOTE: 'joe' is deliberately absent, though he owns 3 live events including
+  // the oldest overdue chase -- so those never appear in Pipeline health.
+  const PEOPLE = ['thor','verma','jerome'];
   const fold = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const day = d => /^\d{4}-\d{2}-\d{2}$/.test(d || '') && !isNaN(Date.parse(d)) && new Date(d).toISOString().slice(0,10)===d ? d : '';
   const plus = (d,n) => new Date(Date.parse(d+'T12:00:00Z')+n*86400000).toISOString().slice(0,10);
