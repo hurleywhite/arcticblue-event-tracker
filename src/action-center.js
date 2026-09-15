@@ -41,9 +41,9 @@
   // attention than it earns.
   function eventRow(r,opts) {
     const action=r.b.next_action || (r.submitted?'Set the next organizer follow-up':r.wake?'Review: '+(r.b.recheck_trigger||'scheduled recheck'):'Choose an action, owner and deadline');
-    const when=r.start?esc(r.start)+(r.end&&r.end!==r.start?'–'+esc(r.end.slice(5)):''):'';
+    const when=r.start?esc(niceRange(r.start,r.end)):'';
     const evid=r.realApplication?'Application on record'+(r.evidence.length?' ('+esc(r.evidence.join(', '))+')':''):(r.submitted==='tag-only'?'"Submitted" tag only — nothing corroborates it':r.q.label);
-    return '<article class="ac-row'+(r.derived?' ac-derived':'')+'"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+(r.derived?'<span class="ac-badge ac-auto" title="Suggested from the recorded status, deadline or history — not submitted or sent. Confirm or change it.">suggested</span>':'')+esc(title(r.owner)||'Owner needed')+' · '+esc(r.city?title(r.city):(r.location||'Location unknown'))+(when?' · '+when:'')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+evid+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?C.diff(r.due,today())+' days late · ':'Due ')+esc(r.due)+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions">'+(opts&&opts.chase?'<button data-chase="'+esc(r._id)+'">Chased today</button>':'')+'<button data-workspace="'+esc(r._id)+'">Prepare & contact</button><button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action&&!r.derived?'Update action':r.derived?'Confirm / change':'Decide')+'</button></div></article>';
+    return '<article class="ac-row'+(r.derived?' ac-derived':'')+'"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+(r.derived?'<span class="ac-badge ac-auto" title="Suggested from the recorded status, deadline or history — not submitted or sent. Confirm or change it.">suggested</span>':'')+esc(title(r.owner)||'Owner needed')+' · '+esc(r.city?title(r.city):(r.location||'Location unknown'))+(when?' · '+when:'')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+evid+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?C.diff(r.due,today())+' days late':'Due '+esc(niceDate(r.due)))+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions">'+(opts&&opts.chase?'<button data-chase="'+esc(r._id)+'">Chased today</button>':'')+'<button data-workspace="'+esc(r._id)+'">Prepare & contact</button><button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action&&!r.derived?'Update action':r.derived?'Confirm / change':'Decide')+'</button></div></article>';
   }
   // An empty section used to render a heading, a zero badge and "Nothing due
   // here." -- 270px of furniture on the live board for two lanes that were
@@ -96,10 +96,30 @@
   }
   // Pipeline health per person — applications out, accepted, rejected, deadlines
   // inside 30 days, chases overdue. This is the line Thor asked for and never got.
+  // Dates as people read them: "Sep 29–30", "Nov 3–5", "Jan 25–26, 2027".
+  // ISO ("2026-09-29–09-30") was precise and hard to scan (Hurley 2026-09-15).
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function niceDate(d){if(!C.day(d))return d||'';const y=+d.slice(0,4);return MON[+d.slice(5,7)-1]+' '+(+d.slice(8,10))+(y!==+today().slice(0,4)?', '+y:'');}
+  function niceRange(a,b){
+    if(!C.day(a))return a||'';if(!C.day(b)||b===a)return niceDate(a);
+    const ya=a.slice(0,4),yb=b.slice(0,4),ma=+a.slice(5,7)-1,mb=+b.slice(5,7)-1,yr=+ya!==+today().slice(0,4)?', '+ya:'';
+    if(ya!==yb)return niceDate(a)+' – '+niceDate(b);
+    return MON[ma]+' '+(+a.slice(8,10))+'–'+(ma===mb?'':MON[mb]+' ')+(+b.slice(8,10))+yr;
+  }
+  // One card per person, led by the single number that needs doing something
+  // about. It used to be five small grey lines, mostly zeros, including
+  // "rejected (all time)" -- a scoreboard stat, not a to-do. Zeros are dropped;
+  // clicking a card filters the board to that person (click again to clear).
   function renderHealth(rs) {
     const h=C.health(rs,today());
     const people=(owner?[owner]:C.PEOPLE);
-    return '<section class="ac-section ac-health-strip"><div class="ac-section-head"><h3>Pipeline health</h3><span class="ac-note">applications are counted when there is a date, a chase, a contact or a note behind them</span></div><div class="ac-metrics">'+people.map(p=>{const x=h[p]||{};return '<div class="ac-person"><strong>'+esc(title(p))+'</strong><span>'+x.applications+' applications out</span><span>'+x.booked+' booked · '+x.attending+' attending'+(x.undated?' · '+x.undated+' undated':'')+'</span><span>'+x.rejected+' rejected (all time)</span><span'+(x.deadlines?' class="ac-warn"':'')+'>'+x.deadlines+' deadlines in 30 days</span><span'+(x.overdue?' class="ac-overdue"':'')+'>'+x.overdue+' chases overdue</span></div>';}).join('')+'</div></section>';
+    const card=p=>{const x=h[p]||{};
+      const hl=x.overdue?['ac-hl-bad',x.overdue,x.overdue===1?'chase overdue':'chases overdue']
+        :x.deadlines?['ac-hl-warn',x.deadlines,x.deadlines===1?'deadline this month':'deadlines this month']
+        :['ac-hl-ok','✓','nothing overdue'];
+      const sub=[x.applications&&x.applications+' applied',x.booked&&x.booked+' speaking',x.attending&&x.attending+' attending',(x.overdue&&x.deadlines)&&x.deadlines+' deadlines soon'].filter(Boolean);
+      return '<button class="ac-pcard" data-pick-owner="'+esc(p)+'" aria-pressed="'+(owner===p)+'" title="'+(owner===p?'Show everyone':'Show only '+esc(title(p)))+'"><span class="ac-pcard-name">'+esc(title(p))+'</span><span class="ac-pcard-hl '+hl[0]+'"><b>'+hl[1]+'</b> '+hl[2]+'</span><span class="ac-pcard-sub">'+(sub.join(' · ')||'Nothing in flight')+'</span></button>';};
+    return '<section class="ac-section ac-health-strip"><div class="ac-section-head"><h3>Pipeline health</h3></div><div class="ac-pcards">'+people.map(card).join('')+'</div></section>';
   }
   // What people are ACTUALLY going to (Booked / Attending), with hard clashes,
   // same-city stacking and where two of them coincide. Applications are not
@@ -107,15 +127,17 @@
   function renderAgenda(rs) {
     const a=C.agenda(rs,today());
     const people=(owner?[owner]:C.PEOPLE).filter(p=>(a.people[p]||{}).list?.length);
-    const mini=r=>'<li><span>'+esc(r.start)+(r.end&&r.end!==r.start?'–'+esc(r.end.slice(5)):'')+'</span> <button class="ac-linklike" data-detail="'+esc(r._id)+'">'+esc(r.name)+'</button> <span class="ac-note">'+esc(r.city?title(r.city):(r.location||''))+' · '+esc(r.why)+'</span></li>';
-    let html='<section class="ac-section"><div class="ac-section-head"><h3>Commitments & conflicts</h3><span class="ac-note">'+(cal&&cal.configured?'Booked/attending plus live calendar locations.':'Booked and attending events only — connect calendar feeds to add travel.')+'</span></div>';
+    // "Attending" is the default, so it is no longer printed on every line --
+    // only "Speaking" is tagged, because that is the one that needs prep.
+    const mini=r=>'<li><span class="ac-when">'+esc(niceRange(r.start,r.end))+'</span><button class="ac-linklike" data-detail="'+esc(r._id)+'">'+esc(r.name)+'</button><span class="ac-where">'+esc(r.city?title(r.city):(r.location||''))+(r.why==='Speaking'?'<span class="ac-tag">Speaking</span>':'')+'</span></li>';
+    let html='<section class="ac-section"><div class="ac-section-head"><h3>Commitments & conflicts</h3></div>';
     if(!people.length) html+='<p class="ac-empty">Nobody is booked or attending anything upcoming'+(owner?' for '+esc(title(owner)):'')+'.</p>';
     people.forEach(p=>{const x=a.people[p];
       html+='<div class="ac-agenda"><h4>'+esc(title(p))+' <span class="ac-badge">'+x.list.length+'</span></h4><ul>'+x.list.map(mini).join('')+'</ul>';
-      x.clashes.forEach(([e1,e2])=>html+='<p class="ac-overdue">Clash: '+esc(e1.name)+' overlaps '+esc(e2.name)+' ('+esc(e1.start)+')</p>');
+      x.clashes.forEach(([e1,e2])=>html+='<p class="ac-overdue">Clash: '+esc(e1.name)+' overlaps '+esc(e2.name)+' ('+esc(niceDate(e1.start))+')</p>');
       x.stacks.forEach(([e1,e2])=>html+='<p class="ac-warn">Same trip: '+esc(e1.name)+' and '+esc(e2.name)+' are both in '+esc(title(e1.city))+' within 4 days.</p>');
       html+='</div>';});
-    if(!owner&&a.cross.length) html+='<h4>Where two of them coincide</h4><ul>'+a.cross.map(c=>'<li>'+esc(title(c.a))+' ('+esc(c.ea.name)+') and '+esc(title(c.b))+' ('+esc(c.eb.name)+') are both in '+esc(title(c.city))+' around '+esc(c.ea.start)+'</li>').join('')+'</ul>';
+    if(!owner&&a.cross.length) html+='<h4>Where two of them coincide</h4><ul>'+a.cross.map(c=>'<li>'+esc(title(c.a))+' ('+esc(c.ea.name)+') and '+esc(title(c.b))+' ('+esc(c.eb.name)+') are both in '+esc(title(c.city))+' around '+esc(niceDate(c.ea.start))+'</li>').join('')+'</ul>';
     return html+'</section>';
   }
   function workflowUi() {return {request,input,area,select,openDialog,signIn,manage,editor:context.editor,reload:load};}
@@ -235,6 +257,7 @@
     else if(b.hasAttribute('data-refresh')){window.opsRefresh();load();}
     else if(b.dataset.expand){expanded.has(b.dataset.expand)?expanded.delete(b.dataset.expand):expanded.add(b.dataset.expand);render();}
     else if(b.dataset.jump)document.getElementById('ac-'+b.dataset.jump)?.scrollIntoView({behavior:'smooth'});
+    else if(b.dataset.pickOwner){owner=owner===b.dataset.pickOwner?'':b.dataset.pickOwner;render();}
     else if(b.dataset.chase)chase(b,rows.find(r=>r._id===b.dataset.chase));
     else if(b.dataset.manage){const r=rows.find(r=>r._id===b.dataset.manage);if(r)manage(r);}
     else if(b.dataset.workspace){const r=rows.find(r=>r._id===b.dataset.workspace);if(r)window.ApplicationWorkflow.open(r,workflowUi());}

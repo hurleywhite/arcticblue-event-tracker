@@ -16,3 +16,29 @@
 .ac-linklike{background:none;border:0;padding:0;color:inherit;font:inherit;text-decoration:underline;cursor:pointer;text-align:left}
 
 .ac-workspace{width:min(900px,calc(100vw - 32px))}.ac-workspace textarea[name=body]{min-height:260px;line-height:1.6}.ac-workflow-steps{display:flex;gap:10px;flex-wrap:wrap;border-block:1px solid #e2e6eb;padding:14px 0;margin:16px 0;font-size:14px;color:#37526f}.ac-workflow-steps span{flex:1;min-width:140px}.ac-contact-result{display:block;width:100%;text-align:left;margin:6px 0}.ac-calendar-connections{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0}.ac-calendar-connections button{min-height:44px;border:1px solid #dfe3e9;border-radius:7px;background:#fff;font:inherit;margin-top:8px;cursor:pointer}.ac-row-actions{flex-wrap:wrap;max-width:420px}.ac-workspace [aria-disabled=true]{opacity:.45;pointer-events:none}.ac-dialog button:disabled{opacity:.55;cursor:default}.ac-workspace h3{font-size:18px}.ac-workspace .ac-form label{font-size:14px}@media(max-width:600px){.ac-calendar-connections{grid-template-columns:1fr}.ac-row-actions{max-width:none}.ac-workflow-steps span{min-width:40%;font-size:13px}}
+
+/* 2026-09-15 "small and busy" pass: larger type, one headline number per
+   person, human dates, fewer grey footnotes. Appended so it wins the cascade. */
+#ops-action .ac-note{font-size:14px}
+#ops-action .ac-section h3{font-size:19px;letter-spacing:-.2px}
+#ops-action .ac-row h4{font-size:16.5px;margin-bottom:6px}
+#ops-action .ac-row p{font-size:14.5px;line-height:1.55}
+.ac-pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;padding:16px 0 4px}
+.ac-pcard{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;padding:18px 20px;border:1px solid #e3e7ed;border-radius:12px;background:#fff;font:inherit;color:inherit;cursor:pointer;transition:border-color .12s,background .12s}
+.ac-pcard:hover{border-color:#b9c7d6}
+.ac-pcard[aria-pressed=true]{border-color:#2773c2;background:#f5f9ff}
+.ac-pcard-name{font-size:17px;font-weight:600;font-family:inherit}
+.ac-pcard-hl{font-size:15px;color:#37414d;display:flex;align-items:baseline;gap:6px}
+.ac-pcard-hl b{font-size:34px;line-height:1;font-weight:600;letter-spacing:-1px}
+.ac-hl-bad b{color:#b42318}.ac-hl-warn b{color:#b45309}
+.ac-hl-ok{color:#5f6b78}.ac-hl-ok b{color:#2f7d4f;font-size:24px}
+.ac-pcard-sub{font-size:14.5px;color:#5f6b78}
+.ac-agenda h4{font-size:17px;margin:20px 0 4px}
+.ac-agenda ul{margin:0}
+.ac-agenda li{font-size:15.5px;padding:9px 0;gap:16px;border-bottom:1px solid #f0f2f5;flex-wrap:wrap}
+.ac-agenda li:last-child{border-bottom:0}
+.ac-agenda .ac-when{min-width:8.5em;color:#5f6b78;font-variant-numeric:tabular-nums;flex-shrink:0}
+.ac-agenda .ac-where{color:#6b7480;font-size:14.5px}
+.ac-tag{font-size:12.5px;background:#eaf5ec;color:#276b3a;padding:2px 8px;border-radius:5px;margin-left:8px}
+@media(max-width:600px){.ac-agenda .ac-when{min-width:0;width:100%}.ac-pcard-hl b{font-size:28px}}
+
