@@ -3869,7 +3869,10 @@
    "external_id": "858c1c7c-0d42-40d1-b66a-8de945fbf310",
    "source": "arcticscout",
    "start_date": "2026-05-12",
-   "end_date": "2026-05-13"
+   "end_date": "2026-05-13",
+   "meeting_formats": "Guaranteed 1:1 meetings; boardroom sessions; closed-door discussions",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "344"
   },
   {
    "num": 165,
@@ -4457,7 +4460,11 @@
    "external_id": "4e20cd4a-3c53-43b8-90af-38457c338571",
    "source": "arcticscout",
    "start_date": "2026-03-26",
-   "end_date": "2026-03-26"
+   "end_date": "2026-03-26",
+   "pricing": "Complimentary, invite-only pass (pricing not publicly listed)",
+   "past_speakers": "Maryam Ashoori, VP of Product, IBM; David Abramson, Chief Technology Officer, Qrvey; Aaron Severs, Chief Product Officer, Notion",
+   "meeting_formats": "Co-located summit access; networking opportunities",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 185,
