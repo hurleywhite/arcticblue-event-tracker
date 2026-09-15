@@ -9,8 +9,14 @@
   const host=()=>document.getElementById('ops-action');
   async function request(path,body) {
     const s=await window._ab.auth.getSession(), token=s.data?.session?.access_token;
-    const r=await fetch(path,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{})},...(body?{body:JSON.stringify(body)}:{})});
-    const j=await r.json(); if(!r.ok || j.error)throw Error(j.error || 'Request failed'); return j;
+    const ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),15000);
+    try {
+      const r=await fetch(path,{method:body?'POST':'GET',signal:ctl.signal,headers:{...(body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{})},...(body?{body:JSON.stringify(body)}:{})});
+      const j=await r.json(); if(!r.ok || j.error)throw Error(j.error || 'Request failed'); return j;
+    } catch(e) {
+      if(e && e.name==='AbortError') throw Error(path+' timed out after 15 seconds. Check the deployment and Supabase/calendar connections, then retry.');
+      throw e;
+    } finally { clearTimeout(timer); }
   }
   async function load() {
     loading=true;error='';context={...context,editor:false,travel_windows:[],target_accounts:[]};cal=null;workflow={workspaces:[],calendars:[]};render();
