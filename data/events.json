@@ -1113,7 +1113,8 @@
    "meeting_formats": "roundtables; attendee app for pre-booking meetings; networking receptions",
    "audience_type": "Mixed",
    "past_speakers": "Senior data leaders from Fortune 500 companies; executives from innovative AI startups",
-   "attendee_count": "South’s largest enterprise data & AI conference (exact count"
+   "attendee_count": "South’s largest enterprise data & AI conference (exact count",
+   "pay_to_play": "Yes"
   },
   {
    "num": 40,
@@ -6582,7 +6583,9 @@
    "external_id": "0680820f-d88c-4cc2-b35e-e60e90078839",
    "source": "arcticscout",
    "start_date": "2026-04-12",
-   "end_date": "2026-04-15"
+   "end_date": "2026-04-15",
+   "meeting_formats": "roundtables; attendee app for pre-booking meetings; hosted networking events",
+   "audience_type": "Mixed"
   },
   {
    "num": 257,
@@ -7245,7 +7248,8 @@
    "external_id": "replit-213",
    "venue": "1 America Square",
    "meeting_formats": "Networking sessions with industry experts",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "Caroline Cartellieri, Saffron Building Society; Ryan Courtier, Citi; Parag Kumar, JPMorganChase; Ramy Erfan, Citi; Rajasree Ramakrishnan, Lloyds Banking Group"
   },
   {
    "num": 284,
