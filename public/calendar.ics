@@ -26,6 +26,16 @@ DESCRIPTION:Large insurtech audience\; ArcticBlue's AI relevance to insurance se
 URL:https://london.insuretechconnect.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-660@arcticblue-event-tracker
+DTSTAMP:20260916T000000Z
+DTSTART;VALUE=DATE:20261026
+DTEND;VALUE=DATE:20261030
+SUMMARY:Global Health Exhibition 2026
+LOCATION:Riyadh Exhibition and Convention Center (Malham)\, Riyadh\, Saudi Arabia
+DESCRIPTION:Exact overlap with Thor’s confirmed Riyadh trip. The dedicated Digital Health Forum centers on scaled digital-health deployment\, patient-facing technology and connected care\, with an open official speaker route.\nPriority: High\nAdded by: ChatGPT scheduled research
+URL:https://www.globalhealthsaudi.com/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-653@arcticblue-event-tracker
 DTSTAMP:20260916T000000Z
 DTSTART;VALUE=DATE:20270315
@@ -46,16 +56,6 @@ DESCRIPTION:Excellent Thor fit: healthcare technology buyers\, 2\,000+ C-suite a
 URL:https://hlth.com/events/vive/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-655@arcticblue-event-tracker
-DTSTAMP:20260916T000000Z
-DTSTART;VALUE=DATE:20270301
-DTEND;VALUE=DATE:20270303
-SUMMARY:FinAi Banking Summit 2027
-LOCATION:Westin Denver\, Denver\, CO
-DESCRIPTION:Excellent Verma fit: banking executives discussing real AI deployment\, governance\, automation\, payments and measurable outcomes.\nPriority: High\nAdded by: ChatGPT curated research
-URL:https://finai.events/banking/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-656@arcticblue-event-tracker
 DTSTAMP:20260916T000000Z
 DTSTART;VALUE=DATE:20270405
@@ -64,6 +64,16 @@ SUMMARY:IPC 2027
 LOCATION:Washington\, DC
 DESCRIPTION:Strong Verma fit: payments executives and regulated-industry leaders discussing real-world implementations\, technology\, compliance and regulation.\nPriority: High\nAdded by: ChatGPT curated research
 URL:https://www.ipa.org/ipc.html
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-655@arcticblue-event-tracker
+DTSTAMP:20260916T000000Z
+DTSTART;VALUE=DATE:20270301
+DTEND;VALUE=DATE:20270303
+SUMMARY:FinAi Banking Summit 2027
+LOCATION:Westin Denver\, Denver\, CO
+DESCRIPTION:Excellent Verma fit: banking executives discussing real AI deployment\, governance\, automation\, payments and measurable outcomes.\nPriority: High\nAdded by: ChatGPT curated research
+URL:https://finai.events/banking/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-652@arcticblue-event-tracker

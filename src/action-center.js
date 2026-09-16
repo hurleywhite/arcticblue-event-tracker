@@ -39,6 +39,20 @@
   // opts.chase adds the one-click chase button. It is passed ONLY by the
   // follow-ups section: a third button on every row everywhere would cost more
   // attention than it earns.
+  const IMPLIED_STEP=/^(Chase the organiser for a decision|Confirm travel and book buyer meetings around it|Confirm logistics, prep the talk, book buyer meetings around it)$/;
+  function rowFacts(r){
+    const f=[];
+    const applied=C.day(r.submitted_at)||C.day((r.booking||{}).submitted_at);
+    if(applied)f.push('applied '+niceDate(applied));
+    const chases=(r.follow_ups||[]).map(x=>C.day(x&&(x.date||x.sent_at||x.at))).filter(Boolean).sort();
+    if(chases.length)f.push('last chased '+niceDate(chases[chases.length-1])+(chases.length>1?' ('+chases.length+' times)':''));
+    // Enrichment sometimes stores the label with the name ("Speaker Contact:
+    // Midori Toya (She/her)"); show just the person.
+    const who=String(r.poc_name||'').replace(/^[^:]{0,40}contact\s*:\s*/i,'').replace(/\s*\((?:she|he|they)\b[^)]*\)/gi,'').trim();
+    if(who)f.push('contact '+who);
+    const line=f.join(' · ');
+    return line?line.charAt(0).toUpperCase()+line.slice(1):'';
+  }
   function eventRow(r,opts) {
     // No badges. This row used to open with the internal state name ("Apply",
     // "Outreach", "Decision needed"), a "suggested" chip and the words "Owner
@@ -46,11 +60,20 @@
     // for facts we do not have (Hurley 2026-09-15: stop adding labels just for
     // the sake of them). What is left is the event, who has it, where and when,
     // the next step in a sentence, and the date it is due.
-    const next=r.b.next_action || (r.submitted?'Set the next organiser follow-up':r.wake?('Review: '+(r.b.recheck_trigger||'scheduled recheck')):'Decide what happens with this one');
+    // The next-step line used to be the same derived sentence on every row of a
+    // section ("Chase the organiser for a decision" x25 under "Follow-ups due").
+    // A sentence repeated 25 times tells you nothing, so: a step a person typed
+    // always shows; a derived step shows only when it names something the
+    // section heading does not; otherwise the line carries the facts you would
+    // otherwise open the event to find -- when we applied, when we last chased,
+    // and who the contact is (Hurley 2026-09-16).
+    const typed=(r.booking||{}).next_action;
+    const derived=r.b.next_action||'';
+    const next=typed || (derived && !IMPLIED_STEP.test(derived) ? derived : rowFacts(r));
     const meta=[r.owner?title(r.owner):'', r.city?title(r.city):'', r.start?niceRange(r.start,r.end):''].filter(Boolean).join(' · ');
     const due=r.due?(r.due<today()?'<span class="ac-overdue">'+C.diff(r.due,today())+' days late</span>':'Due '+esc(niceDate(r.due))):'';
     return '<article class="ac-row"><div>'+nameLink(r)+(meta?'<p class="ac-meta">'+esc(meta)+'</p>':'')
-      +'<p class="ac-next">'+esc(next)+'</p>'+(due?'<p class="ac-note">'+due+'</p>':'')
+      +(next?'<p class="ac-next">'+esc(next)+'</p>':'')+(due?'<p class="ac-note">'+due+'</p>':'')
       +'</div><div class="ac-row-actions">'+(opts&&opts.chase?'<button data-chase="'+esc(r._id)+'">Chased today</button>':'')
       +'<button class="ac-primary" data-manage="'+esc(r._id)+'">Update</button></div></article>';
   }
