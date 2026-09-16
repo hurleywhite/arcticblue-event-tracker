@@ -61,3 +61,7 @@
 .ac-mini{list-style:none;margin:6px 0 0;padding:0}
 .ac-mini li{padding:5px 0;font-size:15px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .ac-mini .ac-where{color:#6b7480;font-size:14px}
+.ac-now{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin:14px 0 2px;padding:12px 16px;border:1px solid #dde7f1;background:#f6faff;border-radius:10px;font-size:15.5px;color:#26405a}
+.ac-now b{font-weight:600;color:#12263a;margin-right:4px}
+.ac-now .ac-title{display:inline;font-size:inherit;font-weight:inherit;margin:0}
+

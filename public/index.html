@@ -3300,6 +3300,10 @@
 .ac-mini{list-style:none;margin:6px 0 0;padding:0}
 .ac-mini li{padding:5px 0;font-size:15px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .ac-mini .ac-where{color:#6b7480;font-size:14px}
+.ac-now{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin:14px 0 2px;padding:12px 16px;border:1px solid #dde7f1;background:#f6faff;border-radius:10px;font-size:15.5px;color:#26405a}
+.ac-now b{font-weight:600;color:#12263a;margin-right:4px}
+.ac-now .ac-title{display:inline;font-size:inherit;font-weight:inherit;margin:0}
+
 
 </style>
 </head>
@@ -3947,7 +3951,7 @@
     if(loading)html+='<p class="ac-note" role="status">Loading…</p>';
     if(error)html+='<p class="ac-health">'+esc(error)+'</p>';
     if(!ready){h.innerHTML=html+'<p class="ac-empty">Loading live event records…</p>';return;}
-    html+=renderHealth(rs);
+    html+=renderNow(rs)+renderHealth(rs);
     const later=rs.filter(r=>r.active && !Object.values(g).flat().includes(r));
     const work=section('followups','Follow-ups due',g.followups,{chase:true})
       +section('contacts','Organiser contact',g.contacts)
@@ -4007,6 +4011,25 @@
   }
   function workflowUi() {return {request,input,area,select,openDialog,signIn,manage,editor:context.editor,reload:load};}
   // Calendar, conflicts and loop-ins in one place. Replaces the Trips view.
+  // One line for today, before anything that needs doing: who is away right
+  // now and what they are at. The board could show a Riyadh trip three weeks
+  // out while saying nothing about the two people in Manama this morning.
+  function renderNow(rs){
+    const t=today();
+    const trips=C.calendarTrips(cal).concat((context.travel_windows||[]).map(x=>({...x,person_key:C.fold(x.person_key),city:C.cityOf(x)||x.city})))
+      .filter(x=>x.start_date<=t&&x.end_date>=t&&(!owner||x.person_key===owner));
+    const a=C.agenda(rs,t), onNow=[];
+    (owner?[owner]:C.PEOPLE).forEach(p=>((a.people[p]||{}).list||[]).forEach(e=>{
+      if(e.start&&e.start<=t&&(e.end||e.start)>=t)onNow.push({p,e});}));
+    const byCity={};
+    trips.forEach(x=>{const c=x.city?title(x.city):'';(byCity[c]=byCity[c]||[]).push(title(x.person_key));});
+    const bits=Object.keys(byCity).map(c=>{
+      const who=byCity[c].filter((v,i,arr)=>arr.indexOf(v)===i);
+      const names=who.length>1?who.slice(0,-1).join(', ')+' and '+who[who.length-1]:who[0];
+      return '<span>'+esc(names)+(c?' in '+esc(c):' away')+'</span>';});
+    onNow.forEach(o=>bits.push('<span>'+esc(title(o.p))+' at '+nameLink(o.e,'span')+'</span>'));
+    return bits.length?'<p class="ac-now"><b>Today</b> '+bits.join(' · ')+'</p>':'';
+  }
   function renderCalendar(rs) {
     const conflicts=C.conflicts(rs,cal,today());
     const calTrips=C.calendarTrips(cal).filter(t=>t.end_date>=today()&&(!owner||t.person_key===owner));
@@ -4166,10 +4189,24 @@
   function connectCal(person){
     const d=openDialog('Connect '+title(person)+'\u2019s calendar',
       '<p class="ac-note">In Google Calendar: <b>Settings</b> \u2192 pick the calendar \u2192 <b>Integrate calendar</b> \u2192 copy the <b>Secret address in iCal format</b>. Only the calendar\u2019s owner can get that link. The tracker reads dates and destination cities from it \u2014 meeting titles never leave the server.</p><form><div class="ac-form">'
-      +input('Secret iCal address','url','','url',true)+'</div><p class="ac-error" role="status"></p><footer><button type="button" data-close>Close</button><button type="button" data-disconnect>Disconnect</button><button type="submit" class="ac-primary">Connect</button></footer></form>');
+      +input('Secret iCal address','url','','url',true)+'</div><p class="ac-error" role="status"></p><footer><button type="button" data-close>Close</button><button type="button" data-copy-steps>Copy the steps to send</button><button type="button" data-disconnect>Disconnect</button><button type="submit" class="ac-primary">Connect</button></footer></form>');
     const f=d.querySelector('form'),err=d.querySelector('.ac-error');
     f.onsubmit=async e=>{e.preventDefault();const b=f.querySelector('[type=submit]');b.disabled=true;err.textContent='Checking the calendar\u2026';
       try{await request('/api/calendars',{person,url:f.elements.url.value});d.close();await load();}catch(ex){err.textContent=ex.message;b.disabled=false;}};
+    // Only the calendar's owner can get this link, so the useful thing the
+    // dialog can do is hand you the message to send them.
+    d.querySelector('[data-copy-steps]').onclick=async()=>{
+      const steps='To get our event tracker seeing your travel:\n\n'
+        +'1. Open Google Calendar on a computer\n'
+        +'2. Settings (the cog, top right) \u2192 Settings\n'
+        +'3. On the left, click the calendar you want to share\n'
+        +'4. Scroll to "Integrate calendar"\n'
+        +'5. Copy "Secret address in iCal format"\n'
+        +'6. Send me that link\n\n'
+        +'It reads dates and destination cities only \u2014 meeting titles never leave the server. A travel-only calendar works too.';
+      try{await navigator.clipboard.writeText(steps);err.textContent='Copied \u2014 paste it to '+title(person)+'.';}
+      catch(e){err.textContent='Copy was blocked. Select the text in the paragraph above instead.';}
+    };
     d.querySelector('[data-disconnect]').onclick=async()=>{err.textContent='';
       try{await request('/api/calendars',{person,action:'disconnect'});d.close();await load();}catch(ex){err.textContent=ex.message;}};
   }

@@ -1215,6 +1215,16 @@ DESCRIPTION:Priority: Medium\nAdded by: Angela
 URL:https://datainnovationsummit.com/disx/15-september-dubai/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-478@arcticblue-event-tracker
+DTSTAMP:20260915T000000Z
+DTSTART;VALUE=DATE:20270318
+DTEND;VALUE=DATE:20270319
+SUMMARY:Data Innovation Summit: APAC
+LOCATION:Singapore
+DESCRIPTION:Priority: Medium\nAdded by: Angela
+URL:https://apac.datainnovationsummit.com/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-477@arcticblue-event-tracker
 DTSTAMP:20260915T000000Z
 DTSTART;VALUE=DATE:20261014
@@ -2594,6 +2604,16 @@ DESCRIPTION:McLean & Company's annual HR executive conference for CHROs\, CPOs\,
 URL:https://hr.mcleanco.com/events/mclean-company-signature
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-240@arcticblue-event-tracker
+DTSTAMP:20260915T000000Z
+DTSTART;VALUE=DATE:20270504
+DTEND;VALUE=DATE:20270507
+SUMMARY:YPO Edge
+LOCATION:San diego
+DESCRIPTION:Priority: Medium\nAdded by: Team
+URL:https://www.ypo.org/ypoedge/
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-239@arcticblue-event-tracker
 DTSTAMP:20260915T000000Z
 DTSTART;VALUE=DATE:20261119
@@ -2702,6 +2722,16 @@ SUMMARY:Finance Digital Conference 2026
 LOCATION:London\, UK
 DESCRIPTION:Dedicated one-day conference on AI implementation and digital transformation across financial services with FCA/Bank of England regulatory speakers — useful for ArcticBlue's regulated-FS messaging.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.financedigitalconference.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-222@arcticblue-event-tracker
+DTSTAMP:20260915T000000Z
+DTSTART;VALUE=DATE:20270607
+DTEND;VALUE=DATE:20270609
+SUMMARY:GITEX AI Kazakhstan
+LOCATION:Almaty\, Kazakhstan
+DESCRIPTION:This appears to be a large government-backed enterprise AI and digital transformation event with strong attendance from policymakers\, investors\, startups\, and enterprise leaders in an emerging regional market.\nPriority: Medium\nAdded by: Ang
+URL:https://www.gitexcac.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-221@arcticblue-event-tracker
