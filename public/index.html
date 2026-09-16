@@ -15826,6 +15826,13 @@
       if (q) q.classList.toggle('show', name === 'queue');
       if (p) p.classList.toggle('show', name === 'planner');
       if (d) d.classList.toggle('show', name === 'dayof');
+      // #ops-myevents sits BEFORE #ops-action in the document, so folding the
+      // Lineup into the Action Center put the team list above the board's own
+      // heading. Move the node after it the first time we land here.
+      if (name === 'action' && me) {
+        var ah = document.getElementById('ops-action');
+        if (ah && ah.parentNode === me.parentNode && ah.nextSibling !== me) ah.parentNode.insertBefore(me, ah.nextSibling);
+      }
       if (name === 'myevents' || name === 'action') renderMyEvents();
       if (name === 'myprofile') renderMyProfile();
       if (name === 'calendar') recalcCalendar();   // re-apply the live filters
@@ -16587,7 +16594,11 @@
                     jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
       function pad(n) { return String(n).padStart(2, '0'); }
       function iso(y, m, d) { return y + '-' + pad(m) + '-' + pad(d); }
-      var s = String(text);
+      // Strip ordinal suffixes once, up front, so every pattern below sees a
+      // plain number: "March 18th, 2027" and "October 3rd" parsed as nothing
+      // before this, which is why those events had no start_date and sat
+      // outside the calendar, the feed and every date sort (Hurley 2026-09-15).
+      var s = String(text).replace(/(\d)(?:st|nd|rd|th)\b/gi, '$1');
 
       // 1. Cross-month range — "Month D – Month D, YYYY"
       var m1 = s.match(/([A-Za-z]+)\s+(\d{1,2})\s*[–—-]\s*([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/);

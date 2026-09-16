@@ -1265,6 +1265,38 @@ def _recommend_batch(host, limit=None):
             'ids': recommended, 'sample': sample, 'errors': errors}
 
 
+def _missing_col(payload):
+    """The column PostgREST says does not exist, from a 42703/PGRST204 body."""
+    if not isinstance(payload, (dict, str)):
+        return ''
+    msg = payload.get('message', '') if isinstance(payload, dict) else payload
+    m = re.search(r"column\s+(?:[A-Za-z0-9_]+\.)?([A-Za-z0-9_]+)\s+does not exist", str(msg))
+    return m.group(1) if m else ''
+
+
+def _select_cols(table, cols, extra=''):
+    """SELECT these columns, dropping any the database does not have yet.
+
+    The nightly cron opened with a select that named targets_json. That column
+    has never existed in production, so PostgREST answered 400, `states` came
+    back an error dict instead of a list, the per-event map fell through to
+    empty, and every event was skipped -- a clean-looking run with done=[] every
+    night since 2026-06-21, no briefing ever generated. A pending migration
+    should degrade one feature, never silently disable the whole job.
+    """
+    remaining = list(cols)
+    while True:
+        st, rows = _http_json('GET', SUPABASE_URL + '/rest/v1/' + table + '?select='
+                              + ','.join(remaining) + extra, headers=_sb_headers(service=True))
+        if st == 200 and isinstance(rows, list):
+            return st, rows
+        gone = _missing_col(rows)
+        if gone and gone in remaining and len(remaining) > 1:
+            remaining.remove(gone)
+            continue
+        return st, rows
+
+
 def cache_targets(kind, key, targets, when):
     """Best-effort cache — no-ops if the targets_json column isn't there yet."""
     col = 'event_num' if kind == 'event_state' else 'id'
@@ -1388,8 +1420,9 @@ class handler(BaseHTTPRequestHandler):
         tgt_budget = [TARGETS_CRON_MAX]
         # catalog: events.json in range + event_state attendees
         st, data = _http_json('GET', 'https://%s/events.json' % host, timeout=20)
-        st2, states = _http_json('GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,attendees,speaker,speaker_topic,status_tags,briefing_generated_at,briefing_json,targets_json,targets_generated_at',
-                                 headers=_sb_headers(service=True))
+        st2, states = _select_cols('event_state', [
+            'event_num', 'attendees', 'speaker', 'speaker_topic', 'status_tags',
+            'briefing_generated_at', 'briefing_json', 'targets_json', 'targets_generated_at'])
         # SAY SO when this query fails instead of quietly doing nothing.
         # targets_json/targets_generated_at were missing in prod from 2026-06-21
         # to 2026-09-10, so this select 400'd ("column ... does not exist"),
