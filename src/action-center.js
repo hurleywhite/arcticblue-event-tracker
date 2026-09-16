@@ -206,7 +206,7 @@
         +(proof.length?'<p class="ac-sub">Known to be there</p><ul class="ac-mini">'+proof.map(m=>'<li><button class="ac-linklike" data-account-event="'+esc(m.opportunity.id)+'">'+esc(m.opportunity.name||m.opportunity.event_name||'Event')+'</button> <span class="ac-where">'+esc(m.person.full_name||'')+(m.person.title?' · '+esc(m.person.title):'')+'</span></li>').join('')+'</ul>':'')
         +(proof.length?'':ev.length?'<ul class="ac-mini">'+ev.slice(0,3).map(e=>'<li>'+nameLink(e.event,'span')+' <span class="ac-where">'+esc(niceRange(e.event.start,e.event.end))+' · named in '+esc(e.where)+'</span></li>').join('')+'</ul>'+(ev.length>3?'<p class="ac-note">and '+(ev.length-3)+' more</p>':'')
              :'<p class="ac-note">Not named in any upcoming event we track.</p>')
-        +'</div><div class="ac-row-actions"><button data-account="'+esc(a.id)+'">Edit</button></div></article>';
+        +'</div><div class="ac-row-actions"><button data-account="'+esc(a.id)+'">Edit</button><button data-account-remove="'+esc(a.id)+'" data-account-name="'+esc(a.name)+'">Remove</button></div></article>';
     });
     return html+'</section>';
   }
@@ -314,8 +314,11 @@
     else if(b.dataset.detail){const r=rows.find(r=>r._id===b.dataset.detail);if(r)window.abOpenRef(r._table==='manual_events'?'manual':'catalog',r._key);}
     else if(b.hasAttribute('data-account-add'))accountForm();
     else if(b.dataset.account)accountForm(context.target_accounts.find(a=>String(a.id)===b.dataset.account));
+    else if(b.dataset.accountRemove){
+      if(!confirm('Remove '+b.dataset.accountName+' from the account list?'))return;
+      b.disabled=true;request('/api/opportunities',{action:'archive_target_account',id:b.dataset.accountRemove}).then(load).catch(e=>{b.disabled=false;alert(e.message);});
+    }
     else if(b.dataset.accountEvent){const o=(context.opportunities||[]).find(x=>String(x.id)===b.dataset.accountEvent);if(o)window.abOpenRef(o.source_table==='manual_events'?'manual':'catalog',o.source_key);}
-    else if(b.dataset.accountEvent){const o=context.opportunities.find(x=>String(x.id)===b.dataset.accountEvent);if(o)window.abOpenRef(o.source_table==='manual_events'?'manual':'catalog',o.source_key);}
     else if(b.hasAttribute('data-trip-add'))tripForm();
     else if(b.hasAttribute('data-discover'))discover();
   });
