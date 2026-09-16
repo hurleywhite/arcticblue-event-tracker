@@ -44,3 +44,20 @@
 
 
 .ac-target-proof{margin:4px 0 8px;padding-left:20px;color:#394e63;font-size:13px;line-height:1.55}.ac-target-proof li{margin:3px 0}.ac-inline-link{border:0!important;background:transparent!important;color:#2468a7!important;text-decoration:underline;padding:0!important;min-height:0!important;font:inherit!important;cursor:pointer}
+/* 2026-09-15 one-page pass: plain rows, calendar block, account evidence. */
+#ops-action .ac-title{font-size:16.5px;margin:0 0 4px;font-weight:600}
+#ops-action .ac-linklike{background:none;border:0;padding:0;font:inherit;color:#1b4d7e;text-decoration:underline;cursor:pointer;text-align:left}
+#ops-action .ac-linklike:hover{color:#0f3357}
+#ops-action .ac-meta{margin:2px 0;font-size:14px;color:#5f6b78}
+#ops-action .ac-next{margin:4px 0;font-size:15px}
+#ops-action .ac-sub{font-size:14px;font-weight:600;color:#404a56;margin:16px 0 4px}
+.ac-cal-row{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 6px}
+.ac-cal-chip{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:#5f6b78;border:1px solid #e3e7ed;border-radius:999px;padding:7px 14px;background:#fff}
+.ac-cal-chip b{color:#1b2430;font-weight:600}
+.ac-cal-chip.is-on{border-color:#cfe3d4;background:#f6fbf7}
+.ac-cal-chip.is-bad{border-color:#f0d3cd;background:#fdf7f6}
+#ops-action .ac-trip{border:1px solid #e3e7ed;border-radius:12px;padding:16px 18px;margin:12px 0;background:#fff}
+#ops-action .ac-trip h4{margin:0 0 2px;font-size:16.5px}
+.ac-mini{list-style:none;margin:6px 0 0;padding:0}
+.ac-mini li{padding:5px 0;font-size:15px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.ac-mini .ac-where{color:#6b7480;font-size:14px}

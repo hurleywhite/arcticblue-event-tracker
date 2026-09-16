@@ -184,7 +184,7 @@
       // closes in three weeks is the thing you most need to see. Unowned rows
       // fail the `active` test below and surface under "Decisions required",
       // so they land in an existing section rather than adding a new one.
-      else if (!q.excluded && deadline && deadline>=today && diff(today,deadline)<=45) { action='Apply'; derived=true; due=due||deadline; next=next||((q.topicVerified?'Decide whether to apply':'Verify product / innovation fit before applying')+' — deadline '+deadline); reason=reason||'Deadline inside 45 days'; }
+      else if (!q.excluded && deadline && deadline>=today && diff(today,deadline)<=45) { action='Apply'; derived=true; due=due||deadline; next=next||(q.topicVerified?'Decide whether to apply':'Check the fit, then decide whether to apply'); reason=reason||'Deadline inside 45 days'; }
     }
     const active=!!action && action!=='Pass' && !q.excluded && (!derived || action!=='Apply' || q.topicVerified) && !!owner && !!next && !!due && !!reason && !sleeping && !past && !r.hidden && !completed;
     const working=!r.hidden && !past && !sleeping && action!=='Pass' && !q.excluded && !completed;
@@ -198,6 +198,67 @@
       else if(q.topicVerified && op && op.queue_stage==='reach_out') recommendation='Outreach';
     }
     return {...r,suggestedNextAction:op?.next_action||next||'',suggestedReason:op?.rationale||reason||'',b:{...b,next_action:b.next_action||next,reason:b.reason||reason},q,owner,due,action,recommendation,derived,submitted,realApplication,evidence,booked,attending,rejected,followup,past,active,needsDecision,sleeping,wake,completed,city:cityOf(r),start,end};
+  }
+
+  // ── Real calendars ──────────────────────────────────────────────────
+  // api/calendars.py returns, per person, only date ranges when they are AWAY
+  // -- no meeting titles ever leave the server. Each block carries a city when
+  // one could be read from the entry. Three things come out of that:
+  //   trips      travel windows derived from the calendar, same shape as the
+  //              hand-recorded ones in travel_windows
+  //   conflicts  something they are booked/attending clashes with the calendar
+  //   loopIns    events happening where they already are, that nobody is on
+  function calendarTrips(cal) {
+    const away=(cal && cal.away) || {}, out=[];
+    Object.keys(away).forEach(name=>{
+      const p=fold(name);
+      (away[name]||[]).forEach(b=>{
+        if(!day(b.start)||!day(b.end))return;
+        out.push({person_key:p,city:cityOf({city:b.city||'',location:b.city||''}),
+                  start_date:b.start,end_date:b.end,source:'From their calendar',
+                  source_event_id:b.uid||'',kind:b.kind||'away',from_calendar:true});
+      });
+    });
+    return out;
+  }
+  const overlaps=(aStart,aEnd,bStart,bEnd)=>aStart<=bEnd && bStart<=aEnd;
+  function conflicts(rows,cal,today) {
+    const a=agenda(rows,today), trips=calendarTrips(cal), out=[];
+    PEOPLE.forEach(p=>{
+      const mine=trips.filter(t=>t.person_key===p);
+      ((a.people[p]||{}).list||[]).forEach(ev=>{
+        if(!ev.start)return;
+        mine.forEach(t=>{
+          if(!overlaps(ev.start,ev.end||ev.start,t.start_date,t.end_date))return;
+          // Same city is not a clash -- that is them being there for it.
+          if(t.city && ev.city && t.city===ev.city)return;
+          out.push({person:p,event:ev,trip:t,
+                    why:t.city?('their calendar has them in '+t.city):'their calendar is blocked'});
+        });
+      });
+    });
+    return out.sort((x,y)=>String(x.event.start).localeCompare(String(y.event.start)));
+  }
+  // Events worth joining because someone is already going to be in that city.
+  // Excludes anything they are already booked/attending and anything passed on.
+  function loopIns(rows,trips,today,limitPer) {
+    const out=[];
+    (trips||[]).forEach(t=>{
+      const city=t.city||cityOf({city:t.city,location:t.city});
+      if(!city||!day(t.start_date)||!day(t.end_date))return;
+      const lo=plus(t.start_date,-4), hi=plus(t.end_date,4);
+      const near=rows.filter(r=>{
+        if(r.hidden||r.past||r.action==='Pass'||r.q.excluded)return false;
+        if(!r.start||cityOf(r)!==city)return false;
+        if(!overlaps(r.start,r.end||r.start,lo,hi))return false;
+        const names=new Set();
+        if(r.booked)String(r.speaker||'').split(/[,&/]+/).map(first).filter(Boolean).forEach(n=>names.add(n));
+        (r.attendees||[]).map(first).filter(Boolean).forEach(n=>names.add(n));
+        return !names.has(t.person_key);
+      }).sort((a,b)=>String(a.start).localeCompare(String(b.start)));
+      if(near.length)out.push({trip:t,events:limitPer?near.slice(0,limitPer):near});
+    });
+    return out;
   }
 
   function groups(rows,today) {
@@ -289,7 +350,7 @@
     const targets=accounts.filter(a=>cityOf({city:a.city})===tc && !!tc);
     return {trip,nearby,targets,lo,hi};
   }
-  const api={STATES,PEOPLE,fold,day,plus,diff,safeUrl,parseDate,deadlineOf,applicationDeadlineOf,cityOf,sameCity,qualify,applicationEvidence,normalize,groups,agenda,health,metrics,tripPack};
+  const api={STATES,PEOPLE,fold,day,plus,diff,safeUrl,parseDate,deadlineOf,applicationDeadlineOf,cityOf,sameCity,qualify,applicationEvidence,normalize,groups,agenda,health,metrics,tripPack,calendarTrips,conflicts,loopIns};
   if(typeof module!=='undefined') module.exports=api;
   else root.BookingCore=api;
 })(typeof window!=='undefined'?window:this);

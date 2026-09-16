@@ -3827,7 +3827,6 @@ def build():
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="action" class="active" aria-selected="true">Action Center</button>
-          <button type="button" role="tab" data-view="myevents" aria-selected="false">Lineup<span class="vt-count" id="vt-myevents-count" hidden></span></button>
           <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Events</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
@@ -15573,14 +15572,17 @@ def build():
       if (g) g.style.display = (name === 'grid') ? '' : 'none';
       var rh = document.getElementById('ops-results-header');
       if (rh) rh.style.display = (name === 'grid') ? '' : 'none';
-      if (me) me.classList.toggle('show', name === 'myevents');
+      // Lineup folded into the Action Center (Hurley 2026-09-15) — its tab is
+      // gone, so its content (team lineup, past events, the weekly updates
+      // feed) renders underneath the board instead of on a page of its own.
+      if (me) me.classList.toggle('show', name === 'myevents' || name === 'action');
       if (pr) pr.classList.toggle('show', name === 'myprofile');
       if (c) c.classList.toggle('show', name === 'calendar');
       if (m) m.classList.toggle('show', name === 'map');
       if (q) q.classList.toggle('show', name === 'queue');
       if (p) p.classList.toggle('show', name === 'planner');
       if (d) d.classList.toggle('show', name === 'dayof');
-      if (name === 'myevents') renderMyEvents();
+      if (name === 'myevents' || name === 'action') renderMyEvents();
       if (name === 'myprofile') renderMyProfile();
       if (name === 'calendar') recalcCalendar();   // re-apply the live filters
       if (name === 'map') openOpsMap();

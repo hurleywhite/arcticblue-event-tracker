@@ -302,6 +302,44 @@ def _trip_candidates(person, blocks, source='Live calendar'):
     return candidates
 
 
+_TRAVEL_WORD = re.compile(r'\b(flight|flying|fly|travel|trip|hotel|train|airport|offsite|off-site|vacation|holiday|leave|ooo|out of office|pto|conference|summit)\b', re.I)
+
+
+def _away_blocks(blocks):
+    """Date ranges when someone is AWAY, with a city when one can be read.
+
+    This is the only thing about a person's calendar that reaches the browser:
+    dates, a city, and whether it looked like travel. NO titles, ever -- the
+    board needs to know Thor is in Munich on the 17th, not who he is meeting.
+    A block counts as "away" when it is all-day, spans more than one day, or
+    the title says travel; ordinary timed meetings are ignored, because a
+    diary full of 30-minute calls is not a booking conflict.
+    """
+    out = []
+    for b in blocks:
+        if b.get('transparent'):
+            continue
+        title, location = b.get('summary', ''), b.get('location', '')
+        if re.search(r'\b(zoom|virtual|remote|online)\b|meet\.google|teams\.microsoft', location, re.I):
+            continue
+        travel = bool(_TRAVEL_WORD.search(title))
+        multi_day = b['end'] > b['start']
+        if not (b['all_day'] or multi_day or travel):
+            continue
+        hay = (location or '') + ' ' + (title or '')
+        hits = [(m.start(), city) for city in _CITIES
+                for m in re.finditer(r'(?<!\w)' + re.escape(city) + r'(?!\w)', hay, re.I)]
+        city = max(hits)[1] if hits else ''
+        if city == 'NYC':
+            city = 'New York'
+        if city == 'Bahrain':
+            city = 'Manama'
+        out.append({'start': b['start'], 'end': b['end'], 'city': city,
+                    'kind': 'travel' if (travel or city) else 'away',
+                    'uid': b['uid']})
+    return out
+
+
 def _gather(detail_ok):
     feeds = _feeds()
     today = date.today()
@@ -311,10 +349,14 @@ def _gather(detail_ok):
     fetched, recurring_skipped = 0, 0
     candidates, connections = [], []
     people = [f['name'] for f in feeds if f['kind'] == 'person']
+    away = {}
     for f in feeds:
-        if f['kind']=='person' and not detail_ok:
-            connections.append({'person':f['name'].lower(),'configured':True,'healthy':None})
-            continue
+        # Person feeds are now fetched for EVERY caller. They used to be skipped
+        # unless the caller was a signed-in editor, which meant the board could
+        # never see a conflict -- and the tracker no longer has a sign-in. What
+        # changed is WHAT is published: _away_blocks() strips every title, so an
+        # anonymous caller gets dates and a city and nothing else. Titles and
+        # free/busy detail still require an editor session (detail_ok).
         try:
             if f.get('stored'): st,body = 200,_fetch_google_feed(f['url'])
             else: st,body = _http('GET', f['url'], timeout=15, raw=True,headers={'User-Agent': 'ArcticBlueTracker/1.0'})
@@ -330,11 +372,13 @@ def _gather(detail_ok):
         recurring_skipped += rec
         is_events = f['kind'] == 'events'
         show_detail = is_events or detail_ok
-        if not is_events and detail_ok:
-            # Personal schedules are protected by the same editor boundary.
-            busy[f['name']] = [{'start': b['start'], 'end': b['end'],
-                                'all_day': b['all_day']} for b in blocks if not b['transparent']]
-            candidates.extend(_trip_candidates(f['name'], blocks))
+        if not is_events:
+            away[f['name']] = _away_blocks(blocks)
+            if detail_ok:
+                # Titles/free-busy stay behind the editor boundary.
+                busy[f['name']] = [{'start': b['start'], 'end': b['end'],
+                                    'all_day': b['all_day']} for b in blocks if not b['transparent']]
+                candidates.extend(_trip_candidates(f['name'], blocks))
         for b in blocks:
             if not show_detail:
                 continue
@@ -349,6 +393,7 @@ def _gather(detail_ok):
         'configured': bool(feeds),
         'detail_visible': bool(detail_ok),
         'people': people,
+        'away': away,
         'busy': busy,
         'events': events,
         'fetched': fetched,
@@ -372,9 +417,57 @@ def _send(handler, status, payload):
     handler.wfile.write(body)
 
 
+def _save_feed(person, url):
+    """Store one person's secret iCal URL. Validated before it is written; the
+    URL itself is never returned by any endpoint."""
+    from api import opportunities as db
+    from datetime import datetime, timezone
+    _fetch_google_feed(url)                     # proves it resolves and parses
+    db._insert('event_integrations', {
+        'key': 'calendar:' + person, 'config': {'url': url},
+        'updated_by': 'tracker', 'updated_at': datetime.now(timezone.utc).isoformat(),
+    }, resolution='merge-duplicates')
+
+
+def _drop_feed(person):
+    from api import opportunities as db
+    st, _ = _http('DELETE', SUPABASE_URL + '/rest/v1/event_integrations?key=eq.'
+                  + urllib.parse.quote('calendar:' + person),
+                  headers={'apikey': SUPABASE_SERVICE_ROLE,
+                           'Authorization': 'Bearer ' + SUPABASE_SERVICE_ROLE})
+    if st not in (200, 204):
+        raise ValueError('Could not disconnect that calendar.')
+
+
 class handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         _send(self, 204, {})
+
+    def do_POST(self):
+        """Connect or disconnect a teammate's calendar. No sign-in, like the
+        rest of the board; _same_origin still applies and the stored URL is
+        write-only. Validation is strict: an HTTPS Google iCal address only."""
+        try:
+            if not _same_origin(self):
+                return _send(self, 403, {'error': 'forbidden: call from the tracker site'})
+            if not SUPABASE_SERVICE_ROLE:
+                return _send(self, 500, {'error': 'SUPABASE_SERVICE_ROLE_KEY missing'})
+            length = int(self.headers.get('Content-Length', '0') or '0')
+            if not 0 < length <= 20000:
+                return _send(self, 400, {'error': 'Send a calendar address.'})
+            body = json.loads(self.rfile.read(length).decode('utf-8') or '{}')
+            person = str(body.get('person') or '').strip().lower()
+            if person not in ('thor', 'verma', 'jerome'):
+                return _send(self, 400, {'error': 'Choose a teammate.'})
+            if str(body.get('action') or '') == 'disconnect':
+                _drop_feed(person)
+            else:
+                _save_feed(person, str(body.get('url') or '').strip())
+            return _send(self, 200, {'ok': True})
+        except ValueError as e:
+            return _send(self, 400, {'error': str(e)[:250]})
+        except Exception:
+            return _send(self, 500, {'error': 'Could not save that calendar connection.'})
 
     def do_GET(self):
         try:

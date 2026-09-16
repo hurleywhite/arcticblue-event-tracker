@@ -40,11 +40,22 @@
   // follow-ups section: a third button on every row everywhere would cost more
   // attention than it earns.
   function eventRow(r,opts) {
-    const action=r.b.next_action || (r.submitted?'Set the next organizer follow-up':r.wake?'Review: '+(r.b.recheck_trigger||'scheduled recheck'):'Choose an action, owner and deadline');
-    const when=r.start?esc(niceRange(r.start,r.end)):'';
-    const evid=r.realApplication?'Application on record'+(r.evidence.length?' ('+esc(r.evidence.join(', '))+')':''):(r.submitted==='tag-only'?'"Submitted" tag only — nothing corroborates it':r.q.label);
-    return '<article class="ac-row'+(r.derived?' ac-derived':'')+'"><div><h4>'+esc(r.name)+'</h4><p><span class="ac-badge">'+esc(r.action||'Decision needed')+'</span>'+(r.derived?'<span class="ac-badge ac-auto" title="Suggested from the recorded status, deadline or history — not submitted or sent. Confirm or change it.">suggested</span>':'')+esc(title(r.owner)||'Owner needed')+' · '+esc(r.city?title(r.city):(r.location||'Location unknown'))+(when?' · '+when:'')+'</p><p>'+esc(action)+'</p><p class="ac-note">'+evid+' · '+(r.due?'<span class="'+(r.due<today()?'ac-overdue':'')+'">'+(r.due<today()?C.diff(r.due,today())+' days late':'Due '+esc(niceDate(r.due)))+'</span>':'Due date needed')+'</p></div><div class="ac-row-actions">'+(opts&&opts.chase?'<button data-chase="'+esc(r._id)+'">Chased today</button>':'')+'<button data-workspace="'+esc(r._id)+'">Prepare & contact</button><button data-detail="'+esc(r._id)+'">Event details</button><button class="ac-primary" data-manage="'+esc(r._id)+'">'+(r.action&&!r.derived?'Update action':r.derived?'Confirm / change':'Decide')+'</button></div></article>';
+    // No badges. This row used to open with the internal state name ("Apply",
+    // "Outreach", "Decision needed"), a "suggested" chip and the words "Owner
+    // needed" / "Location unknown" / "Due date needed" -- labels standing in
+    // for facts we do not have (Hurley 2026-09-15: stop adding labels just for
+    // the sake of them). What is left is the event, who has it, where and when,
+    // the next step in a sentence, and the date it is due.
+    const next=r.b.next_action || (r.submitted?'Set the next organiser follow-up':r.wake?('Review: '+(r.b.recheck_trigger||'scheduled recheck')):'Decide what happens with this one');
+    const meta=[r.owner?title(r.owner):'', r.city?title(r.city):'', r.start?niceRange(r.start,r.end):''].filter(Boolean).join(' · ');
+    const due=r.due?(r.due<today()?'<span class="ac-overdue">'+C.diff(r.due,today())+' days late</span>':'Due '+esc(niceDate(r.due))):'';
+    return '<article class="ac-row"><div>'+nameLink(r)+(meta?'<p class="ac-meta">'+esc(meta)+'</p>':'')
+      +'<p class="ac-next">'+esc(next)+'</p>'+(due?'<p class="ac-note">'+due+'</p>':'')
+      +'</div><div class="ac-row-actions">'+(opts&&opts.chase?'<button data-chase="'+esc(r._id)+'">Chased today</button>':'')
+      +'<button class="ac-primary" data-manage="'+esc(r._id)+'">Update</button></div></article>';
   }
+  // Every event name on this page opens the event. One helper so none is missed.
+  function nameLink(r,tag){const t=tag||'h4';return '<'+t+' class="ac-title"><button class="ac-linklike" data-detail="'+esc(r._id)+'">'+esc(r.name)+'</button></'+t+'>';}
   // An empty section used to render a heading, a zero badge and "Nothing due
   // here." -- 270px of furniture on the live board for two lanes that were
   // simply clear. Nothing to show means nothing to draw (Hurley 2026-09-15).
@@ -55,43 +66,27 @@
   }
   function render() {
     const h=host();if(!h)return;
-    const rs=filtered(),g=C.groups(rs,today()),m=C.metrics(rs);
-    const tripMatches=(context.travel_windows||[]).filter(t=>t.end_date>=today()&&(!owner||C.fold(t.person_key).includes(owner))).map(t=>C.tripPack(t,rs,context.target_accounts||[])).filter(p=>p.nearby.length);
-    const buttons=[['today','Today'],['pipeline','Applications'],['trips','Trips'],['targets','Target accounts'],['background','Background']];
-    let html='<div class="ac-head"><div><h2>Action Center</h2><p class="ac-note">'+esc(today())+' · Get the next application, conversation and meeting booked.</p></div><button class="ab-btn" data-refresh>Refresh</button></div>';
-    html+='<div class="ac-toolbar">'+buttons.map(([k,v])=>'<button data-mode="'+k+'" aria-pressed="'+(mode===k)+'">'+v+'</button>').join('')+'<select aria-label="Action owner" id="ac-owner"><option value="">All owners</option>'+C.PEOPLE.map(p=>'<option '+(owner===p?'selected':'')+' value="'+p+'">'+title(p)+'</option>').join('')+'</select><input type="search" id="ac-search" placeholder="Find an event or owner" aria-label="Search action center" value="'+esc(query)+'"></div>';
-    if(loading)html+='<p class="ac-note" role="status">Refreshing qualification and travel…</p>';
+    const rs=filtered(),g=C.groups(rs,today());
+    // ONE page. There were five buttons here (Today / Applications / Trips /
+    // Target accounts / Background) plus a separate Lineup tab, so the same
+    // events were reachable five ways and nothing was in one place
+    // (Hurley 2026-09-15: "less views to switch around to"). Everything that
+    // needs doing is now one scroll, in the order you act on it.
+    let html='<div class="ac-head"><div><h2>Action Center</h2><p class="ac-note">'+esc(niceDate(today()))+' · What needs doing, who is where, and who we want to meet.</p></div><button class="ab-btn" data-refresh>Refresh</button></div>';
+    html+='<div class="ac-toolbar"><select aria-label="Show one person" id="ac-owner"><option value="">Everyone</option>'+C.PEOPLE.map(p=>'<option '+(owner===p?'selected':'')+' value="'+p+'">'+title(p)+'</option>').join('')+'</select><input type="search" id="ac-search" placeholder="Find an event or person" aria-label="Search" value="'+esc(query)+'"></div>';
+    if(loading)html+='<p class="ac-note" role="status">Loading…</p>';
     if(error)html+='<p class="ac-health">'+esc(error)+'</p>';
-    if(!ready)html+='<p class="ac-empty">Loading live event records…</p>';
-    else if(mode==='today') {
-      html+=renderHealth(rs)+renderAgenda(rs);
-      // The five stat tiles that used to sit here repeated the count already
-      // printed on every section heading below, so the same five numbers were
-      // on screen twice (Hurley 2026-09-15). Removed with the empty sections.
-      html+='<p class="ac-note">'+(tripMatches.length?tripMatches.length+' recorded trips have nearby event opportunities. Open Trips to review.':(!cal?.configured?'Live calendar feeds are not connected. Open Trips to add or review recorded travel.':'No nearby event matches for recorded travel.'))+'</p>';
-      html+=renderOutreach(rs);
-      html+='<p class="ac-note">Suggested = inferred from the record and waiting for your confirmation. Organizer contact / follow-up is human work: draft, review and hand off the message; nothing sends automatically.</p>';
-      const later=rs.filter(r=>r.active && !Object.values(g).flat().includes(r));
-      const work=section('applications','Applications due soon',g.applications)+section('contacts','Organizer contact / follow-up',g.contacts)+section('meetings','Meetings to book',g.meetings)+section('followups','Follow-ups due',g.followups,{chase:true})+section('decisions','Decisions required',g.decisions)+section('later','Planned actions',later);
-      // Sections hide themselves when empty, so a clear board would otherwise
-      // render as blank space under the health panel. Say it instead.
-      html+=work||'<p class="ac-empty">Nothing due right now'+(owner?' for '+esc(title(owner)):'')+(query?' matching that search':'')+'.</p>';
-    } else if(mode==='pipeline') {
-      html+='<p class="ac-note">Applications and speaking bookings from the original event records. Submission history remains visible after a pass or completed event.</p>';
-      html+='<div class="ac-toolbar"><button data-attio-connect>'+ (workflow.attio_configured?'Manage Attio connection':'Connect Attio')+'</button></div>'+renderOutreach(rs);
-      html+=section('prepare','Prepare application',rs.filter(r=>!r.past&&!r.hidden&&(r.action==='Apply'||r.recommendation==='Apply')&&!r.submitted&&!r.booked&&!r.sleeping&&r.action!=='Pass'&&!r.q.excluded));
-      html+=section('submitted','Submitted · awaiting outcome',rs.filter(r=>r.submitted&&!r.booked&&!r.b.organizer_reply_at&&r.action!=='Pass'&&!r.past));
-      html+=section('reply','Organizer replied',rs.filter(r=>r.b.organizer_reply_at&&!r.booked&&!r.past));
-      html+=section('booked','Speaking slots booked',rs.filter(r=>r.booked));
-      html+=section('history','Application history',rs.filter(r=>r.submitted&&(r.past||r.action==='Pass')));
-    } else if(mode==='background') {
-      html+='<p class="ac-note">Unqualified events, future rechecks and passes stay here until there is a concrete next action. Search this list to bring an event into the working queue.</p>';
-      html+=section('background','Background universe',rs.filter(r=>!r.active&&!r.needsDecision&&!r.hidden&&!r.past));
-      const relics=rs.filter(r=>r.submitted==='tag-only'&&!r.past&&!r.hidden);
-      if(relics.length) html+=section('relics','"Submitted" tag with nothing behind it (legacy import)',relics);
-    } else if(mode==='trips') html+=renderTrips(rs);
-    else html+=renderTargets();
-    if(ready)html+='<section class="ac-section"><h3>Booking outcomes</h3><p class="ac-note">All recorded history'+(owner?' · '+esc(title(owner)):'')+'. Applications, replies and speaking slots count events; meetings and qualified opportunities count recorded totals. Unknown outcomes are not counted.</p><div class="ac-metrics">'+[['applications','Applications sent'],['replies','Organizer replies'],['slots','Speaking slots'],['meetings','Meetings booked'],['attended','Events attended'],['opportunities','Qualified opportunities'],['trips','Trips stacked']].map(([k,l])=>'<div><strong>'+m[k]+'</strong><span>'+l+'</span></div>').join('')+'</div></section>';
+    if(!ready){h.innerHTML=html+'<p class="ac-empty">Loading live event records…</p>';return;}
+    html+=renderHealth(rs);
+    const later=rs.filter(r=>r.active && !Object.values(g).flat().includes(r));
+    const work=section('followups','Follow-ups due',g.followups,{chase:true})
+      +section('contacts','Organiser contact',g.contacts)
+      +section('applications','Applications due soon',g.applications)
+      +section('meetings','Meetings to book',g.meetings)
+      +section('decisions','Decisions needed',g.decisions)
+      +section('later','Planned',later);
+    html+=work||'<p class="ac-empty">Nothing due right now'+(owner?' for '+esc(title(owner)):'')+(query?' matching that search':'')+'.</p>';
+    html+=renderCalendar(rs)+renderTargets(rs);
     h.innerHTML=html;
   }
   // Pipeline health per person — applications out, accepted, rejected, deadlines
@@ -141,50 +136,79 @@
     return html+'</section>';
   }
   function workflowUi() {return {request,input,area,select,openDialog,signIn,manage,editor:context.editor,reload:load};}
-  function renderOutreach(rs) {
-    if(workflowError)return '<p class="ac-health">Private outreach could not load: '+esc(workflowError)+'</p>';
-    const list=(workflow.workspaces||[]).map(w=>({...w,event:rs.find(r=>r._table+':'+r._key===w.event_key)})).filter(w=>w.event&&!w.event.hidden&&w.document.status!=='Closed');
-    if(!list.length)return '';
-    const order={'Replied':0,'Ready':1,'Drafting':2,'Sent':3,'Not started':4};
-    list.sort((a,b)=>(a.document.follow_up_due||'9999').localeCompare(b.document.follow_up_due||'9999') || order[a.document.status]-order[b.document.status]);
-    return '<section class="ac-section"><h3>Outreach in progress <span class="ac-badge">'+list.length+'</span></h3><p class="ac-note">Outreach means a human-reviewed organizer contact: choose a person, draft the email, then copy it to your mail client or open a mailto link. The tracker never sends automatically.</p>'+list.map(w=>{const d=w.document;return '<article class="ac-row"><div><h4>'+esc(w.event.name)+'</h4><p>'+esc(d.status)+' · '+esc(d.contact_name||'Choose a contact')+' · '+esc(title(d.owner))+'</p><p class="ac-note">'+esc(d.route)+(d.warm_via?' · Introduction via '+esc(d.warm_via):'')+'</p>'+(d.follow_up_due?'<p class="'+(d.follow_up_due<=today()?'ac-overdue':'ac-note')+'">Follow up '+esc(d.follow_up_due)+'</p>':'')+'</div><button data-workspace="'+esc(w.event._id)+'">Continue outreach</button></article>';}).join('')+'</section>';
-  }
-  function renderTrips(rs) {
-    let html='<p class="ac-note">Find relevant events in the same city within four days of a trip. Review calendar suggestions before adding them to recorded travel.</p>';
-    html+='<div class="ac-calendar-connections">'+['thor','verma','jerome'].map(p=>{const c=(cal?.connections||[]).find(c=>c.person===p),configured=c?.configured||(workflow.calendars||[]).some(c=>c.person===p&&c.configured);return '<article class="ac-person"><strong>'+title(p)+'</strong><span>'+(c?.healthy?'Live calendar checked':configured?'Connected · feed needs checking':'Calendar not connected')+'</span><button data-connect-calendar="'+p+'">'+(configured?'Manage connection':'Connect calendar')+'</button></article>';}).join('')+'</div>';
-    if(cal?.unavailable)html+='<p class="ac-health">Calendar connection could not be checked. Recorded trips remain available.</p>';
-    if(cal?.errors?.length)html+='<p class="ac-health">'+cal.errors.map(e=>esc(title(e.name))+': '+esc(e.reason)).join(' · ')+'</p>';
-    if(cal?.recurring_skipped)html+='<p class="ac-note">'+cal.recurring_skipped+' recurring calendar entries were skipped. Check those separately in Calendar.</p>';
-    html+='<p class="ac-note">Calendar data identifies dates and possible destinations. It does not establish free meeting slots.</p><div class="ac-toolbar"><button data-calendar-import>Import calendar export</button><button data-trip-add>Add recorded trip</button>'+'<button data-calendar>Open event calendar</button></div>';
-    const allTrips=context.travel_windows||[];
-    const candidates=(cal?.trip_candidates||[]).filter(t=>t.end_date>=today()&&(!owner||t.person_key===owner)&&!allTrips.some(s=>C.fold(s.person_key)===t.person_key&&s.source_event_id===t.source_event_id&&s.start_date===t.start_date&&s.end_date===t.end_date&&C.sameCity(s,t)));
-    if(candidates.length)html+='<section class="ac-section"><h3>Calendar trips to review <span class="ac-badge">'+candidates.length+'</span></h3>'+candidates.map((t,i)=>'<article class="ac-row"><div><h4>'+esc(title(t.person_key))+' · '+esc(t.city)+'</h4><p>'+esc(t.start_date)+' – '+esc(t.end_date)+'</p><p class="ac-note">'+esc(t.title)+' · Needs review</p></div><button data-calendar-trip="'+i+'">Review & save trip</button></article>').join('')+'</section>';
-    window._acCalendarCandidates=candidates;
-    const trips=allTrips.filter(t=>t.end_date>=today()&&(!owner||C.fold(t.person_key).includes(owner)));
-    if(!trips.length)html+='<p class="ac-empty">No upcoming travel recorded. Connect a calendar or import an export to find trips.</p>';
-    trips.forEach(t=>{const p=C.tripPack(t,rs,context.target_accounts||[]);html+='<article class="ac-trip"><h3>'+esc(title(t.person_key))+' · '+esc(t.city)+'</h3><p class="ac-note">'+esc(t.start_date)+' – '+esc(t.end_date)+' · '+esc(t.source||'Recorded travel')+'</p><h4>Nearby event opportunities</h4>'+(p.nearby.length?p.nearby.map(eventRow).join(''):'<p class="ac-note">No matching events in the current tracker.</p>')+'<h4>Target accounts in this city</h4>'+(p.targets.length?'<ul>'+p.targets.map(a=>'<li>'+esc(a.name)+(a.executive_roles?' · '+esc(a.executive_roles):'')+'</li>').join('')+'</ul>':'<p class="ac-note">No target accounts with a confirmed office city recorded.</p>')+'<button class="ab-btn" data-trip-search="'+esc(t.id)+'">Find events around this trip</button></article>';});
-    window._acTrips=trips;return html;
-  }
-  function renderTargets() {
-    const accounts=context.target_accounts||[];
-    const oppById=new Map((context.opportunities||[]).map(o=>[String(o.id),o]));
-    const proofs=new Map();
-    (context.people||[]).forEach(p=>{
-      if(!p.target_account_id) return;
-      const o=oppById.get(String(p.opportunity_id));
-      if(!o) return;
-      const key=String(p.target_account_id);
-      if(!proofs.has(key)) proofs.set(key,[]);
-      proofs.get(key).push({opportunity:o,person:p});
+  // Calendar, conflicts and loop-ins in one place. Replaces the Trips view.
+  function renderCalendar(rs) {
+    const conflicts=C.conflicts(rs,cal,today());
+    const calTrips=C.calendarTrips(cal).filter(t=>t.end_date>=today()&&(!owner||t.person_key===owner));
+    const recorded=(context.travel_windows||[]).filter(t=>t.end_date>=today()&&(!owner||C.fold(t.person_key).includes(owner)))
+      .map(t=>({...t,city:C.cityOf(t)||t.city,source:t.source||'Recorded'}));
+    // A recorded trip and a calendar trip for the same person/city/dates are
+    // the same trip; the calendar one wins because it is live.
+    const trips=calTrips.concat(recorded.filter(r=>!calTrips.some(c=>c.person_key===C.fold(r.person_key)&&c.city===r.city&&c.start_date===r.start_date)));
+    const loop=C.loopIns(rs,trips,today(),3);
+    const a=C.agenda(rs,today());
+    const people=(owner?[owner]:C.PEOPLE);
+    let html='<section class="ac-section" id="ac-calendar"><div class="ac-section-head"><h3>Where everyone is</h3></div>';
+    html+='<div class="ac-cal-row">'+people.map(p=>{
+      const c=(cal?.connections||[]).find(x=>x.person===p);
+      const state=!c?'Calendar not connected':(c.healthy===false?'Calendar needs reconnecting':'Calendar connected');
+      return '<span class="ac-cal-chip'+(c?(c.healthy===false?' is-bad':' is-on'):'')+'"><b>'+esc(title(p))+'</b> '+esc(state)+' <button class="ac-linklike" data-connect-cal="'+esc(p)+'">'+(c?'Change':'Connect')+'</button></span>';}).join('')+'</div>';
+    if(cal&&cal.errors&&cal.errors.length)html+='<p class="ac-health">'+cal.errors.map(e=>esc(title(e.name))+': '+esc(e.reason)).join(' · ')+'</p>';
+    if(conflicts.length)html+='<h4 class="ac-sub">Clashes</h4>'+conflicts.map(c=>'<article class="ac-row"><div>'+nameLink(c.event)+'<p class="ac-meta">'+esc(title(c.person))+' · '+esc(niceRange(c.event.start,c.event.end))+(c.event.city?' · '+esc(title(c.event.city)):'')+'</p><p class="ac-next ac-overdue">'+esc(c.why)+'</p></div><div class="ac-row-actions"><button class="ac-primary" data-manage="'+esc(c.event._id)+'">Update</button></div></article>').join('');
+    if(!trips.length)html+='<p class="ac-empty">No upcoming travel. Connect a calendar above, or <button class="ac-linklike" data-trip-add>add a trip</button>.</p>';
+    trips.forEach(t=>{
+      const l=loop.find(x=>x.trip===t), commit=((a.people[t.person_key]||{}).list||[]).filter(e=>e.start&&e.start<=C.plus(t.end_date,4)&&(e.end||e.start)>=C.plus(t.start_date,-4));
+      html+='<article class="ac-trip"><h4>'+esc(title(t.person_key))+' · '+esc(t.city?title(t.city):'Away')+'</h4><p class="ac-meta">'+esc(niceRange(t.start_date,t.end_date))+' · '+esc(t.source)+'</p>';
+      if(commit.length)html+='<ul class="ac-mini">'+commit.map(e=>'<li>'+nameLink(e,'span')+' <span class="ac-where">'+esc(e.why)+'</span></li>').join('')+'</ul>';
+      if(l&&l.events.length)html+='<p class="ac-sub">Also on while they are there</p><ul class="ac-mini">'+l.events.map(e=>'<li>'+nameLink(e,'span')+' <span class="ac-where">'+esc(niceRange(e.start,e.end))+'</span> <button class="ac-linklike" data-manage="'+esc(e._id)+'">Add</button></li>').join('')+'</ul>';
+      else if(t.city)html+='<p class="ac-note">Nothing else on in '+esc(title(t.city))+' that week.</p>';
+      html+='</article>';
     });
-    const accountCards=accounts.map(a=>{
-      const matches=proofs.get(String(a.id))||[];
-      const seen=new Set();
-      const evidence=matches.filter(m=>{const k=m.opportunity.id+'|'+m.person.full_name; if(seen.has(k)) return false; seen.add(k); return true;});
-      const proofHtml=evidence.length?'<p class="ac-note"><strong>Verified event access</strong></p><ul class="ac-target-proof">'+evidence.map(m=>'<li><button class="ac-inline-link" data-account-event="'+esc(m.opportunity.id)+'">'+esc(m.opportunity.name)+'</button> · '+esc(m.person.full_name)+(m.person.title?' — '+esc(m.person.title):'')+' '+link(m.person.source_url,'public roster')+'</li>').join('')+'</ul>':'<p class="ac-note">No linked public speaker/attendee record yet — keep this account in research until an event roster or meeting route is verified.</p>';
-      return '<article class="ac-row"><div><h4>'+esc(a.name)+(a.priority?'<span class="ac-badge">Priority '+esc(a.priority)+'</span>':'')+'</h4><p>'+esc(a.industry||'Industry not recorded')+' · '+esc(a.city||'Office city not recorded')+' · '+esc(title(a.owner_person))+'</p><p class="ac-note">'+esc(a.executive_roles||'CIO, CAIO, CTO, COO, CDO, CPO, digital transformation, innovation')+'</p>'+(a.notes?'<p class="ac-note">'+esc(a.notes)+'</p>':'')+proofHtml+'</div><button data-account="'+a.id+'">Edit</button></article>';
-    }).join('');
-    return '<p class="ac-note">Only keep companies where a public event roster, agenda, or structured meeting route puts the right buyer in reach. A broad audience claim alone is not enough.</p><div class="ac-toolbar"><button data-account-add>Add target account</button><button data-discover>Find events for targets</button><button data-signin>Editor sign-in</button></div>'+(!context.editor?'<p class="ac-health">Sign in to manage and search the team’s private target-account list.</p>':'')+(accounts.length?accountCards:'<p class="ac-empty">No target accounts loaded. Add the companies the team actually wants to sell to.</p>')+'<div id="ac-discovery-results"></div>';
+    return html+'</section>';
+  }
+  // Where a target account actually shows up. Matches the company name against
+  // the text the tracker already stores for each event (who typically attends,
+  // who has spoken before, the description). It is a text match on public
+  // blurb -- it does not prove anyone will be in the room, and it says so.
+  const EVIDENCE_FIELDS=[['typical_attendees','who attends'],['past_speakers','past speakers'],['about','description'],['focus_areas','focus'],['why','why we track it'],['notes','notes']];
+  function accountEvidence(rs,account){
+    const name=String(account.name||'').trim(); if(name.length<3)return [];
+    const re=new RegExp('(?<![A-Za-z])'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![A-Za-z])','i');
+    const out=[];
+    rs.forEach(r=>{ if(r.past||r.hidden)return;
+      for(const [f,label] of EVIDENCE_FIELDS){ if(re.test(String(r[f]||''))){out.push({event:r,where:label});break;} }});
+    return out.sort((a,b)=>String(a.event.start||'9999').localeCompare(String(b.event.start||'9999')));
+  }
+  // Structured proof wins. a786c7e records real people against an account and
+  // an opportunity (event_people.target_account_id) -- that is someone we know
+  // is in the room, not an inference. Only when an account has none of that do
+  // we fall back to matching the company name in the event's published text.
+  function accountProof(a){
+    const oppById=new Map((context.opportunities||[]).map(o=>[String(o.id),o]));
+    const seen=new Set(), out=[];
+    (context.people||[]).forEach(p=>{
+      if(String(p.target_account_id||'')!==String(a.id))return;
+      const o=oppById.get(String(p.opportunity_id)); if(!o)return;
+      const k=o.id+'|'+p.full_name; if(seen.has(k))return; seen.add(k);
+      out.push({opportunity:o,person:p});
+    });
+    return out;
+  }
+  function renderTargets(rs) {
+    const accounts=(context.target_accounts||[]).filter(a=>!owner||C.fold(a.owner_person||'').includes(owner));
+    let html='<section class="ac-section" id="ac-targets"><div class="ac-section-head"><h3>Accounts we want in the room</h3><button data-account-add>Add a company</button></div>';
+    if(!accounts.length)return html+'<p class="ac-empty">No companies yet. Add the ones worth flying to meet.</p></section>';
+    html+='<p class="ac-note">Matched against what each event publishes about who attends and who has spoken. That is a sign, not a guest list.</p>';
+    accounts.forEach(a=>{
+      const proof=accountProof(a), ev=proof.length?[]:accountEvidence(rs,a);
+      html+='<article class="ac-row"><div><h4 class="ac-title">'+esc(a.name)+'</h4>'
+        +'<p class="ac-meta">'+esc([a.owner_person?title(a.owner_person):'',a.city||'',a.industry||''].filter(Boolean).join(' · '))+'</p>'
+        +(proof.length?'<p class="ac-sub">Known to be there</p><ul class="ac-mini">'+proof.map(m=>'<li><button class="ac-linklike" data-account-event="'+esc(m.opportunity.id)+'">'+esc(m.opportunity.name||m.opportunity.event_name||'Event')+'</button> <span class="ac-where">'+esc(m.person.full_name||'')+(m.person.title?' · '+esc(m.person.title):'')+'</span></li>').join('')+'</ul>':'')
+        +(proof.length?'':ev.length?'<ul class="ac-mini">'+ev.slice(0,3).map(e=>'<li>'+nameLink(e.event,'span')+' <span class="ac-where">'+esc(niceRange(e.event.start,e.event.end))+' · named in '+esc(e.where)+'</span></li>').join('')+'</ul>'+(ev.length>3?'<p class="ac-note">and '+(ev.length-3)+' more</p>':'')
+             :'<p class="ac-note">Not named in any upcoming event we track.</p>')
+        +'</div><div class="ac-row-actions"><button data-account="'+esc(a.id)+'">Edit</button></div></article>';
+    });
+    return html+'</section>';
   }
   function openDialog(name,body) {
     if(dialog)dialog.remove();
@@ -268,35 +292,32 @@
       d.querySelectorAll('[data-add-result]').forEach(btn=>btn.onclick=async()=>{btn.disabled=true;try{const ev=result.events[Number(btn.dataset.addResult)],res=await window.opsCreateManual({name:ev.name,date_str:ev.date_str,...(window.opsDeriveDates?window.opsDeriveDates(ev.date_str):{}),location:ev.location,region:ev.region,type:ev.type,why:ev.why,url:C.safeUrl(ev.url)||null,priority:'Low',booking:{discovery_source:'Target-account/trip search',reason:ev.reasoning||ev.why||''}});if(res?.error)throw res.error;btn.textContent='Added';}catch(e){btn.disabled=false;btn.textContent='Retry: '+e.message;}});
     }catch(e){if(d.isConnected)d.querySelector('.ac-note').textContent='Search failed: '+e.message;}
   }
+  // Connect one person's calendar. No sign-in, like the rest of the board.
+  function connectCal(person){
+    const d=openDialog('Connect '+title(person)+'\u2019s calendar',
+      '<p class="ac-note">In Google Calendar: <b>Settings</b> \u2192 pick the calendar \u2192 <b>Integrate calendar</b> \u2192 copy the <b>Secret address in iCal format</b>. Only the calendar\u2019s owner can get that link. The tracker reads dates and destination cities from it \u2014 meeting titles never leave the server.</p><form><div class="ac-form">'
+      +input('Secret iCal address','url','','url',true)+'</div><p class="ac-error" role="status"></p><footer><button type="button" data-close>Close</button><button type="button" data-disconnect>Disconnect</button><button type="submit" class="ac-primary">Connect</button></footer></form>');
+    const f=d.querySelector('form'),err=d.querySelector('.ac-error');
+    f.onsubmit=async e=>{e.preventDefault();const b=f.querySelector('[type=submit]');b.disabled=true;err.textContent='Checking the calendar\u2026';
+      try{await request('/api/calendars',{person,url:f.elements.url.value});d.close();await load();}catch(ex){err.textContent=ex.message;b.disabled=false;}};
+    d.querySelector('[data-disconnect]').onclick=async()=>{err.textContent='';
+      try{await request('/api/calendars',{person,action:'disconnect'});d.close();await load();}catch(ex){err.textContent=ex.message;}};
+  }
   document.addEventListener('click',e=>{
     const b=e.target.closest('button');if(!b || !b.closest('#ops-action'))return;
-    if(b.dataset.mode){mode=b.dataset.mode;render();}
-    else if(b.hasAttribute('data-refresh')){window.opsRefresh();load();}
+    if(b.hasAttribute('data-refresh')){window.opsRefresh();load();}
     else if(b.dataset.expand){expanded.has(b.dataset.expand)?expanded.delete(b.dataset.expand):expanded.add(b.dataset.expand);render();}
-    else if(b.dataset.jump)document.getElementById('ac-'+b.dataset.jump)?.scrollIntoView({behavior:'smooth'});
     else if(b.dataset.pickOwner){owner=owner===b.dataset.pickOwner?'':b.dataset.pickOwner;render();}
     else if(b.dataset.chase)chase(b,rows.find(r=>r._id===b.dataset.chase));
     else if(b.dataset.manage){const r=rows.find(r=>r._id===b.dataset.manage);if(r)manage(r);}
-    else if(b.dataset.workspace){const r=rows.find(r=>r._id===b.dataset.workspace);if(r)window.ApplicationWorkflow.open(r,workflowUi());}
-    else if(b.hasAttribute('data-attio-connect'))window.ApplicationWorkflow.connections('attio',workflowUi());
-    // src/application-workflow.js defines window.ApplicationWorkflow but is not
-    // injected by build.py (arrived orphaned in 91a8881), so this threw a
-    // TypeError on click. Say what is wrong instead of dying silently.
-    else if(b.dataset.connectCalendar){
-      if(window.ApplicationWorkflow&&window.ApplicationWorkflow.connections)window.ApplicationWorkflow.connections(b.dataset.connectCalendar,workflowUi());
-      else alert('Calendar connections are not available in this build — src/application-workflow.js is not bundled yet.');
-    }
-    else if(b.hasAttribute('data-calendar-import'))window.ApplicationWorkflow.importCalendar(workflowUi());
-    else if(b.hasAttribute('data-calendar-trip'))window.ApplicationWorkflow.reviewTrip(window._acCalendarCandidates[Number(b.dataset.calendarTrip)],workflowUi());
+    else if(b.dataset.connectCal)connectCal(b.dataset.connectCal);
     else if(b.dataset.detail){const r=rows.find(r=>r._id===b.dataset.detail);if(r)window.abOpenRef(r._table==='manual_events'?'manual':'catalog',r._key);}
-    else if(b.hasAttribute('data-signin'))signIn();
     else if(b.hasAttribute('data-account-add'))accountForm();
     else if(b.dataset.account)accountForm(context.target_accounts.find(a=>String(a.id)===b.dataset.account));
+    else if(b.dataset.accountEvent){const o=(context.opportunities||[]).find(x=>String(x.id)===b.dataset.accountEvent);if(o)window.abOpenRef(o.source_table==='manual_events'?'manual':'catalog',o.source_key);}
     else if(b.dataset.accountEvent){const o=context.opportunities.find(x=>String(x.id)===b.dataset.accountEvent);if(o)window.abOpenRef(o.source_table==='manual_events'?'manual':'catalog',o.source_key);}
     else if(b.hasAttribute('data-trip-add'))tripForm();
-    else if(b.hasAttribute('data-calendar'))window.abBookingView('calendar');
     else if(b.hasAttribute('data-discover'))discover();
-    else if(b.dataset.tripSearch)discover(window._acTrips.find(t=>String(t.id)===b.dataset.tripSearch));
   });
   document.addEventListener('change',e=>{if(e.target.id==='ac-owner'){owner=e.target.value;render();}});
   document.addEventListener('input',e=>{if(e.target.id==='ac-search'){const pos=e.target.selectionStart;query=e.target.value;render();const i=document.getElementById('ac-search');i.focus();i.setSelectionRange(pos,pos);}});
