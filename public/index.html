@@ -2225,6 +2225,9 @@
     }
 
     /* ── Queue view (Angela's application queue) ─────────────────── */
+    .ab-fold { max-width: 1240px; margin: 8px auto 60px; border-top: 1px solid var(--ab-rule, #e0e5eb); }
+    .ab-fold > summary { cursor: pointer; padding: 16px 2px; font-weight: 600; font-size: 17px; list-style: revert; }
+    .ab-fold > summary:hover { color: var(--ab-blue, #2773c2); }
     .ops-myevents, .ops-planahead, .ops-myprofile, .ops-queue, .ops-planner, .ops-dayof { display: none; }
     .ops-myevents.show, .ops-planahead.show, .ops-myprofile.show, .ops-queue.show, .ops-planner.show, .ops-dayof.show { display: block; }
     /* ── Day-Of tab ─────────────────────────────────────────────── */
@@ -15868,7 +15871,25 @@
       // heading. Move the node after it the first time we land here.
       if (name === 'action' && me) {
         var ah = document.getElementById('ops-action');
-        if (ah && ah.parentNode === me.parentNode && ah.nextSibling !== me) ah.parentNode.insertBefore(me, ah.nextSibling);
+        // Folding Lineup into the board put its content ABOVE the board (its
+        // div comes first in the document) and made the page roughly twice as
+        // long. Move it below and collapse it behind a summary — the day-to-day
+        // work is the board; the team lineup and the updates feed are a look-up.
+        // The open/closed choice is remembered per browser.
+        if (ah && !me.closest('.ab-fold')) {
+          var det = document.createElement('details');
+          det.className = 'ab-fold';
+          var sum = document.createElement('summary');
+          sum.textContent = 'Team lineup and recent updates';
+          det.appendChild(sum);
+          ah.parentNode.insertBefore(det, ah.nextSibling);
+          det.appendChild(me);
+          try { det.open = localStorage.getItem('abLineupOpen') === '1'; } catch (e) {}
+          det.addEventListener('toggle', function () {
+            try { localStorage.setItem('abLineupOpen', det.open ? '1' : '0'); } catch (e) {}
+            if (det.open) renderMyEvents();
+          });
+        }
       }
       if (name === 'myevents' || name === 'action') renderMyEvents();
       if (name === 'myprofile') renderMyProfile();
