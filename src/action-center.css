@@ -64,4 +64,5 @@
 .ac-now{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin:14px 0 2px;padding:12px 16px;border:1px solid #dde7f1;background:#f6faff;border-radius:10px;font-size:15.5px;color:#26405a}
 .ac-now b{font-weight:600;color:#12263a;margin-right:4px}
 .ac-now .ac-title{display:inline;font-size:inherit;font-weight:inherit;margin:0}
+.ac-head-actions{display:flex;gap:8px;flex-shrink:0}
 

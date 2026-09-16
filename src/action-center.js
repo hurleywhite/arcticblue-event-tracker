@@ -215,11 +215,16 @@
   }
   function renderTargets(rs) {
     const accounts=(context.target_accounts||[]).filter(a=>!owner||C.fold(a.owner_person||'').includes(owner));
-    let html='<section class="ac-section" id="ac-targets"><div class="ac-section-head"><h3>Accounts we want in the room</h3><button data-account-add>Add a company</button></div>';
+    // Every other section caps at four behind a "Show all"; this one rendered
+    // all 31 and was most of the page. Accounts with a route in sort first, so
+    // the four on screen are the ones worth acting on.
+    const scored=accounts.map(a=>{const proof=accountProof(a);return {a,proof,ev:proof.length?[]:accountEvidence(rs,a)};})
+      .sort((x,y)=>(y.proof.length?2:y.ev.length?1:0)-(x.proof.length?2:x.ev.length?1:0)||String(x.a.name).localeCompare(String(y.a.name)));
+    const open=expanded.has('targets'), shown=open?scored:scored.slice(0,4);
+    let html='<section class="ac-section" id="ac-targets"><div class="ac-section-head"><h3>Accounts we want in the room <span class="ac-badge">'+scored.length+'</span></h3><span class="ac-head-actions">'+(scored.length>4?'<button data-expand="targets">'+(open?'Show fewer':'Show all '+scored.length)+'</button>':'')+'<button data-account-add>Add a company</button></span></div>';
     if(!accounts.length)return html+'<p class="ac-empty">No companies yet. Add the ones worth flying to meet.</p></section>';
     html+='<p class="ac-note">Matched against what each event publishes about who attends and who has spoken. That is a sign, not a guest list.</p>';
-    accounts.forEach(a=>{
-      const proof=accountProof(a), ev=proof.length?[]:accountEvidence(rs,a);
+    shown.forEach(({a,proof,ev})=>{
       html+='<article class="ac-row"><div><h4 class="ac-title">'+esc(a.name)+'</h4>'
         +'<p class="ac-meta">'+esc([a.owner_person?title(a.owner_person):'',a.city||'',a.industry||''].filter(Boolean).join(' · '))+'</p>'
         +(proof.length?'<p class="ac-sub">Known to be there</p><ul class="ac-mini">'+proof.map(m=>'<li><button class="ac-linklike" data-account-event="'+esc(m.opportunity.id)+'">'+esc(m.opportunity.name||m.opportunity.event_name||'Event')+'</button> <span class="ac-where">'+esc(m.person.full_name||'')+(m.person.title?' · '+esc(m.person.title):'')+'</span></li>').join('')+'</ul>':'')
