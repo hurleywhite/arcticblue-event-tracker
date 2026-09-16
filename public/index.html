@@ -3307,6 +3307,10 @@
 .ac-now b{font-weight:600;color:#12263a;margin-right:4px}
 .ac-now .ac-title{display:inline;font-size:inherit;font-weight:inherit;margin:0}
 .ac-head-actions{display:flex;gap:8px;flex-shrink:0}
+.ac-dialog .ac-dlg-sub{font-size:15px;font-weight:600;margin:22px 0 0;color:#26323f}
+.ac-dialog .ac-more{margin-top:22px;border-top:1px solid #e3e7ed;padding-top:6px}
+.ac-dialog .ac-more summary{color:#4a5a6b}
+.ac-dialog input::placeholder,.ac-dialog textarea::placeholder{color:#9aa5b1}
 
 
 </style>
@@ -4142,25 +4146,47 @@
     const current=dialog;
     current.addEventListener('close',()=>{current.remove();if(dialog===current)dialog=null;});return current;
   }
-  const input=(label,name,value,type='text',wide=false)=>'<label class="'+(wide?'ac-wide':'')+'">'+esc(label)+'<input name="'+name+'" type="'+type+'" value="'+esc(value||'')+'" '+(type==='number'?'min="0" max="10000" step="1"':'')+'></label>';
-  const area=(label,name,value)=>'<label class="ac-wide">'+esc(label)+'<textarea name="'+name+'">'+esc(value||'')+'</textarea></label>';
+  const input=(label,name,value,type='text',wide=false,hint='')=>'<label class="'+(wide?'ac-wide':'')+'">'+esc(label)+'<input name="'+name+'" type="'+type+'" value="'+esc(value||'')+'" '+(hint?'placeholder="'+esc(hint)+'" ':'')+(name==='owner'?'list="ac-people" ':'')+(type==='number'?'min="0" max="10000" step="1"':'')+'></label>';
+  const area=(label,name,value,hint='')=>'<label class="ac-wide">'+esc(label)+'<textarea name="'+name+'"'+(hint?' placeholder="'+esc(hint)+'"':'')+'>'+esc(value||'')+'</textarea></label>';
   const select=(label,name,value,opts)=>'<label>'+esc(label)+'<select name="'+name+'">'+opts.map(o=>'<option value="'+esc(o)+'" '+(o===value?'selected':'')+'>'+esc(o||'Not set')+'</option>').join('')+'</select></label>';
   const footer=()=>'<p class="ac-error" role="alert"></p><footer><button type="button" data-close>Cancel</button><button class="ac-primary" type="submit">Save</button></footer>';
   function manage(r) {
-    const b=r.b;
-    let body='<p class="ac-note">'+esc(r.name)+'</p><p class="ac-note">Suggested: '+esc(r.recommendation||'Keep in background until qualified')+'. Public evidence score: '+(r.q.score===null?'Unknown':r.q.score+'/100')+'; this is not an attendee count or probability.</p><form id="ac-edit"><div class="ac-form">';
-    body+=select('Decision','action',b.action||'', ['',...C.STATES])+input('Owner','owner',b.owner||r.owner)+input('Next action due','due',b.due||r.due,'date')+input('Application / speaking deadline','deadline',C.day(r.applicationDeadline||r.deadline),'date')+area('Next action','next_action',b.next_action||r.suggestedNextAction)+area('Reason for this decision','reason',b.reason||r.suggestedReason);
-    body+=select('Product / innovation fit','topic_fit',b.topic_fit||'review',['review','core','off_focus'])+area('Specific product or innovation relevance','topic_reason',b.topic_reason)+input('Agenda / session source','topic_source',b.topic_source,'url',true);
-    body+=input('Application link','apply_url',r.apply_url,'url',true)+select('Draft status','draft_status',b.draft_status||'Not started',['Not started','Drafting','Ready','Submitted'])+input('Follow-up due','follow_up_due',b.follow_up_due||r.followup,'date')+area('Application draft / pitch','draft',b.draft);
-    body+=input('Recheck on (keeps event in background until then)','recheck_on',b.recheck_on,'date')+input('Recheck trigger','recheck_trigger',b.recheck_trigger)+select('Buyer fit','buyer_fit',b.buyer_fit||'unknown',['unknown','strong','mixed','weak'])+select('Speaking route quality','speaking_quality',b.speaking_quality||'unknown',['unknown','earned','invited','paid','closed'])+input('Exclusion reason','exclusion',b.exclusion,'text',true);
-    body+='</div><details><summary>Public buyer-room evidence</summary><p class="ac-note">Keep likely buyers, publicly confirmed speakers/attendees and verified portal attendees separate. Record public sources here. Private attendee lists stay in the authorized portal.</p>'+(b.evidence||[]).map((e,i)=>'<div class="ac-evidence">'+esc(e.kind)+' · '+esc(e.checked)+'<br>'+esc(e.note)+' '+link(e.url,'Source')+' <label><input type="checkbox" name="remove_evidence" value="'+i+'"> Remove</label></div>').join('')+'<div class="ac-form">'+select('New evidence type','evidence_kind','',['','end_user_speakers','audience_breakdown','advisory_board','prior_attendees','sponsors','public_attendance','company_event_page','organizer_claim'])+input('Checked on','evidence_checked',today(),'date')+input('Public source URL','evidence_url','','url',true)+area('What this source confirms','evidence_note','')+'</div></details>';
-    body+='<details><summary>Record booking outcomes</summary><p class="ac-note">Only record completed actions and confirmed results.</p><div class="ac-form">'+input('Application submitted','submitted_at',C.day(r.submitted),'date')+input('Organizer replied','organizer_reply_at',b.organizer_reply_at,'date')+input('Speaking slot booked','speaking_booked_at',b.speaking_booked_at,'date')+input('Meetings booked','meetings_booked',b.meetings_booked||0,'number')+input('Attended on','attended_at',b.attended_at,'date')+input('Qualified opportunities','qualified_opportunities',b.qualified_opportunities||0,'number')+input('Associated recorded trip ID','trip_id',b.trip_id)+select('Trip stacking confirmed','trip_confirmed',b.trip_confirmed?'Yes':'No',['No','Yes'])+input('Action completed on','completed_at',b.completed_at,'date')+'</div></details>'+footer()+'</form>';
-    const d=openDialog('Manage booking',body), form=d.querySelector('form');
+    // b = the merged view (typed + derived) the board reads; B = only what a
+    // person actually recorded. The dialog used to PRE-FILL from b, so pressing
+    // Save without touching anything wrote the board's guesses -- derived owner,
+    // due date, "Chase the organiser for a decision" -- back as if typed. The
+    // guess then outranked the live derivation for good: the sentence came back
+    // on the row and the due date stopped moving. Fields now hold only B; the
+    // guesses are placeholders (Hurley 2026-09-16).
+    const b=r.b, B=r.booking||{};
+    const hintDate=d=>C.day(d)?'e.g. '+niceDate(d):'';
+    let body='<form id="ac-edit"><datalist id="ac-people">'+C.PEOPLE.map(p=>'<option value="'+p+'">').join('')+'</datalist><div class="ac-form">'
+      +input('Owner','owner',B.owner,'text',false,r.owner?title(r.owner):'')
+      +input('Next follow-up','follow_up_due',B.follow_up_due,'date',false,hintDate(r.followup))
+      +input('Deadline','deadline',C.day(r.applicationDeadline||r.deadline),'date')
+      +area('Next step','next_action',B.next_action,b.next_action||'')
+      +'</div><h3 class="ac-dlg-sub">What happened</h3><div class="ac-form">'
+      +input('Applied on','submitted_at',C.day(r.submitted),'date')
+      +input('They replied on','organizer_reply_at',B.organizer_reply_at,'date')
+      +input('Booked to speak on','speaking_booked_at',B.speaking_booked_at,'date')
+      +input('Attended on','attended_at',B.attended_at,'date')
+      +input('Not pursuing it? Why','pass_reason',B.action==='Pass'?B.reason:'','text',true)
+      +'</div><details class="ac-more"><summary>More details</summary><div class="ac-form">';
+    body+=select('Stage','action',B.action||'', ['',...C.STATES])+input('Next step due','due',B.due,'date',false,hintDate(r.due))+area('Reason','reason',B.action==='Pass'?'':B.reason);
+    body+=select('Product / innovation fit','topic_fit',B.topic_fit||'review',['review','core','off_focus'])+area('Specific product or innovation relevance','topic_reason',B.topic_reason)+input('Agenda / session source','topic_source',B.topic_source,'url',true);
+    body+=input('Application link','apply_url',r.apply_url,'url',true)+select('Draft status','draft_status',B.draft_status||'Not started',['Not started','Drafting','Ready','Submitted'])+area('Application draft / pitch','draft',B.draft);
+    body+=input('Recheck on','recheck_on',B.recheck_on,'date')+input('Recheck trigger','recheck_trigger',B.recheck_trigger)+select('Buyer fit','buyer_fit',B.buyer_fit||'unknown',['unknown','strong','mixed','weak'])+select('Speaking route quality','speaking_quality',B.speaking_quality||'unknown',['unknown','earned','invited','paid','closed'])+input('Exclusion reason','exclusion',B.exclusion,'text',true);
+    body+=input('Meetings booked','meetings_booked',B.meetings_booked||0,'number')+input('Qualified opportunities','qualified_opportunities',B.qualified_opportunities||0,'number')+input('Recorded trip ID','trip_id',B.trip_id)+select('Trip stacking confirmed','trip_confirmed',B.trip_confirmed?'Yes':'No',['No','Yes'])+input('Action completed on','completed_at',B.completed_at,'date');
+    body+='</div><h4 class="ac-dlg-sub">Public evidence</h4>'+(B.evidence||[]).map((e,i)=>'<div class="ac-evidence">'+esc(e.kind)+' · '+esc(e.checked)+'<br>'+esc(e.note)+' '+link(e.url,'Source')+' <label><input type="checkbox" name="remove_evidence" value="'+i+'"> Remove</label></div>').join('')+'<div class="ac-form">'+select('New evidence type','evidence_kind','',['','end_user_speakers','audience_breakdown','advisory_board','prior_attendees','sponsors','public_attendance','company_event_page','organizer_claim'])+input('Checked on','evidence_checked',today(),'date')+input('Public source URL','evidence_url','','url',true)+area('What this source confirms','evidence_note','')+'</div></details>'+footer()+'</form>';
+    const d=openDialog(r.name,body), form=d.querySelector('form');
     form.onsubmit=async e=>{
-      e.preventDefault();const f=new FormData(form),v=k=>String(f.get(k)||'').trim(),next={...b};
+      e.preventDefault();const f=new FormData(form),v=k=>String(f.get(k)||'').trim(),next={...B};
       ['topic_fit','topic_reason','topic_source','action','owner','due','next_action','reason','draft_status','follow_up_due','draft','recheck_on','recheck_trigger','buyer_fit','speaking_quality','exclusion','organizer_reply_at','speaking_booked_at','attended_at','trip_id','completed_at'].forEach(k=>next[k]=v(k));
       next.meetings_booked=Number(v('meetings_booked'));next.qualified_opportunities=Number(v('qualified_opportunities'));next.trip_confirmed=v('trip_confirmed')==='Yes';
-      next.evidence=(b.evidence||[]).filter((_,i)=>!f.getAll('remove_evidence').includes(String(i)));
+      next.evidence=(B.evidence||[]).filter((_,i)=>!f.getAll('remove_evidence').includes(String(i)));
+      // "Not pursuing it? Why" is the plain-language way to pass.
+      if(v('pass_reason')){next.action='Pass';next.reason=v('pass_reason');}
+      else if(B.action==='Pass'&&next.action==='Pass'&&!v('reason')){next.action='';next.reason='';}
       const err=d.querySelector('.ac-error'),btn=form.querySelector('[type=submit]');
       if(next.action && next.action!=='Pass' && (!next.owner||!next.due||!next.next_action||!next.reason)){err.textContent='Active decisions need an owner, next action, due date and reason.';return;}
       if(next.action==='Pass'&&!next.reason){err.textContent='Record a reason for passing.';return;}
@@ -4180,7 +4206,7 @@
         if(v('submitted_at')){patch.submitted_at=v('submitted_at');patch.status_tags=Array.from(new Set([...(r.status_tags||[]),'Submitted']));next.draft_status='Submitted';}
         if(next.speaking_booked_at)patch.status_tags=Array.from(new Set([...(patch.status_tags||r.status_tags||[]),'Booked']));
         if(!v('submitted_at')&&C.day(r.submitted)){patch.submitted_at=null;patch.status_tags=(patch.status_tags||r.status_tags||[]).filter(t=>t!=='Submitted');}
-        if(!next.speaking_booked_at&&b.speaking_booked_at)patch.status_tags=(patch.status_tags||r.status_tags||[]).filter(t=>t!=='Booked');
+        if(!next.speaking_booked_at&&B.speaking_booked_at)patch.status_tags=(patch.status_tags||r.status_tags||[]).filter(t=>t!=='Booked');
         const sb=window._ab,col=r._table==='manual_events'?'id':'event_num';
         if(r._table==='event_state') {const init=await sb.from(r._table).upsert({event_num:r._key},{onConflict:'event_num',ignoreDuplicates:true});if(init.error)throw init.error;}
         const saved=await sb.from(r._table).update(patch).eq(col,r._key).eq('booking',JSON.stringify(r.booking||{})).select(col);

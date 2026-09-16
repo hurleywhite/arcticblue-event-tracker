@@ -65,4 +65,8 @@
 .ac-now b{font-weight:600;color:#12263a;margin-right:4px}
 .ac-now .ac-title{display:inline;font-size:inherit;font-weight:inherit;margin:0}
 .ac-head-actions{display:flex;gap:8px;flex-shrink:0}
+.ac-dialog .ac-dlg-sub{font-size:15px;font-weight:600;margin:22px 0 0;color:#26323f}
+.ac-dialog .ac-more{margin-top:22px;border-top:1px solid #e3e7ed;padding-top:6px}
+.ac-dialog .ac-more summary{color:#4a5a6b}
+.ac-dialog input::placeholder,.ac-dialog textarea::placeholder{color:#9aa5b1}
 
