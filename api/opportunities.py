@@ -263,6 +263,13 @@ def _post(handler, editor_email, body):
             return 200, {'ok': True, 'rows': _patch('target_accounts', int(body['id']), payload)}
         return 200, {'ok': True, 'rows': _insert('target_accounts', payload, resolution='')}
 
+    if action == 'archive_target_account':
+        # There was no way to take a company off the list -- only add or edit --
+        # so a duplicate or a company we stopped chasing stayed on the board for
+        # good. Archiving keeps the row (and anything recorded against it) and
+        # drops it out of the active list the page reads.
+        return 200, {'ok': True, 'rows': _patch('target_accounts', int(body['id']), {'active': False})}
+
     if action == 'add_travel_window':
         person = str(body.get('person_key') or '').lower()
         city = str(body.get('city') or '').strip()[:250]
