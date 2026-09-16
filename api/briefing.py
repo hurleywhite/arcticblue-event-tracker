@@ -1289,12 +1289,12 @@ def _select_cols(table, cols, extra=''):
         st, rows = _http_json('GET', SUPABASE_URL + '/rest/v1/' + table + '?select='
                               + ','.join(remaining) + extra, headers=_sb_headers(service=True))
         if st == 200 and isinstance(rows, list):
-            return st, rows
+            return st, rows, remaining
         gone = _missing_col(rows)
         if gone and gone in remaining and len(remaining) > 1:
             remaining.remove(gone)
             continue
-        return st, rows
+        return st, rows, remaining
 
 
 def cache_targets(kind, key, targets, when):
@@ -1420,7 +1420,7 @@ class handler(BaseHTTPRequestHandler):
         tgt_budget = [TARGETS_CRON_MAX]
         # catalog: events.json in range + event_state attendees
         st, data = _http_json('GET', 'https://%s/events.json' % host, timeout=20)
-        st2, states = _select_cols('event_state', [
+        st2, states, kept = _select_cols('event_state', [
             'event_num', 'attendees', 'speaker', 'speaker_topic', 'status_tags',
             'briefing_generated_at', 'briefing_json', 'targets_json', 'targets_generated_at'])
         # SAY SO when this query fails instead of quietly doing nothing.
@@ -1453,7 +1453,13 @@ class handler(BaseHTTPRequestHandler):
             # (skip if already cached), bounded by the per-run budget.
             tj = s.get('targets_json')
             already = isinstance(tj, dict) and isinstance(tj.get('people'), list)
-            if (today_iso <= lo <= tgt_horizon and tgt_budget[0] > 0 and not already):
+            # Only pay for targets we can keep. Without a targets_json column the
+            # cache write fails without raising, `already` is never true, and the
+            # same events were regenerated -- two OpenAI calls and an Exa search
+            # each -- every night, forever. Reviving this job (3cb78be) would have
+            # started that the same night. Run the deep_targets migration and
+            # this switches itself back on.
+            if ('targets_json' in kept and today_iso <= lo <= tgt_horizon and tgt_budget[0] > 0 and not already):
                 try:
                     self._gen_targets_cache('event_state', e.get('num'), host)
                     tgt_done.append(e.get('num')); tgt_budget[0] -= 1
