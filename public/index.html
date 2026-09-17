@@ -3932,6 +3932,9 @@
     // Midori Toya (She/her)"); show just the person.
     const who=String(r.poc_name||'').replace(/^[^:]{0,40}contact\s*:\s*/i,'').replace(/\s*\((?:she|he|they)\b[^)]*\)/gi,'').trim();
     if(who)f.push('contact '+who);
+    // Named people the nightly job found worth meeting at this event.
+    const meet=(((r.targets_json||{}).people)||[]).length;
+    if(meet)f.push(meet+' '+(meet===1?'person':'people')+' to meet');
     const line=f.join(' · ');
     return line?line.charAt(0).toUpperCase()+line.slice(1):'';
   }
@@ -4083,7 +4086,12 @@
     trips.forEach(t=>{
       const l=loop.find(x=>x.trip===t), commit=((a.people[t.person_key]||{}).list||[]).filter(e=>e.start&&e.start<=C.plus(t.end_date,4)&&(e.end||e.start)>=C.plus(t.start_date,-4));
       html+='<article class="ac-trip"><h4>'+esc(title(t.person_key))+' · '+esc(t.city?title(t.city):'Away')+'</h4><p class="ac-meta">'+esc(niceRange(t.start_date,t.end_date))+' · '+esc(t.source)+'</p>';
-      if(commit.length)html+='<ul class="ac-mini">'+commit.map(e=>'<li>'+nameLink(e,'span')+' <span class="ac-where">'+esc(e.why)+'</span></li>').join('')+'</ul>';
+      // The nightly job now caches named people worth meeting at each event
+      // (targets_json). That only ever showed inside the event modal, so the
+      // work was invisible from the board -- say it on the commitment itself.
+      if(commit.length)html+='<ul class="ac-mini">'+commit.map(e=>{
+        const n=(((e.targets_json||{}).people)||[]).length;
+        return '<li>'+nameLink(e,'span')+' <span class="ac-where">'+esc(e.why)+(n?' · '+n+' '+(n===1?'person':'people')+' to meet':'')+'</span></li>';}).join('')+'</ul>';
       if(l&&l.events.length)html+='<p class="ac-sub">Also on while they are there</p><ul class="ac-mini">'+l.events.map(e=>'<li>'+nameLink(e,'span')+' <span class="ac-where">'+esc(niceRange(e.start,e.end))+'</span> <button class="ac-linklike" data-manage="'+esc(e._id)+'">Add</button></li>').join('')+'</ul>';
       else if(t.city)html+='<p class="ac-note">Nothing else on in '+esc(title(t.city))+' that week.</p>';
       html+='</article>';
