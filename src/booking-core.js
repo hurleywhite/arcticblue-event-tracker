@@ -161,7 +161,15 @@
     const start=day(r.start_date), end=day(r.end_date)||start;
     const past=!!(end && end<today);
     const deadline=applicationDeadlineOf(r);
-    const owner=fold(b.owner) || (op && fold(op.owner_person)) || first(r.speaker) || first((r.attendees || [])[0]) || first((r.outreach_assignees || [])[0]) || '';
+    // A speaker only owns an event once the slot is BOOKED -- the same rule
+    // agenda() already uses to assign commitments. Preferring r.speaker
+    // unconditionally meant a PROPOSED speaker outranked the person actually
+    // going: HumanX Amsterdam (attendees jerome, speaker Thor, tagged Attending,
+    // not Booked) read "Thor" on the board while its outreach targets were
+    // correctly built for Jerome's persona (Hurley 2026-09-17).
+    const owner=fold(b.owner) || (op && fold(op.owner_person))
+      || (booked ? first(r.speaker) : '') || first((r.attendees || [])[0])
+      || first(r.speaker) || first((r.outreach_assignees || [])[0]) || '';
     const sleeping=!!b.recheck_on && b.recheck_on>today;
     const wake=!!day(b.recheck_on) && b.recheck_on<=today;
     const priorFollowups=(r.follow_ups || []).map(f=>day(f.date || f.sent_at || f.at)).filter(Boolean).sort();
