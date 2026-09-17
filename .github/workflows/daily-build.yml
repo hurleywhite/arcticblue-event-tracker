@@ -79,3 +79,20 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"limit": 6}' | head -c 3000
           echo
+
+      # Turn the highest-priority "find contact" actions into actual sourced
+      # program/content contacts. This is intentionally capped: automation
+      # should resolve the best opportunities, not build a giant contact dump.
+      - name: Research top event program contacts
+        env:
+          EVENTS_INGEST_SECRET: ${{ secrets.EVENTS_INGEST_SECRET }}
+        run: |
+          if [ -z "$EVENTS_INGEST_SECRET" ]; then
+            echo "EVENTS_INGEST_SECRET not set — skipping contact research."
+            exit 0
+          fi
+          curl -s -X POST "https://arcticblue-event-tracker-deploy.vercel.app/api/research_contacts" \
+            -H "X-API-Key: $EVENTS_INGEST_SECRET" \
+            -H "Content-Type: application/json" \
+            -d '{"limit": 4}' | head -c 3000
+          echo
