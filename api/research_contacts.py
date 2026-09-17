@@ -7,7 +7,7 @@ than guessed. Intended for the nightly GitHub workflow and manual runs.
 """
 from http.server import BaseHTTPRequestHandler
 from datetime import datetime, timezone
-import hmac, json, os, re, urllib.parse, urllib.request, urllib.error
+import hmac, json, os, re, urllib.parse
 from api import opportunities as db
 
 INGEST_SECRET = (os.environ.get('EVENTS_INGEST_SECRET') or '').strip()
@@ -21,9 +21,9 @@ this exact event, in this order: conference/program director; speaker/content
 lead; relevant track chair; partnerships lead. Never infer or construct an
 email address. Include an email only when you found it publicly published.
 Required: source_url. Optional: full_name, role, organization, email,
-linkedin_url. Add confidence as verified or probable and one short
-relevance_reason. If you cannot identify a sourced useful contact, return
-{"found": false}. Do not return attendee/speaker targets as organizer contacts."""
+linkedin_url. Add one short relevance_reason. If you cannot identify a sourced
+useful contact, return {"found": false}. Do not return attendee/speaker targets
+as organizer contacts."""
 
 
 def _pplx(event):
@@ -83,19 +83,17 @@ def _clean_contact(raw):
         email = None
     if not (full_name or email or linkedin):
         return None
-    confidence = str(raw.get('confidence') or 'probable').strip().lower()
-    if confidence not in ('verified','probable'):
-        confidence = 'probable'
-    # Model-supplied verification is never enough by itself to claim stronger
-    # than probable unless a public source URL exists (required above).
+    # Automated web research can identify a credible sourced business contact,
+    # but it does not independently prove that every extracted field appears on
+    # the cited page. Keep it "probable" until a human or deterministic fetch
+    # verifies the source. Never let the model self-award "verified" status.
     reason = str(raw.get('relevance_reason') or '').strip()[:1000] or None
     return {'full_name':full_name,'role':role,'organization':org,'email':email,
-            'linkedin_url':linkedin,'source_url':source,'confidence':confidence,
+            'linkedin_url':linkedin,'source_url':source,'confidence':'probable',
             'notes':reason}
 
 
 def _research(limit):
-    # Refresh first so new high-value opportunities enter the queue.
     db._http_json('POST', db.SUPABASE_URL + '/rest/v1/rpc/refresh_event_action_queue', headers=db._svc_headers(), body={})
     actions = db._select('event_action_command_center',
         'select=id,opportunity_id,owner_person,event_name,start_date,city,country,url,priority_score,action_type,commercial_tier'
@@ -117,9 +115,8 @@ def _research(limit):
         if not c:
             results.append({'opportunity_id':opp_id,'event':o['name'],'result':'unresolved'})
             continue
-        c.update({'opportunity_id':opp_id,'contact_type':'program','owner_person':o.get('owner_person') or a.get('owner_person'),
+        c.update({'opportunity_id':opp_id,'contact_type':'program','owner_person':a.get('owner_person'),
                   'outreach_status':'not_started'})
-        # Dedupe by email first, otherwise by sourced full name.
         dup = []
         if c.get('email'):
             dup = db._select('event_contacts','select=id&opportunity_id=eq.'+str(opp_id)+'&email=eq.'+urllib.parse.quote(c['email'],safe='')+'&limit=1')
@@ -129,7 +126,7 @@ def _research(limit):
             db._insert('event_contacts', c, resolution='')
         db._patch('event_actions', a['id'], {'status':'done','completed_at':datetime.now(timezone.utc).isoformat(),'updated_at':datetime.now(timezone.utc).isoformat(),
                                              'metadata':{'resolved_by':'nightly public contact research','source_url':c['source_url']}})
-        results.append({'opportunity_id':opp_id,'event':o['name'],'result':'contact_found','contact':c.get('full_name') or c.get('email'),'confidence':c.get('confidence')})
+        results.append({'opportunity_id':opp_id,'event':o['name'],'result':'contact_found','contact':c.get('full_name') or c.get('email'),'confidence':'probable'})
     db._http_json('POST', db.SUPABASE_URL + '/rest/v1/rpc/refresh_event_action_queue', headers=db._svc_headers(), body={})
     return results
 
