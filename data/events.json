@@ -6266,7 +6266,9 @@
    "external_id": "96463014-72bd-43a3-87ec-8675a693ca90",
    "source": "arcticscout",
    "start_date": "2026-06-04",
-   "end_date": "2026-06-04"
+   "end_date": "2026-06-04",
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 246,

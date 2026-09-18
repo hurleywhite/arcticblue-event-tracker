@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-17T00:00:00Z",
-  "build_date": "2026-09-17",
+  "generated_at": "2026-09-18T00:00:00Z",
+  "build_date": "2026-09-18",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -5786,6 +5786,8 @@
       "speaking_route": "Submission Form: https://world.aiacceleratorinstitute.com/location/caionewyork/requesttospeak",
       "deadline": "Rolling Review",
       "attendee_count": "500+",
+      "audience_type": "Buyer-rich",
+      "meeting_formats": "attendee app for pre-booking meetings",
       "seed": false,
       "urgent": false,
       "venue": "Convene 360",
