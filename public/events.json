@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-18T00:00:00Z",
-  "build_date": "2026-09-18",
+  "generated_at": "2026-09-19T00:00:00Z",
+  "build_date": "2026-09-19",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -414,6 +414,7 @@
       "typical_attendees": "AI engineers, enterprise AI practitioners, startup founders, researchers; technically-forward with enterprise practitioners",
       "speaking_route": "Speaker/CFP: aiconference.com (speaker applications on official site)",
       "contact_info": "aiconference.com",
+      "deadline": "March 20, 2026",
       "attendee_count": "5,500+",
       "pay_to_play": "No",
       "pricing": "$1,675.00",
@@ -4612,6 +4613,7 @@
       "typical_attendees": "Enterprise executives, investors, AI leaders, founders across European and global tech ecosystem",
       "speaking_route": "Contact Raise Summit organizers for speaking opportunities",
       "contact_info": "raise.co",
+      "deadline": "17/04/2026",
       "attendee_count": "9,000+",
       "pricing": "\u20ac599",
       "audience_type": "Buyer-rich",
