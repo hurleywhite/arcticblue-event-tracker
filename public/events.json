@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-19T00:00:00Z",
-  "build_date": "2026-09-19",
+  "generated_at": "2026-09-20T00:00:00Z",
+  "build_date": "2026-09-20",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -1235,6 +1235,7 @@
       "speaking_route": "Submit proposals via the RE\u2022WORK site using the 'Suggest a Speaker' :\n(speakers are selected by the organizers)\nhttps://ny-ai-finance.re-work.co/suggest-a-speaker",
       "pricing": "Super Early Bird: $1,399; Early Bird: $1,599; Standard Pass: $1,799; Late/Full price: $1,999; Premium/Delegate tier shown in brochure: $3,399",
       "audience_type": "Buyer-rich",
+      "past_speakers": "Biswa Sengupta, JPMorganChase; Lovedeep Saini, Conner Strong & Buckelew",
       "meeting_formats": "attendee app for pre-booking meetings",
       "seed": false,
       "urgent": false,
@@ -5788,6 +5789,7 @@
       "speaking_route": "Submission Form: https://world.aiacceleratorinstitute.com/location/caionewyork/requesttospeak",
       "deadline": "Rolling Review",
       "attendee_count": "500+",
+      "pricing": "$495\u2013$595 USD",
       "audience_type": "Buyer-rich",
       "meeting_formats": "attendee app for pre-booking meetings",
       "seed": false,
@@ -7884,6 +7886,7 @@
       "typical_attendees": "CIOs, CTOs, CDOs, Chief AI Officers from Fortune 100 and Fortune 500 enterprises; invitation-only format",
       "speaking_route": "Speaker Submit: https://mill-all.com/contact-us/#apply-to-become-a-speaker mill-all.com/assemblies\n\nSponsorship required: mill-all.com/assemblies/",
       "contact_info": "info@mill-all.com",
+      "attendee_count": "Not stated",
       "pay_to_play": "Yes",
       "audience_type": "Buyer-rich",
       "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",

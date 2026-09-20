@@ -3635,7 +3635,8 @@
    "start_date": "2026-04-08",
    "end_date": "2026-04-09",
    "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "attendee_count": "Not stated"
   },
   {
    "num": 156,
@@ -6270,7 +6271,8 @@
    "start_date": "2026-06-04",
    "end_date": "2026-06-04",
    "meeting_formats": "attendee app for pre-booking meetings",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "pricing": "$495–$595 USD"
   },
   {
    "num": 246,
@@ -6560,7 +6562,8 @@
    "end_date": "2026-10-22",
    "pricing": "Super Early Bird: $1,399; Early Bird: $1,599; Standard Pass: $1,799; Late/Full price: $1,999; Premium/Delegate tier shown in brochure: $3,399",
    "meeting_formats": "attendee app for pre-booking meetings",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Biswa Sengupta, JPMorganChase; Lovedeep Saini, Conner Strong & Buckelew"
   },
   {
    "num": 256,
