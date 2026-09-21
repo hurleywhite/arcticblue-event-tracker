@@ -3937,7 +3937,8 @@
    "priority_full": "High",
    "past_speakers": "AI Leaders across industries; CXOs; Innovators; Technology and solution providers",
    "meeting_formats": "Exclusive keynotes, discussions, practical workshops on AI Transformation, ethical frameworks, digital disruption",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "pricing": "OMR 150 Delegate Pass"
   },
   {
    "num": 167,
@@ -4528,7 +4529,9 @@
    "external_id": "30b9d50e-0e0e-4a28-9cc3-c56547dcf33d",
    "source": "arcticscout",
    "start_date": "2027-04-29",
-   "end_date": "2027-04-30"
+   "end_date": "2027-04-30",
+   "meeting_formats": "Attendee app for pre-booking meetings",
+   "audience_type": "Mixed"
   },
   {
    "num": 187,
@@ -7832,7 +7835,9 @@
    "venue": "DoubleTree by Hilton San Jose",
    "pricing": "Teams of 3 or more: $595 and $495 (early/discounted tier shown)",
    "audience_type": "Buyer-rich",
-   "attendee_count": "400+"
+   "attendee_count": "400+",
+   "past_speakers": "Shikhar Kwatra, Speaker at Generative AI Summit",
+   "meeting_formats": "Attendee pass includes access across co-located summits; built-in networking/meeting tooling not explicitly verified from the results"
   },
   {
    "num": 306,
