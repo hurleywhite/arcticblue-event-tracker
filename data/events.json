@@ -200,7 +200,9 @@
    "city": "New York",
    "country": "USA",
    "external_id": "ad9322e7-6d24-4fcc-872c-64377b517245",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "meeting_formats": "Registration, Breakfast, and Networking; Networking Reception",
+   "audience_type": "Mixed"
   },
   {
    "num": 31,
@@ -3026,7 +3028,8 @@
    "end_date": "2026-06-24",
    "meeting_formats": "Curated executive networking and face-to-face peer exchange",
    "audience_type": "Buyer-rich",
-   "attendee_count": "5,000+"
+   "attendee_count": "5,000+",
+   "past_speakers": "Mimi Zheng, Millennium Alliance; Vaibhav Srivastava, Millennium Alliance"
   },
   {
    "num": 134,
@@ -6595,7 +6598,8 @@
    "start_date": "2026-04-12",
    "end_date": "2026-04-15",
    "meeting_formats": "roundtables; attendee app for pre-booking meetings; hosted networking events",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "Michael Moe, GSV; Rick Levin, Coursera; Reid Hoffman, LinkedIn; Arne Duncan, U.S. Department of Education; Sal Khan, Khan Academy; Diane Tavenner, Summit Public Schools"
   },
   {
    "num": 257,
@@ -7353,7 +7357,8 @@
    "pricing": "₹45,000 registration (per listing)",
    "meeting_formats": "analyst one-on-ones; curated peer networking",
    "audience_type": "Buyer-rich",
-   "attendee_count": "1,500+"
+   "attendee_count": "1,500+",
+   "past_speakers": "Dr Ali Walker, Behavioral Scientist; Anurag Raj, Director Analyst, Gartner; Gaurav Dhameja, Vice President, Analyst, Gartner"
   },
   {
    "num": 287,
