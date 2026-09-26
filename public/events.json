@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-25T00:00:00Z",
-  "build_date": "2026-09-25",
+  "generated_at": "2026-09-26T00:00:00Z",
+  "build_date": "2026-09-26",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -893,6 +893,7 @@
       "speaking_route": "Contact: BizClik Media Group via bizclikmediagroup.com",
       "contact_info": "bizclikmediagroup.com",
       "attendee_count": "2,000+",
+      "pay_to_play": "Yes",
       "pricing": "\u00a3354.00 - \u00a31194.00",
       "audience_type": "Buyer-rich",
       "past_speakers": "Professor Kirstine Dale, Chief AI Officer at Met Office; Dr. Ben E. Kuzey, Chief Data & AI Officer at Microsoft Netherlands; Marcos Angelides, Managing Director of L'Or\u00e9al Lab & Head of AI Operations at Publicis Groupe; Eric Vaughan, CEO of IgniteTech",
