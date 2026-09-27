@@ -298,7 +298,10 @@
    "city": "Atlanta",
    "country": "USA",
    "external_id": "c3ceb762-9d0a-4b42-b401-4601e1e4b3a6",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "pricing": "Main Conference + Workshops Pass: $2,799.00; Main Conference Pass (Vendor): $3,999.00",
+   "meeting_formats": "Access to networking activities, discussion groups, receptions, meals, and the Innovation HUB",
+   "audience_type": "Mixed"
   },
   {
    "num": 24,
@@ -1783,7 +1786,10 @@
    "typical_attendees": "CEOs, COOs, CIOs, CDOs, Chief AI Officers, board-level executives from Fortune 500/Global 1000",
    "speaking_route": "Speaker/contact: conference-board.org/events/ai-leadership. Sponsorship/partner: conference-board.org",
    "contact_info": "conference-board.org",
-   "focus_areas": "Enterprise AI governance and risk; AI leadership and operating model transformation; Responsible AI deployment at scale; AI and workforce transformation; Measuring AI ROI and business impact"
+   "focus_areas": "Enterprise AI governance and risk; AI leadership and operating model transformation; Responsible AI deployment at scale; AI and workforce transformation; Measuring AI ROI and business impact",
+   "venue": "New York Marriott Marquis",
+   "meeting_formats": "peer dialogue",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 65,
@@ -3256,7 +3262,10 @@
    "external_id": "7d4d8b67-4138-4d87-a8be-fb2274232ef2",
    "source": "arcticscout",
    "start_date": "2026-05-19",
-   "end_date": "2026-05-20"
+   "end_date": "2026-05-20",
+   "past_speakers": "Dr. Michael Kohlert, Vice President IT, Litens Automotive Group",
+   "meeting_formats": "curated roundtables; hosted 1:1 meetings; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 142,
@@ -5677,7 +5686,8 @@
    "pricing": "Full access ticket: $595 (increases to $695 on June 1, 2026); Workshop Day is a separate add-on, with pricing not yet open",
    "meeting_formats": "attendee app for pre-booking meetings; curated roundtables; hosted 1:1 meetings",
    "audience_type": "Mixed",
-   "deadline": "Call for speakers applications are open; no deadline published in provided results"
+   "deadline": "Call for speakers applications are open; no deadline published in provided results",
+   "past_speakers": "Notable past/announced speakers not verifiable from the provided results; applications are open and the summit is recruiting speakers across 54 topic areas"
   },
   {
    "num": 225,
