@@ -1616,7 +1616,8 @@
    "venue": "Amsterdam Marriott Hotel",
    "deadline": "No call-for-speakers deadline published",
    "audience_type": "Buyer-rich",
-   "meeting_formats": "Vendor Specific Interactive Roundtable Discussions; networking and drinks reception"
+   "meeting_formats": "Vendor Specific Interactive Roundtable Discussions; networking and drinks reception",
+   "attendee_count": "300+"
   },
   {
    "num": 93,
@@ -1842,7 +1843,8 @@
    "venue": "JW Marriott • Washington, DC",
    "meeting_formats": "3-day conference bringing together practitioners for workshops, keynotes, sessions, and panels",
    "audience_type": "Mixed",
-   "pricing": "Enterprise AI World Conference Pass: $1,295 by 10/16, $1,495 after 10/16; Enterprise AI World Conference Pass + Workshops: $1,595 by 10/16, $1,795 after 10/16"
+   "pricing": "Enterprise AI World Conference Pass: $1,295 by 10/16, $1,495 after 10/16; Enterprise AI World Conference Pass + Workshops: $1,595 by 10/16, $1,795 after 10/16",
+   "deadline": "Early-bird registration deadline: Oct 16, 2026"
   },
   {
    "num": 81,
@@ -3797,7 +3799,9 @@
    "notes": "Their current submission form is full of bugs and does not work.\nReach out via personal contact or try to make the form work.",
    "pay_to_play": "Yes",
    "priority_full": "Medium",
-   "attendee_count": "25,000–35,000"
+   "attendee_count": "25,000–35,000",
+   "meeting_formats": "investor-startup matchmaking; hands-on workshops; networking",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 162,
