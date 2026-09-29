@@ -126,7 +126,7 @@
 
   function qualify(r,today) {
     const b=r.booking || {}, seen=new Set();
-    const evidence=(b.evidence || []).filter(e => weight[e.kind] && safeUrl(e.url) && e.note && day(e.checked) && e.checked<=today && e.checked>=plus(today,-365));
+    const evidence=(Array.isArray(b.evidence) ? b.evidence : []).filter(e => e && typeof e==='object' && weight[e.kind] && safeUrl(e.url) && e.note && day(e.checked) && e.checked<=today && e.checked>=plus(today,-365));
     let score=0;
     evidence.forEach(e=>{if(!seen.has(e.kind)){score+=weight[e.kind];seen.add(e.kind);}});
     score=Math.min(score,100);
