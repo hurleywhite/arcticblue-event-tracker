@@ -4974,7 +4974,8 @@
    "source": "arcticscout",
    "past_speakers": "Greg Hoffman, Former Nike CMO; Dr. Dirk Holbach, CSCO, Henkel Consumer Brands; Edward Marx, Former CIO, Cleveland Clinic; Joe Sullivan, Former CSO, Facebook/Uber/Cloudflare; Timothy Youngblood, Former CISO, T-Mobile/McDonalds/Kimberly Clark/Dell; Antoinette Irvine, Former CHRO, Unilever Global Operations; Neil Hoyne, Chief Strategist, Google; Dr. Jennifer Posa, Former Chief Wellbeing Officer, CIA",
    "meeting_formats": "attendee app for personalized schedules, meetings, and special activities; executive assemblies described as peer-to-peer senior executive programs",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "attendee_count": "Ongoing series; individual Assemblies typically convene exec"
   },
   {
    "num": 201,
@@ -6054,7 +6055,7 @@
    "source": "arcticscout",
    "start_date": "2026-06-19",
    "end_date": "2026-06-25",
-   "speaking_route": "No public speaker application/CFP URL "
+   "audience_type": "Mixed"
   },
   {
    "num": 238,
@@ -7876,12 +7877,18 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "CXOs, VPs, founders, and enterprise AI leaders",
    "url": "https://world.aiacceleratorinstitute.com/location/dubai",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-dubai",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "Pullman Dubai Downtown",
+   "pricing": "Request your free pass; exact delegate/ticket pricing not published",
+   "past_speakers": "Awad El-Sidiq, Head of Artificial Intelligence, ADNOC; Shivendra Saxena, Chief Information Security Officer, Emeritus; Craig Hughes, Chief Technology Officer, Nas Neuron Health Services; Nurettin Cetinkaya, Chief Technology Officer, Middle East, Network Infrastructure, Nokia; Afroz Wallie, VP, Strategy Transformation & Innovation, First Abu Dhabi Bank",
+   "meeting_formats": "Networking lunch; networking & drinks reception",
+   "audience_type": "Buyer-rich",
+   "attendee_count": "150+"
   },
   {
    "num": 307,
