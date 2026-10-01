@@ -7691,12 +7691,17 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "Engineering teams, AI builders, researchers, and enterprise AI leaders",
    "url": "https://world.aiacceleratorinstitute.com/location/boston",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-boston",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "The Westin Boston Seaport",
+   "pricing": "Individual Pass: $795; Team Pass: $595",
+   "past_speakers": "Sarah Bird, Microsoft; Aaditya Bhat, OpenAI; Sumita Palanisamy, CVS Health; Joseph Thangraj, Sanofi; Shashank Verma, The Mutual Group; Andre Kerr, American Express",
+   "meeting_formats": "live workshops; breakout sessions; roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 299,
@@ -7725,7 +7730,8 @@
    "meeting_formats": "attendee app for pre-booking meetings",
    "audience_type": "Mixed",
    "attendee_count": "0-300 delegates",
-   "past_speakers": "OpenAI; Microsoft; Atlassian; Netflix"
+   "past_speakers": "OpenAI; Microsoft; Atlassian; Netflix",
+   "deadline": "January 17, 2027 (early-bird pricing deadline)"
   },
   {
    "num": 300,
