@@ -1790,7 +1790,8 @@
    "focus_areas": "Enterprise AI governance and risk; AI leadership and operating model transformation; Responsible AI deployment at scale; AI and workforce transformation; Measuring AI ROI and business impact",
    "venue": "New York Marriott Marquis",
    "meeting_formats": "peer dialogue",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Bo Young Lee, AI4ALL; Artem Fishman, Dow Jones; Daniel Schreiber, Lemonade"
   },
   {
    "num": 65,
@@ -4486,7 +4487,8 @@
    "pricing": "Complimentary, invite-only pass (pricing not publicly listed)",
    "past_speakers": "Maryam Ashoori, VP of Product, IBM; David Abramson, Chief Technology Officer, Qrvey; Aaron Severs, Chief Product Officer, Notion",
    "meeting_formats": "Co-located summit access; networking opportunities",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "attendee_count": "100+"
   },
   {
    "num": 185,
