@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-02T00:00:00Z",
-  "build_date": "2026-10-02",
+  "generated_at": "2026-10-03T00:00:00Z",
+  "build_date": "2026-10-03",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -2828,7 +2828,11 @@
       "url": "https://www.evanta.com/calendar",
       "status": "upcoming",
       "about": "Ongoing: Community Executive Summits, Town Halls, and Inner Circle events - peer-driven programs featuring facilitated discussions, networking, and strategy sessions. ",
+      "typical_attendees": "Chief HR officers and senior HR executives",
       "speaking_route": "Membership: https://www.evanta.com/apply\nMembership criteria are strict:\n- CHRO or equivalent senior executive\n- typically from companies with $500M+ revenue.\n\n-non-members rarely get speaking slots unless sponsored or invited.\n\nIf you want to speak at these:\n\nthe best path is usually:\n- get accepted into the community first\n- attend events\n- build organizer relationships\n- get invited onto future panels\n\nThat\u2019s how most non-sponsored speakers enter the ecosystem.",
+      "attendee_count": "13 communities; individual event attendance unknown",
+      "audience_type": "Buyer-rich",
+      "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
       "seed": false,
       "urgent": false,
       "city": "TBD",

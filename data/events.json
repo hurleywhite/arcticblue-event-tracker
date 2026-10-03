@@ -5879,7 +5879,11 @@
    "country": "USA",
    "notes": "Ongoing events to attend (Speaking is sponsorship/membership only)\n\nMembership criteria are strict:\n- CHRO or equivalent senior executive\n- typically from companies with $500M+ revenue.",
    "external_id": "926ff723-a03a-462b-82e2-89c87847d05d",
-   "source": "arcticscout"
+   "source": "arcticscout",
+   "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
+   "audience_type": "Buyer-rich",
+   "typical_attendees": "Chief HR officers and senior HR executives",
+   "attendee_count": "13 communities; individual event attendance unknown"
   },
   {
    "num": 232,
