@@ -3063,7 +3063,10 @@
    "external_id": "54ca86ed-6db5-4d3c-91ac-d4556fb5e84c",
    "source": "arcticscout",
    "start_date": "2026-06-02",
-   "end_date": "2026-06-03"
+   "end_date": "2026-06-03",
+   "pricing": "$1,295",
+   "past_speakers": "Maharaj Mukherjee, Bank of America; Abhishek Kumar, New York Life Insurance Company; Bethany Singer-Baefsky, National Grid; Brian Walker, DraftKings; Scott Bradley, Novartis",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 135,
@@ -7530,7 +7533,9 @@
    "deadline": "CFP closed; sponsorship ongoing",
    "meeting_formats": "Parallel workshops and conference sessions; no guaranteed hosted 1:1 meetings or attendee app mentioned",
    "audience_type": "Mixed",
-   "attendee_count": "Around 250"
+   "attendee_count": "Around 250",
+   "pricing": "GBP 895 onwards",
+   "past_speakers": "Not verifiable from the provided results"
   },
   {
    "num": 292,
@@ -7837,12 +7842,17 @@
    "why": "",
    "about": "",
    "focus_areas": "",
-   "typical_attendees": "",
+   "typical_attendees": "Technical builders, developers, engineering leaders, and senior AI decision-makers",
    "url": "https://world.aiacceleratorinstitute.com/location/agenticaisiliconvalley",
    "source": "aiacceleratorinstitute",
    "external_id": "aiai-agenticaisiliconvalley",
    "seed": false,
-   "contact_info": "albert@pmmalliance.com"
+   "contact_info": "albert@pmmalliance.com",
+   "venue": "Doubletree by Hilton Hotel, 2050 Gateway Place, San Jose",
+   "pricing": "Individual Pass: $795 regular, $595 discounted; Teams of 3 or more: $595 regular, $495 discounted (per person)",
+   "past_speakers": "Engineering Manager, Platform Foundations & AI Infrastructure, Netflix; Applied AI, Partner Solutions Architect, OpenAI; Head of Product, Agentic AI, Amazon Nova, Amazon; Principal Scientist, Adobe; Co Founder & CEO, Builder.io; CTO & Founder, Cequence; Developer Advocate, Mistral AI; VP, Product Marketing, RingCentral",
+   "meeting_formats": "Networking events; workshops; roundtables; peer conversations; attendee app or pre-booking meetings not verified",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 304,
