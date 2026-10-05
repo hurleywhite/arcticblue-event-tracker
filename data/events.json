@@ -910,7 +910,8 @@
    "focus_areas": "Enterprise AI strategy for LATAM organizations; Agentic AI and CIO technology leadership; IT operating model transformation; AI governance and technology risk in regulated LATAM industries; AI-driven digital transformation and ROI strategy",
    "venue": "Sheraton São Paulo WTC Hotel",
    "audience_type": "Buyer-rich",
-   "attendee_count": "5,000+"
+   "attendee_count": "5,000+",
+   "meeting_formats": "attendee app for pre-booking meetings"
   },
   {
    "num": 55,
@@ -3475,7 +3476,8 @@
    "end_date": "2026-04-17",
    "pricing": "End User Core Pass: €490.00 + €12.25 fee; End User VIP Pass: €590.00 + €14.75 fee; Solution Provider Pass: €890.00 + €22.25 fee",
    "meeting_formats": "networking lounge; curated roundtables; conference networking app",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "attendee_count": "200+"
   },
   {
    "num": 150,
@@ -5245,7 +5247,9 @@
    "source": "arcticscout",
    "start_date": "2026-04-24",
    "end_date": "2026-04-24",
-   "url": "https://www.businesscollaborative.org/"
+   "url": "https://www.businesscollaborative.org/",
+   "past_speakers": "Deborah D. Vereen, Keynote Speaker; Frank Miles, Keynote Speaker",
+   "audience_type": "Mixed"
   },
   {
    "num": 210,
@@ -6652,7 +6656,8 @@
    "start_date": "2026-06-30",
    "end_date": "2026-07-02",
    "meeting_formats": "Curated networking and workshops; official event-week programming with hosted receptions and conference sessions",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "Anand Bansal, Sun Life Asia; Ben Brown, UnderwriteMe; Debasri, unknown; Balamurugan Jegatheesan, FPT Corporation"
   },
   {
    "num": 258,
