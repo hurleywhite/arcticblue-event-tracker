@@ -6220,7 +6220,8 @@
    "start_date": "2027-04-13",
    "end_date": "2027-04-15",
    "past_speakers": "Richard Branson, Arianna Huffington",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "meeting_formats": "Attendee app for pre-booking meetings"
   },
   {
    "num": 243,
@@ -7508,7 +7509,10 @@
    "external_id": "replit-220",
    "venue": "King Abdulaziz International Conference Center",
    "audience_type": "Mixed",
-   "attendee_count": "6,000+"
+   "attendee_count": "6,000+",
+   "past_speakers": "Yasir Al-Rumayyan, Public Investment Fund; Jamie Dimon, JPMorgan Chase; Laurence Fink, BlackRock; Stephen A. Schwarzman, Blackstone Group",
+   "meeting_formats": "Investment Day includes pitches, roadshows, matchmaking, and workshops; attendee app or hosted 1:1 meetings not verified from available results",
+   "deadline": "Attendance closes on 10 October 2026"
   },
   {
    "num": 291,
@@ -7801,7 +7805,8 @@
    "contact_info": "albert@pmmalliance.com",
    "venue": "Convene One Boston Place",
    "meeting_formats": "Official networking session (9:00–10:00 a.m.) with dedicated community meetups (e.g., BOSHUG) during the summit",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "attendee_count": "250+"
   },
   {
    "num": 302,
