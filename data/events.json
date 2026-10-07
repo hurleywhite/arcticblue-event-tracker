@@ -690,7 +690,8 @@
    "venue": "Riyadh Exhibition and Convention Center in Malham",
    "audience_type": "Mixed",
    "typical_attendees": "Technology professionals, entrepreneurs, investors, policymakers, students, and public visitors interested in innovation and emerging technologies",
-   "attendee_count": "201,000+"
+   "attendee_count": "201,000+",
+   "meeting_formats": "Investor matchmaking; attendee networking and meeting features"
   },
   {
    "num": 54,
@@ -3067,7 +3068,8 @@
    "end_date": "2026-06-03",
    "pricing": "$1,295",
    "past_speakers": "Maharaj Mukherjee, Bank of America; Abhishek Kumar, New York Life Insurance Company; Bethany Singer-Baefsky, National Grid; Brian Walker, DraftKings; Scott Bradley, Novartis",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "meeting_formats": "Curated roundtable discussions"
   },
   {
    "num": 135,
@@ -3508,7 +3510,8 @@
    "meeting_formats": "integrated networking, strategic roundtables, hands-on workshops, networking cohorts, attendee app for pre-booking meetings",
    "audience_type": "Buyer-rich",
    "attendee_count": "400 total participants; 300+ qualified decision-makers",
-   "deadline": "September 26, 2025"
+   "deadline": "September 26, 2025",
+   "past_speakers": "President & CEO, AIIM; Digital Innovator of the Year, ISG; Cybersecurity Trailblazer, National Law Journal"
   },
   {
    "num": 151,
@@ -6540,7 +6543,8 @@
    "end_date": "2026-08-19",
    "meeting_formats": "guaranteed/hosted 1:1 meetings; curated roundtables",
    "audience_type": "Buyer-rich",
-   "attendee_count": "0-300 delegates"
+   "attendee_count": "0-300 delegates",
+   "past_speakers": "Chief Human Resources Officer, ABM Industries; Chief Human Resources Officer, Capgemini; Chief Human Resources Officer, The Walt Disney Company; Chief Human Resources Officer, UPS"
   },
   {
    "num": 254,
