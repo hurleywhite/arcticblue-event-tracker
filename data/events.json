@@ -1847,7 +1847,8 @@
    "meeting_formats": "3-day conference bringing together practitioners for workshops, keynotes, sessions, and panels",
    "audience_type": "Mixed",
    "pricing": "Enterprise AI World Conference Pass: $1,295 by 10/16, $1,495 after 10/16; Enterprise AI World Conference Pass + Workshops: $1,595 by 10/16, $1,795 after 10/16",
-   "deadline": "Early-bird registration deadline: Oct 16, 2026"
+   "deadline": "Early-bird registration deadline: Oct 16, 2026",
+   "past_speakers": "Practitioner speakers from IBM, AT&T, Amazon, Capital One, Cisco Systems, U.S. Bank, Microsoft, Northwest Bank, and Lemonade Insurance"
   },
   {
    "num": 81,
@@ -2609,7 +2610,8 @@
    "source": "arcticscout",
    "start_date": "2026-04-29",
    "end_date": "2026-04-30",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "meeting_formats": "Curated roundtables"
   },
   {
    "num": 118,
