@@ -3452,7 +3452,8 @@
    "end_date": "2026-04-16",
    "meeting_formats": "attendee app for pre-booking meetings",
    "audience_type": "Buyer-rich",
-   "attendee_count": "300 expected"
+   "attendee_count": "300 expected",
+   "pricing": "$1,395–$2,295 standard attendee passes; $3,295 premium pass"
   },
   {
    "num": 148,
@@ -5556,7 +5557,8 @@
    "end_date": "2026-05-29",
    "priority_full": "High",
    "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "Head of Business Transformation and AI, ERGO; Ambra Zhang, Juniper; Karan Mehta, Blueberry Life; Fabien Cazes, NEAT Protect; Jens Hartwig, Laka"
   },
   {
    "num": 220,
@@ -6487,7 +6489,8 @@
    "pay_to_play": "Yes",
    "meeting_formats": "Invitation to at least one executive roundtable; networking reception; attendee app for agenda/speakers/sponsors and networking",
    "audience_type": "Buyer-rich",
-   "attendee_count": "150+"
+   "attendee_count": "150+",
+   "past_speakers": "Ankur Varma, Turgon; Amelia Mink, Data Science Connect"
   },
   {
    "num": 252,
@@ -6923,7 +6926,8 @@
    "external_id": "4b2021b2-a1dc-473d-b7b0-5d505671e320",
    "venue": "Downtown San Jose",
    "past_speakers": "Rick Grandy, Principal Solutions Architect & SA Manager; Prabhakar Bolleddu, SVP - Business Analytics; Dipak Prasad, Executive Director, Hybrid Cloud; Awah Teh, Chief Data Architect; Leila Emami, VP, Data Architecture and Engineering; Jon Mabe, VP, AI & Engineering; Shelby Tallent, Head of AI Governance; Sonia Gupta, Chief Medical Officer; Ed Soo Hoo, Worldwide CTO Global Accounts",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "meeting_formats": "Executive roundtable discussions; strategic networking opportunities"
   },
   {
    "num": 268,
@@ -7213,7 +7217,8 @@
    "audience_type": "Buyer-rich",
    "deadline": "Rolling",
    "past_speakers": "CIO, Major Enterprise; Technology Leader, Global Enterprise; Co-founder & CEO, Adit (IT); CIO, Enterprise Agentic AI Deployment",
-   "attendee_count": "5,000-10,000"
+   "attendee_count": "5,000-10,000",
+   "pricing": "Invitation-only or approved application; no delegate fee published"
   },
   {
    "num": 281,
@@ -7840,7 +7845,9 @@
    "audience_type": "Buyer-rich",
    "pricing": "Chief AI Officer Summit Pass: FREE; Vendor Pass: $2495",
    "pay_to_play": "Yes",
-   "meeting_formats": "Request-an-invite pass application; access to all 4 co-located summits with one pass"
+   "meeting_formats": "Request-an-invite pass application; access to all 4 co-located summits with one pass",
+   "past_speakers": "Chief Technology Officer, 2Q.ai",
+   "attendee_count": "250+"
   },
   {
    "num": 303,
