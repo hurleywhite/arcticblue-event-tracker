@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T00:00:00Z",
-  "build_date": "2026-10-09",
+  "generated_at": "2026-10-10T00:00:00Z",
+  "build_date": "2026-10-10",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -7540,6 +7540,7 @@
       "typical_attendees": "MBA and business school students, faculty, alumni in California",
       "speaking_route": "Booked \u2014 self submitted by Joe.",
       "pay_to_play": "No",
+      "pricing": "$775; current BSEC member institutions receive one complimentary conference registration",
       "audience_type": "Mixed",
       "past_speakers": "Deborah D. Vereen, Keynote Speaker; Frank Miles, Keynote Speaker",
       "seed": false,
@@ -7573,6 +7574,9 @@
       "contact_info": "institute@leadersinaisummit.com",
       "deadline": "URGENT \u2014 event April 21\u201322 (apply immediately)",
       "attendee_count": "~300",
+      "audience_type": "Buyer-rich",
+      "past_speakers": "CEO, Institute for AI Transformation",
+      "meeting_formats": "Curated executive roundtables; invite-only executive think tank dinners",
       "seed": false,
       "urgent": true,
       "venue": "Marriott Marquis New York, New York, NY",

@@ -2491,7 +2491,10 @@
    "external_id": "402fb6a2-6d7b-4adf-85d3-667f008e66ef",
    "source": "arcticscout",
    "start_date": "2026-04-21",
-   "end_date": "2026-04-22"
+   "end_date": "2026-04-22",
+   "past_speakers": "CEO, Institute for AI Transformation",
+   "meeting_formats": "Curated executive roundtables; invite-only executive think tank dinners",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 113,
@@ -5255,7 +5258,8 @@
    "end_date": "2026-04-24",
    "url": "https://www.businesscollaborative.org/",
    "past_speakers": "Deborah D. Vereen, Keynote Speaker; Frank Miles, Keynote Speaker",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "pricing": "$775; current BSEC member institutions receive one complimentary conference registration"
   },
   {
    "num": 210,
