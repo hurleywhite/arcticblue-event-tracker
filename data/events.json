@@ -5848,7 +5848,8 @@
    "end_date": "2026-06-15",
    "audience_type": "Buyer-rich",
    "typical_attendees": "Rising second-year Columbia Business School MBA students working on startups",
-   "attendee_count": "130"
+   "attendee_count": "130",
+   "meeting_formats": "Tailored advisory meetings; peer networking"
   },
   {
    "num": 230,
@@ -6108,7 +6109,11 @@
    "external_id": "5734b361-1d40-4105-a7ef-6b65072e90b8",
    "source": "arcticscout",
    "start_date": "2026-10-06",
-   "end_date": "2026-10-06"
+   "end_date": "2026-10-06",
+   "pricing": "Professional in-person full price: £2,320; digital pass pricing not verified",
+   "past_speakers": "CEO, Marks & Spencer; CEO, JD Group; CEO, Sweaty Betty; CEO, Matalan; CFO, Selfridges & Co.; Chief Technology, Marketing and Data Officer, Sainsbury’s",
+   "meeting_formats": "Networking opportunities; venue spaces suitable for meetings",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 239,

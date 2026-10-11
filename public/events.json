@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-10T00:00:00Z",
-  "build_date": "2026-10-10",
+  "generated_at": "2026-10-11T00:00:00Z",
+  "build_date": "2026-10-11",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -2878,6 +2878,10 @@
       "contact_info": "Rebecca Roper, Speaking Opportunities",
       "attendee_count": "400+ Attendees",
       "pay_to_play": "Yes",
+      "pricing": "Professional in-person full price: \u00a32,320; digital pass pricing not verified",
+      "audience_type": "Buyer-rich",
+      "past_speakers": "CEO, Marks & Spencer; CEO, JD Group; CEO, Sweaty Betty; CEO, Matalan; CFO, Selfridges & Co.; Chief Technology, Marketing and Data Officer, Sainsbury\u2019s",
+      "meeting_formats": "Networking opportunities; venue spaces suitable for meetings",
       "seed": false,
       "urgent": false,
       "venue": "Convene 200 Aldersgate",
@@ -5307,6 +5311,7 @@
       "speaking_route": "Personal contact. Thor has advised before.\n\nGabriel Mejia: gm2576@gsb.columbia.edu\nDirector, The Eugene Lang Entrepreneurship Center\nColumbia Business School \n",
       "attendee_count": "130",
       "audience_type": "Buyer-rich",
+      "meeting_formats": "Tailored advisory meetings; peer networking",
       "seed": false,
       "urgent": false,
       "venue": "Columbia Business School, Geffen Hall 688",
