@@ -735,7 +735,7 @@
    "priority": "Medium",
    "priority_full": "Medium",
    "why": "Fortune 500 AI decision-makers and solution providers converge in NYC for Data Science Connect's flagship enterprise AI event; same organizer network as ALIGN AI SFO and COLLIDE Atlanta; open speaker interest form active.",
-   "url": null,
+   "url": "https://enterpriseconnect.com/summits/",
    "status": "upcoming",
    "meeting_formats": "curated roundtables and dinners",
    "audience_type": "Mixed",
@@ -744,7 +744,8 @@
    "venue": "Pier Sixty NYC | Chelsea, Manhattan",
    "pricing": "$499 early-bird; $999 standard",
    "pay_to_play": "Yes",
-   "past_speakers": "Senior Data and AI Executives, Fortune 500 Decision-Makers; Leading Solution and Service Providers"
+   "past_speakers": "Senior Data and AI Executives, Fortune 500 Decision-Makers; Leading Solution and Service Providers",
+   "speaking_route": "Apply to speak: https://enterpriseconnect.com/call-for-speakers/"
   },
   {
    "num": 35,
@@ -1535,7 +1536,8 @@
    "meeting_formats": "Attendee app for pre-booking meetings",
    "audience_type": "Buyer-rich",
    "attendee_count": "6,000+",
-   "deadline": "08/28/2026"
+   "deadline": "08/28/2026",
+   "past_speakers": "VP Analyst, Gartner"
   },
   {
    "num": 45,
@@ -2464,7 +2466,8 @@
    "end_date": "2026-05-14",
    "pricing": "Register with VIP discount code 'MKT' for discount; exact ticket price not listed in search results",
    "meeting_formats": "Keynotes, strategy sprints, fireside chats, innovation sessions",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Chief Technologist, OpenText; CTO, NuCompass; CIO, EoS Fitness; Vice President Digital Solutions, Simpson Strong-Tie; ISO/CISO, US Navy; Head of IT, Calm; CIO, County of San Mateo Health; Client Technology Officer, Camunda"
   },
   {
    "num": 112,
@@ -6027,7 +6030,8 @@
    "pricing": "All-access conference pass: $1,295 (current listed price) and $2,995 (higher tier/list price shown on registration page)",
    "past_speakers": "Becky Schmitt, PepsiCo; Vicki Walia, Prudential Financial; Alex Kweskin, Internal Revenue Service; Kate Gebo, United Airlines; Jason Desentz, Toshiba; Supriya Bahri, Roblox",
    "meeting_formats": "interactive small-group discussions; curated roundtables; executive peer programming",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "deadline": "March 18, 2027 for the discounted hotel room block"
   },
   {
    "num": 236,
