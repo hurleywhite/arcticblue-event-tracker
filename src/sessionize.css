@@ -1,0 +1,32 @@
+/* Sessionize block in the event pop-up, and the pasted-email panel. */
+.sz-box { border: 1px solid var(--ab-rule, #e0e5eb); border-radius: 8px; padding: 14px 16px; background: rgba(39,115,194,0.03); }
+.sz-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.sz-row + .sz-row { margin-top: 10px; }
+.sz-cfp { font-size: 0.86rem; color: var(--ab-fg-2, #4a5563); }
+.sz-cfp.sz-ok { color: #1f7a4d; }
+.sz-cfp.sz-warn { color: #b45309; font-weight: 600; }
+.sz-cfp.sz-muted { color: var(--ab-fg-3, #7a8594); }
+.sz-done { font-size: 0.88rem; font-weight: 600; color: #1f7a4d; }
+.sz-btn { font: inherit; font-size: 0.86rem; font-weight: 600; padding: 7px 12px; border-radius: 5px; cursor: pointer;
+  border: 1px solid var(--ab-blue, #2773c2); background: #fff; color: var(--ab-blue, #2773c2); }
+.sz-btn:hover { background: rgba(39,115,194,0.08); }
+.sz-btn.sz-primary { background: var(--ab-blue, #2773c2); color: #fff; }
+.sz-btn.sz-primary:hover { background: #1f5fa3; }
+.sz-btn:disabled { opacity: 0.6; cursor: default; }
+.sz-link { font: inherit; font-size: 0.84rem; background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--ab-blue, #2773c2); text-decoration: underline; }
+.sz-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--ab-rule, #e0e5eb); }
+.sz-form[hidden] { display: none; }
+.sz-form label, .sz-email label { display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; font-weight: 600;
+  color: var(--ab-fg-2, #4a5563); }
+.sz-form .sz-wide { grid-column: 1 / -1; }
+.sz-form input, .sz-email select { font: inherit; font-size: 0.9rem; font-weight: 400; padding: 7px 9px;
+  border: 1px solid var(--ab-rule, #cfd6de); border-radius: 5px; background: #fff; color: inherit; min-width: 0; }
+.sz-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; }
+.sz-email { margin-top: 10px; border: 1px solid var(--ab-rule, #e0e5eb); border-radius: 8px; padding: 12px 14px;
+  background: rgba(39,115,194,0.03); display: grid; gap: 10px; }
+.sz-email-h { margin: 0; font-weight: 600; font-size: 0.92rem; }
+.sz-email-q { margin: 0; font-size: 0.84rem; font-style: italic; color: var(--ab-fg-2, #4a5563); }
+.sz-email-msg { margin: 0; font-size: 0.84rem; color: var(--ab-fg-2, #4a5563); }
+@media (max-width: 560px) { .sz-form { grid-template-columns: 1fr; } }

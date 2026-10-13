@@ -96,3 +96,20 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"limit": 4}' | head -c 3000
           echo
+
+      # Sessionize: when an event Thor applied to shows up on his public
+      # speaker profile, it accepted him - mark it Booked. Read-only on
+      # Sessionize's side (it has no API for speakers); the deployed function
+      # holds the service-role key, so this only needs the ingest secret.
+      - name: Check Sessionize for acceptances
+        env:
+          EVENTS_INGEST_SECRET: ${{ secrets.EVENTS_INGEST_SECRET }}
+        run: |
+          if [ -z "$EVENTS_INGEST_SECRET" ]; then
+            echo "EVENTS_INGEST_SECRET not set - skipping the Sessionize check."
+            exit 0
+          fi
+          curl -s -X POST "https://arcticblue-event-tracker-deploy.vercel.app/api/sessionize" \
+            -H "X-API-Key: $EVENTS_INGEST_SECRET" \
+            -H "Content-Type: application/json" \
+            -d '{}' | head -c 3000

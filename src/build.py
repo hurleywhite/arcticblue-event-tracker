@@ -3874,7 +3874,7 @@ def build():
                 </button>
                 <button class="ops-add-item" id="paste-email-btn" role="menuitem" type="button" hidden>
                   <svg class="ops-add-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
-                  <span class="ops-add-item__txt"><span class="ops-add-item__t">Paste email</span><span class="ops-add-item__d">Pre-fill from an event email</span></span>
+                  <span class="ops-add-item__txt"><span class="ops-add-item__t">Paste email</span><span class="ops-add-item__d">New event, or a Sessionize reply</span></span>
                 </button>
               </div>
             </div>
@@ -5937,7 +5937,14 @@ def build():
       // Applying is the action this card exists for, so it sits at the end of
       // the read — but ABOVE the way out to the organiser's other events.
       var _apUrl = rec.apply_url || speakingRouteUrl(rec.speaking_route);
-      if (_apUrl && window.isAngelaUser && window.isAngelaUser()) {{
+      // A Sessionize call for speakers gets its own block (src/sessionize.js):
+      // the call's open / close dates off the public page, and one click to
+      // record that the application went in. Shown to everyone, because the
+      // speaker applies on Sessionize themselves (Hurley 2026-10-13).
+      var _szHtml = window.ABSessionize ? window.ABSessionize.blockHtml(rec) : '';
+      if (_szHtml) {{
+        v += _szHtml;
+      }} else if (_apUrl && window.isAngelaUser && window.isAngelaUser()) {{
         v += '<div class="me-apply"><a class="modal-visit modal-apply" href="' + esc(_apUrl) +
              '" target="_blank" rel="noopener">Apply to speak \u2197</a></div>';
       }}
@@ -5954,6 +5961,7 @@ def build():
 
     $body.innerHTML = html;
     wireQuickBar(rec);
+    if (window.ABSessionize) window.ABSessionize.wire($body, rec);
     // Clicking a sibling opens THAT event's card.
     $body.querySelectorAll('[data-sib-kind]').forEach(function (b3) {{
       b3.addEventListener('click', function () {{
@@ -8302,6 +8310,7 @@ def build():
         if (st.conflict_note) rec.conflict_note = st.conflict_note;
         if (st.follow_ups) rec.follow_ups = st.follow_ups;
         if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
+        if (st.submitted_at) rec.submitted_at = st.submitted_at;   // "Applied 24 Jul" in the Sessionize block + the edit form
         // Both live ONLY on the state row for a catalog event, and this
         // builder is an explicit whitelist — miss them here and the
         // organiser link and the contact note silently never appear
@@ -10312,6 +10321,7 @@ def build():
     // Open the rich modal for a queue/planner row by reusing the grid card's
     // stashed _modalRec (which carries full edit context), so editing works.
     window.abOpenRef = function (kind, key) {{ opsOpenRef(kind, key); }};
+    window.abAllItems = opsAllItems;   // src/sessionize.js matches a pasted email against these
     function opsOpenRef(kind, key) {{
       var sel = (kind === 'manual')
         ? '.ops-card[data-manual-id="' + key + '"]'
@@ -14973,7 +14983,7 @@ def build():
           '<summary>Or paste from email / web copy…</summary>' +
           '<div class="ops-form" style="margin-top:8px;">' +
             '<label><span class="key">Paste here</span>' +
-              '<textarea id="paste-email-text" placeholder="Paste the full email / web listing TEXT — or just the event LINK (we\\u2019ll scrape the page). Auto-fills name, date, location, region, URL." style="min-height:120px;"></textarea>' +
+              '<textarea id="paste-email-text" placeholder="Paste the full email / web listing TEXT — or just the event LINK (we\\u2019ll scrape the page). Auto-fills name, date, location, region, URL. A Sessionize accepted / not selected email updates the event it is about." style="min-height:120px;"></textarea>' +
             '</label>' +
             '<div class="add-actions">' +
               '<button type="button" class="primary" id="paste-extract-btn">Extract fields</button>' +
@@ -15256,6 +15266,13 @@ def build():
             return;
           }}
         }}
+        // A Sessionize email (accepted / not selected / waitlisted / received)
+        // is news about an event we already track, not a new event: show the
+        // match and update that event once it is confirmed (src/sessionize.js).
+        if (window.ABSessionize && window.ABSessionize.handlePaste(text, meta, {{
+              items: opsAllItems, write: window.opsWrite,
+              done: function () {{ pasteArea.value = ''; }} }})) return;
+        var _szOld = form.querySelector('.sz-email'); if (_szOld) _szOld.remove();
         var extracted = extractFromEmail(text);
         var report = applyExtractToForm(form, extracted, {{ overwrite: false }});
         if (report.total === 0) {{
@@ -15264,7 +15281,10 @@ def build():
         }}
         meta.textContent = 'Extracted ' + report.filled + ' of ' + report.total + ' fields' + (report.skipped ? ' (' + report.skipped + ' skipped because fields were already filled).' : '.');
       }});
-      clearBtn.addEventListener('click', function () {{ pasteArea.value = ''; meta.textContent = ''; }});
+      clearBtn.addEventListener('click', function () {{
+        pasteArea.value = ''; meta.textContent = '';
+        var _szP = form.querySelector('.sz-email'); if (_szP) _szP.remove();
+      }});
 
       // Cancel
       form.querySelector('[data-cancel]').addEventListener('click', function () {{ form.remove(); }});
@@ -18124,8 +18144,8 @@ def build():
     # Public catalog sections (today/upcoming/archive) were retired with the
     # Public view — the Event Tracker is now the sole, fully client-rendered view.
     html = head + foot
-    html = html.replace('</style>', (HERE / 'src/action-center.css').read_text() + '\n</style>', 1)
-    booking_scripts = '<script>\n' + (HERE / 'src/booking-core.js').read_text() + '\n' + (HERE / 'src/action-center.js').read_text() + '\n</script>\n'
+    html = html.replace('</style>', (HERE / 'src/action-center.css').read_text() + '\n' + (HERE / 'src/sessionize.css').read_text() + '\n</style>', 1)
+    booking_scripts = '<script>\n' + (HERE / 'src/booking-core.js').read_text() + '\n' + (HERE / 'src/action-center.js').read_text() + '\n' + (HERE / 'src/sessionize.js').read_text() + '\n</script>\n'
     html = html.replace('<script type="application/json" id="catalog-data">', booking_scripts + '<script type="application/json" id="catalog-data">', 1)
     OUT_SHIP.parent.mkdir(parents=True, exist_ok=True)
     OUT_SHIP.write_text(html, encoding='utf-8')

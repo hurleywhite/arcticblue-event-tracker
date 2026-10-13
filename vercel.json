@@ -10,6 +10,7 @@
     "api/workflow.py": {"maxDuration": 60, "includeFiles": "api/**"},
     "api/opportunities.py": {"maxDuration": 60},
     "api/postmortems.py": {"maxDuration": 60},
+    "api/sessionize.py": {"maxDuration": 60},
     "api/briefing.py": {"maxDuration": 300, "includeFiles": "config/personas.json"}
   },
   "crons": [
