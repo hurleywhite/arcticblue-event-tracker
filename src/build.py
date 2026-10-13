@@ -45,6 +45,16 @@ else:
     except Exception:
         TODAY = date.today()
 
+# ── Feature switches ────────────────────────────────────────────────
+# Hurley 2026-10-13: strip features. These are HIDDEN, not deleted — set one
+# back to True and rebuild to bring it back exactly as it was.
+SHOW_ACTION_CENTER = False   # the Action Center tab (was the default home; Events list is now)
+SHOW_FIND_EVENTS   = False   # Add menu > "Find new events — Let AI suggest events to add"
+ACTION_TAB_ATTRS   = 'class="active" aria-selected="true"' if SHOW_ACTION_CENTER else 'aria-selected="false" hidden style="display:none"'
+EVENTS_TAB_ATTRS   = 'aria-selected="false"' if SHOW_ACTION_CENTER else 'class="active" aria-selected="true"'
+FIND_EVENTS_ATTRS  = '' if SHOW_FIND_EVENTS else ' hidden style="display:none"'
+ACTION_CENTER_JS   = 'true' if SHOW_ACTION_CENTER else 'false'
+
 # ── Supabase (For Angela ops tab) ────────────────────────────────────────────
 # Project: AB Event Tracker [Hurley's Org] (ref efkvhlmfdwlobvdmvqiq)
 # The publishable key is safe to embed in the HTML — RLS protects the data.
@@ -3829,8 +3839,8 @@ def build():
         <div id="ops-status" class="alert" hidden></div>
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
-          <button type="button" role="tab" data-view="action" class="active" aria-selected="true">Action Center</button>
-          <button type="button" role="tab" id="tab-events" data-events-tab aria-selected="false">Events</button>
+          <button type="button" role="tab" data-view="action" {ACTION_TAB_ATTRS}>Action Center</button>
+          <button type="button" role="tab" id="tab-events" data-events-tab {EVENTS_TAB_ATTRS}>Events</button>
           <button type="button" role="tab" data-view="queue"    aria-selected="false">Queue<span class="vt-count" id="vt-queue-count" hidden></span></button>
           <button type="button" role="tab" data-view="planner"  aria-selected="false">Planner<span class="vt-count" id="vt-planner-count" hidden></span></button>
         </div>
@@ -3858,7 +3868,7 @@ def build():
                   <svg class="ops-add-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                   <span class="ops-add-item__txt"><span class="ops-add-item__t">Add manually</span><span class="ops-add-item__d">Type in an event yourself</span></span>
                 </button>
-                <button class="ops-add-item" id="search-dust-btn" role="menuitem" type="button">
+                <button class="ops-add-item" id="search-dust-btn" role="menuitem" type="button"{FIND_EVENTS_ATTRS}>
                   <svg class="ops-add-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
                   <span class="ops-add-item__txt"><span class="ops-add-item__t">Find new events</span><span class="ops-add-item__d">Let AI suggest events to add</span></span>
                 </button>
@@ -15512,8 +15522,13 @@ def build():
     var _lastEventsSub = 'grid';
 
     var VIEW_NAMES = ['action', 'myevents', 'myprofile', 'grid', 'calendar', 'map', 'queue', 'planner', 'dayof'];   // 'planahead' merged into 'myevents'
+    // Feature switch from build.py (SHOW_ACTION_CENTER). When off, the tab is
+    // hidden, every route to 'action' lands on the Events list instead, and the
+    // team lineup fold that used to sit under the board sits under the list.
+    var ACTION_CENTER_ON = {ACTION_CENTER_JS};
     function setView(name) {{
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
+      if (name === 'action' && !ACTION_CENTER_ON) name = 'grid';
       // The Day-Of brief now lives inside My Events — no standalone tab.
       if (name === 'dayof') name = 'myevents';
       // Planner, Queue and the profile page are Angela-only — redirect anyone
@@ -15578,7 +15593,8 @@ def build():
       // Lineup folded into the Action Center (Hurley 2026-09-15) — its tab is
       // gone, so its content (team lineup, past events, the weekly updates
       // feed) renders underneath the board instead of on a page of its own.
-      if (me) me.classList.toggle('show', name === 'myevents' || name === 'action');
+      var lineupHere = name === 'myevents' || name === 'action' || (!ACTION_CENTER_ON && name === 'grid');
+      if (me) me.classList.toggle('show', lineupHere);
       if (pr) pr.classList.toggle('show', name === 'myprofile');
       if (c) c.classList.toggle('show', name === 'calendar');
       if (m) m.classList.toggle('show', name === 'map');
@@ -15588,7 +15604,7 @@ def build():
       // #ops-myevents sits BEFORE #ops-action in the document, so folding the
       // Lineup into the Action Center put the team list above the board's own
       // heading. Move the node after it the first time we land here.
-      if (name === 'action' && me) {{
+      if ((name === 'action' || (!ACTION_CENTER_ON && name === 'grid')) && me) {{
         var ah = document.getElementById('ops-action');
         // Folding Lineup into the board put its content ABOVE the board (its
         // div comes first in the document) and made the page roughly twice as
@@ -15610,7 +15626,12 @@ def build():
           }});
         }}
       }}
+      // The fold belongs to the view the lineup lives on; elsewhere (Calendar,
+      // Map, Queue...) its summary used to linger with nothing inside it.
+      var fold = me && me.closest('.ab-fold');
+      if (fold) fold.hidden = !lineupHere;
       if (name === 'myevents' || name === 'action') renderMyEvents();
+      else if (lineupHere && fold && fold.open) renderMyEvents();   // under the Events list: only when opened
       if (name === 'myprofile') renderMyProfile();
       if (name === 'calendar') recalcCalendar();   // re-apply the live filters
       if (name === 'map') openOpsMap();
@@ -15640,10 +15661,10 @@ def build():
         b.dataset.wired = '1';
         b.addEventListener('click', function () {{ setView(b.dataset.view); }});
       }});
-      // The working homepage always opens Action Center; explicit view links
-      // can still open the original calendar or other tracker views.
+      // The homepage opens on the Events list (the Action Center is switched
+      // off — SHOW_ACTION_CENTER in build.py); explicit ?view= links still work.
       var requested = new URLSearchParams(window.location.search).get('view');
-      setView(VIEW_NAMES.indexOf(requested) !== -1 ? requested : 'action');
+      setView(VIEW_NAMES.indexOf(requested) !== -1 ? requested : (ACTION_CENTER_ON ? 'action' : 'grid'));
     }}
 
     // ── Map view ─────────────────────────────────────────────────────

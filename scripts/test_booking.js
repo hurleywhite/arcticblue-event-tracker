@@ -91,6 +91,9 @@ assert.equal(hl.thor.applications,2);assert.equal(hl.thor.rejected,1);assert.equ
 // Parse every executable script emitted by the Python f-string generator.
 const html=fs.readFileSync('public/index.html','utf8');let count=0;
 for(const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)){if(/application\/json|src=/.test(match[1]))continue;new vm.Script(match[2]);count++;}
-assert.ok(count>=2);assert.ok(html.includes('id="ops-action"'));assert.ok(html.includes("setView(VIEW_NAMES.indexOf(requested) !== -1 ? requested : 'action')"));
+assert.ok(count>=2);assert.ok(html.includes('id="ops-action"'));assert.ok(html.includes("setView(VIEW_NAMES.indexOf(requested) !== -1 ? requested : (ACTION_CENTER_ON ? 'action' : 'grid'))"));
+// The Action Center is switched off (SHOW_ACTION_CENTER = False in build.py): hidden tab, Events list is home.
+assert.ok(html.includes('var ACTION_CENTER_ON = false;'));assert.ok(/data-view="action" aria-selected="false" hidden/.test(html));
+assert.ok(/id="search-dust-btn" role="menuitem" type="button" hidden/.test(html));
 const routes=JSON.parse(fs.readFileSync('vercel.json'));assert.equal(routes.redirects.find(r=>r.source==='/').destination,'/events');assert.equal(routes.rewrites.find(r=>r.source==='/events').destination,'/index.html');
 console.log('Booking rules, evidence, outcomes, trip matching, routing and '+count+' generated scripts passed.');
