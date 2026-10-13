@@ -107,7 +107,8 @@
    "external_id": "586b9c14-49c3-4494-a951-6ebc5addcbd6",
    "source": "arcticscout",
    "pricing": "From C$0.00 to C$1,000.00",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "meeting_formats": "Investor matchmaking; networking and meetups"
   },
   {
    "num": 19,
@@ -913,7 +914,9 @@
    "venue": "Sheraton São Paulo WTC Hotel",
    "audience_type": "Buyer-rich",
    "attendee_count": "5,000+",
-   "meeting_formats": "attendee app for pre-booking meetings"
+   "meeting_formats": "attendee app for pre-booking meetings",
+   "pricing": "USD 2,960",
+   "past_speakers": "Sr Director Analyst, Gartner; VP Analyst, Gartner; CIO, Cenibra"
   },
   {
    "num": 55,
@@ -1593,7 +1596,9 @@
    "about": "Part of TechShow Madrid, Spain's enterprise technology showcase, and co-located with Cloud Expo Europe Madrid and Digital Transformation World. Covers enterprise AI adoption, data governance and analytics in Spanish and Southern European markets.",
    "speaking_route": "Speaker submissions: techshowmadrid.es (speaker submission form on TechShow Madrid site)",
    "contact_info": "techshowmadrid.es",
-   "focus_areas": "Enterprise AI adoption and data transformation in Spain and Southern Europe; AI governance and EU AI Act compliance for European enterprises; Data platforms and AI infrastructure for enterprise operations; Agentic AI use cases across Spanish enterprise sectors (banking, energy, telecom); Digital operations transformation with AI"
+   "focus_areas": "Enterprise AI adoption and data transformation in Spain and Southern Europe; AI governance and EU AI Act compliance for European enterprises; Data platforms and AI infrastructure for enterprise operations; Agentic AI use cases across Spanish enterprise sectors (banking, energy, telecom); Digital operations transformation with AI",
+   "pricing": "Free entry",
+   "meeting_formats": "CIONET roundtable discussions"
   },
   {
    "num": 92,
