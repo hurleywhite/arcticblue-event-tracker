@@ -3196,7 +3196,11 @@
    "external_id": "5b055109-11ee-43cd-811a-bb8af9389615",
    "source": "arcticscout",
    "start_date": "2026-05-19",
-   "end_date": "2026-05-19"
+   "end_date": "2026-05-19",
+   "pricing": "Complimentary pass for eligible enterprise technology leaders, data-centre operators, chip makers, policymakers and academics; software or service provider pass €1,199 plus tax; media pass €349 plus tax",
+   "past_speakers": "Chief Commercial Officer, ORCA Computing; Founder, Akash Network",
+   "meeting_formats": "Attendee event platform for setting up meetings before the event; dedicated face-to-face networking blocks",
+   "audience_type": "Buyer-rich"
   },
   {
    "num": 139,
@@ -3312,7 +3316,9 @@
    "external_id": "ca12b16d-805e-48ae-94c4-bd78e7f5cd9c",
    "source": "arcticscout",
    "start_date": "2026-03-30",
-   "end_date": "2026-04-02"
+   "end_date": "2026-04-02",
+   "audience_type": "Mixed",
+   "attendee_count": "Thousands"
   },
   {
    "num": 143,
@@ -4094,7 +4100,8 @@
    "pricing": "Available on official ticket page; exact delegate pricing not visible in the provided results. A discount of up to 25% is advertised with the Fullstack subscription.",
    "meeting_formats": "workshops; bootcamps; main conference + expo; power workshops; online option",
    "audience_type": "Mixed",
-   "past_speakers": "David Blum, Schmidig; Pascal Wyler"
+   "past_speakers": "David Blum, Schmidig; Pascal Wyler",
+   "attendee_count": "550"
   },
   {
    "num": 172,
@@ -5027,7 +5034,8 @@
    "deadline": "2025-11-19",
    "url": "https://kuicbdt.com/",
    "audience_type": "Mixed",
-   "meeting_formats": "Hybrid (online and in-person); virtual classrooms for online presentations"
+   "meeting_formats": "Hybrid (online and in-person); virtual classrooms for online presentations",
+   "past_speakers": "Dr. Adnan Ahmed Yousif Abdulmalek; Dr. Abdullah Al-Hamad; Najwa Abdulrahim; Shafaq Al-Kooheji; Ahmed Al-Balooshi"
   },
   {
    "num": 202,
@@ -6089,7 +6097,9 @@
    "source": "arcticscout",
    "start_date": "2026-06-19",
    "end_date": "2026-06-25",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "pricing": "CHF 600",
+   "meeting_formats": "Networking events, startup fair, workshops, forums, innovation tours, and social gatherings"
   },
   {
    "num": 238,
