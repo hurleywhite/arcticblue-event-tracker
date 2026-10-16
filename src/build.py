@@ -61,6 +61,11 @@ ACTION_CENTER_JS   = 'true' if SHOW_ACTION_CENTER else 'false'
 # follow-up log. Lower-case first names, as picked under "Switch to".
 APPLICATION_PEOPLE    = ['thor', 'verma']
 APPLICATION_PEOPLE_JS = json.dumps(APPLICATION_PEOPLE)
+# Whose events the Application queue lists (Hurley 2026-10-16: just Thor's).
+# An event is in when one of these people is interested and still needs to
+# apply, or is its speaker. Add a first name here to bring someone back.
+QUEUE_PEOPLE    = ['thor']
+QUEUE_PEOPLE_JS = json.dumps(QUEUE_PEOPLE)
 
 # ── Supabase (For Angela ops tab) ────────────────────────────────────────────
 # Project: AB Event Tracker [Hurley's Org] (ref efkvhlmfdwlobvdmvqiq)
@@ -10718,6 +10723,16 @@ def build():
     // same function. They used to carry two different filters (the badge dropped
     // Booked but counted dismissed rows; the list did the opposite), so the
     // number never matched what Angela actually saw in the Queue.
+    // Just Thor's events (QUEUE_PEOPLE in build.py, Hurley 2026-10-16): he is
+    // interested and still has to apply, or he is the speaker.
+    var AB_QUEUE_PEOPLE = {QUEUE_PEOPLE_JS};
+    function _qFirst(n) {{ return String(n || '').trim().split(/\s+/)[0].toLowerCase(); }}
+    function _qForQueuePeople(it, visible) {{
+      if (visible.some(function (n) {{ return AB_QUEUE_PEOPLE.indexOf(_qFirst(n)) !== -1; }})) return true;
+      return String(it.speaker || '').toLowerCase().split(/[,;\/&]|\s+and\s+/).some(function (n) {{
+        return AB_QUEUE_PEOPLE.indexOf(_qFirst(n)) !== -1;
+      }});
+    }}
     function queueItems() {{
       return opsAllItems().filter(function (it) {{
         // Rejected leaves the queue entirely (Hurley 2026-07-30). The organiser
@@ -10725,7 +10740,8 @@ def build():
         // landing in "Submitted / in progress" because the Submitted tag that
         // got it there survives the rejection.
         if (it.stages.indexOf('Rejected') !== -1) return false;
-        return window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).length &&
+        var visible = window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages);
+        return visible.length && _qForQueuePeople(it, visible) &&
                !it.past && !it.queue_dismissed && !it.hidden;
       }});
     }}
@@ -10767,7 +10783,14 @@ def build():
       function rowHtml(it, actions) {{
         // Each name in its own colour — this is the "who is this for?" read
         // Angela makes down the whole queue (Hurley 2026-07-31).
-        var ints = window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).map(function (n) {{
+        // Only the queue's people (Thor): an event he speaks at but someone
+        // else flagged would otherwise wear the other person's name.
+        var _qNames = window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages)
+          .filter(function (n) {{ return AB_QUEUE_PEOPLE.indexOf(_qFirst(n)) !== -1; }});
+        if (!_qNames.length) _qNames = String(it.speaker || '').split(/[,;\/&]|\s+and\s+/)
+          .map(function (n) {{ return n.trim(); }})
+          .filter(function (n) {{ return n && AB_QUEUE_PEOPLE.indexOf(_qFirst(n)) !== -1; }});
+        var ints = _qNames.map(function (n) {{
           return '<span class="q-int-chip" style="' + window.abPersonChip(n) + '">' + escapeHtml(n) + '</span>';
         }}).join('');
         var dec = '';
@@ -10812,7 +10835,8 @@ def build():
       }});
       // Skipped this cycle: off the queue, but one click brings them back.
       var skipped = opsAllItems().filter(function (it) {{
-        return it.decision === 'skip' && !it.past && !it.hidden && it.stages.indexOf('Rejected') === -1;
+        return it.decision === 'skip' && !it.past && !it.hidden && it.stages.indexOf('Rejected') === -1 &&
+               _qForQueuePeople(it, it.interested || []);
       }});
       // Chronological by EVENT DATE throughout (Hurley 2026-07-31). It used to
       // float deadline-soon rows to the top of their section, so the order
@@ -10839,7 +10863,7 @@ def build():
         }}
       }}
 
-      var html = '<p class="queue-intro"><strong>Application queue:</strong> Every event a teammate marked as interested. Decide <strong>Apply</strong> or <strong>Skip</strong> on each; an Apply on a Sessionize event drafts the application, ready in the event&#39;s pop-up.</p>';
+      var html = '<p class="queue-intro"><strong>Application queue:</strong> Every event Thor is interested in or speaking at. Decide <strong>Apply</strong> or <strong>Skip</strong> on each; an Apply on a Sessionize event drafts the application, ready in the event&#39;s pop-up.</p>';
 
       // Month dividers inside a section — "grouped by event dates" (Hurley
       // 2026-07-31). Only for the to-apply list: In progress and Booked are
@@ -10886,7 +10910,7 @@ def build():
       }}
 
       if (!items.length) {{
-        html += '<div class="queue-empty">Nobody has flagged an event yet.<br>Open any event &rarr; <strong>Edit</strong> &rarr; tick a name under &ldquo;Interested,&rdquo; and it lands here.</div>';
+        html += '<div class="queue-empty">Nothing for Thor yet.<br>Open any event &rarr; <strong>Edit</strong> &rarr; tick Thor under &ldquo;Interested,&rdquo; and it lands here.</div>';
       }} else {{
         html += section('To decide', toDecide, 'toDecide', true);
         html += section('Apply: to submit', toApply, 'toApply', true);
