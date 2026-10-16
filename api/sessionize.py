@@ -571,7 +571,7 @@ def draft_prompt(event, cfp, details, library):
         'prefer one whose status is "approved".\n'
         '- Keep the talk\'s argument and examples. Tailor lightly: the title keeps its recognisable core; '
         'the abstract speaks to this event\'s audience, themes and tracks in the call\'s own vocabulary.\n'
-        '- Respect any length limit the call states. Otherwise: abstract at most 1000 characters, '
+        '- Respect any length limit the call states. Otherwise: abstract at most 950 characters, '
         'short_abstract at most 350.\n'
         '- format and level: pick from options the call lists. If it lists none, leave the field empty and '
         'add it to unknowns (it will be on the signed-in form).\n'
