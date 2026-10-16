@@ -68,7 +68,7 @@
     var track = isApplied(rec)
       ? '<span class="sz-done">✓ Applied' + (on ? ' ' + esc(nice(on)) : '') + (who ? ' · ' + esc(who) : '') + '</span>' +
         '<button type="button" class="sz-link" data-sz-open>Change</button>'
-      : '<button type="button" class="sz-btn" data-sz-open>I’ve applied — record it</button>';
+      : '<button type="button" class="sz-btn" data-sz-open>I’ve submitted — record it</button>';
     return '<div class="me-apply sz-box" data-sz-url="' + esc(url) + '" data-sz-key="' + esc(rec._table + ':' + rec._key) + '">' +
       '<div class="sz-row">' +
         '<a class="modal-visit modal-apply" href="' + esc(url) + '" target="_blank" rel="noopener">Apply on Sessionize ↗</a>' +
@@ -127,6 +127,12 @@
         '<button type="button" class="sz-link" data-sz-show>Show draft</button>' +
         (canDraft() && !isApplied(rec) ? '<button type="button" class="sz-link" data-sz-redraft>Redraft</button>' : '') +
       '</div>' +
+      // Approve, then submit (Hurley 2026-10-16): approval is the Apply
+      // decision moving on to 'approved', the same field the queue reads.
+      (isApplied(rec) ? '' : (rec.decision === 'approved'
+        ? '<div class="sz-row"><span class="sz-done">✓ Approved: ready to submit</span><span class="sz-muted">Open “Apply on Sessionize”, paste the fields, press Submit there, then record it below.</span></div>'
+        : (canDraft() ? '<div class="sz-row"><button type="button" class="sz-btn sz-primary" data-sz-approve>Approve this application</button>' +
+            '<span class="sz-muted">Read it first: Show draft.</span></div>' : ''))) +
       (checks.length ? '<ul class="sz-checks">' + checks.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' : '') +
       '<div class="sz-panel" hidden>' +
         (d.why_this_talk ? '<p class="sz-why">' + esc(d.why_this_talk) + '</p>' : '') +
@@ -252,6 +258,12 @@
         b.addEventListener('click', function () { copyText(fields[+b.getAttribute('data-sz-copy')].text, b); });
       });
     }
+    var approve = box.querySelector('[data-sz-approve]');
+    if (approve) approve.addEventListener('click', function () {
+      rec.decision = 'approved';
+      if (root.opsWrite) root.opsWrite(rec._table, rec._key, { decision: 'approved' });
+      redraw();
+    });
     var redraft = box.querySelector('[data-sz-redraft]');
     if (redraft) redraft.addEventListener('click', function () {
       var p = requestDraft(rec._table, rec._key);

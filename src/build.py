@@ -10195,6 +10195,7 @@ def build():
         apply_url: (st && st.apply_url && st.apply_url !== '__cleared__') ? st.apply_url : (base.apply_url || ''),
         speaking_route: (st && st.speaking_route && st.speaking_route !== '__cleared__') ? st.speaking_route : (base.speaking_route || ''),
         sz_draft: (((st && st.booking) || base.booking || {{}}).sessionize_draft) || null,
+        sz_call: (((st && st.booking) || base.booking || {{}}).sessionize_call) || null,   // daily check: open / closed
         // Manual organiser group. On a CATALOG event this lives on the
         // event_state row, so reading base.* alone made every hand-linked
         // catalog event invisible to the sibling scan (Hurley 2026-07-31).
@@ -10760,7 +10761,38 @@ def build():
 
     // The Apply / Skip decision (Hurley 2026-10-16). 'go' is the old Angela
     // promotion call and means the same thing.
-    function _qApplyDecided(it) {{ return it.decision === 'apply' || it.decision === 'go'; }}
+    function _qApplyDecided(it) {{ return it.decision === 'apply' || it.decision === 'go' || it.decision === 'approved'; }}
+    // A Sessionize draft goes Draft ready -> Approve -> Submit (Hurley 2026-10-16).
+    // 'approved' = the drafted application is OK'd and ready to go in.
+    function _qApproved(it) {{ return it.decision === 'approved'; }}
+    function _qHasDraft(it) {{ return !!(it.sz_draft && it.sz_draft.status === 'ready'); }}
+    // Who to reach out to, and whether anyone has (Hurley 2026-10-16). Reads
+    // what's already stored: the point of contact, the outreach stages and the
+    // follow-up log. One line; the full detail stays in the event pop-up.
+    function _qReachedOut(it) {{
+      var fu = (it.follow_ups || []).filter(function (f) {{ return f && f.on; }});
+      if (fu.length) return fu.map(function (f) {{ return f.on; }}).sort().slice(-1)[0];
+      return (it.stages.indexOf('Initial outreach') !== -1 || it.stages.indexOf('Followed up') !== -1) ? 'yes' : '';
+    }}
+    function _qContactHtml(it) {{
+      var _ct = window.opsContactText || function (v) {{ return String(v == null ? '' : v).trim(); }};
+      var who = [];
+      if (_ct(it.poc_name)) who.push(escapeHtml(it.poc_name));
+      if (it.poc_email && String(it.poc_email).indexOf('@') !== -1) who.push('<a href="mailto:' + escapeHtml(it.poc_email) + '">' + escapeHtml(it.poc_email) + '</a>');
+      if (!who.length && _ct(it.contact_info)) who.push(escapeHtml(_ct(it.contact_info).slice(0, 80)));
+      var when = _qReachedOut(it);
+      var _ka = ' data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '"';
+      var status = when
+        ? '<span class="q-reached">&#10003; Reached out' + (when !== 'yes' ? ' ' + escapeHtml(_sugNiceDate(when)) : '') + '</span>'
+        : (who.length ? '<button type="button" class="q-link" data-act="reached"' + _ka + '>Mark reached out</button>' : '');
+      return '<div class="q-contact">' + OPS_CONTACT_ICON +
+        (who.length ? '<span class="q-who">' + who.join(' &middot; ') + '</span>' : '<span class="q-who q-none">No contact yet &mdash; open the event to find one</span>') +
+        status + '</div>';
+    }}
+    function _sugNiceDate(iso) {{
+      var m = /^(\d{{4}})-(\d{{2}})-(\d{{2}})/.exec(iso || '');
+      return m ? (+m[3]) + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2] - 1] : '';
+    }}
     // An Apply on a Sessionize event drafts the application (api/sessionize.py
     // saves it on the event). Fire-and-forget: the queue shows "Drafting…"
     // and repaints when the draft lands.
@@ -10806,13 +10838,16 @@ def build():
           return '<span class="q-int-chip" style="' + window.abPersonChip(n) + '">' + escapeHtml(n) + '</span>';
         }}).join('');
         var dec = '';
-        if (_qApplyDecided(it)) {{
+        if (_qApplyDecided(it) && it.stages.indexOf('Submitted') === -1) {{
           // Decided "apply": say where the application stands. A Sessionize
           // event gets a drafted application; anything else is applied for on
           // the organiser's own site.
           var _szT = it.kind === 'manual' ? 'manual_events' : 'event_state';
           var _szL = window.ABSessionize ? window.ABSessionize.link(it) : '';
-          if (it.sz_draft && it.sz_draft.status === 'ready') dec = '<span class="q-draft is-ready">&#10003; Draft ready</span>';
+          // The Sessionize call's state, kept fresh by the daily check.
+          var _call = (it.sz_call && it.sz_call.status === 'closed') ? '<span class="q-draft is-closed">Call closed</span>' : '';
+          if (_szL && _qApproved(it) && _qHasDraft(it)) dec = '<span class="q-draft is-ready">&#10003; Approved: ready to submit</span>' + _call;
+          else if (_qHasDraft(it)) dec = '<span class="q-draft is-ready">Draft ready: review &amp; approve</span>' + _call;
           else if (_szL && window.ABSessionize.isDrafting(_szT, it.key)) dec = '<span class="q-draft">Drafting&hellip;</span>';
           else if (_szL) dec = '<button type="button" class="q-draft is-btn" data-act="draft" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">Draft application</button>';
           else dec = '<span class="q-draft is-muted">Apply on their site</span>';
@@ -10826,6 +10861,7 @@ def build():
               '<p class="queue-meta">' + escapeHtml(it.date_str || 'Date TBD') + (loc ? ' &middot; ' + loc : '') + '</p>' +
               '<div class="queue-chips">' + ints + qStagePills(it.stages, it) + dec + deadlineHtml(it) + '</div>' +
               (_cf ? '<span class="ops-clash">&#9888; ' + escapeHtml(_cf) + '</span>' : '') +
+              ((_qApplyDecided(it) || it.stages.indexOf('Submitted') !== -1) && it.stages.indexOf('Booked') === -1 ? _qContactHtml(it) : '') +
             '</div>' +
             // No conflict button here (Hurley 2026-07-30). A conflict is set
             // from the planner or Details -> Edit; on a queue row it was an
@@ -10875,7 +10911,7 @@ def build():
         }}
       }}
 
-      var html = '<p class="queue-intro"><strong>Application queue:</strong> Every event Thor is interested in or speaking at. Decide <strong>Apply</strong> or <strong>Skip</strong> on each; an Apply on a Sessionize event drafts the application, ready in the event&#39;s pop-up.</p>';
+      var html = '<p class="queue-intro"><strong>Application queue:</strong> Every event Thor is interested in or speaking at. <strong>Apply</strong> or <strong>Skip</strong> each one. A Sessionize event then gets a drafted application: <strong>Approve</strong> it, <strong>Submit</strong> it on Sessionize, <strong>Mark submitted</strong>.</p>';
 
       // Month dividers inside a section — "grouped by event dates" (Hurley
       // 2026-07-31). Only for the to-apply list: In progress and Booked are
@@ -10906,8 +10942,16 @@ def build():
               '</div>';
             }}
             else if (kind === 'toApply') {{
-              btns += '<div class="q-btn-row">' +
-                '<button class="q-btn primary" data-act="submitted"' + _ka + '>&#10003; Mark applied</button>' +
+              // Sessionize: approve the draft, then submit. Elsewhere: apply on
+              // their site, then mark it.
+              var _sz = window.ABSessionize ? window.ABSessionize.link(x) : '';
+              var _go = _sz || x.apply_url || '';
+              var first = (_sz && _qHasDraft(x) && !_qApproved(x))
+                ? '<button class="q-btn primary" data-act="approve"' + _ka + ' title="The drafted application is OK to send">Approve</button>'
+                : ((_go && (!_sz || _qApproved(x)))
+                    ? '<a class="q-btn primary" href="' + escapeHtml(_go) + '" target="_blank" rel="noopener" data-stop>Submit ' + (_sz ? 'on Sessionize ' : '') + '&#8599;</a>' : '');
+              btns += '<div class="q-btn-row">' + first +
+                ((!_sz || _qApproved(x)) ? '<button class="q-btn' + (first ? '' : ' primary') + '" data-act="submitted"' + _ka + '>&#10003; Mark submitted</button>' : '') +
                 '<button class="q-btn q-btn-undo" data-act="undecide"' + _ka + ' title="Back to To decide">Undo</button>' +
               '</div>';
             }}
@@ -10938,6 +10982,10 @@ def build():
       host.querySelectorAll('[data-ref-kind]').forEach(function (el) {{
         el.addEventListener('click', function () {{ opsOpenRef(el.getAttribute('data-ref-kind'), el.getAttribute('data-ref-key')); }});
       }});
+      // Links inside a row (email, Submit ↗) do their own thing, not open the event.
+      host.querySelectorAll('.q-contact a, a[data-stop]').forEach(function (a) {{
+        a.addEventListener('click', function (e) {{ e.stopPropagation(); }});
+      }});
       host.querySelectorAll('[data-act]').forEach(function (btn) {{
         btn.addEventListener('click', function (e) {{
           e.stopPropagation();
@@ -10950,6 +10998,21 @@ def build():
           else if (act === 'skip') {{ opsQuickWrite(it.kind, it.key, {{ decision: 'skip', queue_dismissed: true }}); }}
           else if (act === 'unskip') {{ opsQuickWrite(it.kind, it.key, {{ decision: '', queue_dismissed: false }}); }}
           else if (act === 'undecide') {{ opsQuickWrite(it.kind, it.key, {{ decision: '' }}); }}
+          else if (act === 'approve') {{ opsQuickWrite(it.kind, it.key, {{ decision: 'approved' }}); }}
+          else if (act === 'reached') {{
+            // One click: a dated line in the follow-up log, plus the outreach
+            // stage once the application is in (the tracker's stages put
+            // outreach after Submitted, so before that it is only logged).
+            var _d = new Date(), _on = _d.getFullYear() + '-' + ('0' + (_d.getMonth() + 1)).slice(-2) + '-' + ('0' + _d.getDate()).slice(-2);
+            var _fu = (it.follow_ups || []).concat([{{ by: getCollabName() || 'Team', on: _on,
+              note: 'Reached out' + (it.poc_name ? ' to ' + it.poc_name : '') }}]);
+            var _patch = {{ follow_ups: _fu }};
+            if (it.stages.indexOf('Submitted') !== -1 && it.stages.indexOf('Initial outreach') === -1) {{
+              var _tags = it.stages.concat(['Initial outreach']);
+              _patch.status_tags = window.abStageImply(order.filter(function (s) {{ return _tags.indexOf(s) !== -1; }}));
+            }}
+            opsQuickWrite(it.kind, it.key, _patch);
+          }}
           else markStage(it, act === 'submitted' ? 'Submitted' : 'Booked');
         }});
       }});

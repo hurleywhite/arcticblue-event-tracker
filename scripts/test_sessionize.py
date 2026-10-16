@@ -183,4 +183,41 @@ S.fetch = lambda url: (200, CFP)            # AI DevWorld: closed, so no model c
 calls.clear()
 r = S.make_draft('event_state', 42, model=lambda m: (_ for _ in ()).throw(AssertionError('no model call')))
 assert r == {'ok': False, 'error': 'The call for speakers closed on 2026-09-18.'} and not [x for x in calls if x[0] != 'GET'], r
+# Renamed on Sessionize: matched through the row's own call, never by a loose name.
+renamed = {'table': 'manual_events', 'key': 537, 'name': 'AI Engineer New York', 'speaker': 'Thor', 'tags': ['Submitted'],
+           'start_date': '2026-10-12', 'cfp': {'name': 'AIE NYC 2026', 'event_start': '2026-10-12', 'website': 'https://www.ai.engineer/nyc/'}}
+assert S.find_acceptances('thor', [E('AIE NYC 2026', 'October 2026')], [renamed])[0]
+assert S.find_acceptances('thor', [{'name': 'AI Engineer Summit', 'url': 'https://ai.engineer/nyc', 'date': 'October 2026'}], [renamed])[0]
+assert not S.find_acceptances('thor', [{'name': 'AI Engineer Summit', 'url': 'https://ai.engineer/nyc', 'date': 'October 2025'}], [renamed])[0]  # last year's edition
+assert not S.find_acceptances('thor', [E('AIE NYC 2026', 'October 2026')], [dict(renamed, cfp={})])[0]       # no call read: names alone
+assert S.parse_cfp(CFP.replace('Call for Speakers @', 'Call for Sessions @'), dt.date(2026, 10, 13))['name'] == 'AI DevWorld 2027'
+# Daily tidy: remember the call's state, fill an empty deadline, find a missing link.
+calls.clear()
+S.fetch = lambda url: (200, OPEN) if 'summitna-2027' in url else (404, '')
+S._http = fake_http
+rows = [
+    {'table': 'manual_events', 'key': 1, 'name': 'AI Summit NA', 'start_date': '2027-03-30', 'link': '', 'mentions': True,
+     'apply_url': '', 'deadline': '', 'booking': {'keep': 1}},
+    {'table': 'event_state', 'key': 2, 'name': 'Linked Event', 'start_date': '2027-01-01', 'link': 'https://sessionize.com/ai-summitna-2027/',
+     'mentions': False, 'apply_url': '', 'deadline': 'Rolling', 'booking': {}},
+    {'table': 'manual_events', 'key': 3, 'name': 'Past', 'start_date': '2026-01-01', 'link': 'https://sessionize.com/ai-summitna-2027/',
+     'mentions': True, 'apply_url': '', 'deadline': '', 'booking': {}},
+]
+t = S.tidy([dict(r) for r in rows], '2026-10-16', dry_run=True)
+assert t['links_found'] == [{'event': 'AI Summit NA', 'link': 'https://sessionize.com/aisummitna-2027/'}], t
+assert t['deadlines_set'] == [{'event': 'AI Summit NA', 'deadline': '2026-12-04'}] and t['calls_checked'] == 2 and t['writes'] == 0
+assert not [x for x in calls if x[0] != 'GET']                                   # dry run writes nothing
+t = S.tidy([dict(r) for r in rows], '2026-10-16')
+w = {x[1].split('?')[0].rsplit('/', 1)[1] + ':' + str((x[2] or {}).get('event_num', x[1][-1])): x[2] for x in calls if x[0] in ('PATCH', 'POST')}
+m1 = next(v for k, v in w.items() if k.startswith('manual_events'))
+assert m1['apply_url'] == 'https://sessionize.com/aisummitna-2027/' and m1['deadline'] == '2026-12-04'
+assert m1['booking'] == {'keep': 1, 'sessionize_call': {'status': 'open', 'opens': '2026-09-28', 'closes': '2026-12-04',
+                                                       'timezone': 'Pacific Standard Time (UTC-08:00)', 'checked': '2026-10-16'}}
+es = next(v for k, v in w.items() if k.startswith('event_state'))
+assert 'deadline' not in es and es['booking']['sessionize_call']['status'] == 'open'   # 'Rolling' is kept: only empty deadlines are filled
+assert len(w) == 2 and t['writes'] == 2                                           # the past event is left alone
+calls.clear()
+again = [dict(r, booking={'sessionize_call': {'status': 'open', 'opens': '2026-09-28', 'closes': '2026-12-04',
+                                              'timezone': 'Pacific Standard Time (UTC-08:00)', 'checked': '2026-10-15'}}) for r in rows[1:2]]
+assert S.tidy(again, '2026-10-16')['writes'] == 0                                  # nothing changed: nothing written
 print('Sessionize page reading, link checks, acceptance matching and drafting passed.')

@@ -148,7 +148,7 @@ def parse_cfp(page, today=None):
     title = _text(t.group(1)) if t else ''
     if 'call for' not in title.lower():
         return None                      # a speaker profile, a 404, anything else
-    out['name'] = re.sub(r'\s*:\s*Call for (Speakers|Papers|Proposals).*$', '', title, flags=re.I).strip()
+    out['name'] = re.sub(r'\s*:\s*Call for \w+.*$', '', title, flags=re.I).strip()
     out['opens'] = _iso(_after(page, 'Call opens at'))
     out['closes'] = _iso(_after(page, 'Call closes at'))
     tz = re.search(r'Call closes in\s*<strong>(.*?)</strong>', page, re.S | re.I)
@@ -157,7 +157,7 @@ def parse_cfp(page, today=None):
     out['event_end'] = _iso(_after(page, 'event ends')) or out['event_start']
     w = re.search(r'website\s*</div>\s*<h2[^>]*>\s*<a[^>]+href="([^"]+)"', page, re.S | re.I)
     out['website'] = _html.unescape(w.group(1)) if w else ''
-    said = re.search(r'Call for (?:Speakers|Papers|Proposals) is\s*<strong>\s*(\w+)', page, re.I)
+    said = re.search(r'Call for \w+ is\s*<strong>\s*(\w+)', page, re.I)
     said = said.group(1).lower() if said else ''
     if said == 'closed':
         out['status'] = 'closed'
@@ -235,8 +235,36 @@ def same_event(profile_event, row_name, row_start):
     return exact        # no date to confirm with: only an exact name will do
 
 
+def _url_key(u):
+    """'https://www.developerweek.com/ai-devworld/' -> 'developerweek.com/ai-devworld'."""
+    try:
+        p = urllib.parse.urlsplit((u or '').strip() if '://' in (u or '') else 'https://' + (u or '').strip())
+    except ValueError:
+        return ''
+    host = (p.hostname or '').lower()
+    host = host[4:] if host.startswith('www.') else host
+    return (host + p.path.rstrip('/')).lower() if host else ''
+
+
+def _same_via_link(profile_event, row):
+    """A profile entry is the row's event when it carries the name or the website
+    the row's own Sessionize call gives (organisers rename events on Sessionize:
+    'AI Engineer New York' is 'AIE NYC 2026' there). Dates still have to agree."""
+    cfp = row.get('cfp') or {}
+    if not cfp:
+        return False
+    if cfp.get('name') and same_event(profile_event, cfp['name'], cfp.get('event_start') or row.get('start_date')):
+        return True
+    a, b = _url_key(profile_event.get('url')), _url_key(cfp.get('website'))
+    if not a or a != b:
+        return False
+    pe, ce = _year_month(profile_event.get('date')), _year_month(cfp.get('event_start') or row.get('start_date'))
+    return bool(pe and ce and abs((pe[0] * 12 + pe[1]) - (ce[0] * 12 + ce[1])) <= 1)
+
+
 def find_acceptances(person, profile_events, rows):
-    """rows: [{table, key, name, speaker, tags, start_date, ...}] -> (to_book, conflicts)."""
+    """rows: [{table, key, name, speaker, tags, start_date, cfp?, ...}] -> (to_book, conflicts).
+    `cfp` is what the row's saved Sessionize link says (name, website, dates)."""
     to_book, conflicts = [], []
     for row in rows:
         if person not in (row.get('speaker') or '').lower():
@@ -244,7 +272,8 @@ def find_acceptances(person, profile_events, rows):
         tags = row.get('tags') or []
         if 'Submitted' not in tags or 'Booked' in tags:
             continue
-        hit = next((e for e in profile_events if same_event(e, row.get('name'), row.get('start_date'))), None)
+        hit = next((e for e in profile_events if same_event(e, row.get('name'), row.get('start_date'))
+                    or _same_via_link(e, row)), None)
         if not hit:
             continue
         (conflicts if 'Rejected' in tags else to_book).append({'row': row, 'event': hit})
@@ -286,7 +315,7 @@ def _svc(prefer=''):
 def _tracker_rows():
     rows = []
     st, manual = _http('GET', SUPABASE_URL + '/rest/v1/manual_events?select=id,name,speaker,status_tags,'
-                       'status,start_date,notes,booking&limit=5000', headers=_svc())
+                       'status,start_date,notes,booking,apply_url,speaking_route,url,deadline&limit=5000', headers=_svc())
     if st != 200 or not isinstance(manual, list):
         raise RuntimeError('manual_events read failed %s' % st)
     for m in manual:
@@ -295,9 +324,13 @@ def _tracker_rows():
         rows.append({'table': 'manual_events', 'key': m['id'], 'name': m.get('name') or '',
                      'speaker': m.get('speaker') or '', 'tags': m.get('status_tags') or [],
                      'start_date': m.get('start_date') or '', 'notes': m.get('notes') or '',
+                     'link': sessionize_link(m), 'apply_url': m.get('apply_url') or '',
+                     'deadline': m.get('deadline') or '',
+                     'mentions': bool(re.search('sessionize', ' '.join(str(m.get(f) or '') for f in
+                                                                     ('notes', 'speaking_route', 'url')), re.I)),
                      'booking': m.get('booking') if isinstance(m.get('booking'), dict) else {}})
     st, states = _http('GET', SUPABASE_URL + '/rest/v1/event_state?select=event_num,name,speaker,status_tags,'
-                       'status,start_date,notes,booking&limit=5000', headers=_svc())
+                       'status,start_date,notes,booking,apply_url,speaking_route,url,deadline&limit=5000', headers=_svc())
     if st != 200 or not isinstance(states, list):
         raise RuntimeError('event_state read failed %s' % st)
     # A catalog event's name and date live in the static events.json, not the state row.
@@ -316,14 +349,89 @@ def _tracker_rows():
                      'speaker': s.get('speaker') or '', 'tags': s.get('status_tags') or [],
                      'start_date': s.get('start_date') or base.get('start_date') or '',
                      'notes': s.get('notes') or '',
+                     'link': sessionize_link(s, base), 'apply_url': s.get('apply_url') or '',
+                     'deadline': s.get('deadline') or base.get('deadline') or '',
+                     'mentions': bool(re.search('sessionize', ' '.join(str(x.get(f) or '') for x in (s, base) for f in
+                                                                     ('notes', 'speaking_route', 'url')), re.I)),
                      'booking': s.get('booking') if isinstance(s.get('booking'), dict) else {}})
     return rows
+
+
+def slug_guesses(name, start):
+    """Likely Sessionize addresses for an event: its name with and without the
+    year, hyphenated and run together (e.g. aidevworld-2027)."""
+    yr = (start or '')[:4]
+    base = unicodedata.normalize('NFD', name or '')
+    base = ''.join(c for c in base if unicodedata.category(c) != 'Mn').lower()
+    base = re.sub(r'\(.*?\)|\b(19|20)\d{2}\b|\b\d{1,2}(st|nd|rd|th)\b', ' ', base)
+    words = [w for w in re.sub(r'[^a-z0-9]+', ' ', base).split() if w != 'the']
+    out = []
+    for ws in (words, [w for w in words if w not in ('summit', 'conference', 'forum', 'and', 'of')]):
+        for s in ([('-'.join(ws)) + '-' + yr, ''.join(ws) + '-' + yr] if yr else []) + ['-'.join(ws), ''.join(ws)]:
+            if ws and s.strip('-') and s not in out and _SLUG.match(s):
+                out.append(s)
+    return out[:6]
+
+
+def tidy(rows, today, dry_run=False, max_guess=5):
+    """Daily upkeep of the Sessionize side of upcoming events:
+    - a linked call: remember whether it is open and when it closes
+      (booking.sessionize_call, read by the queue), and use the closing date as
+      the CFP deadline when the event has none;
+    - an event whose notes say Sessionize but which has no link: try its likely
+      addresses and save the one whose name and dates match."""
+    report = {'calls_checked': 0, 'deadlines_set': [], 'links_found': [], 'writes': 0}
+    guesses = 0
+    for row in rows:
+        if not row.get('start_date') or row['start_date'] < today:
+            continue
+        patch = {}
+        if not row.get('link') and row.get('mentions') and not row.get('apply_url') and guesses < max_guess:
+            guesses += 1
+            for slug in slug_guesses(row['name'], row['start_date']):
+                cst, cpage = fetch('https://sessionize.com/' + slug + '/')
+                info = parse_cfp(cpage) if cst == 200 else None
+                if info and same_event({'name': info['name'], 'date': info['event_start']}, row['name'], row['start_date']):
+                    row['link'] = patch['apply_url'] = 'https://sessionize.com/' + slug + '/'
+                    report['links_found'].append({'event': row['name'], 'link': row['link']})
+                    break
+        if row.get('link'):
+            cst, cpage = fetch(row['link'])
+            info = parse_cfp(cpage, dt.date.fromisoformat(today)) if cst == 200 else None
+            if info:
+                report['calls_checked'] += 1
+                call = {'status': info['status'], 'opens': info['opens'], 'closes': info['closes'],
+                        'timezone': info['timezone'], 'checked': today}
+                old = dict((row.get('booking') or {}).get('sessionize_call') or {})
+                old.pop('checked', None)
+                if {k: v for k, v in call.items() if k != 'checked'} != old:
+                    patch['booking'] = dict(row.get('booking') or {}, sessionize_call=call)
+                if info['closes'] and not str(row.get('deadline') or '').strip():
+                    patch['deadline'] = info['closes']
+                    report['deadlines_set'].append({'event': row['name'], 'deadline': info['closes']})
+        if patch and not dry_run:
+            col = 'id' if row['table'] == 'manual_events' else 'event_num'
+            patch['updated_at'] = dt.datetime.now(dt.timezone.utc).isoformat()
+            if row['table'] == 'event_state':
+                patch['updated_by'] = 'Sessionize check'
+                wst, _ = _http('POST', '%s/rest/v1/event_state?on_conflict=event_num' % SUPABASE_URL,
+                               headers=_svc('resolution=merge-duplicates,return=minimal'),
+                               body=dict(patch, event_num=row['key']))
+            else:
+                wst, _ = _http('PATCH', '%s/rest/v1/manual_events?id=eq.%s' % (SUPABASE_URL, urllib.parse.quote(str(row['key']))),
+                               headers=_svc('return=minimal'), body=patch)
+            if wst in (200, 201, 204):
+                report['writes'] += 1
+                if 'booking' in patch:
+                    row['booking'] = patch['booking']
+    return report
 
 
 def sync(dry_run=False, today=None):
     today = (today or dt.date.today()).isoformat()
     report = {'ok': True, 'dry_run': bool(dry_run), 'people': {}, 'booked': [], 'conflicts': []}
-    rows = None
+    rows = _tracker_rows()
+    report['tidy'] = tidy(rows, today, dry_run)
     for person, slug in _profiles().items():
         st, page = fetch('https://sessionize.com/' + slug + '/')
         prof = parse_profile(page) if st == 200 else None
@@ -333,8 +441,13 @@ def sync(dry_run=False, today=None):
         report['people'][person] = {'profile': slug, 'events_on_profile': len(prof['events'])}
         if not prof['events']:
             continue                      # nothing accepted yet: no need to load the tracker
-        if rows is None:
-            rows = _tracker_rows()
+        # Organisers rename events on Sessionize, so read each pending
+        # application's own call (name, website, dates) to match by those too.
+        for row in rows:
+            if (row.get('link') and 'cfp' not in row and person in (row.get('speaker') or '').lower()
+                    and 'Submitted' in (row.get('tags') or []) and 'Booked' not in (row.get('tags') or [])):
+                cst, cpage = fetch(row['link'])
+                row['cfp'] = (parse_cfp(cpage) if cst == 200 else None) or {}
         to_book, conflicts = find_acceptances(person, prof['events'], rows)
         for c in conflicts:
             report['conflicts'].append({'event': c['row']['name'], 'person': person,
