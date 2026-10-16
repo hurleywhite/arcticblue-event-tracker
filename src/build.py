@@ -50,10 +50,12 @@ else:
 # back to True and rebuild to bring it back exactly as it was.
 SHOW_ACTION_CENTER = False   # the Action Center tab (was the default home; Events list is now)
 SHOW_FIND_EVENTS   = False   # Add menu > "Find new events — Let AI suggest events to add"
+SHOW_QUEUE         = False   # the Application queue tab (Hurley 2026-10-16: Thor wants one flow, in the event itself)
 ACTION_TAB_ATTRS   = 'class="active" aria-selected="true"' if SHOW_ACTION_CENTER else 'aria-selected="false" hidden style="display:none"'
 EVENTS_TAB_ATTRS   = 'aria-selected="false"' if SHOW_ACTION_CENTER else 'class="active" aria-selected="true"'
 FIND_EVENTS_ATTRS  = '' if SHOW_FIND_EVENTS else ' hidden style="display:none"'
 ACTION_CENTER_JS   = 'true' if SHOW_ACTION_CENTER else 'false'
+QUEUE_JS           = 'true' if SHOW_QUEUE else 'false'
 
 # Who runs speaking applications now that Angela has left (Hurley 2026-10-16).
 # These people get her application tools (window.abCanApply in the page): the
@@ -5962,6 +5964,23 @@ def build():
         v += '<div class="me-apply"><a class="modal-visit modal-apply" href="' + esc(_apUrl) +
              '" target="_blank" rel="noopener">Apply to speak \u2197</a></div>';
       }}
+      // Who to reach out to, and whether anyone has (Hurley 2026-10-16): one
+      // line right under the apply step, so the whole application is one flow
+      // in the event itself. Status is the tracker's own follow-up rule.
+      if (window.abCanApply && window.abCanApply()) {{
+        var _rw = [];
+        if (_ct(rec.poc_name)) _rw.push(esc(rec.poc_name));
+        if (rec.poc_email && String(rec.poc_email).indexOf('@') !== -1) _rw.push('<a href="mailto:' + esc(rec.poc_email) + '">' + esc(rec.poc_email) + '</a>');
+        var _fs = window.abFollowUpState ? window.abFollowUpState(rec) : {{ state: 'none', label: 'Not contacted yet' }};
+        var _rs = _fs.state === 'none'
+          ? (_rw.length ? '<button type="button" class="q-link" data-reach-out="Reached out">Mark reached out</button>' : '')
+          : (_fs.state === 'due'
+              ? '<span class="me-reach-due">' + esc(_fs.label) + '</span><button type="button" class="q-link" data-reach-out="Followed up">Mark followed up</button>'
+              : '<span class="q-reached">&#10003; ' + esc(_fs.label) + '</span>');
+        v += '<div class="me-reach">' + (window.AB_CONTACT_ICON || '') +
+          '<span class="me-reach-who">' + (_rw.length ? 'Reach out to ' + _rw.join(' &middot; ') : 'No contact yet &mdash; &ldquo;Find someone to contact&rdquo; above') + '</span>' +
+          _rs + '</div>';
+      }}
       v += _sibSec;
     }}
 
@@ -5976,6 +5995,22 @@ def build():
     $body.innerHTML = html;
     wireQuickBar(rec);
     if (window.ABSessionize) window.ABSessionize.wire($body, rec);
+    // "Mark reached out": a dated line in the follow-up log, plus the outreach
+    // stage once the application is in (stages put outreach after Submitted).
+    var $reach = $body.querySelector('[data-reach-out]');
+    if ($reach) $reach.addEventListener('click', function () {{
+      var _d = new Date(), _on = _d.getFullYear() + '-' + ('0' + (_d.getMonth() + 1)).slice(-2) + '-' + ('0' + _d.getDate()).slice(-2);
+      var list = (rec.follow_ups || []).concat([{{ by: (window.opsCurrentUser && window.opsCurrentUser()) || 'Team', on: _on,
+        note: $reach.getAttribute('data-reach-out') + (rec.poc_name ? ' to ' + rec.poc_name : '') }}]);
+      var patch = {{ follow_ups: list }};
+      var tags = rec.stage_tags || [];
+      if (tags.indexOf('Submitted') !== -1 && tags.indexOf('Initial outreach') === -1 && window.abApplyStageToggle) {{
+        patch.status_tags = window.abApplyStageToggle(rec, 'Initial outreach').tags;
+      }}
+      rec.follow_ups = list;
+      if (window.opsWrite) window.opsWrite(rec._table, rec._key, patch);
+      openEventModal(rec);
+    }});
     // Clicking a sibling opens THAT event's card.
     $body.querySelectorAll('[data-sib-kind]').forEach(function (b3) {{
       b3.addEventListener('click', function () {{
@@ -8148,6 +8183,7 @@ def build():
       'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 2v2"/><path d="M8 2v2"/>' +
       '<rect x="3" y="4" width="18" height="18" rx="2"/><circle cx="12" cy="11" r="3"/>' +
       '<path d="M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/></svg>';
+    window.AB_CONTACT_ICON = OPS_CONTACT_ICON;   // the event pop-up's reach-out line uses it too
     function contactIconHtml(found, who) {{
       if (!found || !(window.abCanApply && window.abCanApply())) return '';
       var tip = 'Contact on file' + (who ? ': ' + who : '') + ' (details in the event pop-up)';
@@ -9194,6 +9230,7 @@ def build():
     // Her other admin tools (Planner, duplicate review, sync / export, briefs,
     // organiser grouping, Should Attend) stay behind isAngelaUser.
     var AB_APPLIERS = {APPLICATION_PEOPLE_JS};
+    window.AB_QUEUE_ON = {QUEUE_JS};   // the Application queue tab (SHOW_QUEUE)
     window.abCanApply = function () {{
       if (window.isAngelaUser()) return true;
       try {{ return AB_APPLIERS.indexOf((getCollabName() || '').trim().split(/\s+/)[0].toLowerCase()) !== -1; }}
@@ -9218,7 +9255,7 @@ def build():
       var $plannerTab = document.querySelector('.view-toggle [data-view="planner"]');
       if ($plannerTab) $plannerTab.style.display = show ? '' : 'none';
       var $queueTab = document.querySelector('.view-toggle [data-view="queue"]');
-      var canApply = !!(window.abCanApply && window.abCanApply());
+      var canApply = !!(window.abCanApply && window.abCanApply()) && window.AB_QUEUE_ON;   // SHOW_QUEUE in build.py
       if ($queueTab) $queueTab.style.display = canApply ? '' : 'none';
       var $should = document.getElementById('filter-should');
       if ($should) $should.style.display = show ? '' : 'none';
@@ -15748,6 +15785,7 @@ def build():
     function setView(name) {{
       if (VIEW_NAMES.indexOf(name) === -1) name = 'grid';
       if (name === 'action' && !ACTION_CENTER_ON) name = 'grid';
+      if (name === 'queue' && !window.AB_QUEUE_ON) name = 'grid';
       // The Day-Of brief now lives inside My Events — no standalone tab.
       if (name === 'dayof') name = 'myevents';
       // Planner, Queue and the profile page are Angela-only — redirect anyone

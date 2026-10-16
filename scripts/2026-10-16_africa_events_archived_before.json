@@ -1,0 +1,12 @@
+{"_README": "Snapshot of the 10 Africa events before Hurley archived them (2026-10-16: shifting away from Africa). To restore one, set hidden back to the value here (manual_events by id, event_state by event_num).",
+"manual_events":
+[{"id":143,"name":"GITEX AFRICA","start_date":"2027-04-26","location":"Marrakech, Morocco","hidden":false,"status_tags":["Submitted","Followed up"],"speaker":"Thor","interested":[],"updated_by":null,"updated_at":null}, 
+ {"id":250,"name":"AI Expo Africa 2026","start_date":"2026-10-28","location":"Johannesburg, South Africa","hidden":false,"status_tags":[],"speaker":null,"interested":null,"updated_by":null,"updated_at":null}, 
+ {"id":329,"name":"Africa Fintech Summit Kigali 2026","start_date":"2026-11-18","location":"Kigali Convention Center, Kigali, Rwanda","hidden":false,"status_tags":[],"speaker":null,"interested":null,"updated_by":null,"updated_at":null}, 
+ {"id":437,"name":"10DX Summit South Africa 2026","start_date":"2026-11-24","location":"Johannesburg, South Africa","hidden":false,"status_tags":[],"speaker":null,"interested":null,"updated_by":null,"updated_at":null}, 
+ {"id":534,"name":"OpenGov Africa Summit","start_date":"2026-10-20","location":"Lagos, Nigeria","hidden":false,"status_tags":["Submitted"],"speaker":"Thor","interested":[],"updated_by":"Sessionize link check","updated_at":"2026-10-16T21:02:56.060792+00:00"}, 
+ {"id":535,"name":"15th African Internet Governance Forum (AfIGF 2026)","start_date":"2026-11-02","location":"Accra, Ghana","hidden":false,"status_tags":["Submitted"],"speaker":"Thor","interested":[],"updated_by":"Sessionize link check","updated_at":"2026-10-16T21:02:57.404642+00:00"}, 
+ {"id":552,"name":"Digital Finance Africa 2026","start_date":"2026-10-28","location":"Johannesburg, South Africa","hidden":false,"status_tags":[],"speaker":null,"interested":null,"updated_by":null,"updated_at":null}], "event_state":
+[{"event_num":182,"hidden":false,"status_tags":["Meeting held"],"speaker":"Thor","interested":[],"updated_by":"nogo-cleanup","updated_at":"2026-06-20T22:03:44.892683+00:00"}, 
+ {"event_num":194,"hidden":false,"status_tags":[],"speaker":"Thor","interested":[],"updated_by":"Hurley","updated_at":"2026-09-10T16:58:45.586764+00:00"}, 
+ {"event_num":195,"hidden":false,"status_tags":["Submitted"],"speaker":"Thor","interested":[],"updated_by":"Angela","updated_at":"2026-08-14T15:18:21.61565+00:00"}], "event_state_names": {"194": "Africa Tech Festival", "195": "The AI Summit Cape Town", "182": "AIBC Africa 2026"}}

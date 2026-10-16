@@ -66,26 +66,6 @@ DESCRIPTION:Exact overlap with Thor’s confirmed Riyadh trip. The dedicated Dig
 URL:https://www.globalhealthsaudi.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-654@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20270314
-DTEND;VALUE=DATE:20270318
-SUMMARY:ViVE 2027
-LOCATION:Music City Center\, Nashville\, TN
-DESCRIPTION:Excellent Thor fit: healthcare technology buyers\, 2\,000+ C-suite attendees\, thousands of meetings\, and a non-pay-to-play main-stage application route.\nPriority: High\nAdded by: ChatGPT curated research
-URL:https://hlth.com/events/vive/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-656@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20270405
-DTEND;VALUE=DATE:20270408
-SUMMARY:IPC 2027
-LOCATION:Washington\, DC
-DESCRIPTION:Strong Verma fit: payments executives and regulated-industry leaders discussing real-world implementations\, technology\, compliance and regulation.\nPriority: High\nAdded by: ChatGPT curated research
-URL:https://www.ipa.org/ipc.html
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-653@arcticblue-event-tracker
 DTSTAMP:20261016T000000Z
 DTSTART;VALUE=DATE:20270315
@@ -104,6 +84,26 @@ SUMMARY:FinAi Banking Summit 2027
 LOCATION:Westin Denver\, Denver\, CO
 DESCRIPTION:Excellent Verma fit: banking executives discussing real AI deployment\, governance\, automation\, payments and measurable outcomes.\nPriority: High\nAdded by: ChatGPT curated research
 URL:https://finai.events/banking/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-654@arcticblue-event-tracker
+DTSTAMP:20261016T000000Z
+DTSTART;VALUE=DATE:20270314
+DTEND;VALUE=DATE:20270318
+SUMMARY:ViVE 2027
+LOCATION:Music City Center\, Nashville\, TN
+DESCRIPTION:Excellent Thor fit: healthcare technology buyers\, 2\,000+ C-suite attendees\, thousands of meetings\, and a non-pay-to-play main-stage application route.\nPriority: High\nAdded by: ChatGPT curated research
+URL:https://hlth.com/events/vive/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-656@arcticblue-event-tracker
+DTSTAMP:20261016T000000Z
+DTSTART;VALUE=DATE:20270405
+DTEND;VALUE=DATE:20270408
+SUMMARY:IPC 2027
+LOCATION:Washington\, DC
+DESCRIPTION:Strong Verma fit: payments executives and regulated-industry leaders discussing real-world implementations\, technology\, compliance and regulation.\nPriority: High\nAdded by: ChatGPT curated research
+URL:https://www.ipa.org/ipc.html
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-652@arcticblue-event-tracker
@@ -785,16 +785,6 @@ DESCRIPTION:The 10th annual MIT AI Conference — 500+ AI researchers\, engineer
 URL:https://www.mitaiconference.org/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-552@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20261028
-DTEND;VALUE=DATE:20261029
-SUMMARY:Digital Finance Africa 2026
-LOCATION:Johannesburg\, South Africa
-DESCRIPTION:IT News Africa’s focused African financial services summit in Sandton — banking and fintech leaders from Absa\, JSE\, and South Africa’s leading institutions on digital transformation and AI\; niche but targeted for ArcticBlue’s South African regulated-industry network.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://itnewsafrica.com/event/event/digital_finance_africa/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-551@arcticblue-event-tracker
 DTSTAMP:20261016T000000Z
 DTSTART;VALUE=DATE:20261111
@@ -923,26 +913,6 @@ SUMMARY:AI DevWorld
 LOCATION:Santa Clara\, California
 DESCRIPTION:Priority: Medium\nAdded by: Angela
 URL:https://www.developerweek.com/ai-devworld/?_gl=1*rzjfov*_ga*MTg0MjI5NDc2NC4xNzc4ODU1OTQz*_ga_6Q9G1FCXD0*czE3ODQ5MjE1NDUkbzIkZzAkdDE3ODQ5MjE1NDUkajYwJGwwJGgw
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-535@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20261102
-DTEND;VALUE=DATE:20261106
-SUMMARY:15th African Internet Governance Forum (AfIGF 2026)
-LOCATION:Accra\, Ghana
-DESCRIPTION:Priority: Medium\nAdded by: Angela
-URL:https://igf.africa/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-534@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20261020
-DTEND;VALUE=DATE:20261025
-SUMMARY:OpenGov Africa Summit
-LOCATION:Lagos\, Nigeria
-DESCRIPTION:Priority: Medium\nAdded by: Angela
-URL:https://summit.opengovafrica.org/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-533@arcticblue-event-tracker
@@ -1513,16 +1483,6 @@ SUMMARY:Evanta Philadelphia CIO Community Executive Summit 2026
 LOCATION:Philadelphia Marriott Downtown\, Philadelphia\, PA
 DESCRIPTION:Gartner’s Evanta brand peer-only CIO summit focused on AI operating model adoption — access to Mid-Atlantic enterprise CIOs in a vetted\, sponsor-accessible format for ArcticBlue.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://www.evanta.com/cio/philadelphia/philadelphia-cio-executive-summit-8414
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-437@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20261124
-DTEND;VALUE=DATE:20261125
-SUMMARY:10DX Summit South Africa 2026
-LOCATION:Johannesburg\, South Africa
-DESCRIPTION:South Africa's premier intelligent banking event — by-invitation-only with 75+ banking and FI executives examining AI in production\, open rails\, and model governance under FATF and SARB regulation — ideal for ArcticBlue's Africa regulated-industry expansion.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.10dxsummit.com/events/sa
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-435@arcticblue-event-tracker
@@ -2135,16 +2095,6 @@ DESCRIPTION:IRM UK's premier European data and AI governance conference (Nov 3�
 URL:https://irmuk.co.uk/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-329@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20261118
-DTEND;VALUE=DATE:20261121
-SUMMARY:Africa Fintech Summit Kigali 2026
-LOCATION:Kigali Convention Center\, Kigali\, Rwanda
-DESCRIPTION:Africa's premier fintech conference with strong regulatory and government participation from across the continent — Verma's AI governance and financial services transformation narrative speaks to African central banks and fintech C-suite.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://africafintechsummit.com/events/africa-fintech-summit-kigali-2026
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-324@arcticblue-event-tracker
 DTSTAMP:20261016T000000Z
 DTSTART;VALUE=DATE:20261018
@@ -2573,16 +2523,6 @@ SUMMARY:RegTech Summit New York 2026
 LOCATION:New York\, NY\, USA
 DESCRIPTION:A-Team Insight's 9th annual RegTech Summit NYC — compliance\, risk management\, and financial crime prevention leaders from regulated financial institutions including regulators (NYDFS) and tier-1 banks\; aligns with Verma's AI governance and regulated-industry compliance narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://a-teaminsight.com/events/regtech-summit-new-york-city/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-250@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20261028
-DTEND;VALUE=DATE:20261030
-SUMMARY:AI Expo Africa 2026
-LOCATION:Johannesburg\, South Africa
-DESCRIPTION:Africa's largest enterprise AI trade show — 3\,500+ delegates\, 84% senior decision-makers\, 4-track speaking programme\; ideal platform for ArcticBlue's Africa market presence and Verma's regulated-industry experimentation narrative.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://aiexpoafrica.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-249@arcticblue-event-tracker
@@ -3093,16 +3033,6 @@ SUMMARY:GITEX AI Türkiye
 LOCATION:Istanbul\, Turkey
 DESCRIPTION:Priority: Medium\nAdded by: Ang
 URL:https://www.gitexturkiye.com/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-143@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20270426
-DTEND;VALUE=DATE:20270427
-SUMMARY:GITEX AFRICA
-LOCATION:Marrakech\, Morocco
-DESCRIPTION:Priority: Medium\nAdded by: Ang
-URL:https://gitexafrica.com/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-142@arcticblue-event-tracker
