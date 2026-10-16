@@ -549,6 +549,8 @@ def _merge_terms(fixed, found):
     for t in found:
         if t['kind'] in kinds and t['kind'] != 'other':
             continue
+        if t['kind'] == 'fee' and re.search(r'\bfree\b', t['text'], re.I) and not re.search(r'[$€£]|\d', t['text']):
+            continue                  # "free for speakers" commits nobody to anything
         out.append(t)
     return out
 
@@ -571,13 +573,18 @@ def draft_prompt(event, cfp, details, library):
         'the abstract speaks to this event\'s audience, themes and tracks in the call\'s own vocabulary.\n'
         '- Respect any length limit the call states. Otherwise: abstract at most 1000 characters, '
         'short_abstract at most 350.\n'
-        '- format, track and level: pick from options the call lists. If it lists none, leave the field '
-        'empty and add it to unknowns (it will be on the signed-in form).\n'
+        '- format and level: pick from options the call lists. If it lists none, leave the field empty and '
+        'add it to unknowns (it will be on the signed-in form).\n'
+        '- track: if the call names tracks, themes or topic areas (even "for inspiration"), put the closest '
+        'one here, prefixed by its group when there is one (e.g. "Main Stage: Change Management"). Leave it '
+        'empty only when the call names none.\n'
         '- answers: one entry for each question or requirement the call text asks speakers to address '
         '(why you, audience, preferred date, in person, etc.). Do not invent questions the call does not ask.\n'
         '- terms: everything submitting or accepting would commit the speaker to: fees to speak or attend '
         '(pay-to-play), sponsorship, paying own travel or hotel, in-person attendance, recording or '
-        'publishing consent, code of conduct, exclusivity, content rules. Quote the call\'s words in text.\n'
+        'publishing consent, code of conduct, exclusivity, content rules. Only what the call actually '
+        'states, quoting its words in text; never infer a term from a venue or location (put open '
+        'questions in unknowns). A free event fee is not a term.\n'
         '- Return one JSON object and nothing else.'
     )
     user = (
@@ -682,6 +689,9 @@ def make_draft(table='', key=None, cfp_url='', event=None, dry_run=False, by='',
     sources = ' '.join([json.dumps(talk, ensure_ascii=False), ' '.join((library.get('speaker') or {}).get('facts') or []),
                         details['text'], json.dumps(event, ensure_ascii=False), json.dumps(cfp)])
     d['checks'] = number_checks(d, sources)
+    if len(d['abstract']) > 1000:
+        d['checks'].append('The abstract is %d characters. Many forms cap it at 1,000: check the limit and trim.'
+                           % len(d['abstract']))
     if d['talk_status'] != 'approved':
         d['checks'].insert(0, 'The talk “%s” is still a draft in the talk library: Thor has not approved it yet.' % d['talk_title'])
     d.update({'status': 'ready', 'person': person, 'library': where, 'model': used,

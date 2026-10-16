@@ -155,6 +155,9 @@ def fake_model(messages):
     return {'talk_id': 'fail-or-scale', 'fit': 'strong', 'title': 'Fail or Scale: Reimagining Business Processes',
             'abstract': 'Pilots are built to succeed; 37 of them failed.', 'takeaways': ['a', 'b', 'c'],
             'terms': [{'kind': 'fee', 'text': 'duplicate of the perks box'}, {'kind': 'recording', 'text': 'Sessions are recorded'}]}, 'fake-model'
+assert S._merge_terms([], [{'kind': 'fee', 'text': 'event fee: free for speakers', 'why_it_matters': ''},
+                           {'kind': 'fee', 'text': 'Free pass, but a $99 booking fee', 'why_it_matters': ''}]) == \
+    [{'kind': 'fee', 'text': 'Free pass, but a $99 booking fee', 'why_it_matters': ''}]
 S._http, S.fetch, S.SERVICE_ROLE = fake_http, (lambda url: (200, OPEN)), 'svc'
 S.ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 r = S.make_draft('event_state', 42, dry_run=True, by='Hurley', model=fake_model, today=dt.date(2026, 10, 16))
