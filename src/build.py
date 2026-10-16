@@ -3807,7 +3807,6 @@ def build():
            so existing speakers from imports are never lost. -->
       <datalist id="ab-speakers">
         <option value="Thor"></option>
-        <option value="Joe"></option>
         <option value="Jerome"></option>
         <option value="Scott"></option>
         <option value="Verma"></option>
@@ -4070,7 +4069,8 @@ def build():
   var $actions = document.getElementById('modal-actions');
   var lastFocus = null;
   // The ArcticBlue speaker roster — drives the "Interested" picker.
-  var AB_ROSTER = ['Thor', 'Verma', 'Jerome', 'Joe', 'Scott', 'Carlos', 'Jim'];
+  // Joe left 2026-10-16 (his events are archived); Angela 2026-09-10.
+  var AB_ROSTER = ['Thor', 'Verma', 'Jerome', 'Scott', 'Carlos', 'Jim'];
   // Persona single-source-of-truth (config/personas.json), baked in. Global so
   // both the modal (attendees picker) and the ops views (Day-Of) read it.
   window.AB_PERSONAS = {PERSONAS_JS}.personas;
@@ -4433,7 +4433,7 @@ def build():
   // window.opsWrite (bridged from the ops closure). Save/Hide are catalog-
   // only (manual_events has no saved/hidden column).
   // Who Angela flags Should-Attend for, in order of how often they go.
-  var SA_PEOPLE = ['Thor', 'Verma', 'Jerome', 'Joe'];
+  var SA_PEOPLE = ['Thor', 'Verma', 'Jerome'];
   function quickBarHtml(rec) {{
     if (!rec || !rec._table || rec._key == null) return '';
     var stages = rec.stage_tags || [];
@@ -6629,7 +6629,7 @@ def build():
     var _recentUploads = null, _recentUploadsLoading = false;
     // Roster used by the Planner's coverage-gap "Flag for X" action. (The modal
     // closure has its own AB_ROSTER; this closure needs its own copy.)
-    var OPS_ROSTER = ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
+    var OPS_ROSTER = ['Thor', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'];
     // People who don't want Plan Ahead's month-by-month suggestion list
     // under Event Radar — the curated blocks above it are enough.
     var _PLAN_SUGGESTIONS_OFF = {{ thor: 1 }};
@@ -6650,7 +6650,7 @@ def build():
     // Detected from the TITLE, which is the reliable proxy for the working
     // language. Deliberately NOT from the country: "Big Data & AI World Madrid"
     // is an English-language event in Spain and still counts for all three.
-    var _ENGLISH_ONLY_PEOPLE = {{ thor: 1, verma: 1, joe: 1 }};
+    var _ENGLISH_ONLY_PEOPLE = {{ thor: 1, verma: 1 }};
     // One of these is enough on its own — no English event title carries them.
     // Deliberately absent: words that are also English brand or venue names.
     // "Datos Insights" (the research firm) runs English events in London, "Messe
@@ -9253,7 +9253,7 @@ def build():
       }}
       // Always surface the full ArcticBlue speaker roster as filter chips —
       // even teammates not yet assigned to any event (Carlos, Jim, Scott…).
-      ['Thor', 'Joe', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'].forEach(add);
+      ['Thor', 'Jerome', 'Scott', 'Verma', 'Carlos', 'Jim'].forEach(add);
       (stateRows  || []).forEach(function (r) {{ add(r.speaker); }});
       (manualRows || []).forEach(function (m) {{ add(m.speaker); }});
 
@@ -12219,7 +12219,6 @@ def build():
     // map to NYC but go unused (their clusters are per-owner).
     var HOME_BASE = {{
       thor:   [40.71, -74.01],   // New York
-      joe:    [40.71, -74.01],   // New York
       verma:  [40.72, -74.05],   // Jersey City
       angela: [40.71, -74.01],   // New York
       hurley: [40.71, -74.01],   // New York
@@ -12241,7 +12240,7 @@ def build():
     // Who the team actually puts on stage, most often first — Thor leads
     // (Hurley 2026-07-30). Support sees every persona, but in THIS order rather
     // than whatever order personas.json happens to be written in.
-    var PLAN_ORDER = ['thor', 'verma', 'jerome', 'joe', 'carlos', 'jim', 'scott'];
+    var PLAN_ORDER = ['thor', 'verma', 'jerome', 'carlos', 'jim', 'scott'];
     function planSort(names) {{
       return names.slice().sort(function (a, b) {{
         var ia = PLAN_ORDER.indexOf(String(a).toLowerCase());
@@ -12929,7 +12928,6 @@ def build():
       verma:  'https://www.linkedin.com/in/anuraagsverma/',
       carlos: 'https://www.linkedin.com/in/carlos-l-chacon-almeida/?locale=en',
       jerome: 'https://www.linkedin.com/in/jeromewouters/',
-      joe:    'https://www.linkedin.com/in/joelalley/',
       scott:  'https://www.linkedin.com/in/slpollack/',
       jim:    'https://www.linkedin.com/in/jimchungprofile/'
     }};
@@ -13353,8 +13351,7 @@ def build():
     var AB_PROFILES = [
       {{ key: 'Jerome', label: 'Europe (enterprise)', regions: ['Europe'], locked: true,
          kw: ['london','dublin','amsterdam','brussels','zurich','geneva','luxembourg','berlin','munich','frankfurt','vienna','stockholm','copenhagen','oslo','helsinki','madrid','barcelona','milan','lisbon','europe','emea','european','financial services','insurance','fintech','healthcare','telco','retail','ecommerce','media','gdpr'] }},
-      {{ key: 'Joe', label: 'HR & people (US)', regions: [],
-         kw: ['hr','human resources','chro','clo','chief people','people officer','vp of hr','talent','workforce','future of work','upskilling','reskilling','learning','l&d','people analytics','change management','human enablement','human capital','organizational development','employee experience'] }},
+      // (Joe's 'HR & people (US)' profile was removed 2026-10-16 when he left; HR events now fit nobody.)
       {{ key: 'Thor', label: 'Healthcare (exec)', regions: [],
          // 'patient care', 'telehealth' and 'provider' pulled in care-delivery
          // events directly — the exact thing the rule excludes. Buyer-side
@@ -13446,9 +13443,10 @@ def build():
       // would have left every AU event fitting NOBODY. Australian events now
       // match on their own merits, like anywhere else: an AU insurance event
       // still reaches Verma via 'insurance', an AU healthcare one reaches Thor.)
-      // HR / CHRO / people events are JOE'S audience only — keep them off everyone
+      // HR / CHRO / people events were JOE'S audience only, kept off everyone
       // else's fit (a CHRO summit whose attendees span industries was matching
-      // Thor on a stray "healthcare"). Matched on the strong HR event signals.
+      // Thor on a stray "healthcare"). Joe left 2026-10-16 and nobody covers HR,
+      // so they now fit no one. Matched on the strong HR event signals.
       // Two ways an event is an HR event, and it needs both. The blob test
       // catches the ones whose BLURB gives them away (CultureCon, From Day One,
       // People Leaders Summit — nothing in the title says HR). The name/host
@@ -13458,8 +13456,7 @@ def build():
       // Thor (Hurley 2026-07-30). Deliberately on the NAME and the organiser's
       // domain, never the blurb — an AI summit that merely mentions workforce
       // is still his.
-      if (p.key !== 'Joe' && (_HR_BLOB.test(String(blob || '')) ||
-                              _isHrEvent(evName, evUrl))) return false;
+      if (_HR_BLOB.test(String(blob || '')) || _isHrEvent(evName, evUrl)) return false;
       // Healthcare BUYERS yes, clinical-practice conferences no. Thor's keyword
       // list carries the healthcare terms that find the right events; this keeps
       // the clinician ones out of the same net.
@@ -15053,7 +15050,7 @@ def build():
           '</label>' +
         '</div>' +
         '<label><span class="key">ArcticBlue speaker</span>' +
-          '<input type="text" name="speaker" list="ab-speakers" placeholder="Thor, Joe, Jerome, Scott, Verma, Carlos, Jim…">' +
+          '<input type="text" name="speaker" list="ab-speakers" placeholder="Thor, Jerome, Scott, Verma, Carlos, Jim…">' +
         '</label>' +
         '<div class="ops-fieldset"><span class="key">Pipeline stages</span>' +
           stageCheckboxes([], 'status_tags') +
@@ -18050,7 +18047,6 @@ def build():
       {{ name: 'Hurley', init: 'H' }},
       {{ name: 'Jerome', init: 'JW' }},
       {{ name: 'Jim',    init: 'JC' }},
-      {{ name: 'Joe',    init: 'JL' }},
       {{ name: 'Scott',  init: 'S' }},
       {{ name: 'Thor',   init: 'T' }},
       {{ name: 'Verma',  init: 'V' }}

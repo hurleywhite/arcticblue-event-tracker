@@ -355,7 +355,7 @@ def build_messages(event, persona, topic, mode, roster_ctx='', news_ctx=''):
         "angles:[string,..]; "
         "logistics_win {time, room, link, win, move}; "
         "unconfirmed:[string,..]. "
-        "speaking_route_open and facilitator_leads apply to stage / Joe respectively; "
+        "speaking_route_open applies to stage mode; facilitator_leads is no longer used (always []); "
         "use null / [] otherwise. Every news item MUST carry a real source url.\n"
         "Output ONLY the raw JSON object — no markdown code fences, no commentary "
         "before or after it."
@@ -550,7 +550,10 @@ def normalize_brief(brief, event, persona, mode, activity):
     t.setdefault('outcome_target', persona.get('outcome_target'))
     if mode != 'stage':
         t['speaking_route_open'] = t.get('speaking_route_open') or None
-    if persona.get('name') != load_personas()['personas']['joe']['name']:
+    # facilitator_leads were Joe's (HR facilitator). He has left (2026-10-16) and
+    # his persona with him, so .get(): nobody is the facilitator any more.
+    _joe = load_personas()['personas'].get('joe')
+    if not _joe or persona.get('name') != _joe.get('name'):
         t['facilitator_leads'] = t.get('facilitator_leads') if isinstance(t.get('facilitator_leads'), list) else []
     brief['targets'] = t
     for k in ('speaker_spotlight', 'topic_news', 'angles', 'unconfirmed'):
@@ -1175,7 +1178,7 @@ def _reco_messages(batch):
         "high-conviction list beats a long maybe list (roughly the top third).\n"
         "TEAM PROFILES:\n" + json.dumps(team, ensure_ascii=False) + "\n"
         "Return ONLY JSON: {\"verdicts\":[{\"id\":\"<id>\",\"worth\":true|false,"
-        "\"fit\":\"jerome|joe|thor|verma|carlos|none\",\"reason\":\"<= 12 words\"}]} "
+        "\"fit\":\"jerome|thor|verma|carlos|none\",\"reason\":\"<= 12 words\"}]} "
         "— one entry per input event, raw JSON only."
     )
     user = "EVENTS:\n" + json.dumps(batch, ensure_ascii=False) + "\nToday is " + _today() + "."

@@ -123,5 +123,31 @@
    "hidden": false,
    "updated_by": "Hurley"
   }
- ]
+ ],
+ "speaker_cleanup": {
+  "why": "Shared events where Joe was a co-speaker: Joe removed from speaker, others kept (not archived). Undo: restore these speaker values.",
+  "manual_events": [
+   {
+    "id": 432,
+    "name": "Data Innovation Summit: Nordics",
+    "speaker": "Thor, Joe",
+    "updated_by": null,
+    "updated_at": null
+   },
+   {
+    "id": 478,
+    "name": "Data Innovation Summit: APAC",
+    "speaker": "Thor, Joe",
+    "updated_by": null,
+    "updated_at": null
+   }
+  ],
+  "event_state": [
+   {
+    "event_num": 200,
+    "speaker": "Thor, Joe, Verma",
+    "updated_by": "angela-resync"
+   }
+  ]
+ }
 }

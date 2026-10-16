@@ -66,26 +66,6 @@ DESCRIPTION:Exact overlap with Thor’s confirmed Riyadh trip. The dedicated Dig
 URL:https://www.globalhealthsaudi.com/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-656@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20270405
-DTEND;VALUE=DATE:20270408
-SUMMARY:IPC 2027
-LOCATION:Washington\, DC
-DESCRIPTION:Strong Verma fit: payments executives and regulated-industry leaders discussing real-world implementations\, technology\, compliance and regulation.\nPriority: High\nAdded by: ChatGPT curated research
-URL:https://www.ipa.org/ipc.html
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-654@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20270314
-DTEND;VALUE=DATE:20270318
-SUMMARY:ViVE 2027
-LOCATION:Music City Center\, Nashville\, TN
-DESCRIPTION:Excellent Thor fit: healthcare technology buyers\, 2\,000+ C-suite attendees\, thousands of meetings\, and a non-pay-to-play main-stage application route.\nPriority: High\nAdded by: ChatGPT curated research
-URL:https://hlth.com/events/vive/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-653@arcticblue-event-tracker
 DTSTAMP:20261016T000000Z
 DTSTART;VALUE=DATE:20270315
@@ -104,6 +84,26 @@ SUMMARY:FinAi Banking Summit 2027
 LOCATION:Westin Denver\, Denver\, CO
 DESCRIPTION:Excellent Verma fit: banking executives discussing real AI deployment\, governance\, automation\, payments and measurable outcomes.\nPriority: High\nAdded by: ChatGPT curated research
 URL:https://finai.events/banking/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-656@arcticblue-event-tracker
+DTSTAMP:20261016T000000Z
+DTSTART;VALUE=DATE:20270405
+DTEND;VALUE=DATE:20270408
+SUMMARY:IPC 2027
+LOCATION:Washington\, DC
+DESCRIPTION:Strong Verma fit: payments executives and regulated-industry leaders discussing real-world implementations\, technology\, compliance and regulation.\nPriority: High\nAdded by: ChatGPT curated research
+URL:https://www.ipa.org/ipc.html
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-654@arcticblue-event-tracker
+DTSTAMP:20261016T000000Z
+DTSTART;VALUE=DATE:20270314
+DTEND;VALUE=DATE:20270318
+SUMMARY:ViVE 2027
+LOCATION:Music City Center\, Nashville\, TN
+DESCRIPTION:Excellent Thor fit: healthcare technology buyers\, 2\,000+ C-suite attendees\, thousands of meetings\, and a non-pay-to-play main-stage application route.\nPriority: High\nAdded by: ChatGPT curated research
+URL:https://hlth.com/events/vive/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-652@arcticblue-event-tracker
@@ -1565,15 +1565,6 @@ DESCRIPTION:The most influential data and AI event in the Nordic region\, with a
 URL:https://datainnovationsummit.com/region/nordics/
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-431@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20270412
-DTEND;VALUE=DATE:20270415
-SUMMARY:Transform Conference
-DESCRIPTION:Joe added - would have a good audience. Has a contact there.\nPriority: Medium\nAdded by: Angela
-URL:https://transform.us/conference/
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-430@arcticblue-event-tracker
 DTSTAMP:20261016T000000Z
 DTSTART;VALUE=DATE:20261103
@@ -1612,16 +1603,6 @@ SUMMARY:RegTech Summit London 2026
 LOCATION:etc.venues 8 Fenchurch Place\, London\, UK
 DESCRIPTION:A-Team Insight's focused one-day RegTech summit for senior compliance and technology decision-makers at financial institutions in London — targeted access to CROs\, CCOs\, and heads of regulatory technology who are exactly the buyers ArcticBlue needs to reach.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://a-teaminsight.com/events/regtech-summit-london/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-421@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:Millennium Alliance Transformational CHRO Assembly – November 2026
-LOCATION:Atlanta\, GA
-DESCRIPTION:Second Millennium Alliance CHRO-only assembly of the year — 76% Fortune 100 CHROs\; two ICP touchpoints in one Q3/Q4 cycle deepening relationships with the most buyer-rich HR network.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/enterprise-ai-hr-transformation-assembly-november-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-420@arcticblue-event-tracker
@@ -2874,16 +2855,6 @@ DESCRIPTION:From Day One's Austin event explicitly focuses on 'Navigating the Re
 URL:https://www.fromdayone.com/conferences/2026/2026_p_austin
 END:VEVENT
 BEGIN:VEVENT
-UID:manual-202@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20260909
-DTEND;VALUE=DATE:20260911
-SUMMARY:CHRO Fall Forum 2026
-LOCATION:Washington\, DC
-DESCRIPTION:An exclusive two-day forum for CHROs at The Ritz-Carlton Washington DC\, featuring sessions on AI's real impact on the workforce\, CEO-CHRO partnership\, and reskilling — precisely the audience and themes where Joe's message on human-AI enablement resonates.\nPriority: High\nAdded by: dust@arcticblue.ai
-URL:https://www.chro.org/w/2026-chro-fall-forum
-END:VEVENT
-BEGIN:VEVENT
 UID:manual-199@arcticblue-event-tracker
 DTSTAMP:20261016T000000Z
 DTSTART;VALUE=DATE:20261006
@@ -3402,16 +3373,6 @@ SUMMARY:Economist AI Innovation Asia 2026
 LOCATION:Singapore
 DESCRIPTION:Economist Enterprise’s flagship Asia AI summit at Grand Hyatt Singapore — 3rd annual\; focused on enterprise AI strategy\, governance\, and APAC AI adoption\; premier brand credibility and regional enterprise buyer reach for ArcticBlue’s APAC expansion.\nPriority: Medium\nAdded by: dust@arcticblue.ai
 URL:https://events.economistenterprise.com/ai-innovation-asia/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-67@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261119
-SUMMARY:Enterprise AI CHRO Transformation Assembly – November
-LOCATION:Atlanta\, GA\, USA (The Ritz-Carlton\, Buckhead)
-DESCRIPTION:Millennium Alliance's CHRO-focused enterprise AI assembly at Ritz-Carlton Buckhead\; ArcticBlue's CHRO technology transformation ICP in an intimate invite-only format with guaranteed peer-to-peer access.\nPriority: Medium\nAdded by: dust@arcticblue.ai
-URL:https://mill-all.com/assemblies/transformational-chro-assembly-november-2026/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-66@arcticblue-event-tracker

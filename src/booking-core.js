@@ -16,8 +16,7 @@
   // nothing here and his empty lane was a fifth of Pipeline health. This list
   // drives Pipeline health, the per-person agenda and the owner filter; it is
   // NOT the company roster, which still includes him for LatAm in build.py.
-  // NOTE: 'joe' is deliberately absent, though he owns 3 live events including
-  // the oldest overdue chase -- so those never appear in Pipeline health.
+  // Joe was never in it, and has left ArcticBlue (2026-10-16); his events are archived.
   const PEOPLE = ['thor','verma','jerome'];
   const fold = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const day = d => /^\d{4}-\d{2}-\d{2}$/.test(d || '') && !isNaN(Date.parse(d)) && new Date(d).toISOString().slice(0,10)===d ? d : '';

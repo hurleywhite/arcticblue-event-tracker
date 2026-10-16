@@ -82,7 +82,7 @@ INGEST_SECRET_CARLOS = _env('EVENTS_INGEST_SECRET_CARLOS')
 # and his criteria are still served under ?person=jim so events are ready if
 # he wants them.
 PERSON_SECRETS = {}
-for _p in ('thor', 'verma', 'jerome', 'joe', 'carlos'):
+for _p in ('thor', 'verma', 'jerome', 'carlos'):   # Joe left 2026-10-16: his agent's key no longer works
     _k = _env('EVENTS_INGEST_SECRET_' + _p.upper())
     if _k:
         PERSON_SECRETS[_p] = _k
@@ -1280,7 +1280,7 @@ def _send(handler, status, payload):
 
 def _match_secret(handler):
     """Return which agent's key authenticated: a person key ('thor', 'verma',
-    'jerome', 'joe', 'carlos'), 'team', or None. Accepts the main
+    'jerome', 'carlos'), 'team', or None. Accepts the main
     EVENTS_INGEST_SECRET (team) or any configured EVENTS_INGEST_SECRET_<NAME>,
     so every Dust agent can carry its own key."""
     provided = (handler.headers.get('X-API-Key', '') or handler.headers.get('x-api-key', '') or '').strip()
