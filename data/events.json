@@ -1331,7 +1331,8 @@
    "pay_to_play": "Yes",
    "focus_areas": "Enterprise AI strategy and West Coast CDO/CAIO perspective; CAIO and CDO priorities for 2026–27; AI governance and enterprise data transformation in regulated industries; AI risk management and compliance; Agentic AI for enterprise operations and analytics",
    "attendee_count": "1,000-2,000 delegates",
-   "pricing": "Complimentary for qualified attendees"
+   "pricing": "Complimentary for qualified attendees",
+   "deadline": "October 15, 2026 5:59 PM"
   },
   {
    "num": 77,
@@ -1654,7 +1655,9 @@
    "pricing": "In-person: Super early bird £1,459 plus VAT; Early bird £1,949 plus VAT; Full price £2,479 plus VAT; Final release £2,729 plus VAT. Digital: Super early bird £219; Early bird £359; Full price £479.",
    "meeting_formats": "Access to event community for Professional, Speaker, Sponsor and VIP ticket holders; in-person networking functions; live talks; video on demand",
    "audience_type": "Mixed",
-   "deadline": "4–5 November 2026"
+   "deadline": "4–5 November 2026",
+   "past_speakers": "Chief AI Officer, Microsoft; Chief Technology Officer, Google; President, OpenAI",
+   "attendee_count": "900+"
   },
   {
    "num": 46,
@@ -2623,7 +2626,8 @@
    "start_date": "2026-04-29",
    "end_date": "2026-04-30",
    "audience_type": "Buyer-rich",
-   "meeting_formats": "Curated roundtables"
+   "meeting_formats": "Curated roundtables",
+   "attendee_count": "Fewer than 20 end-user spots remained near the event date"
   },
   {
    "num": 118,
@@ -7934,7 +7938,8 @@
    "audience_type": "Buyer-rich",
    "attendee_count": "400+",
    "past_speakers": "Shikhar Kwatra, Speaker at Generative AI Summit",
-   "meeting_formats": "Attendee pass includes access across co-located summits; built-in networking/meeting tooling not explicitly verified from the results"
+   "meeting_formats": "Attendee pass includes access across co-located summits; built-in networking/meeting tooling not explicitly verified from the results",
+   "deadline": "December 6, 2026"
   },
   {
    "num": 306,
