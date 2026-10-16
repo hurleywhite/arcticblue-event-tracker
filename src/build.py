@@ -55,6 +55,13 @@ EVENTS_TAB_ATTRS   = 'aria-selected="false"' if SHOW_ACTION_CENTER else 'class="
 FIND_EVENTS_ATTRS  = '' if SHOW_FIND_EVENTS else ' hidden style="display:none"'
 ACTION_CENTER_JS   = 'true' if SHOW_ACTION_CENTER else 'false'
 
+# Who runs speaking applications now that Angela has left (Hurley 2026-10-16).
+# These people get her application tools (window.abCanApply in the page): the
+# Application queue, Apply links, CFP dates, Speaking & submission, the
+# follow-up log. Lower-case first names, as picked under "Switch to".
+APPLICATION_PEOPLE    = ['thor', 'verma']
+APPLICATION_PEOPLE_JS = json.dumps(APPLICATION_PEOPLE)
+
 # ── Supabase (For Angela ops tab) ────────────────────────────────────────────
 # Project: AB Event Tracker [Hurley's Org] (ref efkvhlmfdwlobvdmvqiq)
 # The publishable key is safe to embed in the HTML — RLS protects the data.
@@ -5107,8 +5114,9 @@ def build():
     // Angela only, matching the read view. Contacts were merged into Speaking &
     // submission, which is hers alone, so the read view already hides them from
     // everyone else — but the EDIT form still offered them, which meant Thor
-    // could change a POC he cannot see (Hurley 2026-07-30). Outreach is hers.
-    if (window.isAngelaUser && window.isAngelaUser()) {{
+    // could change a POC he cannot see (Hurley 2026-07-30). Outreach was hers;
+    // since she left it belongs to whoever runs applications (abCanApply).
+    if (window.abCanApply && window.abCanApply()) {{
       var sContact = ef('Contact info', inp('contact_info', rec.contact_info));
       if (!isCat) {{
         sContact += ef('POC name', inp('poc_name', rec.poc_name));
@@ -5123,10 +5131,10 @@ def build():
 
     // Speaking & submission — the pipeline zone.
     var sSpeak = ef('Pipeline stage', '<div class="me-stages">' + chips + '</div>');
-    // "Submitted on" — Angela records the date the application went out. Only
-    // shown in her view, and only while the Submitted stage is on (the stage
+    // "Submitted on" — the date the application went out. Only for the people
+    // who run applications (abCanApply), and only while Submitted is on (the stage
     // toggle reveals/hides it). The generic data-edit wiring persists it.
-    if (window.isAngelaUser && window.isAngelaUser()) {{
+    if (window.abCanApply && window.abCanApply()) {{
       var _subVal = (String(rec.submitted_at || '').match(/^\\d{{4}}-\\d{{2}}-\\d{{2}}/) || [''])[0];
       var _subOn = stages.indexOf('Submitted') !== -1;
       sSpeak += '<label class="modal-field me-submitted-field"' + (_subOn ? '' : ' style="display:none"') + '>' +
@@ -5144,8 +5152,8 @@ def build():
       // catalog and manual — Angela hit two edit sections that disagreed.
       sSpeak += ef('Pay-to-play', '<select class="me-input" data-edit="pay_to_play">' + p2p.map(function (v) {{ return opt(v, rec.pay_to_play); }}).join('') + '</select>');
     }}
-    // Same in the editor — these are her fields to keep straight.
-    if (window.isAngelaUser && window.isAngelaUser()) h += sec('Speaking & submission', sSpeak);
+    // Same in the editor — the application fields, for whoever runs applications.
+    if (window.abCanApply && window.abCanApply()) h += sec('Speaking & submission', sSpeak);
 
     // Attending & team — who from ArcticBlue is going / interested / assigned.
     var sTeam = ef('Attending \\u2014 surfaces a Day-Of brief', '<div class="me-ints">' + attChips + '</div>') +
@@ -5551,9 +5559,9 @@ def build():
                     ? field('Point of contact', contactBits.join(' · ') + _pocNote, true) : '') +
                   (_ctp(rec.contact_info) ? field('Contact info', rec.contact_info) : '');
 
-    var _fuMine = !!(window.isAngelaUser && window.isAngelaUser());
+    var _fuMine = !!(window.abCanApply && window.abCanApply());
     var _fuList = window.abFollowUps ? window.abFollowUps(rec) : [];
-    // The chase LOG is Angela's worklist — dates, who, edit and delete controls.
+    // The chase LOG is the applier's worklist (abCanApply) — dates, who, edit and delete controls.
     // For everyone else that machinery is noise, but what came back in those
     // chases is exactly what they want to know. So the notes travel and the log
     // doesn't: whatever Angela writes against a follow-up lands in everyone
@@ -5812,7 +5820,7 @@ def build():
         '<button type="button" class="q-btn poc-more" data-poc-more="1">' +
           (String(rec.poc_name || '').trim() ? '&#128269; Find more people' : '&#128269; Find someone to contact') +
         '</button>';
-      var _spkSec = (window.isAngelaUser && window.isAngelaUser())
+      var _spkSec = (window.abCanApply && window.abCanApply())
         ? sec('Speaking & submission', _spkStatus + _contactsHtml) : '';
       // — Who's in the room: every audience fact in one place.
       // One merged list — the heading already says who it's about, so the value
@@ -5944,7 +5952,7 @@ def build():
       var _szHtml = window.ABSessionize ? window.ABSessionize.blockHtml(rec) : '';
       if (_szHtml) {{
         v += _szHtml;
-      }} else if (_apUrl && window.isAngelaUser && window.isAngelaUser()) {{
+      }} else if (_apUrl && window.abCanApply && window.abCanApply()) {{
         v += '<div class="me-apply"><a class="modal-visit modal-apply" href="' + esc(_apUrl) +
              '" target="_blank" rel="noopener">Apply to speak \u2197</a></div>';
       }}
@@ -7990,9 +7998,9 @@ def build():
         // Rejected to speak — a terminal "no" that wins over a pending Submitted.
         bits.push({{ p: 3, h: '<span class="st-bit"><span class="st-dot st-no"></span>Rejected' + (speaker ? ' \\u2014 ' + escapeHtml(speaker) : '') + '</span>' }});
       }} else if (_spkShow && (stages.indexOf('Submitted') !== -1 || stages.indexOf('Initial outreach') !== -1 || stages.indexOf('Followed up') !== -1 || stages.indexOf('Meeting held') !== -1)) {{
-        // Angela records WHEN the application went out (event_state/manual
-        // .submitted_at) — surface it on her status line only.
-        var _subDate = (window.isAngelaUser && window.isAngelaUser() && st.submitted_at)
+        // WHEN the application went out (event_state/manual .submitted_at) —
+        // on the status line of whoever runs applications.
+        var _subDate = (window.abCanApply && window.abCanApply() && st.submitted_at)
           ? '<span class="st-sub-date"> \\u00b7 submitted ' + escapeHtml(_fmtSubmittedDate(st.submitted_at)) + '</span>' : '';
         // Just "Submitted" — the mic already says it's the speaking track, so
         // "to speak" was redundant (Angela). (Closed carries the mic too now, so it
@@ -8037,9 +8045,10 @@ def build():
       return '<p class="ops-status-line">' + bits.map(function (b) {{ return b.h; }}).join('<span class="st-sep">\\u00b7</span>') + '</p>';
     }}
     function deadlineLine(d, o) {{
-      // Raw CFP deadline DATES are Angela's business (she runs applications) —
-      // the derived open/closed STATUS shows for everyone via cardStatusLine.
-      if (!(window.isAngelaUser && window.isAngelaUser())) return '';
+      // Raw CFP deadline DATES are for whoever runs applications (abCanApply:
+      // Angela's job until she left, now Thor and Verma) — the derived
+      // open/closed STATUS shows for everyone via cardStatusLine.
+      if (!(window.abCanApply && window.abCanApply())) return '';
       if (!deadlineUsable(d, o)) return '';   // shared vetting — see deadlineUsable
       var txt = String(d).trim();
       var cls = isDeadlineSoon(d) ? ' deadline-soon' : '';
@@ -8230,8 +8239,8 @@ def build():
         additional_contacts: (st && st.additional_contacts) || ev.additional_contacts,
         contact_info:        _effContact
       }}) ? '1' : '';
-      // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
-      var contactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="We have a contact for this event — a name, an email or both">✉ Contact</span>' : '';
+      // Contact (POC) badge is the outreach cue — for whoever runs applications.
+      var contactBadge = (card.dataset.contactFound === '1' && window.abCanApply && window.abCanApply()) ? '<span class="contact-badge" title="We have a contact for this event — a name, an email or both">✉ Contact</span>' : '';
       // A link added/edited in event_state (override) wins over the catalog URL,
       // so adding a link to a link-less catalog event lights up the card ↗.
       // Private events have no public page — a scraped URL is usually wrong, so
@@ -8243,9 +8252,9 @@ def build():
         ? '<p class="ops-meta" title="' + escapeHtml(st.updated_by) + '">Last edit · ' + escapeHtml(firstNameFromEmail(st.updated_by)) + ' · ' + escapeHtml(formatStamp(st.updated_at)) + '</p>'
         : '';
 
-      // One-click apply (the booking shortcut) — Angela-only.
+      // One-click apply (the booking shortcut) — for whoever runs applications.
       var applyUrl = (st && st.apply_url) || speakingRouteUrl(ev.speaking_route);
-      var applyBtn = (applyUrl && window.isAngelaUser && window.isAngelaUser())
+      var applyBtn = (applyUrl && window.abCanApply && window.abCanApply())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
 
@@ -8467,8 +8476,8 @@ def build():
       // Should-Attend is now the blue card outline (is-sa), not a face badge.
       var mSaBadge = '';
       card.dataset.contactFound = hasEmailContact(mev) ? '1' : '';
-      // Contact (POC) badge is Angela's outreach cue — only she sees it on the card.
-      var mContactBadge = (card.dataset.contactFound === '1' && window.isAngelaUser && window.isAngelaUser()) ? '<span class="contact-badge" title="We have a contact for this event — a name, an email or both">✉ Contact</span>' : '';
+      // Contact (POC) badge is the outreach cue — for whoever runs applications.
+      var mContactBadge = (card.dataset.contactFound === '1' && window.abCanApply && window.abCanApply()) ? '<span class="contact-badge" title="We have a contact for this event — a name, an email or both">✉ Contact</span>' : '';
       // "Recently added" means UNTRIAGED-and-new. Once someone has worked the
       // event — tagged it, written a note, flagged it for a teammate, archived
       // it — it isn't new to Angela any more, so it drops the yellow outline and
@@ -8505,7 +8514,7 @@ def build():
       // per-person rosters) lives in the Details pop-up.
       var tagsHtml = '';   // status now lives in the corner mark
       var mApplyUrl = mev.apply_url || speakingRouteUrl(mev.speaking_route);
-      var mApplyBtn = (mApplyUrl && window.isAngelaUser && window.isAngelaUser())
+      var mApplyBtn = (mApplyUrl && window.abCanApply && window.abCanApply())
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
       // Angela's working row: raw CFP date + contact cue + Apply, side by side.
@@ -9160,6 +9169,20 @@ def build():
       try {{ return (getCollabName() || '').trim().toLowerCase().indexOf('angela') === 0; }}
       catch (e) {{ return false; }}
     }};
+    // Who runs speaking applications. Angela did, for everyone; she has left, so
+    // her APPLICATION tools — the Application queue, Apply to speak links, CFP
+    // deadline dates, the date each application went in, the Speaking &
+    // submission section (contacts, Find someone to contact, the stage and apply
+    // link in Edit) and the follow-up log — go to the people in
+    // APPLICATION_PEOPLE (build.py) too (Hurley 2026-10-16: Thor and Verma).
+    // Her other admin tools (Planner, duplicate review, sync / export, briefs,
+    // organiser grouping, Should Attend) stay behind isAngelaUser.
+    var AB_APPLIERS = {APPLICATION_PEOPLE_JS};
+    window.abCanApply = function () {{
+      if (window.isAngelaUser()) return true;
+      try {{ return AB_APPLIERS.indexOf((getCollabName() || '').trim().split(/\s+/)[0].toLowerCase()) !== -1; }}
+      catch (e) {{ return false; }}
+    }};
     function isAngelaUser() {{ return window.isAngelaUser(); }}
     function applyFilterVisibility() {{
       var show = isAngelaUser();
@@ -9179,10 +9202,11 @@ def build():
       var $plannerTab = document.querySelector('.view-toggle [data-view="planner"]');
       if ($plannerTab) $plannerTab.style.display = show ? '' : 'none';
       var $queueTab = document.querySelector('.view-toggle [data-view="queue"]');
-      if ($queueTab) $queueTab.style.display = show ? '' : 'none';
+      var canApply = !!(window.abCanApply && window.abCanApply());
+      if ($queueTab) $queueTab.style.display = canApply ? '' : 'none';
       var $should = document.getElementById('filter-should');
       if ($should) $should.style.display = show ? '' : 'none';
-      if (!show && typeof currentView !== 'undefined' && (currentView === 'planner' || currentView === 'queue')) {{
+      if (typeof currentView !== 'undefined' && ((!show && currentView === 'planner') || (!canApply && currentView === 'queue'))) {{
         setView(getCollabName() ? 'myevents' : 'grid');
       }}
       // Ticket price / priority / track / speaking + the three checkboxes are
@@ -10775,7 +10799,7 @@ def build():
         }}
       }}
 
-      var html = '<p class="queue-intro"><strong>Angela&#39;s application queue:</strong> Every event a teammate marked as interested, grouped by event dates; followed by events that are in progress.</p>';
+      var html = '<p class="queue-intro"><strong>Application queue:</strong> Every event a teammate marked as interested, grouped by event dates; followed by events that are in progress.</p>';
 
       // Month dividers inside a section — "grouped by event dates" (Hurley
       // 2026-07-31). Only for the to-apply list: In progress and Booked are
@@ -15556,8 +15580,8 @@ def build():
       // hidden menu entry: an activity row about a profile upload calls
       // setView('myprofile') directly, and without this it would drop a
       // teammate on a blank view (Hurley 2026-08-05).
-      if ((name === 'planner' || name === 'queue') &&
-          window.isAngelaUser && !window.isAngelaUser()) name = getCollabName() ? 'myevents' : 'grid';
+      if ((name === 'planner' && window.isAngelaUser && !window.isAngelaUser()) ||
+          (name === 'queue' && window.abCanApply && !window.abCanApply())) name = getCollabName() ? 'myevents' : 'grid';
       currentView = name;
       var actionHost = document.getElementById('ops-action');
       if (actionHost) actionHost.hidden = name !== 'action';
