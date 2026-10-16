@@ -3346,6 +3346,68 @@
 .sz-email-msg { margin: 0; font-size: 0.84rem; color: var(--ab-fg-2, #4a5563); }
 @media (max-width: 560px) { .sz-form { grid-template-columns: 1fr; } }
 
+/* ── Drafted application (2026-10-16) ───────────────────────────────── */
+.sz-draft { margin: 8px 0 4px; display: flex; flex-direction: column; gap: 6px; }
+.sz-draft > .sz-row { flex-wrap: wrap; }
+.sz-draft .sz-muted { font-size: 12px; }
+.sz-err { color: #c0392b; font-size: 12px; margin-left: 8px; }
+.sz-checks { margin: 0; padding: 6px 10px 6px 26px; border-left: 3px solid #f2b134; background: rgba(242,177,52,0.10); font-size: 12px; border-radius: 3px; }
+.sz-checks li { margin: 2px 0; }
+.sz-panel { border: 1px solid var(--line, #dde3ea); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+.sz-why { margin: 0; font-size: 12px; font-style: italic; color: var(--muted, #5b6b7b); }
+.sz-f { display: flex; flex-direction: column; gap: 3px; }
+.sz-fk { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted, #5b6b7b); }
+.sz-fk .sz-n { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.sz-copy { margin-left: auto; font: inherit; font-size: 11px; text-transform: none; letter-spacing: 0; padding: 2px 8px; border: 1px solid var(--line, #c9d3dd); border-radius: 3px; background: transparent; color: inherit; cursor: pointer; }
+.sz-copy:hover { border-color: currentColor; }
+.sz-fv { font-size: 13px; line-height: 1.45; white-space: normal; }
+.sz-terms ul, .sz-unknown ul { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; }
+.sz-terms { border-left: 3px solid #ff6b5e; padding-left: 8px; }
+.sz-terms li { margin: 3px 0; }
+
+/* Application queue: Apply / Skip */
+.q-draft { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 3px; background: rgba(63,161,221,0.12); color: #1f6fa3; }
+.q-draft.is-ready { background: rgba(31,160,90,0.14); color: #1a8c54; }
+.q-draft.is-muted { background: transparent; color: var(--muted, #5b6b7b); padding-left: 0; }
+.q-draft.is-btn { border: 0; cursor: pointer; text-decoration: underline; font: inherit; font-size: 11px; border-radius: 999px; }
+.q-btn-undo { font-size: 12px; }
+.q-skipped { margin: 14px 0 4px; }
+.q-skipped > summary { cursor: pointer; font-size: 13px; color: var(--muted, #5b6b7b); }
+
+/* ── Talk library (My Profile) ──────────────────────────────────────── */
+.tl-host { margin: 6px 0 16px; }
+.tl-sum { font-size: 13px; margin: 0 0 8px; }
+.tl-src { color: var(--muted, #5b6b7b); }
+.tl-list { display: flex; flex-direction: column; gap: 6px; }
+.tl-talk { border: 1px solid var(--line, #dde3ea); border-radius: 6px; padding: 8px 10px; }
+.tl-talk > summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; list-style: revert; }
+.tl-title { font-weight: 600; font-size: 14px; }
+.tl-pill { font-size: 11px; padding: 1px 7px; border-radius: 3px; }
+.tl-pill.is-draft { background: rgba(242,177,52,0.18); color: #8a5a00; }
+.tl-pill.is-ok { background: rgba(31,160,90,0.14); color: #1a8c54; }
+.tl-meta { font-size: 12px; color: var(--muted, #5b6b7b); }
+.tl-body { margin-top: 8px; }
+.tl-k { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted, #5b6b7b); margin-top: 8px; }
+.tl-n { font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+.tl-v { font-size: 13px; line-height: 1.45; margin: 2px 0 0; }
+.tl-v p { margin: 0 0 6px; }
+.tl-small { font-size: 12px; color: var(--muted, #5b6b7b); }
+.tl-take { padding-left: 18px; }
+.tl-note { margin: 0 0 6px; padding: 6px 9px; font-size: 12.5px; border-left: 3px solid #3fa1dd; background: rgba(63,161,221,0.08); border-radius: 3px; }
+.tl-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.tl-remove { margin-left: auto; color: #c0392b; }
+.tl-form { display: flex; flex-direction: column; gap: 8px; }
+.tl-form label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; font-weight: 600; }
+.tl-form input, .tl-form textarea { font: inherit; font-weight: 400; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line, #c9d3dd); border-radius: 4px; background: transparent; color: inherit; width: 100%; box-sizing: border-box; }
+.tl-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.tl-row > label { flex: 1 1 200px; }
+.tl-hint, .tl-count { font-weight: 400; color: var(--muted, #5b6b7b); }
+.tl-add { margin-top: 8px; }
+.tl-msg { margin-left: 10px; font-size: 12px; color: #1a8c54; }
+.tl-msg.is-bad { color: #c0392b; }
+/* display:flex above would otherwise beat the hidden attribute */
+.tl-form[hidden], .tl-read[hidden], .sz-panel[hidden] { display: none !important; }
+
 </style>
 </head>
 <body class="hide-urgent">
@@ -4365,8 +4427,13 @@
 //   2. a daily server check of the speaker's public profile for acceptances
 //      (api/sessionize.py, nothing to do here);
 //   3. pasting a Sessionize email (accepted / not selected / waitlisted /
-//      received) updates the matching event, after you confirm the match.
+//      received) updates the matching event, after you confirm the match;
+//   4. (2026-10-16) the drafted application: api/sessionize.py reads the call,
+//      picks a talk from the speaker's talk library (src/talks.js) and tailors
+//      it; the draft is saved on the event (booking.sessionize_draft) and shown
+//      here with a Copy button per field and the terms to decide on first.
 // Everything here is plain DOM + the tracker's own root.opsWrite.
+// Set window.AB_SZ_DRY_RUN = true to draft without saving (testing).
 (function () {
   'use strict';
   // `root` is the page's window; under node (the tests) it is the global object.
@@ -4417,20 +4484,116 @@
       ? '<span class="sz-done">✓ Applied' + (on ? ' ' + esc(nice(on)) : '') + (who ? ' · ' + esc(who) : '') + '</span>' +
         '<button type="button" class="sz-link" data-sz-open>Change</button>'
       : '<button type="button" class="sz-btn" data-sz-open>I’ve applied — record it</button>';
-    return '<div class="me-apply sz-box" data-sz-url="' + esc(url) + '">' +
+    return '<div class="me-apply sz-box" data-sz-url="' + esc(url) + '" data-sz-key="' + esc(rec._table + ':' + rec._key) + '">' +
       '<div class="sz-row">' +
         '<a class="modal-visit modal-apply" href="' + esc(url) + '" target="_blank" rel="noopener">Apply on Sessionize ↗</a>' +
         '<span class="sz-cfp" aria-live="polite">Checking the call for speakers…</span>' +
       '</div>' +
+      draftHtml(rec) +
       '<div class="sz-row sz-track">' + track + '</div>' +
       '<form class="sz-form" hidden>' +
         '<label>Speaker<input name="speaker" value="' + esc(who || 'Thor') + '" autocomplete="off"></label>' +
-        '<label class="sz-wide">Talk submitted<input name="topic" value="' + esc(rec.speaker_topic || '') + '" placeholder="Title of the talk" autocomplete="off"></label>' +
+        '<label class="sz-wide">Talk submitted<input name="topic" value="' + esc(rec.speaker_topic || (rec.sz_draft && rec.sz_draft.title) || '') + '" placeholder="Title of the talk" autocomplete="off"></label>' +
         '<label>Applied on<input type="date" name="date" value="' + esc(on || today()) + '"></label>' +
         '<div class="sz-actions"><button type="submit" class="sz-btn sz-primary">Record application</button>' +
         '<button type="button" class="sz-link" data-sz-cancel>Cancel</button></div>' +
       '</form>' +
     '</div>';
+  }
+
+  // ── 4. The drafted application ──────────────────────────────────────────
+  var TERM_LABEL = { fee: 'Fee', sponsorship: 'Sponsorship', travel: 'Travel', accommodation: 'Hotel',
+    in_person: 'In person', recording: 'Recording', code_of_conduct: 'Code of conduct', exclusivity: 'Exclusivity', other: 'Other' };
+  var pending = {};      // "table:key" -> true while a draft is being written
+  function canDraft() { return !root.abCanApply || root.abCanApply(); }
+
+  // Every copyable field of a draft, in the order a Sessionize form asks for them.
+  function draftFields(d) {
+    var out = [];
+    function add(label, text, count) { if (String(text || '').trim()) out.push({ label: label, text: String(text), count: !!count }); }
+    add('Title', d.title);
+    add('Abstract', d.abstract, true);
+    add('Short abstract', d.short_abstract, true);
+    add('Format', d.format);
+    add('Track', d.track);
+    add('Level', d.level);
+    if ((d.takeaways || []).length) add('Takeaways', d.takeaways.map(function (t, i) { return (i + 1) + '. ' + t; }).join('\n'));
+    (d.answers || []).forEach(function (a) { add(a.question, a.answer, true); });
+    return out;
+  }
+
+  function draftHtml(rec) {
+    var d = rec.sz_draft;
+    var key = rec._table + ':' + rec._key;
+    if (pending[key]) {
+      return '<div class="sz-draft"><span class="sz-draft-msg sz-muted">Drafting the application… usually under a minute.</span></div>';
+    }
+    if (!d || d.status !== 'ready') {
+      if (isApplied(rec) || !canDraft()) return '';
+      return '<div class="sz-draft"><button type="button" class="sz-btn" data-sz-redraft>Draft the application</button>' +
+        '<span class="sz-draft-msg sz-muted">Picks the best talk from the talk library and tailors it to this call.</span></div>';
+    }
+    var when = nice(String(d.generated_at || '').slice(0, 10));
+    var checks = d.checks || [];
+    var fields = draftFields(d);
+    var html = '<div class="sz-draft">' +
+      '<div class="sz-row"><span class="sz-done">✓ Draft ready</span>' +
+        '<span class="sz-muted">' + esc(d.talk_title || 'Talk') + (d.fit ? ' · ' + esc(d.fit) + ' fit' : '') + (when ? ' · drafted ' + esc(when) : '') + '</span>' +
+        '<button type="button" class="sz-link" data-sz-show>Show draft</button>' +
+        (canDraft() && !isApplied(rec) ? '<button type="button" class="sz-link" data-sz-redraft>Redraft</button>' : '') +
+      '</div>' +
+      (checks.length ? '<ul class="sz-checks">' + checks.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' : '') +
+      '<div class="sz-panel" hidden>' +
+        (d.why_this_talk ? '<p class="sz-why">' + esc(d.why_this_talk) + '</p>' : '') +
+        fields.map(function (f, i) {
+          return '<div class="sz-f"><div class="sz-fk"><span>' + esc(f.label) + '</span>' +
+            (f.count ? '<span class="sz-n">' + f.text.length + ' characters</span>' : '') +
+            '<button type="button" class="sz-copy" data-sz-copy="' + i + '">Copy</button></div>' +
+            '<div class="sz-fv">' + esc(f.text).replace(/\n/g, '<br>') + '</div></div>';
+        }).join('') +
+        ((d.terms || []).length
+          ? '<div class="sz-terms"><div class="sz-fk"><span>Decide before you press Submit</span></div><ul>' +
+              d.terms.map(function (t) {
+                return '<li><strong>' + esc(TERM_LABEL[t.kind] || 'Other') + ':</strong> ' + esc(t.text) +
+                  (t.why_it_matters ? ' <span class="sz-muted">' + esc(t.why_it_matters) + '</span>' : '') + '</li>';
+              }).join('') + '</ul></div>'
+          : '') +
+        ((d.unknowns || []).length
+          ? '<div class="sz-unknown"><div class="sz-fk"><span>Only on the signed-in form</span></div><ul>' +
+              d.unknowns.map(function (u) { return '<li>' + esc(u) + '</li>'; }).join('') + '</ul></div>'
+          : '') +
+      '</div>' +
+    '</div>';
+    return html;
+  }
+
+  // Ask the server for a draft. Resolves to the server's answer:
+  // {ok, draft, written} or {ok: false, error}.
+  function requestDraft(table, key) {
+    var body = { draft: { table: table, key: key }, by: (root.opsCurrentUser && root.opsCurrentUser()) || '' };
+    if (root.AB_SZ_DRY_RUN) body.dry_run = true;
+    var k = table + ':' + key;
+    pending[k] = true;
+    var done = function (r) { delete pending[k]; return r; };
+    return fetch('/api/sessionize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) {
+        return r.json().catch(function () { return { ok: false, error: 'The drafting service answered ' + r.status + '.' }; });
+      })
+      .then(done, function (e) { return done({ ok: false, error: 'Could not reach the drafting service.' }); });
+  }
+
+  function copyText(text, btn) {
+    var ok = function () { var was = btn.textContent; btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = was; }, 1500); };
+    if (root.navigator && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, function () { fallback(); });
+    } else fallback();
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { /* nothing more to try */ }
+      ta.remove();
+    }
   }
 
   // What the public page said -> one plain line (and, for an open call whose
@@ -4464,10 +4627,14 @@
     var form = box.querySelector('.sz-form');
     var line = box.querySelector('.sz-cfp');
 
+    // Repaint whichever block is on screen NOW: an earlier repaint may have
+    // replaced `box`, and the pop-up may have moved on to another event.
     function redraw() {
+      var cur = body.querySelector('.sz-box');
+      if (!cur || cur.getAttribute('data-sz-key') !== rec._table + ':' + rec._key) return;
       var tmp = document.createElement('div');
       tmp.innerHTML = blockHtml(rec);
-      if (tmp.firstChild && box.parentNode) { box.parentNode.replaceChild(tmp.firstChild, box); wire(body, rec); }
+      if (tmp.firstChild && cur.parentNode) { cur.parentNode.replaceChild(tmp.firstChild, cur); wire(body, rec); }
     }
 
     fetch('/api/sessionize?cfp=' + encodeURIComponent(url))
@@ -4487,6 +4654,45 @@
         });
       })
       .catch(function () { if (line.isConnected) line.textContent = ''; });
+
+    var show = box.querySelector('[data-sz-show]');
+    if (show) show.addEventListener('click', function () {
+      var panel = box.querySelector('.sz-panel');
+      panel.hidden = !panel.hidden;
+      show.textContent = panel.hidden ? 'Show draft' : 'Hide draft';
+    });
+    if (rec.sz_draft) {
+      var fields = draftFields(rec.sz_draft);
+      box.querySelectorAll('[data-sz-copy]').forEach(function (b) {
+        b.addEventListener('click', function () { copyText(fields[+b.getAttribute('data-sz-copy')].text, b); });
+      });
+    }
+    var redraft = box.querySelector('[data-sz-redraft]');
+    if (redraft) redraft.addEventListener('click', function () {
+      var p = requestDraft(rec._table, rec._key);
+      redraw();
+      p.then(function (r) {
+        if (r && r.ok && r.draft) {
+          rec.sz_draft = r.draft;
+          redraw();
+          if (r.written && root.opsRefresh) root.opsRefresh();
+          if (r.dry_run) {
+            var m = body.querySelector('.sz-box[data-sz-key="' + rec._table + ':' + rec._key + '"] .sz-draft .sz-muted');
+            if (m) m.textContent += ' · test mode: not saved';
+          }
+        } else {
+          redraw();
+          var cur = body.querySelector('.sz-box[data-sz-key="' + rec._table + ':' + rec._key + '"]');
+          var msg = cur && (cur.querySelector('.sz-draft-msg') || cur.querySelector('.sz-draft .sz-row'));
+          if (msg) {
+            var e = document.createElement('span');
+            e.className = 'sz-err';
+            e.textContent = (r && r.error) || 'Drafting failed.';
+            msg.parentNode.appendChild(e);
+          }
+        }
+      });
+    });
 
     var open = box.querySelector('[data-sz-open]');
     if (open) open.addEventListener('click', function () {
@@ -4644,8 +4850,285 @@
   }
 
   root.ABSessionize = { link: link, blockHtml: blockHtml, wire: wire, parseEmail: parseEmail,
-    rankItems: rankItems, withStage: withStage, handlePaste: handlePaste, _cfpLine: cfpLine };
+    rankItems: rankItems, withStage: withStage, handlePaste: handlePaste, _cfpLine: cfpLine,
+    requestDraft: requestDraft, isDrafting: function (table, key) { return !!pending[table + ':' + key]; },
+    draftFields: draftFields, _draftHtml: draftHtml };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.ABSessionize;
+})();
+
+window.AB_TALK_SEEDS = {"thor": {"_README": "Thor's talk library: the standard talks the Sessionize drafter tailors to each call for speakers. This file is the STARTING SET (written 2026-10-16, all status 'draft'). Once anyone edits or approves a talk in the tracker (My Profile > Talk library), the whole library is saved to Supabase storage at profiles/thor/talks/library.json and that copy wins from then on; edits here only show up while no saved copy exists. Every fact below comes from 'facts' (Thor's bio and Sessionize profile) or the 'How We Work With AI' script; 'sources' on each talk says which. Nothing is invented.", "person": "thor", "speaker": {"name": "Thor Ernstsson", "tagline": "CEO & Founder of ArcticBlue | AI & Experimentation Leader | Entrepreneur", "based": "New York City", "facts": ["Founder and CEO of ArcticBlue AI, which helps Fortune 500 leadership teams adopt AI through experimentation.", "More than twenty years applying AI and behavioral science to human decision-making.", "Has led more than 20,000 enterprise experiments; the ArcticBlue team has run over 20,000 experiments for global enterprises.", "Founded Feedback Loop (from 2014), a consumer insights and rapid testing platform used by many Fortune 100 firms, acquired by DISQO.", "Founded Rally Health, an AI-driven patient engagement platform acquired by UnitedHealthcare and integrated into its multi-billion-dollar digital health ecosystem.", "Companies he founded have raised over $300m and exited for over $2B.", "Has built products used by hundreds of millions of people.", "Has worked with leadership teams across Europe, the Middle East and Australia.", "Has spoken at Davos during the World Economic Forum; delivers keynotes, workshops and panels for executive audiences worldwide.", "Speaking themes: building a culture of experimentation (small, measurable bets over grand transformations); leadership in AI (embodying, empowering, experimenting and expanding responsibly, taught with Duke Corporate Education).", "ArcticBlue's view: more than 90% of enterprise AI initiatives fail on uncertainty, not technology; go / pivot / kill beats the 12-18 month roadmap.", "ArcticBlue has trained 450+ executives."], "voice": "Direct, practitioner-to-practitioner. No hype, no filler, no invented numbers."}, "talks": [{"id": "fail-or-scale", "status": "draft", "title": "Fail or Scale: The Difference Between AI Experiments and AI Pilots", "alt_titles": ["Fail or Scale: What’s the difference between Experiments and Pilots?"], "level": "Intermediate", "formats": ["Keynote", "Session (30-45 min)", "Fireside chat"], "audience": "C-suite and senior leaders who own AI budgets and roadmaps", "short_abstract": "Most enterprise AI initiatives don’t fail on technology. They fail on uncertainty: nobody tested the assumption that mattered until a year of roadmap was spent. Thor Ernstsson, who has led more than 20,000 enterprise experiments, shows how to replace the 12-18 month pilot with small tests that end in a go, pivot or kill decision.", "abstract": "Pilots are built to succeed. Experiments are built to learn. That difference decides whether an AI initiative scales or quietly stalls.\n\nMost enterprise AI initiatives fail on uncertainty, not technology: the riskiest assumption goes untested while a 12-18 month roadmap runs its course. Thor Ernstsson has led more than 20,000 enterprise experiments. In this session he shows leaders how to replace the long pilot with a run of small, fast tests, each with one hypothesis, one success signal and a go, pivot or kill decision agreed before it starts.\n\nOne example: a global insurer wanted to know whether an AI assistant would make its agents more confident selling life insurance. Instead of a rebuild, it ran one blind-reviewed test, and most reviewers chose the AI-assisted recommendation. The bigger lesson was one no strategy document would have surfaced: agents would not log into a separate tool.\n\nLeaders leave with a way to tell a pilot from an experiment and a template for their next AI decision.", "takeaways": ["How to tell a pilot (built to succeed) from an experiment (built to learn), and why the difference matters for AI budgets", "How to write a go / pivot / kill rule before a test starts, so results turn into decisions", "How to run a first AI experiment in weeks with the data and tools you already have"], "history": ["Thor’s most-submitted title: 17 applications in the tracker (2026)"], "sources": ["facts: 20,000+ experiments; 90%+ fail on uncertainty; go/pivot/kill vs 12-18 month roadmap", "How We Work With AI script: the insurer test"], "notes_for_thor": "Check you’re happy using the anonymized insurer example on stage."}, {"id": "experiments-safely", "status": "draft", "title": "Running Thousands of AI Experiments Without Breaking the Rules", "alt_titles": ["Running Thousands of AI Experiments Without Breaking the Rules (Safely)"], "level": "Intermediate", "formats": ["Session (30-45 min)", "Panel", "Workshop"], "audience": "Leaders in regulated industries (healthcare, insurance, financial services): CIOs, CTOs, Chief AI Officers, risk and compliance heads", "short_abstract": "Set your risk tolerance to zero and you can’t innovate; ignore risk and you can’t scale. Drawing on more than 20,000 enterprise experiments, Thor Ernstsson shows how regulated organizations test AI quickly and safely: sandboxes with anonymized data, clear decision rights, and governance that speeds learning up instead of shutting it down.", "abstract": "In regulated industries the instinct is to wait until AI is safe. Waiting is not a plan: you can always buy the technology later, but you can’t buy back the learning.\n\nThor Ernstsson has led more than 20,000 enterprise experiments and founded Rally Health, an AI-driven patient engagement platform acquired by UnitedHealthcare. In this session he shows how leaders in healthcare, insurance and financial services run AI experiments without putting customer data or compliance at risk.\n\nOne example: a health technology company wanted shorter support calls. Before buying anything, its legal team anonymized 200 past call transcripts. Given only about half of each call, the AI identified what the caller wanted about nine times in ten. No new system, no customer data at risk, and leadership had the evidence to invest in the real build.\n\nAttendees learn how to set acceptable risk as a leadership decision, build a sandbox people will actually use, and give IT and risk teams a role that speeds experiments up rather than stopping them.", "takeaways": ["Why acceptable risk is a leadership decision, and how to set it explicitly", "The sandbox pattern: anonymized data and approved tools, so teams can test without touching anything real", "How to split the roles: IT and risk keep it safe, leaders and champions keep it moving"], "history": ["Submitted twice in the tracker (2026)"], "sources": ["facts: 20,000+ experiments; Rally Health", "How We Work With AI script: health-tech call-transcript test; governance and risk tolerance"], "notes_for_thor": "Check you’re happy using the anonymized health-tech example (200 transcripts, about nine in ten) on stage."}, {"id": "ai-literacy-workslop", "status": "draft", "title": "Turning Chaos Into Learning: AI Workslop and the Case for AI Literacy", "alt_titles": ["Turning Chaos Into Learning: Handling AI Workslop with AI Literacy", "AI Literacy"], "level": "Introductory and overview", "formats": ["Keynote", "Session (30-45 min)", "Workshop"], "audience": "Executives and the leaders of teams that already have AI tools", "short_abstract": "Handing everyone an AI license without direction produces workslop: polished output that moves the real work onto whoever has to check it. Thor Ernstsson shows what AI literacy looks like in practice, from giving the tool a role, an outcome and limits to checking its sources, and what leaders have to model for it to spread.", "abstract": "Many companies have bought enterprise AI licenses and given no direction on what to do with them. The result is workslop: documents that look finished, read like a chatbot wrote them, and quietly shift the work onto the person who has to review them.\n\nBanning the tools doesn’t fix it. Literacy does. Thor Ernstsson, founder and CEO of ArcticBlue, shares the working habits his team uses every day and teaches to executives: bring your own perspective first and send a rough draft instead of a brief; give the tool a role, an outcome and limits; ask for ten versions, not one; give it feedback instead of starting over; and check where every fact came from, because a wrong answer sounds exactly like a right one.\n\nHe also covers the leader’s part. In most organizations people are waiting for a signal that trying, and sometimes getting it wrong, is allowed. The clearest signal is a leader using AI where people can see it.", "takeaways": ["How to spot workslop, and what it costs the people who have to review it", "Five working habits that turn AI from a document generator into a teammate", "What leaders need to model so AI literacy spreads beyond a few enthusiasts"], "history": ["Submitted 5 times in the tracker (2026)", "AI Literacy keynote, Web Summit (Doha), 2026 (from Thor’s speaking materials)"], "sources": ["How We Work With AI script: licenses without direction; teammate habits; leader as the signal"], "notes_for_thor": "The habits are the ones from our 'How We Work With AI' modules. Swap in your own if your Doha keynote used different ones."}, {"id": "learning-organization", "status": "draft", "title": "Building a Learning Organization: Lessons From 20,000+ Experiments", "alt_titles": ["Building a Learning Organization: Results From 20k+ Experiments", "How to Build a Culture of Experimentation"], "level": "Introductory and overview", "formats": ["Keynote", "Session (30-45 min)"], "audience": "CEOs, COOs and transformation leaders", "short_abstract": "AI rewards the organizations that learn fastest. Drawing on more than 20,000 enterprise experiments, Thor Ernstsson shows how to build a culture of experimentation: small, measurable bets instead of grand transformations, a standing permission to try, and champions who spread what works.", "abstract": "The companies getting value from AI are not the ones with the biggest budgets. They are the ones that learn fastest, and learning is a habit an organization can build.\n\nThor Ernstsson has spent more than twenty years applying AI and behavioral science to how people make decisions. He founded Feedback Loop, a rapid-testing platform used by many Fortune 100 firms and acquired by DISQO, and his team at ArcticBlue has run more than 20,000 experiments for global enterprises.\n\nThis session covers what separates the teams where AI sticks from the ones where it fades. In ArcticBlue’s experience it comes down to three things: people understand why it matters (mindset), know how to use it (skillset), and have tools they are allowed to use (toolset). Most companies have two of the three. Thor shows how to close the gap with a lab: protected time to try AI on real work, and a few champions who collect what works and pass it on.", "takeaways": ["Why small, measurable bets beat grand transformation programs", "How to diagnose which of mindset, skillset and toolset your organization is missing", "How to set up a lab and a champion network that spreads what works"], "history": ["Submitted once in the tracker (2026)", "Culture of experimentation keynote, Front Conference"], "sources": ["facts: twenty years; Feedback Loop; 20,000+ experiments; culture-of-experimentation theme", "How We Work With AI script: mindset / skillset / toolset; the lab and champions"], "notes_for_thor": ""}, {"id": "leading-without-playbook", "status": "draft", "title": "Leading AI Without a Playbook", "alt_titles": ["Leadership Frameworks for AI Experimentation", "ChatGPT Is Not a Strategy", "The Incumbent’s Dilemma"], "level": "Introductory and overview", "formats": ["Keynote", "Fireside chat", "Panel"], "audience": "CEOs, boards and executive teams", "short_abstract": "PCs, the internet and mobile took five to ten years to reach the boardroom. AI got there in about a week, and there is no playbook: not from consultants, vendors or the labs building the models. Thor Ernstsson gives executives a practical way to lead anyway: set the direction, give permission, decide the risk, and learn faster than competitors.", "abstract": "AI is the first technology shift every team felt at once. It can’t be delegated to IT or an innovation team, and nobody (consultants, vendors or the labs that build the models) can hand leaders a playbook that will transfer to their company.\n\nThor Ernstsson, founder and CEO of ArcticBlue and founder of companies acquired by UnitedHealthcare and DISQO, works with leadership teams around the world on exactly this problem. In this session he lays out what the job asks of the person at the top: embody it by using AI where people can see it, empower people with access and direction, experiment with small bets that end in decisions, and expand what works, responsibly.\n\nHe also tackles the trap many leaders are in: they tried an AI tool two years ago, it got something wrong, and they decided the technology wasn’t ready. The tool they tested no longer exists. Established companies have the data, customers and distribution to win with AI, but only if they learn faster than the newcomers.", "takeaways": ["Why AI leadership can’t be delegated, and what only the top team can decide", "A four-part leadership framework: embody, empower, experiment, expand", "How to replace ‘we tried it and it wasn’t ready’ with a habit of re-testing as the tools change"], "history": ["‘Leadership Frameworks for AI Experimentation’ submitted once in the tracker (2026)", "Leadership in AI program, Duke Corporate Education"], "sources": ["facts: founder of companies acquired by UnitedHealthcare and DISQO; embody/empower/experiment/expand theme", "How We Work With AI script: boardroom in a week; no playbook; leader as the signal; the tool you tested no longer exists"], "notes_for_thor": "The last line (established companies win only if they learn faster) is written from the title of your ‘The Incumbent’s Dilemma’ keynote, not its content. Check it matches what you say."}]}};
+// Talk library (Hurley 2026-10-16): each speaker's standard talks, which the
+// Sessionize drafter (api/sessionize.py) tailors to every call for speakers.
+//
+// The starting set ships with the code (config/talks/<person>.json, embedded by
+// build.py as window.AB_TALK_SEEDS). The first edit or approval saves the whole
+// library to Supabase storage at profiles/<person>/talks/library.json, and from
+// then on that saved copy is the library: the drafter reads it too.
+//
+// Every talk starts as "draft" and the drafter flags any application built on
+// an unapproved talk, so nothing goes out on a talk the speaker hasn't signed
+// off. An edit by anyone other than the speaker sends an approved talk back to
+// draft for the same reason.
+//
+// Set window.AB_TALKS_DRY_RUN = true to edit without saving (testing).
+(function () {
+  'use strict';
+  var root = (typeof window !== 'undefined') ? window : globalThis;
+  var BUCKET = 'profiles';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function path(person) { return person + '/talks/library.json'; }
+  function seed(person) { var s = (root.AB_TALK_SEEDS || {})[person]; return s ? clone(s) : null; }
+  function people() { return Object.keys(root.AB_TALK_SEEDS || {}); }
+  function niceDate(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+    if (!m) return '';
+    return (+m[3]) + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m[2] - 1];
+  }
+  function first(name) { return String(name || '').trim().split(/\s+/)[0] || ''; }
+  function slug(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'talk';
+  }
+
+  // The saved copy if there is one, else the starting set: {lib, where}.
+  function load(sb, person) {
+    var fallback = function () { var s = seed(person); return { lib: s, where: s ? 'starting set' : '' }; };
+    if (!sb || !sb.storage) return Promise.resolve(fallback());
+    return sb.storage.from(BUCKET).download(path(person)).then(function (r) {
+      if (!r || r.error || !r.data) return fallback();
+      return r.data.text().then(function (txt) {
+        try {
+          var lib = JSON.parse(txt);
+          if (lib && lib.talks && lib.talks.length) return { lib: lib, where: 'saved' };
+        } catch (e) { /* unreadable saved copy: show the starting set */ }
+        return fallback();
+      });
+    }, fallback);
+  }
+
+  function save(sb, person, lib, who) {
+    lib.saved_by = who || '';
+    lib.saved_at = new Date().toISOString();
+    if (root.AB_TALKS_DRY_RUN) {
+      if (root.console) console.log('AB_TALKS_DRY_RUN: would save', path(person), lib);
+      return Promise.resolve({ dry: true });
+    }
+    var blob = new Blob([JSON.stringify(lib, null, 2)], { type: 'application/json' });
+    return sb.storage.from(BUCKET).upload(path(person), blob, { upsert: true, cacheControl: '0', contentType: 'application/json' });
+  }
+
+  // ── Pure helpers (also used by the tests) ──────────────────────────────
+  // An edit: the fields change; approval survives only the speaker's own edit.
+  function applyEdit(talk, fields, who, person) {
+    var t = clone(talk);
+    Object.keys(fields).forEach(function (k) { t[k] = fields[k]; });
+    t.edited_by = who || '';
+    t.edited_at = new Date().toISOString();
+    if (t.status === 'approved' && first(who).toLowerCase() !== person) {
+      t.status = 'draft';
+      t.approved_by = ''; t.approved_at = '';
+    }
+    return t;
+  }
+  function setStatus(talk, status, who) {
+    var t = clone(talk);
+    t.status = status;
+    t.approved_by = status === 'approved' ? (who || '') : '';
+    t.approved_at = status === 'approved' ? new Date().toISOString() : '';
+    return t;
+  }
+  function lines(v) { return String(v || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean); }
+  function readForm(form) {
+    var get = function (n) { var el = form.querySelector('[name="' + n + '"]'); return el ? el.value : ''; };
+    return {
+      title: get('title').trim(),
+      alt_titles: lines(get('alt_titles')),
+      level: get('level').trim(),
+      formats: get('formats').split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+      audience: get('audience').trim(),
+      short_abstract: get('short_abstract').trim(),
+      abstract: get('abstract').trim(),
+      takeaways: lines(get('takeaways'))
+    };
+  }
+
+  // ── Rendering ──────────────────────────────────────────────────────────
+  function talkHtml(t, i, canApprove) {
+    var approved = t.status === 'approved';
+    var meta = [t.level, (t.formats || []).join(', ')].filter(Boolean).join(' · ');
+    var who = approved && t.approved_by ? ' by ' + esc(first(t.approved_by)) + (t.approved_at ? ' ' + esc(niceDate(t.approved_at)) : '') : '';
+    var read =
+      (t.notes_for_thor ? '<p class="tl-note">' + esc(t.notes_for_thor) + '</p>' : '') +
+      '<div class="tl-k">Short abstract <span class="tl-n">' + (t.short_abstract || '').length + ' characters</span></div><p class="tl-v">' + esc(t.short_abstract) + '</p>' +
+      '<div class="tl-k">Abstract <span class="tl-n">' + (t.abstract || '').length + ' characters</span></div><div class="tl-v">' +
+        (t.abstract || '').split(/\n+/).map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>' +
+      '<div class="tl-k">Takeaways</div><ol class="tl-v tl-take">' + (t.takeaways || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>' +
+      (t.audience ? '<div class="tl-k">For</div><p class="tl-v">' + esc(t.audience) + '</p>' : '') +
+      ((t.alt_titles || []).length ? '<div class="tl-k">Also titled</div><p class="tl-v">' + (t.alt_titles || []).map(esc).join('<br>') + '</p>' : '') +
+      ((t.history || []).length ? '<div class="tl-k">Track record</div><p class="tl-v tl-small">' + (t.history || []).map(esc).join('<br>') + '</p>' : '') +
+      ((t.sources || []).length ? '<div class="tl-k">Facts come from</div><p class="tl-v tl-small">' + (t.sources || []).map(esc).join('<br>') + '</p>' : '');
+    var acts = '<div class="tl-actions">' +
+      (canApprove
+        ? (approved
+            ? '<button type="button" class="sz-link" data-tl-status="draft" data-i="' + i + '">Move back to draft</button>'
+            : '<button type="button" class="sz-btn sz-primary" data-tl-status="approved" data-i="' + i + '">Approve this talk</button>')
+        : '') +
+      '<button type="button" class="sz-btn" data-tl-edit="' + i + '">Edit</button>' +
+      '<button type="button" class="sz-link tl-remove" data-tl-remove="' + i + '">Remove</button>' +
+    '</div>';
+    var form = '<form class="tl-form" data-i="' + i + '" hidden>' +
+      '<label>Title<input name="title" value="' + esc(t.title) + '"></label>' +
+      '<label>Short abstract <span class="tl-count" data-for="short_abstract"></span><textarea name="short_abstract" rows="4">' + esc(t.short_abstract) + '</textarea></label>' +
+      '<label>Abstract <span class="tl-count" data-for="abstract"></span><textarea name="abstract" rows="10">' + esc(t.abstract) + '</textarea></label>' +
+      '<label>Takeaways <span class="tl-hint">one per line</span><textarea name="takeaways" rows="4">' + esc((t.takeaways || []).join('\n')) + '</textarea></label>' +
+      '<div class="tl-row"><label>Level<input name="level" value="' + esc(t.level) + '"></label>' +
+      '<label>Formats <span class="tl-hint">comma-separated</span><input name="formats" value="' + esc((t.formats || []).join(', ')) + '"></label></div>' +
+      '<label>For (audience)<input name="audience" value="' + esc(t.audience) + '"></label>' +
+      '<label>Also titled <span class="tl-hint">one per line</span><textarea name="alt_titles" rows="2">' + esc((t.alt_titles || []).join('\n')) + '</textarea></label>' +
+      '<div class="tl-actions"><button type="submit" class="sz-btn sz-primary">Save talk</button><button type="button" class="sz-link" data-tl-cancel>Cancel</button></div>' +
+    '</form>';
+    return '<details class="tl-talk" data-i="' + i + '">' +
+      '<summary><span class="tl-title">' + esc(t.title || 'Untitled talk') + '</span>' +
+        '<span class="tl-pill ' + (approved ? 'is-ok' : 'is-draft') + '">' + (approved ? 'Approved' + who : 'Draft') + '</span>' +
+        (meta ? '<span class="tl-meta">' + esc(meta) + '</span>' : '') + '</summary>' +
+      '<div class="tl-body"><div class="tl-read">' + read + acts + '</div>' + form + '</div>' +
+    '</details>';
+  }
+
+  function summaryLine(lib, where, person) {
+    var talks = lib.talks || [];
+    var ok = talks.filter(function (t) { return t.status === 'approved'; }).length;
+    var name = (lib.speaker && first(lib.speaker.name)) || (person.charAt(0).toUpperCase() + person.slice(1));
+    var src = where === 'saved'
+      ? 'Saved' + (lib.saved_by ? ' by ' + esc(first(lib.saved_by)) : '') + (lib.saved_at ? ' ' + esc(niceDate(lib.saved_at)) : '')
+      : 'Starting set, not edited yet';
+    return '<p class="tl-sum"><strong>' + ok + ' of ' + talks.length + ' approved.</strong> ' +
+      (ok < talks.length ? 'Applications drafted from a talk ' + esc(name) + ' hasn’t approved are flagged. ' : '') +
+      '<span class="tl-src">' + src + '.</span></p>';
+  }
+
+  // Render one person's library into host. opts: {sb, person, who, canApprove, status}
+  function mount(host, opts) {
+    if (!host) return;
+    var person = opts.person, sb = opts.sb || root.sb;
+    var state = { lib: null, where: '' };
+    var say = opts.status || function () {};
+    host.innerHTML = '<p class="tl-sum">Loading talks…</p>';
+
+    function paint(openIdx) {
+      var lib = state.lib;
+      if (!lib) { host.innerHTML = '<p class="tl-sum">No talk library yet.</p>'; return; }
+      host.innerHTML = summaryLine(lib, state.where, person) +
+        '<div class="tl-list">' + (lib.talks || []).map(function (t, i) { return talkHtml(t, i, opts.canApprove); }).join('') + '</div>' +
+        '<button type="button" class="sz-btn tl-add" data-tl-add>+ Add a talk</button>' +
+        '<span class="tl-msg" aria-live="polite"></span>';
+      if (openIdx != null) {
+        var d = host.querySelector('.tl-talk[data-i="' + openIdx + '"]');
+        if (d) d.open = true;
+      }
+      wire();
+    }
+    function msg(t, bad) {
+      var m = host.querySelector('.tl-msg');
+      if (m) { m.textContent = t; m.className = 'tl-msg' + (bad ? ' is-bad' : ''); }
+    }
+    function commit(next, openIdx, note) {
+      var prev = state.lib;
+      state.lib = next;
+      return Promise.resolve(save(sb, person, next, opts.who)).then(function (r) {
+        if (r && r.error) {
+          state.lib = prev; paint(openIdx);
+          msg('Could not save: ' + r.error.message, true);
+          say('Could not save the talk library: ' + r.error.message, 'error');
+          return;
+        }
+        if (!(r && r.dry)) state.where = 'saved';
+        paint(openIdx);
+        msg(r && r.dry ? note + ' (test mode: not saved)' : note);
+      }, function (e) {
+        state.lib = prev; paint(openIdx);
+        msg('Could not save: ' + (e && e.message || e), true);
+      });
+    }
+    function counts(form) {
+      form.querySelectorAll('.tl-count').forEach(function (c) {
+        var ta = form.querySelector('[name="' + c.getAttribute('data-for') + '"]');
+        var upd = function () { c.textContent = ta.value.length + ' characters'; };
+        ta.addEventListener('input', upd); upd();
+      });
+    }
+    function wire() {
+      host.querySelectorAll('[data-tl-status]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var i = +b.getAttribute('data-i'), next = clone(state.lib);
+          var to = b.getAttribute('data-tl-status');
+          next.talks[i] = setStatus(next.talks[i], to, opts.who);
+          commit(next, i, to === 'approved' ? 'Approved.' : 'Moved back to draft.');
+        });
+      });
+      host.querySelectorAll('[data-tl-edit]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var i = b.getAttribute('data-tl-edit');
+          var box = host.querySelector('.tl-talk[data-i="' + i + '"]');
+          box.querySelector('.tl-read').hidden = true;
+          var f = box.querySelector('.tl-form'); f.hidden = false; counts(f);
+          var t = f.querySelector('[name=title]'); if (t) t.focus();
+        });
+      });
+      host.querySelectorAll('[data-tl-cancel]').forEach(function (b) {
+        b.addEventListener('click', function () { paint(+b.closest('.tl-form').getAttribute('data-i')); });
+      });
+      host.querySelectorAll('.tl-form').forEach(function (f) {
+        f.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var i = +f.getAttribute('data-i'), fields = readForm(f);
+          if (!fields.title) { msg('A talk needs a title.', true); return; }
+          var next = clone(state.lib);
+          var was = next.talks[i].status;
+          next.talks[i] = applyEdit(next.talks[i], fields, opts.who, person);
+          commit(next, i, (was === 'approved' && next.talks[i].status !== 'approved')
+            ? 'Saved. Back to draft: ' + (first(next.speaker && next.speaker.name) || person) + ' approves it again.'
+            : 'Saved.');
+        });
+      });
+      host.querySelectorAll('[data-tl-remove]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var i = +b.getAttribute('data-tl-remove'), t = state.lib.talks[i];
+          if (!root.confirm || !root.confirm('Remove “' + (t.title || 'this talk') + '” from the library?')) return;
+          var next = clone(state.lib);
+          next.talks.splice(i, 1);
+          commit(next, null, 'Removed.');
+        });
+      });
+      var add = host.querySelector('[data-tl-add]');
+      if (add) add.addEventListener('click', function () {
+        var next = clone(state.lib);
+        var ids = {}; next.talks.forEach(function (t) { ids[t.id] = 1; });
+        var id = slug('new talk'), n = 2;
+        while (ids[id]) id = slug('new talk') + '-' + (n++);
+        next.talks.push({ id: id, status: 'draft', title: 'New talk', alt_titles: [], level: '', formats: [],
+          audience: '', short_abstract: '', abstract: '', takeaways: [], history: [], sources: [],
+          edited_by: opts.who || '', edited_at: new Date().toISOString() });
+        state.lib = next;
+        paint(next.talks.length - 1);
+        var b = host.querySelector('[data-tl-edit="' + (next.talks.length - 1) + '"]');
+        if (b) b.click();
+        msg('Fill it in and press Save talk.');
+      });
+    }
+
+    load(sb, person).then(function (r) { state.lib = r.lib; state.where = r.where; paint(null); },
+      function () { state.lib = seed(person); state.where = 'starting set'; paint(null); });
+  }
+
+  root.ABTalks = { people: people, seed: seed, load: load, save: save, mount: mount,
+    applyEdit: applyEdit, setStatus: setStatus, readForm: readForm, _talkHtml: talkHtml };
+  if (typeof module !== 'undefined' && module.exports) module.exports = root.ABTalks;
 })();
 
 </script>
@@ -8975,6 +9458,8 @@
         if (st.follow_ups) rec.follow_ups = st.follow_ups;
         if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
         if (st.submitted_at) rec.submitted_at = st.submitted_at;   // "Applied 24 Jul" in the Sessionize block + the edit form
+        // The drafted Sessionize application (api/sessionize.py writes it).
+        if (st.booking && st.booking.sessionize_draft) rec.sz_draft = st.booking.sessionize_draft;
         // Both live ONLY on the state row for a catalog event, and this
         // builder is an explicit whitelist — miss them here and the
         // organiser link and the contact note silently never appear
@@ -9208,6 +9693,7 @@
       for (var mk in mev) { if (Object.prototype.hasOwnProperty.call(mev, mk)) mrec[mk] = mev[mk]; }
       mrec.workflow_status = mev.status || null;
       mrec.stage_tags = manualStages;
+      mrec.sz_draft = (mev.booking && mev.booking.sessionize_draft) || null;   // drafted Sessionize application
       // Editing context for the modal's quick-actions / Edit Event button.
       mrec._table = 'manual_events'; mrec._key = mev.id;
       mrec.region = canonicalRegion(mev);
@@ -10829,6 +11315,12 @@
         // whitelist — a field missing here is invisible to every Queue surface.
         follow_ups: (st && st.follow_ups) || base.follow_ups || [],
         speaker_topic: (st && st.speaker_topic) || base.speaker_topic || '',
+        // The Application queue's Apply decision drafts a Sessionize
+        // application when the event has a Sessionize link: these are where
+        // the link can be (ABSessionize.link) and where the draft lands.
+        apply_url: (st && st.apply_url && st.apply_url !== '__cleared__') ? st.apply_url : (base.apply_url || ''),
+        speaking_route: (st && st.speaking_route && st.speaking_route !== '__cleared__') ? st.speaking_route : (base.speaking_route || ''),
+        sz_draft: (((st && st.booking) || base.booking || {}).sessionize_draft) || null,
         // Manual organiser group. On a CATALOG event this lives on the
         // event_state row, so reading base.* alone made every hand-linked
         // catalog event invisible to the sibling scan (Hurley 2026-07-31).
@@ -11381,6 +11873,25 @@
       });
     }
 
+    // The Apply / Skip decision (Hurley 2026-10-16). 'go' is the old Angela
+    // promotion call and means the same thing.
+    function _qApplyDecided(it) { return it.decision === 'apply' || it.decision === 'go'; }
+    // An Apply on a Sessionize event drafts the application (api/sessionize.py
+    // saves it on the event). Fire-and-forget: the queue shows "Drafting…"
+    // and repaints when the draft lands.
+    function _qDraft(it) {
+      if (!window.ABSessionize || !window.ABSessionize.link(it)) return;
+      if (it.sz_draft && it.sz_draft.status === 'ready') return;
+      var table = it.kind === 'manual' ? 'manual_events' : 'event_state';
+      if (window.ABSessionize.isDrafting(table, it.key)) return;
+      window.ABSessionize.requestDraft(table, it.key).then(function (r) {
+        if (!(r && r.ok)) status('Could not draft the application for ' + it.name + ': ' + ((r && r.error) || 'unknown error'), 'error');
+        else if (r.dry_run) flashOk('Drafted (test mode: not saved)');
+        else flashOk('Application drafted: ' + it.name);
+        if (window.opsRefresh) window.opsRefresh(); else renderQueue();
+      });
+    }
+
     function renderQueue() {
       var host = document.getElementById('ops-queue');
       if (!host) return;
@@ -11402,7 +11913,18 @@
         var ints = window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).map(function (n) {
           return '<span class="q-int-chip" style="' + window.abPersonChip(n) + '">' + escapeHtml(n) + '</span>';
         }).join('');
-        var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>' : '';
+        var dec = '';
+        if (_qApplyDecided(it)) {
+          // Decided "apply": say where the application stands. A Sessionize
+          // event gets a drafted application; anything else is applied for on
+          // the organiser's own site.
+          var _szT = it.kind === 'manual' ? 'manual_events' : 'event_state';
+          var _szL = window.ABSessionize ? window.ABSessionize.link(it) : '';
+          if (it.sz_draft && it.sz_draft.status === 'ready') dec = '<span class="q-draft is-ready">&#10003; Draft ready</span>';
+          else if (_szL && window.ABSessionize.isDrafting(_szT, it.key)) dec = '<span class="q-draft">Drafting&hellip;</span>';
+          else if (_szL) dec = '<button type="button" class="q-draft is-btn" data-act="draft" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">Draft application</button>';
+          else dec = '<span class="q-draft is-muted">Apply on their site</span>';
+        }
         var loc = [it.location].filter(Boolean).join(' &middot; ');
         var _cf = String(it.conflict_note || '').trim();
         return '<div class="queue-row queue-row-open" role="button" tabindex="0"' +
@@ -11421,14 +11943,19 @@
           '</div>';
       }
 
-      var booked = [], submitted = [], toApply = [];
+      var booked = [], submitted = [], toApply = [], toDecide = [];
       items.forEach(function (it) {
         // Closed. It kept Submitted from 2026-07-31 so the history reads
         // right, which would otherwise land it in In Progress for ever.
         if (it.stages.indexOf('Rejected') !== -1) return;
         if (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Attending') !== -1) booked.push(it);
         else if (it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Initial outreach') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1) submitted.push(it);
-        else toApply.push(it);
+        else if (_qApplyDecided(it)) toApply.push(it);
+        else toDecide.push(it);
+      });
+      // Skipped this cycle: off the queue, but one click brings them back.
+      var skipped = opsAllItems().filter(function (it) {
+        return it.decision === 'skip' && !it.past && !it.hidden && it.stages.indexOf('Rejected') === -1;
       });
       // Chronological by EVENT DATE throughout (Hurley 2026-07-31). It used to
       // float deadline-soon rows to the top of their section, so the order
@@ -11436,7 +11963,7 @@
       // where she left it. The deadline chip still highlights when one is
       // close — it just no longer reorders the list.
       function byDate(a, b) { return a.sort - b.sort; }
-      toApply.sort(byDate); submitted.sort(byDate); booked.sort(byDate);
+      toApply.sort(byDate); toDecide.sort(byDate); submitted.sort(byDate); booked.sort(byDate); skipped.sort(byDate);
 
       function markStage(it, stage) {
         var tags = it.stages.slice();
@@ -11455,7 +11982,7 @@
         }
       }
 
-      var html = '<p class="queue-intro"><strong>Application queue:</strong> Every event a teammate marked as interested, grouped by event dates; followed by events that are in progress.</p>';
+      var html = '<p class="queue-intro"><strong>Application queue:</strong> Every event a teammate marked as interested. Decide <strong>Apply</strong> or <strong>Skip</strong> on each; an Apply on a Sessionize event drafts the application, ready in the event&#39;s pop-up.</p>';
 
       // Month dividers inside a section — "grouped by event dates" (Hurley
       // 2026-07-31). Only for the to-apply list: In progress and Booked are
@@ -11478,12 +12005,20 @@
         function one(it) {
           return rowHtml(it, function (x) {
             var btns = '';
-            if (kind === 'toApply') {
+            var _ka = ' data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '"';
+            if (kind === 'toDecide') {
               btns += '<div class="q-btn-row">' +
-                '<button class="q-btn primary" data-act="submitted" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark applied</button>' +
-                '<button class="q-btn danger q-btn-x" data-act="dismiss" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '" title="Not relevant — remove from the queue without marking applied" aria-label="Remove from queue">&times;</button>' +
+                '<button class="q-btn primary" data-act="apply"' + _ka + ' title="We&#39;ll apply: drafts the application if it&#39;s on Sessionize">Apply</button>' +
+                '<button class="q-btn" data-act="skip"' + _ka + ' title="Not this one: off the queue (you can bring it back under Skipped)">Skip</button>' +
               '</div>';
             }
+            else if (kind === 'toApply') {
+              btns += '<div class="q-btn-row">' +
+                '<button class="q-btn primary" data-act="submitted"' + _ka + '>&#10003; Mark applied</button>' +
+                '<button class="q-btn q-btn-undo" data-act="undecide"' + _ka + ' title="Back to To decide">Undo</button>' +
+              '</div>';
+            }
+            else if (kind === 'skipped') btns += '<button class="q-btn" data-act="unskip"' + _ka + '>Bring back</button>';
             else if (kind === 'submitted') btns += '<button class="q-btn primary" data-act="booked" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark booked</button>';
             // "Details" now sits inline next to the event name (see rowHtml).
             return btns;
@@ -11496,9 +12031,14 @@
       if (!items.length) {
         html += '<div class="queue-empty">Nobody has flagged an event yet.<br>Open any event &rarr; <strong>Edit</strong> &rarr; tick a name under &ldquo;Interested,&rdquo; and it lands here.</div>';
       } else {
-        html += section('To apply', toApply, 'toApply', true);
+        html += section('To decide', toDecide, 'toDecide', true);
+        html += section('Apply: to submit', toApply, 'toApply', true);
         html += section('In Progress', submitted, 'submitted');
         html += section('Booked / attending', booked, 'booked');
+      }
+      if (skipped.length) {
+        html += '<details class="q-skipped"><summary>Show the ' + skipped.length + ' skipped</summary>' +
+          section('Skipped', skipped, 'skipped') + '</details>';
       }
       host.innerHTML = html;
 
@@ -11508,10 +12048,15 @@
       host.querySelectorAll('[data-act]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
-          var it = items.filter(function (x) { return x.kind === btn.getAttribute('data-k') && String(x.key) === btn.getAttribute('data-key'); })[0];
+          var it = items.concat(skipped).filter(function (x) { return x.kind === btn.getAttribute('data-k') && String(x.key) === btn.getAttribute('data-key'); })[0];
           if (!it) return;
           var act = btn.getAttribute('data-act');
           if (act === 'dismiss') { opsQuickWrite(it.kind, it.key, { queue_dismissed: true }); }
+          else if (act === 'apply') { opsQuickWrite(it.kind, it.key, { decision: 'apply' }); _qDraft(it); }
+          else if (act === 'draft') { _qDraft(it); renderQueue(); }
+          else if (act === 'skip') { opsQuickWrite(it.kind, it.key, { decision: 'skip', queue_dismissed: true }); }
+          else if (act === 'unskip') { opsQuickWrite(it.kind, it.key, { decision: '', queue_dismissed: false }); }
+          else if (act === 'undecide') { opsQuickWrite(it.kind, it.key, { decision: '' }); }
           else markStage(it, act === 'submitted' ? 'Submitted' : 'Booked');
         });
       });
@@ -13668,6 +14213,15 @@
           '<p class="profile-section-sub">Yours, not a speaker’s — what you send on their behalf.</p>';
         PROFILE_MATERIALS.forEach(function (m) { html += _materialSlotHtml(meKey, m, true); });
         html += '</div>';
+        // Each speaker's talk library, editable here too, so the people who
+        // run applications can review it with them (src/talks.js).
+        if (window.ABTalks) window.ABTalks.people().forEach(function (pk) {
+          var pn = _profileDisplay(byKey[pk], pk);
+          html += '<div class="profile-card"><div class="profile-section-head">' + escapeHtml(pn) + '’s talk library</div>' +
+            '<p class="profile-section-sub">The standard talks the Sessionize drafter tailors to each call for speakers. ' +
+            escapeHtml(pn.split(' ')[0]) + ' approves each one; applications built on an unapproved talk are flagged.</p>' +
+            '<div class="tl-host" data-tl-person="' + escapeHtml(pk) + '"></div></div>';
+        });
       }
       // Support (Angela/Hurley) coordinate — they don't speak, so they get the
       // team directory straight away, not their own speaker card.
@@ -13684,6 +14238,14 @@
         // ── Speaking materials — the point of the profile: a ready-to-send
         // kit, organized by what organizers ask for. Each slot is its own
         // upload + list.
+        // ── Talk library — the talks the Sessionize drafter tailors to each
+        // call. First, because approving them is the speaker's to-do.
+        if (window.ABTalks && window.ABTalks.seed(meKey)) {
+          html += '<div class="profile-section-head">Your talk library</div>' +
+            '<p class="profile-section-sub">The standard talks the tracker tailors to each Sessionize call for speakers. ' +
+            'Read each one, edit what’s off, and press Approve when it’s right. Applications built on a talk you haven’t approved are flagged.</p>' +
+            '<div class="tl-host" data-tl-person="' + escapeHtml(meKey) + '"></div>';
+        }
         html += '<div class="profile-section-head">Speaking materials</div>' +
           '<p class="profile-section-sub">Help Angela organize your speaking materials.</p>';
         PROFILE_MATERIALS.forEach(function (m) { html += _materialSlotHtml(meKey, m); });
@@ -13710,6 +14272,10 @@
       }
       html += '</div>';   // end .profile-wrap
       host.innerHTML = html;
+      if (window.ABTalks) host.querySelectorAll('[data-tl-person]').forEach(function (el) {
+        var pk = el.getAttribute('data-tl-person');
+        window.ABTalks.mount(el, { sb: sb, person: pk, who: meName, canApprove: pk === meKey || support, status: status });
+      });
       // Upload / Add-link buttons carry "<key>|<cat>" — one wiring covers the own
       // card AND (for Angela) every editable teammate slot in the directory.
       host.querySelectorAll('[data-mat-upload]').forEach(function (btn) {

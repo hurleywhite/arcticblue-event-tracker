@@ -14,9 +14,16 @@ never submits anything. It reads two public pages:
                                       applied to appears on his profile, mark it
                                       Booked. Body {"dry_run": true} reports
                                       without writing.
+  POST {"draft": {table, key}}        draft the application for one event: read
+                                      its call for speakers, pick the best talk
+                                      from the speaker's talk library, tailor it,
+                                      and save it on the event as
+                                      booking.sessionize_draft. "dry_run": true
+                                      returns the draft without saving it.
 
-GETs are same-origin only (the tracker page calls them). The POST uses the same
-EVENTS_INGEST_SECRET as /api/enrich and is called from daily-build.yml.
+GETs and the draft POST are same-origin only (the tracker page calls them). The
+sync POST uses the same EVENTS_INGEST_SECRET as /api/enrich and is called from
+daily-build.yml.
 
 What the sync cannot see: rejections (Sessionize does not publish them) and
 anything before the organiser announces. Those arrive by email, which is what
@@ -34,6 +41,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.join(HERE, '..')
+
 
 def _env(k, d=''):
     return (os.environ.get(k, d) or '').strip()
@@ -43,6 +53,11 @@ SUPABASE_URL = _env('SUPABASE_URL', 'https://efkvhlmfdwlobvdmvqiq.supabase.co').
 SERVICE_ROLE = _env('SUPABASE_SERVICE_ROLE_KEY')
 INGEST_SECRET = _env('EVENTS_INGEST_SECRET')
 TRACKER_BASE = _env('TRACKER_BASE_URL', 'https://arcticblue-event-tracker-deploy.vercel.app').rstrip('/')
+OPENAI_API_KEY = _env('OPENAI_API_KEY')
+OPENAI_BASE = _env('OPENAI_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
+# Same model the day-of briefs use unless a drafting model is set on its own.
+DRAFT_MODELS = [m for m in dict.fromkeys([
+    _env('OPENAI_DRAFT_MODEL') or _env('OPENAI_BRIEFING_MODEL') or 'gpt-5.4', 'gpt-4.1']) if m]
 
 # Whose public profile to watch: "thor:thor-ernstsson,verma:their-slug".
 # Thor only for now (Hurley 2026-10-13).
@@ -347,6 +362,351 @@ def sync(dry_run=False, today=None):
     return report
 
 
+# ── Drafting an application ────────────────────────────────────────────────
+# The speaker picks events in the Application queue ("Apply"); for each one with
+# a Sessionize link this writes the application: the best talk from their talk
+# library (config/talks/<person>.json, or the copy edited in the tracker, saved
+# to storage at profiles/<person>/talks/library.json), tailored to what the
+# call for speakers asks for. It is saved on the event for a person to check,
+# copy into the form and submit. Nothing here touches Sessionize beyond reading
+# the public page.
+_LINK = re.compile(r'https?://(?:www\.)?sessionize\.com/[^\s)"\'<>\]]+', re.I)
+_PERK = re.compile(r'<h3 class="no-margins font-normal">(.*?)</h3>\s*<div class="font-bold text-navy">(.*?)</div>', re.S)
+_TERM_KINDS = ('fee', 'sponsorship', 'travel', 'accommodation', 'in_person', 'recording',
+               'code_of_conduct', 'exclusivity', 'other')
+
+
+def sessionize_link(*records):
+    """The first Sessionize event link in the fields the tracker keeps it in."""
+    for rec in records:
+        for f in ('apply_url', 'speaking_route', 'url', 'notes'):
+            for m in _LINK.finditer(str((rec or {}).get(f) or '')):
+                url = page_url(m.group(0).rstrip('.,;:!?'))
+                if url:
+                    return url
+    return ''
+
+
+def cfp_details(page):
+    """The organiser's own words on a call-for-speakers page, plus the perks box
+    (event fee, travel, accommodation). Only what any visitor can see: tracks,
+    session formats and custom questions often appear only on the signed-in form."""
+    perks = {}
+    for label, value in _PERK.findall(page or ''):
+        k, v = _text(label).lower(), _text(value)
+        if k and v:
+            perks[k] = v
+    body = page or ''
+    i = body.find('<body')
+    body = body[i:] if i >= 0 else body
+    body = re.sub(r'<(script|style|noscript)\b.*?</\1>', ' ', body, flags=re.S | re.I)
+    body = re.sub(r'<br\s*/?>|</p>|</div>|</li>|</h\d>', '\n', body, flags=re.I)
+    text = _html.unescape(re.sub(r'<[^>]+>', ' ', body))
+    lines = [re.sub(r'[ \t\xa0]+', ' ', ln).strip() for ln in text.split('\n')]
+    text = '\n'.join(ln for ln in lines if ln)
+    for stop in ('Submit a session', 'Login with your preferred account'):
+        j = text.find(stop)
+        if j > 0:
+            text = text[:j]
+    text = re.sub(r'^\s*Sessionize\.com\s+Log in\s*', '', text)
+    return {'text': text.strip()[:9000], 'perks': perks}
+
+
+def term_flags(details):
+    """What the perks box alone says a speaker signs up to. The model adds what it
+    finds in the organiser's text; these never depend on the model."""
+    out = []
+    perks = (details or {}).get('perks') or {}
+    fee = perks.get('event fee', '')
+    if fee and 'free' not in fee.lower():
+        out.append({'kind': 'fee', 'text': 'Event fee: ' + fee,
+                    'why_it_matters': 'Speaking here may cost money (pay-to-play). Decide before submitting.'})
+    for k in ('travel', 'accommodation'):
+        v = perks.get(k, '')
+        if v and re.search(r'\b(not|no|own|self)\b', v, re.I):
+            out.append({'kind': k, 'text': k.capitalize() + ': ' + v,
+                        'why_it_matters': 'Thor pays his own ' + ('travel' if k == 'travel' else 'hotel') + ' if accepted.'})
+    text = (details or {}).get('text', '')
+    m = re.search(r'[^.\n]*\b(?:must|required to|need to)\b[^.\n]*\bin[- ]person\b[^.\n]*|[^.\n]*\bin[- ]person\b[^.\n]*\b(?:required|only|must)\b[^.\n]*', text, re.I)
+    if m:
+        out.append({'kind': 'in_person', 'text': m.group(0).strip()[:240],
+                    'why_it_matters': 'Accepting means being there in person on the date.'})
+    return out
+
+
+def load_talks(person):
+    """(library, where) — the copy saved from the tracker wins over the starting set."""
+    person = re.sub(r'[^a-z]', '', (person or '').lower())
+    if not person:
+        return None, ''
+    if SERVICE_ROLE:
+        st, data = _http('GET', '%s/storage/v1/object/profiles/%s/talks/library.json' % (SUPABASE_URL, person),
+                         headers=_svc())
+        if st == 200 and isinstance(data, dict) and data.get('talks'):
+            return data, 'saved'
+    try:
+        with open(os.path.join(ROOT, 'config', 'talks', person + '.json')) as f:
+            return json.load(f), 'starting set'
+    except (OSError, ValueError):
+        return None, ''
+
+
+def _event_row(table, key):
+    """The tracker's record for one event: the row itself plus, for a catalog
+    event, the static catalog entry its name and dates live in."""
+    if table not in ('manual_events', 'event_state'):
+        raise ValueError('table must be manual_events or event_state')
+    col = 'id' if table == 'manual_events' else 'event_num'
+    st, rows = _http('GET', '%s/rest/v1/%s?%s=eq.%s&select=*' % (
+        SUPABASE_URL, table, col, urllib.parse.quote(str(key))), headers=_svc())
+    if st != 200 or not isinstance(rows, list):
+        raise RuntimeError('%s read failed %s' % (table, st))
+    row = rows[0] if rows else None
+    base = {}
+    if table == 'event_state':
+        cst, cat = _http('GET', TRACKER_BASE + '/events.json', headers={'User-Agent': _UA})
+        if cst == 200 and isinstance(cat, dict):
+            base = next((e for e in cat.get('events') or [] if str(e.get('num')) == str(key)), {})
+        if not base and not row:
+            raise LookupError('no event %s' % key)
+    elif not row:
+        raise LookupError('no manual event %s' % key)
+    return row, base
+
+
+def _pick(row, base, f):
+    v = (row or {}).get(f)
+    if v in (None, '', '__cleared__'):
+        v = (base or {}).get(f)
+    return v if v not in (None, '__cleared__') else ''
+
+
+_NUM = re.compile(r'\d[\d,.]*')
+
+
+def _numbers(s):
+    return {n.replace(',', '').rstrip('.') for n in _NUM.findall(s or '')}
+
+
+def number_checks(draft, sources):
+    """Numbers in the draft that appear in none of its sources — a likely
+    invention, shown to whoever reviews the draft."""
+    allowed = _numbers(sources)
+    seen = []
+    texts = [draft.get('title'), draft.get('short_abstract'), draft.get('abstract')] + \
+        list(draft.get('takeaways') or []) + [a.get('answer') for a in draft.get('answers') or []]
+    for t in texts:
+        for n in sorted(_numbers(t)):
+            if n not in allowed and n not in seen:
+                seen.append(n)
+    return ['Check this number, it is not in the talk, the bio or the call: ' + n for n in seen]
+
+
+def _clip(s, n):
+    s = re.sub(r'[ \t]+', ' ', str(s or '')).strip()
+    return s if len(s) <= n else s[:n - 1].rsplit(' ', 1)[0] + '…'
+
+
+def clean_draft(raw, library):
+    """The model's JSON -> the stored draft. Anything malformed is dropped rather
+    than trusted, and the talk must be one from the library."""
+    talks = {t.get('id'): t for t in (library or {}).get('talks') or [] if t.get('id')}
+    raw = raw if isinstance(raw, dict) else {}
+    tid = raw.get('talk_id') if raw.get('talk_id') in talks else next(iter(talks), '')
+    talk = talks.get(tid, {})
+    take = [_clip(x, 300) for x in (raw.get('takeaways') or []) if isinstance(x, str) and x.strip()][:5]
+    answers = []
+    for a in raw.get('answers') or []:
+        if isinstance(a, dict) and str(a.get('question') or '').strip() and str(a.get('answer') or '').strip():
+            answers.append({'question': _clip(a['question'], 400), 'answer': _clip(a['answer'], 2500)})
+    terms = []
+    for t in raw.get('terms') or []:
+        if isinstance(t, dict) and str(t.get('text') or '').strip():
+            k = t.get('kind') if t.get('kind') in _TERM_KINDS else 'other'
+            terms.append({'kind': k, 'text': _clip(t['text'], 400),
+                          'why_it_matters': _clip(t.get('why_it_matters'), 300)})
+    return {
+        'talk_id': tid,
+        'talk_title': talk.get('title', ''),
+        'talk_status': talk.get('status', 'draft'),
+        'fit': raw.get('fit') if raw.get('fit') in ('strong', 'fair', 'weak') else 'fair',
+        'why_this_talk': _clip(raw.get('why_this_talk'), 400),
+        'title': _clip(raw.get('title') or talk.get('title'), 200),
+        'short_abstract': _clip(raw.get('short_abstract') or talk.get('short_abstract'), 800),
+        'abstract': _clip(raw.get('abstract') or talk.get('abstract'), 4000),
+        'format': _clip(raw.get('format'), 120),
+        'track': _clip(raw.get('track'), 160),
+        'level': _clip(raw.get('level') or talk.get('level'), 80),
+        'takeaways': take or list(talk.get('takeaways') or []),
+        'answers': answers[:12],
+        'terms': terms[:12],
+        'unknowns': [_clip(u, 300) for u in (raw.get('unknowns') or []) if isinstance(u, str) and u.strip()][:8],
+    }
+
+
+def _merge_terms(fixed, found):
+    out, kinds = list(fixed), {t['kind'] for t in fixed}
+    for t in found:
+        if t['kind'] in kinds and t['kind'] != 'other':
+            continue
+        out.append(t)
+    return out
+
+
+def draft_prompt(event, cfp, details, library):
+    sp = library.get('speaker') or {}
+    talks = [{k: t.get(k) for k in ('id', 'status', 'title', 'alt_titles', 'level', 'formats', 'audience',
+                                    'short_abstract', 'abstract', 'takeaways')}
+             for t in library.get('talks') or []]
+    system = (
+        'You draft conference speaking applications for ' + (sp.get('name') or 'the speaker') + '. '
+        'Write in their voice: ' + (sp.get('voice') or 'direct, plain, no hype') + '\n'
+        'Rules:\n'
+        '- Use ONLY facts from SPEAKER FACTS and the chosen talk. Never invent numbers, clients, results, '
+        'quotes, awards, past events or credentials. If an answer needs a fact you do not have, write '
+        '[ASK THOR: <what is needed>] in its place.\n'
+        '- Choose the ONE talk from TALK LIBRARY that best fits this call. When two fit about equally, '
+        'prefer one whose status is "approved".\n'
+        '- Keep the talk\'s argument and examples. Tailor lightly: the title keeps its recognisable core; '
+        'the abstract speaks to this event\'s audience, themes and tracks in the call\'s own vocabulary.\n'
+        '- Respect any length limit the call states. Otherwise: abstract at most 1000 characters, '
+        'short_abstract at most 350.\n'
+        '- format, track and level: pick from options the call lists. If it lists none, leave the field '
+        'empty and add it to unknowns (it will be on the signed-in form).\n'
+        '- answers: one entry for each question or requirement the call text asks speakers to address '
+        '(why you, audience, preferred date, in person, etc.). Do not invent questions the call does not ask.\n'
+        '- terms: everything submitting or accepting would commit the speaker to: fees to speak or attend '
+        '(pay-to-play), sponsorship, paying own travel or hotel, in-person attendance, recording or '
+        'publishing consent, code of conduct, exclusivity, content rules. Quote the call\'s words in text.\n'
+        '- Return one JSON object and nothing else.'
+    )
+    user = (
+        'EVENT (from our tracker):\n' + json.dumps(event, ensure_ascii=False) + '\n\n'
+        'CALL FOR SPEAKERS (public page; tracks, formats and custom questions may only appear on the '
+        'signed-in form):\n' + json.dumps({k: cfp.get(k) for k in ('name', 'status', 'opens', 'closes', 'timezone',
+                                                                   'event_start', 'event_end', 'website')},
+                                          ensure_ascii=False) +
+        '\nPerks box: ' + json.dumps(details.get('perks') or {}, ensure_ascii=False) +
+        '\nPage text:\n"""\n' + (details.get('text') or '') + '\n"""\n\n'
+        'SPEAKER FACTS:\n' + '\n'.join('- ' + f for f in sp.get('facts') or []) + '\n\n'
+        'TALK LIBRARY:\n' + json.dumps(talks, ensure_ascii=False) + '\n\n'
+        'Return JSON with exactly these keys:\n'
+        '{"talk_id": "", "fit": "strong|fair|weak", "why_this_talk": "one sentence", "title": "", '
+        '"short_abstract": "", "abstract": "", "format": "", "track": "", "level": "", '
+        '"takeaways": ["", "", ""], "answers": [{"question": "", "answer": ""}], '
+        '"terms": [{"kind": "fee|sponsorship|travel|accommodation|in_person|recording|code_of_conduct|exclusivity|other", '
+        '"text": "", "why_it_matters": ""}], "unknowns": [""]}'
+    )
+    return [{'role': 'system', 'content': system}, {'role': 'user', 'content': user}]
+
+
+def _json_from(text):
+    text = (text or '').strip()
+    try:
+        return json.loads(text)
+    except ValueError:
+        m = re.search(r'\{.*\}', text, re.S)
+        if m:
+            try:
+                return json.loads(m.group(0))
+            except ValueError:
+                return None
+    return None
+
+
+def call_model(messages):
+    """(parsed JSON, model) from the first model that answers with JSON."""
+    last = ''
+    for model in DRAFT_MODELS:
+        m = model.lower()
+        body = {'model': model, 'messages': messages}
+        body['max_completion_tokens' if m.startswith(('gpt-5', 'o1', 'o3', 'o4')) else 'max_tokens'] = 6000
+        if 'search' not in m:
+            body['response_format'] = {'type': 'json_object'}
+        req = urllib.request.Request(OPENAI_BASE + '/chat/completions', method='POST', data=json.dumps(body).encode(),
+                                     headers={'Authorization': 'Bearer ' + OPENAI_API_KEY,
+                                              'Content-Type': 'application/json'})
+        try:
+            with urllib.request.urlopen(req, timeout=100) as r:
+                data = json.loads(r.read().decode('utf-8'))
+            out = _json_from(((data.get('choices') or [{}])[0].get('message') or {}).get('content'))
+            if isinstance(out, dict):
+                return out, model
+            last = model + ': no JSON in the answer'
+        except urllib.error.HTTPError as e:
+            last = '%s: HTTP %s %s' % (model, e.code, e.read().decode('utf-8', errors='replace')[:200])
+        except Exception as e:  # noqa: BLE001
+            last = '%s: %s' % (model, str(e)[:200])
+    raise RuntimeError('drafting model failed (' + last + ')')
+
+
+def make_draft(table='', key=None, cfp_url='', event=None, dry_run=False, by='', today=None, model=None):
+    """Draft one application. table/key name a tracker event; cfp_url + event is
+    a dry run against any call (nothing to save it on). `model` replaces the
+    OpenAI call in tests."""
+    today = today or dt.date.today()
+    row, base = (None, {})
+    if table:
+        row, base = _event_row(table, key)
+        cfp_url = sessionize_link(row, base)
+        if not cfp_url:
+            return {'ok': False, 'error': 'This event has no Sessionize link.'}
+        event = {'name': _pick(row, base, 'name'), 'dates': _pick(row, base, 'date_str') or _pick(row, base, 'start_date'),
+                 'location': _pick(row, base, 'location'), 'type': _pick(row, base, 'type'),
+                 'about': _clip(_pick(row, base, 'about') or _pick(row, base, 'why'), 1500),
+                 'focus_areas': _pick(row, base, 'focus_areas')}
+    else:
+        cfp_url = page_url(cfp_url)
+        if not cfp_url:
+            return {'ok': False, 'error': 'not a Sessionize event link'}
+        if not dry_run:
+            return {'ok': False, 'error': 'a draft with no tracker event can only be a dry run'}
+        event = event or {}
+    person = re.sub(r'[^a-z]', ' ', str(_pick(row, base, 'speaker') if row or base else '').lower()).split()
+    person = person[0] if person else 'thor'
+    library, where = load_talks(person)
+    if not library:
+        return {'ok': False, 'error': 'No talk library for %s yet.' % person.capitalize()}
+    st, page = fetch(cfp_url)
+    cfp = parse_cfp(page, today) if st == 200 else None
+    if not cfp:
+        return {'ok': False, 'error': 'Could not read the call for speakers at %s.' % cfp_url}
+    if cfp['status'] == 'closed':
+        return {'ok': False, 'error': 'The call for speakers closed%s.' % (' on ' + cfp['closes'] if cfp['closes'] else '')}
+    details = cfp_details(page)
+    raw, used = model(draft_prompt(event, cfp, details, library)) if model else call_model(
+        draft_prompt(event, cfp, details, library))
+    d = clean_draft(raw, library)
+    d['terms'] = _merge_terms(term_flags(details), d['terms'])
+    talk = next((t for t in library.get('talks') or [] if t.get('id') == d['talk_id']), {})
+    sources = ' '.join([json.dumps(talk, ensure_ascii=False), ' '.join((library.get('speaker') or {}).get('facts') or []),
+                        details['text'], json.dumps(event, ensure_ascii=False), json.dumps(cfp)])
+    d['checks'] = number_checks(d, sources)
+    if d['talk_status'] != 'approved':
+        d['checks'].insert(0, 'The talk “%s” is still a draft in the talk library: Thor has not approved it yet.' % d['talk_title'])
+    d.update({'status': 'ready', 'person': person, 'library': where, 'model': used,
+              'cfp': {'url': cfp_url, 'status': cfp['status'], 'closes': cfp['closes'], 'timezone': cfp['timezone']},
+              'generated_at': dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'), 'by': by or ''})
+    out = {'ok': True, 'draft': d, 'written': False, 'dry_run': bool(dry_run)}
+    if dry_run or not table:
+        return out
+    booking = dict((row or {}).get('booking') or {}) if isinstance((row or {}).get('booking'), dict) else {}
+    booking['sessionize_draft'] = d
+    now = dt.datetime.now(dt.timezone.utc).isoformat()
+    col = 'id' if table == 'manual_events' else 'event_num'
+    if row:
+        wst, _ = _http('PATCH', '%s/rest/v1/%s?%s=eq.%s' % (SUPABASE_URL, table, col, urllib.parse.quote(str(key))),
+                       headers=_svc('return=minimal'), body={'booking': booking, 'updated_at': now})
+    else:   # a catalog event nobody has touched yet: start its state row
+        wst, _ = _http('POST', '%s/rest/v1/event_state' % SUPABASE_URL, headers=_svc('return=minimal'),
+                       body={'event_num': key, 'booking': booking, 'updated_by': by or 'Sessionize draft',
+                             'updated_at': now})
+    out['written'] = wst in (200, 201, 204)
+    if not out['written']:
+        out['error'] = 'The draft was written but could not be saved (%s).' % wst
+    return out
+
+
 # ── HTTP ───────────────────────────────────────────────────────────────────
 def _same_origin(handler):
     host = (handler.headers.get('Host', '') or '').lower().strip()
@@ -409,15 +769,33 @@ class handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
-            if not _authorized(self):
-                return _send(self, 401, {'error': 'unauthorized'})
-            if not SERVICE_ROLE:
-                return _send(self, 500, {'error': 'SUPABASE_SERVICE_ROLE_KEY missing'})
-            n = min(int(self.headers.get('Content-Length', '0') or '0'), 10000)
+            n = min(int(self.headers.get('Content-Length', '0') or '0'), 20000)
             try:
                 body = json.loads(self.rfile.read(n).decode('utf-8') or '{}') if n else {}
             except json.JSONDecodeError:
                 body = {}
+            if isinstance(body, dict) and isinstance(body.get('draft'), dict):
+                # The tracker page asks for a draft: same-origin, like the GETs.
+                if not (_same_origin(self) or _authorized(self)):
+                    return _send(self, 403, {'error': 'forbidden: call from tracker site'})
+                if not OPENAI_API_KEY:
+                    return _send(self, 500, {'error': 'OPENAI_API_KEY missing'})
+                if not SERVICE_ROLE:
+                    return _send(self, 500, {'error': 'SUPABASE_SERVICE_ROLE_KEY missing'})
+                d = body['draft']
+                try:
+                    return _send(self, 200, make_draft(
+                        table=str(d.get('table') or ''), key=d.get('key'), cfp_url=str(d.get('cfp') or ''),
+                        event=d.get('event') if isinstance(d.get('event'), dict) else None,
+                        dry_run=bool(body.get('dry_run')), by=str(body.get('by') or '')[:80]))
+                except LookupError as e:
+                    return _send(self, 404, {'ok': False, 'error': str(e)})
+                except ValueError as e:
+                    return _send(self, 400, {'ok': False, 'error': str(e)})
+            if not _authorized(self):
+                return _send(self, 401, {'error': 'unauthorized'})
+            if not SERVICE_ROLE:
+                return _send(self, 500, {'error': 'SUPABASE_SERVICE_ROLE_KEY missing'})
             return _send(self, 200, sync(dry_run=bool(body.get('dry_run'))))
         except Exception as e:  # noqa: BLE001
             return _send(self, 500, {'error': type(e).__name__, 'msg': str(e)[:300]})

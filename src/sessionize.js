@@ -8,8 +8,13 @@
 //   2. a daily server check of the speaker's public profile for acceptances
 //      (api/sessionize.py, nothing to do here);
 //   3. pasting a Sessionize email (accepted / not selected / waitlisted /
-//      received) updates the matching event, after you confirm the match.
+//      received) updates the matching event, after you confirm the match;
+//   4. (2026-10-16) the drafted application: api/sessionize.py reads the call,
+//      picks a talk from the speaker's talk library (src/talks.js) and tailors
+//      it; the draft is saved on the event (booking.sessionize_draft) and shown
+//      here with a Copy button per field and the terms to decide on first.
 // Everything here is plain DOM + the tracker's own root.opsWrite.
+// Set window.AB_SZ_DRY_RUN = true to draft without saving (testing).
 (function () {
   'use strict';
   // `root` is the page's window; under node (the tests) it is the global object.
@@ -60,20 +65,116 @@
       ? '<span class="sz-done">✓ Applied' + (on ? ' ' + esc(nice(on)) : '') + (who ? ' · ' + esc(who) : '') + '</span>' +
         '<button type="button" class="sz-link" data-sz-open>Change</button>'
       : '<button type="button" class="sz-btn" data-sz-open>I’ve applied — record it</button>';
-    return '<div class="me-apply sz-box" data-sz-url="' + esc(url) + '">' +
+    return '<div class="me-apply sz-box" data-sz-url="' + esc(url) + '" data-sz-key="' + esc(rec._table + ':' + rec._key) + '">' +
       '<div class="sz-row">' +
         '<a class="modal-visit modal-apply" href="' + esc(url) + '" target="_blank" rel="noopener">Apply on Sessionize ↗</a>' +
         '<span class="sz-cfp" aria-live="polite">Checking the call for speakers…</span>' +
       '</div>' +
+      draftHtml(rec) +
       '<div class="sz-row sz-track">' + track + '</div>' +
       '<form class="sz-form" hidden>' +
         '<label>Speaker<input name="speaker" value="' + esc(who || 'Thor') + '" autocomplete="off"></label>' +
-        '<label class="sz-wide">Talk submitted<input name="topic" value="' + esc(rec.speaker_topic || '') + '" placeholder="Title of the talk" autocomplete="off"></label>' +
+        '<label class="sz-wide">Talk submitted<input name="topic" value="' + esc(rec.speaker_topic || (rec.sz_draft && rec.sz_draft.title) || '') + '" placeholder="Title of the talk" autocomplete="off"></label>' +
         '<label>Applied on<input type="date" name="date" value="' + esc(on || today()) + '"></label>' +
         '<div class="sz-actions"><button type="submit" class="sz-btn sz-primary">Record application</button>' +
         '<button type="button" class="sz-link" data-sz-cancel>Cancel</button></div>' +
       '</form>' +
     '</div>';
+  }
+
+  // ── 4. The drafted application ──────────────────────────────────────────
+  var TERM_LABEL = { fee: 'Fee', sponsorship: 'Sponsorship', travel: 'Travel', accommodation: 'Hotel',
+    in_person: 'In person', recording: 'Recording', code_of_conduct: 'Code of conduct', exclusivity: 'Exclusivity', other: 'Other' };
+  var pending = {};      // "table:key" -> true while a draft is being written
+  function canDraft() { return !root.abCanApply || root.abCanApply(); }
+
+  // Every copyable field of a draft, in the order a Sessionize form asks for them.
+  function draftFields(d) {
+    var out = [];
+    function add(label, text, count) { if (String(text || '').trim()) out.push({ label: label, text: String(text), count: !!count }); }
+    add('Title', d.title);
+    add('Abstract', d.abstract, true);
+    add('Short abstract', d.short_abstract, true);
+    add('Format', d.format);
+    add('Track', d.track);
+    add('Level', d.level);
+    if ((d.takeaways || []).length) add('Takeaways', d.takeaways.map(function (t, i) { return (i + 1) + '. ' + t; }).join('\n'));
+    (d.answers || []).forEach(function (a) { add(a.question, a.answer, true); });
+    return out;
+  }
+
+  function draftHtml(rec) {
+    var d = rec.sz_draft;
+    var key = rec._table + ':' + rec._key;
+    if (pending[key]) {
+      return '<div class="sz-draft"><span class="sz-draft-msg sz-muted">Drafting the application… usually under a minute.</span></div>';
+    }
+    if (!d || d.status !== 'ready') {
+      if (isApplied(rec) || !canDraft()) return '';
+      return '<div class="sz-draft"><button type="button" class="sz-btn" data-sz-redraft>Draft the application</button>' +
+        '<span class="sz-draft-msg sz-muted">Picks the best talk from the talk library and tailors it to this call.</span></div>';
+    }
+    var when = nice(String(d.generated_at || '').slice(0, 10));
+    var checks = d.checks || [];
+    var fields = draftFields(d);
+    var html = '<div class="sz-draft">' +
+      '<div class="sz-row"><span class="sz-done">✓ Draft ready</span>' +
+        '<span class="sz-muted">' + esc(d.talk_title || 'Talk') + (d.fit ? ' · ' + esc(d.fit) + ' fit' : '') + (when ? ' · drafted ' + esc(when) : '') + '</span>' +
+        '<button type="button" class="sz-link" data-sz-show>Show draft</button>' +
+        (canDraft() && !isApplied(rec) ? '<button type="button" class="sz-link" data-sz-redraft>Redraft</button>' : '') +
+      '</div>' +
+      (checks.length ? '<ul class="sz-checks">' + checks.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' : '') +
+      '<div class="sz-panel" hidden>' +
+        (d.why_this_talk ? '<p class="sz-why">' + esc(d.why_this_talk) + '</p>' : '') +
+        fields.map(function (f, i) {
+          return '<div class="sz-f"><div class="sz-fk"><span>' + esc(f.label) + '</span>' +
+            (f.count ? '<span class="sz-n">' + f.text.length + ' characters</span>' : '') +
+            '<button type="button" class="sz-copy" data-sz-copy="' + i + '">Copy</button></div>' +
+            '<div class="sz-fv">' + esc(f.text).replace(/\n/g, '<br>') + '</div></div>';
+        }).join('') +
+        ((d.terms || []).length
+          ? '<div class="sz-terms"><div class="sz-fk"><span>Decide before you press Submit</span></div><ul>' +
+              d.terms.map(function (t) {
+                return '<li><strong>' + esc(TERM_LABEL[t.kind] || 'Other') + ':</strong> ' + esc(t.text) +
+                  (t.why_it_matters ? ' <span class="sz-muted">' + esc(t.why_it_matters) + '</span>' : '') + '</li>';
+              }).join('') + '</ul></div>'
+          : '') +
+        ((d.unknowns || []).length
+          ? '<div class="sz-unknown"><div class="sz-fk"><span>Only on the signed-in form</span></div><ul>' +
+              d.unknowns.map(function (u) { return '<li>' + esc(u) + '</li>'; }).join('') + '</ul></div>'
+          : '') +
+      '</div>' +
+    '</div>';
+    return html;
+  }
+
+  // Ask the server for a draft. Resolves to the server's answer:
+  // {ok, draft, written} or {ok: false, error}.
+  function requestDraft(table, key) {
+    var body = { draft: { table: table, key: key }, by: (root.opsCurrentUser && root.opsCurrentUser()) || '' };
+    if (root.AB_SZ_DRY_RUN) body.dry_run = true;
+    var k = table + ':' + key;
+    pending[k] = true;
+    var done = function (r) { delete pending[k]; return r; };
+    return fetch('/api/sessionize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) {
+        return r.json().catch(function () { return { ok: false, error: 'The drafting service answered ' + r.status + '.' }; });
+      })
+      .then(done, function (e) { return done({ ok: false, error: 'Could not reach the drafting service.' }); });
+  }
+
+  function copyText(text, btn) {
+    var ok = function () { var was = btn.textContent; btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = was; }, 1500); };
+    if (root.navigator && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, function () { fallback(); });
+    } else fallback();
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { /* nothing more to try */ }
+      ta.remove();
+    }
   }
 
   // What the public page said -> one plain line (and, for an open call whose
@@ -107,10 +208,14 @@
     var form = box.querySelector('.sz-form');
     var line = box.querySelector('.sz-cfp');
 
+    // Repaint whichever block is on screen NOW: an earlier repaint may have
+    // replaced `box`, and the pop-up may have moved on to another event.
     function redraw() {
+      var cur = body.querySelector('.sz-box');
+      if (!cur || cur.getAttribute('data-sz-key') !== rec._table + ':' + rec._key) return;
       var tmp = document.createElement('div');
       tmp.innerHTML = blockHtml(rec);
-      if (tmp.firstChild && box.parentNode) { box.parentNode.replaceChild(tmp.firstChild, box); wire(body, rec); }
+      if (tmp.firstChild && cur.parentNode) { cur.parentNode.replaceChild(tmp.firstChild, cur); wire(body, rec); }
     }
 
     fetch('/api/sessionize?cfp=' + encodeURIComponent(url))
@@ -130,6 +235,45 @@
         });
       })
       .catch(function () { if (line.isConnected) line.textContent = ''; });
+
+    var show = box.querySelector('[data-sz-show]');
+    if (show) show.addEventListener('click', function () {
+      var panel = box.querySelector('.sz-panel');
+      panel.hidden = !panel.hidden;
+      show.textContent = panel.hidden ? 'Show draft' : 'Hide draft';
+    });
+    if (rec.sz_draft) {
+      var fields = draftFields(rec.sz_draft);
+      box.querySelectorAll('[data-sz-copy]').forEach(function (b) {
+        b.addEventListener('click', function () { copyText(fields[+b.getAttribute('data-sz-copy')].text, b); });
+      });
+    }
+    var redraft = box.querySelector('[data-sz-redraft]');
+    if (redraft) redraft.addEventListener('click', function () {
+      var p = requestDraft(rec._table, rec._key);
+      redraw();
+      p.then(function (r) {
+        if (r && r.ok && r.draft) {
+          rec.sz_draft = r.draft;
+          redraw();
+          if (r.written && root.opsRefresh) root.opsRefresh();
+          if (r.dry_run) {
+            var m = body.querySelector('.sz-box[data-sz-key="' + rec._table + ':' + rec._key + '"] .sz-draft .sz-muted');
+            if (m) m.textContent += ' · test mode: not saved';
+          }
+        } else {
+          redraw();
+          var cur = body.querySelector('.sz-box[data-sz-key="' + rec._table + ':' + rec._key + '"]');
+          var msg = cur && (cur.querySelector('.sz-draft-msg') || cur.querySelector('.sz-draft .sz-row'));
+          if (msg) {
+            var e = document.createElement('span');
+            e.className = 'sz-err';
+            e.textContent = (r && r.error) || 'Drafting failed.';
+            msg.parentNode.appendChild(e);
+          }
+        }
+      });
+    });
 
     var open = box.querySelector('[data-sz-open]');
     if (open) open.addEventListener('click', function () {
@@ -287,6 +431,8 @@
   }
 
   root.ABSessionize = { link: link, blockHtml: blockHtml, wire: wire, parseEmail: parseEmail,
-    rankItems: rankItems, withStage: withStage, handlePaste: handlePaste, _cfpLine: cfpLine };
+    rankItems: rankItems, withStage: withStage, handlePaste: handlePaste, _cfpLine: cfpLine,
+    requestDraft: requestDraft, isDrafting: function (table, key) { return !!pending[table + ':' + key]; },
+    draftFields: draftFields, _draftHtml: draftHtml };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.ABSessionize;
 })();

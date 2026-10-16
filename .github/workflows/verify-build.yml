@@ -73,6 +73,6 @@ jobs:
 
       - name: Injected scripts are valid JavaScript
         run: |
-          for f in src/booking-core.js src/action-center.js src/sessionize.js; do
+          for f in src/booking-core.js src/action-center.js src/sessionize.js src/talks.js; do
             node --check "$f" && echo "ok $f"
           done

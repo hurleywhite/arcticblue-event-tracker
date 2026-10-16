@@ -60,4 +60,44 @@ assert.deepEqual(Z.withStage(['Submitted', 'Initial outreach', 'Followed up'], '
 assert.deepEqual(Z.withStage(['Submitted', 'Booked'], 'Rejected'), ['Submitted', 'Rejected']);
 assert.deepEqual(Z.withStage(['Submitted'], 'Submitted'), ['Submitted']);
 assert.deepEqual(Z.withStage(['Submitted', 'Followed up'], ''), ['Submitted', 'Followed up']); // waitlisted: no change
-console.log('Sessionize link, pop-up block, email reading, matching and stage rules passed.');
+// The drafted application in the pop-up.
+const D = { status: 'ready', talk_title: 'Fail or Scale', talk_status: 'draft', fit: 'strong', generated_at: '2026-10-16T18:00:00Z',
+  title: 'Fail or Scale <b>', abstract: 'Para one.\nPara two.', short_abstract: '', format: '', track: 'Main Stage', level: 'Intermediate',
+  takeaways: ['One', 'Two'], answers: [{ question: 'Why you?', answer: 'Because.' }], checks: ['Not approved yet.'],
+  terms: [{ kind: 'fee', text: '$499 package', why_it_matters: 'Pay-to-play.' }], unknowns: ['Session formats'] };
+const base = { apply_url: 'https://sessionize.com/x/', stage_tags: [], _table: 'event_state', _key: 9 };
+assert.deepEqual(Z.draftFields(D).map(f => f.label), ['Title', 'Abstract', 'Track', 'Level', 'Takeaways', 'Why you?']);   // blanks skipped
+assert.equal(Z.draftFields(D)[4].text, '1. One\n2. Two');
+const withDraft = Z.blockHtml(Object.assign({ sz_draft: D }, base));
+assert.ok(withDraft.includes('Draft ready') && withDraft.includes('strong fit') && withDraft.includes('drafted 16 Oct 2026'));
+assert.ok(withDraft.includes('Not approved yet.') && withDraft.includes('$499 package') && withDraft.includes('Session formats'));
+assert.ok(withDraft.includes('Fail or Scale &lt;b&gt;') && !withDraft.includes('<b>'));                // escaped
+assert.ok(withDraft.includes('value="Fail or Scale &lt;b&gt;"'));                                      // the record form starts from the drafted title
+assert.ok(withDraft.includes('data-sz-key="event_state:9"'));
+assert.ok(Z.blockHtml(base).includes('Draft the application'));                                        // no draft yet
+assert.ok(!Z.blockHtml(Object.assign({}, base, { stage_tags: ['Submitted'] })).includes('Draft the application'));  // applied: no new draft
+globalThis.abCanApply = () => false;
+assert.ok(!Z.blockHtml(base).includes('Draft the application'));                                       // only the people who apply can draft
+delete globalThis.abCanApply;
+
+// The talk library's rules.
+const T = require('../src/talks.js');
+const talk = { id: 'a', status: 'approved', title: 'Old', approved_by: 'Thor', approved_at: 'x' };
+assert.equal(T.applyEdit(talk, { title: 'New' }, 'Thor Ernstsson', 'thor').status, 'approved');      // the speaker's own edit keeps it
+const byOther = T.applyEdit(talk, { title: 'New' }, 'Hurley', 'thor');
+assert.ok(byOther.status === 'draft' && byOther.approved_by === '' && byOther.title === 'New');      // anyone else's sends it back
+assert.equal(talk.title, 'Old');                                                                       // never mutates the original
+const ok = T.setStatus({ id: 'a', status: 'draft' }, 'approved', 'Thor');
+assert.ok(ok.status === 'approved' && ok.approved_by === 'Thor' && ok.approved_at);
+assert.equal(T.setStatus(ok, 'draft', 'Thor').approved_by, '');
+globalThis.AB_TALK_SEEDS = { thor: { talks: [{ id: 'a' }] } };
+assert.deepEqual(T.people(), ['thor']);
+const sd = T.seed('thor'); sd.talks.push({ id: 'b' });
+assert.equal(T.seed('thor').talks.length, 1);                                                          // seed handed out as a copy
+assert.equal(T.seed('verma'), null);
+T.load(null, 'thor').then(r => { assert.equal(r.where, 'starting set'); assert.equal(r.lib.talks.length, 1); });
+const html = T._talkHtml({ id: 'a', status: 'draft', title: '<i>x</i>', takeaways: ['t1'], notes_for_thor: 'Check this.' }, 0, true);
+assert.ok(html.includes('Approve this talk') && html.includes('&lt;i&gt;') && html.includes('Check this.'));
+assert.ok(!T._talkHtml({ id: 'a', status: 'draft', title: 'x' }, 0, false).includes('Approve this talk'));
+
+console.log('Sessionize link, pop-up block, drafts, email reading, matching, stage rules and talk library passed.');

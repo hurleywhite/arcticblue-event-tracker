@@ -8315,6 +8315,8 @@ def build():
         if (st.follow_ups) rec.follow_ups = st.follow_ups;
         if (st.speaker_topic) rec.speaker_topic = st.speaker_topic;
         if (st.submitted_at) rec.submitted_at = st.submitted_at;   // "Applied 24 Jul" in the Sessionize block + the edit form
+        // The drafted Sessionize application (api/sessionize.py writes it).
+        if (st.booking && st.booking.sessionize_draft) rec.sz_draft = st.booking.sessionize_draft;
         // Both live ONLY on the state row for a catalog event, and this
         // builder is an explicit whitelist — miss them here and the
         // organiser link and the contact note silently never appear
@@ -8548,6 +8550,7 @@ def build():
       for (var mk in mev) {{ if (Object.prototype.hasOwnProperty.call(mev, mk)) mrec[mk] = mev[mk]; }}
       mrec.workflow_status = mev.status || null;
       mrec.stage_tags = manualStages;
+      mrec.sz_draft = (mev.booking && mev.booking.sessionize_draft) || null;   // drafted Sessionize application
       // Editing context for the modal's quick-actions / Edit Event button.
       mrec._table = 'manual_events'; mrec._key = mev.id;
       mrec.region = canonicalRegion(mev);
@@ -10169,6 +10172,12 @@ def build():
         // whitelist \u2014 a field missing here is invisible to every Queue surface.
         follow_ups: (st && st.follow_ups) || base.follow_ups || [],
         speaker_topic: (st && st.speaker_topic) || base.speaker_topic || '',
+        // The Application queue's Apply decision drafts a Sessionize
+        // application when the event has a Sessionize link: these are where
+        // the link can be (ABSessionize.link) and where the draft lands.
+        apply_url: (st && st.apply_url && st.apply_url !== '__cleared__') ? st.apply_url : (base.apply_url || ''),
+        speaking_route: (st && st.speaking_route && st.speaking_route !== '__cleared__') ? st.speaking_route : (base.speaking_route || ''),
+        sz_draft: (((st && st.booking) || base.booking || {{}}).sessionize_draft) || null,
         // Manual organiser group. On a CATALOG event this lives on the
         // event_state row, so reading base.* alone made every hand-linked
         // catalog event invisible to the sibling scan (Hurley 2026-07-31).
@@ -10721,6 +10730,25 @@ def build():
       }});
     }}
 
+    // The Apply / Skip decision (Hurley 2026-10-16). 'go' is the old Angela
+    // promotion call and means the same thing.
+    function _qApplyDecided(it) {{ return it.decision === 'apply' || it.decision === 'go'; }}
+    // An Apply on a Sessionize event drafts the application (api/sessionize.py
+    // saves it on the event). Fire-and-forget: the queue shows "Drafting…"
+    // and repaints when the draft lands.
+    function _qDraft(it) {{
+      if (!window.ABSessionize || !window.ABSessionize.link(it)) return;
+      if (it.sz_draft && it.sz_draft.status === 'ready') return;
+      var table = it.kind === 'manual' ? 'manual_events' : 'event_state';
+      if (window.ABSessionize.isDrafting(table, it.key)) return;
+      window.ABSessionize.requestDraft(table, it.key).then(function (r) {{
+        if (!(r && r.ok)) status('Could not draft the application for ' + it.name + ': ' + ((r && r.error) || 'unknown error'), 'error');
+        else if (r.dry_run) flashOk('Drafted (test mode: not saved)');
+        else flashOk('Application drafted: ' + it.name);
+        if (window.opsRefresh) window.opsRefresh(); else renderQueue();
+      }});
+    }}
+
     function renderQueue() {{
       var host = document.getElementById('ops-queue');
       if (!host) return;
@@ -10742,7 +10770,18 @@ def build():
         var ints = window.visibleInterested(it.interested, it.speaker, it.attendees, it.stages).map(function (n) {{
           return '<span class="q-int-chip" style="' + window.abPersonChip(n) + '">' + escapeHtml(n) + '</span>';
         }}).join('');
-        var dec = it.decision === 'go' ? '<span class="decision-badge go">&#10003; Go</span>' : '';
+        var dec = '';
+        if (_qApplyDecided(it)) {{
+          // Decided "apply": say where the application stands. A Sessionize
+          // event gets a drafted application; anything else is applied for on
+          // the organiser's own site.
+          var _szT = it.kind === 'manual' ? 'manual_events' : 'event_state';
+          var _szL = window.ABSessionize ? window.ABSessionize.link(it) : '';
+          if (it.sz_draft && it.sz_draft.status === 'ready') dec = '<span class="q-draft is-ready">&#10003; Draft ready</span>';
+          else if (_szL && window.ABSessionize.isDrafting(_szT, it.key)) dec = '<span class="q-draft">Drafting&hellip;</span>';
+          else if (_szL) dec = '<button type="button" class="q-draft is-btn" data-act="draft" data-k="' + it.kind + '" data-key="' + escapeHtml(String(it.key)) + '">Draft application</button>';
+          else dec = '<span class="q-draft is-muted">Apply on their site</span>';
+        }}
         var loc = [it.location].filter(Boolean).join(' &middot; ');
         var _cf = String(it.conflict_note || '').trim();
         return '<div class="queue-row queue-row-open" role="button" tabindex="0"' +
@@ -10761,14 +10800,19 @@ def build():
           '</div>';
       }}
 
-      var booked = [], submitted = [], toApply = [];
+      var booked = [], submitted = [], toApply = [], toDecide = [];
       items.forEach(function (it) {{
         // Closed. It kept Submitted from 2026-07-31 so the history reads
         // right, which would otherwise land it in In Progress for ever.
         if (it.stages.indexOf('Rejected') !== -1) return;
         if (it.stages.indexOf('Booked') !== -1 || it.stages.indexOf('Attending') !== -1) booked.push(it);
         else if (it.stages.indexOf('Submitted') !== -1 || it.stages.indexOf('Initial outreach') !== -1 || it.stages.indexOf('Followed up') !== -1 || it.stages.indexOf('Meeting held') !== -1) submitted.push(it);
-        else toApply.push(it);
+        else if (_qApplyDecided(it)) toApply.push(it);
+        else toDecide.push(it);
+      }});
+      // Skipped this cycle: off the queue, but one click brings them back.
+      var skipped = opsAllItems().filter(function (it) {{
+        return it.decision === 'skip' && !it.past && !it.hidden && it.stages.indexOf('Rejected') === -1;
       }});
       // Chronological by EVENT DATE throughout (Hurley 2026-07-31). It used to
       // float deadline-soon rows to the top of their section, so the order
@@ -10776,7 +10820,7 @@ def build():
       // where she left it. The deadline chip still highlights when one is
       // close — it just no longer reorders the list.
       function byDate(a, b) {{ return a.sort - b.sort; }}
-      toApply.sort(byDate); submitted.sort(byDate); booked.sort(byDate);
+      toApply.sort(byDate); toDecide.sort(byDate); submitted.sort(byDate); booked.sort(byDate); skipped.sort(byDate);
 
       function markStage(it, stage) {{
         var tags = it.stages.slice();
@@ -10795,7 +10839,7 @@ def build():
         }}
       }}
 
-      var html = '<p class="queue-intro"><strong>Application queue:</strong> Every event a teammate marked as interested, grouped by event dates; followed by events that are in progress.</p>';
+      var html = '<p class="queue-intro"><strong>Application queue:</strong> Every event a teammate marked as interested. Decide <strong>Apply</strong> or <strong>Skip</strong> on each; an Apply on a Sessionize event drafts the application, ready in the event&#39;s pop-up.</p>';
 
       // Month dividers inside a section — "grouped by event dates" (Hurley
       // 2026-07-31). Only for the to-apply list: In progress and Booked are
@@ -10818,12 +10862,20 @@ def build():
         function one(it) {{
           return rowHtml(it, function (x) {{
             var btns = '';
-            if (kind === 'toApply') {{
+            var _ka = ' data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '"';
+            if (kind === 'toDecide') {{
               btns += '<div class="q-btn-row">' +
-                '<button class="q-btn primary" data-act="submitted" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark applied</button>' +
-                '<button class="q-btn danger q-btn-x" data-act="dismiss" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '" title="Not relevant — remove from the queue without marking applied" aria-label="Remove from queue">&times;</button>' +
+                '<button class="q-btn primary" data-act="apply"' + _ka + ' title="We&#39;ll apply: drafts the application if it&#39;s on Sessionize">Apply</button>' +
+                '<button class="q-btn" data-act="skip"' + _ka + ' title="Not this one: off the queue (you can bring it back under Skipped)">Skip</button>' +
               '</div>';
             }}
+            else if (kind === 'toApply') {{
+              btns += '<div class="q-btn-row">' +
+                '<button class="q-btn primary" data-act="submitted"' + _ka + '>&#10003; Mark applied</button>' +
+                '<button class="q-btn q-btn-undo" data-act="undecide"' + _ka + ' title="Back to To decide">Undo</button>' +
+              '</div>';
+            }}
+            else if (kind === 'skipped') btns += '<button class="q-btn" data-act="unskip"' + _ka + '>Bring back</button>';
             else if (kind === 'submitted') btns += '<button class="q-btn primary" data-act="booked" data-k="' + x.kind + '" data-key="' + escapeHtml(String(x.key)) + '">&#10003; Mark booked</button>';
             // "Details" now sits inline next to the event name (see rowHtml).
             return btns;
@@ -10836,9 +10888,14 @@ def build():
       if (!items.length) {{
         html += '<div class="queue-empty">Nobody has flagged an event yet.<br>Open any event &rarr; <strong>Edit</strong> &rarr; tick a name under &ldquo;Interested,&rdquo; and it lands here.</div>';
       }} else {{
-        html += section('To apply', toApply, 'toApply', true);
+        html += section('To decide', toDecide, 'toDecide', true);
+        html += section('Apply: to submit', toApply, 'toApply', true);
         html += section('In Progress', submitted, 'submitted');
         html += section('Booked / attending', booked, 'booked');
+      }}
+      if (skipped.length) {{
+        html += '<details class="q-skipped"><summary>Show the ' + skipped.length + ' skipped</summary>' +
+          section('Skipped', skipped, 'skipped') + '</details>';
       }}
       host.innerHTML = html;
 
@@ -10848,10 +10905,15 @@ def build():
       host.querySelectorAll('[data-act]').forEach(function (btn) {{
         btn.addEventListener('click', function (e) {{
           e.stopPropagation();
-          var it = items.filter(function (x) {{ return x.kind === btn.getAttribute('data-k') && String(x.key) === btn.getAttribute('data-key'); }})[0];
+          var it = items.concat(skipped).filter(function (x) {{ return x.kind === btn.getAttribute('data-k') && String(x.key) === btn.getAttribute('data-key'); }})[0];
           if (!it) return;
           var act = btn.getAttribute('data-act');
           if (act === 'dismiss') {{ opsQuickWrite(it.kind, it.key, {{ queue_dismissed: true }}); }}
+          else if (act === 'apply') {{ opsQuickWrite(it.kind, it.key, {{ decision: 'apply' }}); _qDraft(it); }}
+          else if (act === 'draft') {{ _qDraft(it); renderQueue(); }}
+          else if (act === 'skip') {{ opsQuickWrite(it.kind, it.key, {{ decision: 'skip', queue_dismissed: true }}); }}
+          else if (act === 'unskip') {{ opsQuickWrite(it.kind, it.key, {{ decision: '', queue_dismissed: false }}); }}
+          else if (act === 'undecide') {{ opsQuickWrite(it.kind, it.key, {{ decision: '' }}); }}
           else markStage(it, act === 'submitted' ? 'Submitted' : 'Booked');
         }});
       }});
@@ -13008,6 +13070,15 @@ def build():
           '<p class="profile-section-sub">Yours, not a speaker\u2019s \u2014 what you send on their behalf.</p>';
         PROFILE_MATERIALS.forEach(function (m) {{ html += _materialSlotHtml(meKey, m, true); }});
         html += '</div>';
+        // Each speaker's talk library, editable here too, so the people who
+        // run applications can review it with them (src/talks.js).
+        if (window.ABTalks) window.ABTalks.people().forEach(function (pk) {{
+          var pn = _profileDisplay(byKey[pk], pk);
+          html += '<div class="profile-card"><div class="profile-section-head">' + escapeHtml(pn) + '’s talk library</div>' +
+            '<p class="profile-section-sub">The standard talks the Sessionize drafter tailors to each call for speakers. ' +
+            escapeHtml(pn.split(' ')[0]) + ' approves each one; applications built on an unapproved talk are flagged.</p>' +
+            '<div class="tl-host" data-tl-person="' + escapeHtml(pk) + '"></div></div>';
+        }});
       }}
       // Support (Angela/Hurley) coordinate — they don't speak, so they get the
       // team directory straight away, not their own speaker card.
@@ -13024,6 +13095,14 @@ def build():
         // ── Speaking materials — the point of the profile: a ready-to-send
         // kit, organized by what organizers ask for. Each slot is its own
         // upload + list.
+        // ── Talk library — the talks the Sessionize drafter tailors to each
+        // call. First, because approving them is the speaker's to-do.
+        if (window.ABTalks && window.ABTalks.seed(meKey)) {{
+          html += '<div class="profile-section-head">Your talk library</div>' +
+            '<p class="profile-section-sub">The standard talks the tracker tailors to each Sessionize call for speakers. ' +
+            'Read each one, edit what’s off, and press Approve when it’s right. Applications built on a talk you haven’t approved are flagged.</p>' +
+            '<div class="tl-host" data-tl-person="' + escapeHtml(meKey) + '"></div>';
+        }}
         html += '<div class="profile-section-head">Speaking materials</div>' +
           '<p class="profile-section-sub">Help Angela organize your speaking materials.</p>';
         PROFILE_MATERIALS.forEach(function (m) {{ html += _materialSlotHtml(meKey, m); }});
@@ -13050,6 +13129,10 @@ def build():
       }}
       html += '</div>';   // end .profile-wrap
       host.innerHTML = html;
+      if (window.ABTalks) host.querySelectorAll('[data-tl-person]').forEach(function (el) {{
+        var pk = el.getAttribute('data-tl-person');
+        window.ABTalks.mount(el, {{ sb: sb, person: pk, who: meName, canApprove: pk === meKey || support, status: status }});
+      }});
       // Upload / Add-link buttons carry "<key>|<cat>" — one wiring covers the own
       // card AND (for Angela) every editable teammate slot in the directory.
       host.querySelectorAll('[data-mat-upload]').forEach(function (btn) {{
@@ -18161,7 +18244,11 @@ def build():
     # Public view — the Event Tracker is now the sole, fully client-rendered view.
     html = head + foot
     html = html.replace('</style>', (HERE / 'src/action-center.css').read_text() + '\n' + (HERE / 'src/sessionize.css').read_text() + '\n</style>', 1)
-    booking_scripts = '<script>\n' + (HERE / 'src/booking-core.js').read_text() + '\n' + (HERE / 'src/action-center.js').read_text() + '\n' + (HERE / 'src/sessionize.js').read_text() + '\n</script>\n'
+    # Each speaker's starting talk library (config/talks/<person>.json); the
+    # copy edited in the tracker lives in storage and wins once it exists.
+    talk_seeds = {f.stem: json.loads(f.read_text()) for f in sorted((HERE / 'config' / 'talks').glob('*.json'))}
+    talk_seeds_js = 'window.AB_TALK_SEEDS = ' + json.dumps(talk_seeds, ensure_ascii=False).replace('</', '<\\/') + ';\n'
+    booking_scripts = '<script>\n' + (HERE / 'src/booking-core.js').read_text() + '\n' + (HERE / 'src/action-center.js').read_text() + '\n' + (HERE / 'src/sessionize.js').read_text() + '\n' + talk_seeds_js + (HERE / 'src/talks.js').read_text() + '\n</script>\n'
     html = html.replace('<script type="application/json" id="catalog-data">', booking_scripts + '<script type="application/json" id="catalog-data">', 1)
     OUT_SHIP.parent.mkdir(parents=True, exist_ok=True)
     OUT_SHIP.write_text(html, encoding='utf-8')
