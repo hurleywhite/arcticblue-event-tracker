@@ -19,7 +19,8 @@
   'use strict';
   // `root` is the page's window; under node (the tests) it is the global object.
   var root = (typeof window !== 'undefined') ? window : globalThis;
-  var LINK = /https?:\/\/(?:www\.)?sessionize\.com\/[^\s)"'<>\]]+/i;
+  // The scheme is optional: links get typed as "sessionize.com/<event>" too.
+  var LINK = /(?:https?:\/\/|(?<![\w@.\/]))(?:www\.)?sessionize\.com\/[^\s)"'<>\]]+/i;
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   function esc(s) {
@@ -49,7 +50,10 @@
     for (var i = 0; i < fields.length; i++) {
       var m = LINK.exec(String(fields[i] || ''));
       // Only an event page: sessionize.com/<event>/ - not the app or a help page.
-      if (m && !/sessionize\.com\/(app|api|playbook|s|view)\b/i.test(m[0])) return m[0].replace(/[.,;:!?]+$/, '');
+      if (m && !/sessionize\.com\/(app|api|playbook|s|view)\b/i.test(m[0])) {
+        var u = m[0].replace(/[.,;:!?]+$/, '');
+        return /^https?:\/\//i.test(u) ? u : 'https://' + u;
+      }
     }
     return '';
   }

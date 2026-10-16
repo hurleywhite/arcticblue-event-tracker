@@ -370,7 +370,7 @@ def sync(dry_run=False, today=None):
 # call for speakers asks for. It is saved on the event for a person to check,
 # copy into the form and submit. Nothing here touches Sessionize beyond reading
 # the public page.
-_LINK = re.compile(r'https?://(?:www\.)?sessionize\.com/[^\s)"\'<>\]]+', re.I)
+_LINK = re.compile(r'(?:https?://|(?<![\w@./]))(?:www\.)?sessionize\.com/[^\s)"\'<>\]]+', re.I)
 _PERK = re.compile(r'<h3 class="no-margins font-normal">(.*?)</h3>\s*<div class="font-bold text-navy">(.*?)</div>', re.S)
 _TERM_KINDS = ('fee', 'sponsorship', 'travel', 'accommodation', 'in_person', 'recording',
                'code_of_conduct', 'exclusivity', 'other')

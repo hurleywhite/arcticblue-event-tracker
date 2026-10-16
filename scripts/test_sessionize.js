@@ -10,6 +10,8 @@ assert.equal(Z.link({ notes: 'Via Sessionize' }), '');                       // 
 assert.equal(Z.link({ apply_url: 'https://sessionize.com/app/speaker' }), ''); // the app, not an event
 assert.equal(Z.link({ apply_url: 'https://example.com/cfp' }), '');
 assert.equal(Z.link(null), '');
+assert.equal(Z.link({ speaking_route: 'OPEN CFP via Sessionize: sessionize.com/ai-risk-summit-2026' }), 'https://sessionize.com/ai-risk-summit-2026');
+assert.equal(Z.link({ notes: 'mail cfp@sessionize.com/x or see notsessionize.com/y' }), '');   // an address or another site is not a link
 
 // The pop-up block: nothing without a link; applied vs not applied.
 assert.equal(Z.blockHtml({ notes: 'Via Sessionize' }), '');

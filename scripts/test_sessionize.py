@@ -110,6 +110,8 @@ OPEN = """<html><head><title>AI Summit NA 2027: Call for Speakers @ Sessionize.c
 
 assert S.sessionize_link({'apply_url': '', 'notes': 'Apply at https://sessionize.com/ai-summitna-2027/.'}) == 'https://sessionize.com/ai-summitna-2027/'
 assert S.sessionize_link({'url': 'https://example.com'}, {'speaking_route': 'sessionize.com/app/speaker'}) == ''
+assert S.sessionize_link({}, {'speaking_route': 'OPEN CFP via Sessionize: sessionize.com/ai-risk-summit-2026'}) == 'https://sessionize.com/ai-risk-summit-2026/'
+assert S.sessionize_link({'notes': 'cfp@sessionize.com/x and notsessionize.com/y'}) == ''
 assert S.sessionize_link({}, {'speaking_route': 'CFP: https://sessionize.com/boshug/'}) == 'https://sessionize.com/boshug/'
 
 det = S.cfp_details(OPEN)
