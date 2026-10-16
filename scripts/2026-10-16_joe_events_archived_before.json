@@ -1,0 +1,127 @@
+{
+ "why": "Joe left ArcticBlue; Hurley asked to archive his events (2026-10-16). Undo: set hidden back to these values.",
+ "manual_events": [
+  {
+   "id": 67,
+   "name": "Enterprise AI CHRO Transformation Assembly – November",
+   "speaker": "Joe",
+   "interested": [
+    "Joe"
+   ],
+   "status_tags": [],
+   "hidden": false,
+   "updated_by": null,
+   "updated_at": null
+  },
+  {
+   "id": 202,
+   "name": "CHRO Fall Forum 2026",
+   "speaker": null,
+   "interested": [
+    "Joe"
+   ],
+   "status_tags": [],
+   "hidden": false,
+   "updated_by": null,
+   "updated_at": null
+  },
+  {
+   "id": 421,
+   "name": "Millennium Alliance Transformational CHRO Assembly – November 2026",
+   "speaker": "Joe",
+   "interested": null,
+   "status_tags": [],
+   "hidden": false,
+   "updated_by": null,
+   "updated_at": null
+  },
+  {
+   "id": 431,
+   "name": "Transform Conference",
+   "speaker": "Joe",
+   "interested": [],
+   "status_tags": [
+    "Submitted"
+   ],
+   "hidden": false,
+   "updated_by": null,
+   "updated_at": null
+  }
+ ],
+ "event_state": [
+  {
+   "event_num": 91,
+   "speaker": "Joe",
+   "interested": [],
+   "status_tags": [],
+   "hidden": false,
+   "updated_by": "Hurley"
+  },
+  {
+   "event_num": 240,
+   "speaker": "Joe",
+   "interested": [],
+   "status_tags": [
+    "Identified"
+   ],
+   "hidden": false,
+   "updated_by": "angela-resync"
+  },
+  {
+   "event_num": 209,
+   "speaker": "Joe",
+   "interested": [],
+   "status_tags": [
+    "Booked"
+   ],
+   "hidden": false,
+   "updated_by": "angela-resync"
+  },
+  {
+   "event_num": 213,
+   "speaker": "Joe",
+   "interested": [],
+   "status_tags": [
+    "Booked"
+   ],
+   "hidden": false,
+   "updated_by": "angela-resync"
+  },
+  {
+   "event_num": 243,
+   "speaker": "Joe",
+   "interested": [],
+   "status_tags": [
+    "Submitted"
+   ],
+   "hidden": false,
+   "updated_by": "angela-resync"
+  },
+  {
+   "event_num": 244,
+   "speaker": "Joe",
+   "interested": [],
+   "status_tags": [],
+   "hidden": false,
+   "updated_by": "Hurley"
+  },
+  {
+   "event_num": 248,
+   "speaker": "Joe",
+   "interested": [],
+   "status_tags": [
+    "Submitted"
+   ],
+   "hidden": false,
+   "updated_by": "angela-resync"
+  },
+  {
+   "event_num": 274,
+   "speaker": "Joe",
+   "interested": [],
+   "status_tags": [],
+   "hidden": false,
+   "updated_by": "Hurley"
+  }
+ ]
+}
