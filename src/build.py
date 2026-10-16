@@ -8044,18 +8044,10 @@ def build():
       bits.sort(function (a, b) {{ return a.p - b.p; }});   // committed presence leads (stable within a tier)
       return '<p class="ops-status-line">' + bits.map(function (b) {{ return b.h; }}).join('<span class="st-sep">\\u00b7</span>') + '</p>';
     }}
-    function deadlineLine(d, o) {{
-      // Raw CFP deadline DATES are for whoever runs applications (abCanApply:
-      // Angela's job until she left, now Thor and Verma) — the derived
-      // open/closed STATUS shows for everyone via cardStatusLine.
-      if (!(window.abCanApply && window.abCanApply())) return '';
-      if (!deadlineUsable(d, o)) return '';   // shared vetting — see deadlineUsable
-      var txt = String(d).trim();
-      var cls = isDeadlineSoon(d) ? ' deadline-soon' : '';
-      return '<p class="ops-meta deadline-line' + cls + '">CFP deadline: ' + escapeHtml(txt) + '</p>';
-    }}
+    // (deadlineLine, the card's "CFP deadline:" line, was removed 2026-10-16:
+    // Hurley took deadlines off the card face. The pop-up still shows them.)
 
-    // Is this CFP deadline worth showing AT ALL? Same rules the card applies,
+    // Is this CFP deadline worth showing AT ALL? Same rules the card applied,
     // pulled out so the Details pop-up can't disagree with the card — it used to
     // print the raw value, so eCommerce Day Uruguay (event Jul 30) showed a
     // "2026-06-30" deadline in Details that the card had already suppressed.
@@ -8260,9 +8252,12 @@ def build():
 
       var _cdate = escapeHtml(cardDate(ev.date_str, ev.start_date, ev.end_date));
       var _cloc  = escapeHtml(shortLocation(ev));
-      // Angela's working row: raw CFP date + contact cue + Apply, side by side.
-      var _cDeadlineHtml = deadlineLine(ev.deadline, ev);
-      var _cFootHtml = (_cDeadlineHtml || applyBtn || contactBadge) ? ('<div class="ops-card-foot">' + _cDeadlineHtml + contactBadge + applyBtn + '</div>') : '';
+      // The card foot is just the Apply button now (Hurley 2026-10-16): the
+      // "✉ Contact" label and the "CFP deadline:" line came off the card face.
+      // Both still live in the event pop-up, and the Contacts filter still
+      // reads card.dataset.contactFound.
+      void contactBadge;
+      var _cFootHtml = applyBtn ? ('<div class="ops-card-foot">' + applyBtn + '</div>') : '';
       card.innerHTML =
         '<div class="ops-card-head">' +
           '<h3 class="event-name">' +
@@ -8518,8 +8513,9 @@ def build():
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
       // Angela's working row: raw CFP date + contact cue + Apply, side by side.
-      var _mDeadlineHtml = deadlineLine(mev.deadline, mev);
-      var _mFootHtml = (_mDeadlineHtml || mApplyBtn || mContactBadge) ? ('<div class="ops-card-foot">' + _mDeadlineHtml + mContactBadge + mApplyBtn + '</div>') : '';
+      // Same as catalog cards: no Contact label or deadline line on the face.
+      void mContactBadge;
+      var _mFootHtml = mApplyBtn ? ('<div class="ops-card-foot">' + mApplyBtn + '</div>') : '';
       var _mdate = escapeHtml(cardDate(mev.date_str, mev.start_date, mev.end_date));
       var _mloc  = escapeHtml(shortLocation(mev));
       // Private events have no public page — a scraped URL is usually wrong, so

@@ -66,6 +66,26 @@ DESCRIPTION:Exact overlap with Thor’s confirmed Riyadh trip. The dedicated Dig
 URL:https://www.globalhealthsaudi.com/
 END:VEVENT
 BEGIN:VEVENT
+UID:manual-654@arcticblue-event-tracker
+DTSTAMP:20261016T000000Z
+DTSTART;VALUE=DATE:20270314
+DTEND;VALUE=DATE:20270318
+SUMMARY:ViVE 2027
+LOCATION:Music City Center\, Nashville\, TN
+DESCRIPTION:Excellent Thor fit: healthcare technology buyers\, 2\,000+ C-suite attendees\, thousands of meetings\, and a non-pay-to-play main-stage application route.\nPriority: High\nAdded by: ChatGPT curated research
+URL:https://hlth.com/events/vive/
+END:VEVENT
+BEGIN:VEVENT
+UID:manual-656@arcticblue-event-tracker
+DTSTAMP:20261016T000000Z
+DTSTART;VALUE=DATE:20270405
+DTEND;VALUE=DATE:20270408
+SUMMARY:IPC 2027
+LOCATION:Washington\, DC
+DESCRIPTION:Strong Verma fit: payments executives and regulated-industry leaders discussing real-world implementations\, technology\, compliance and regulation.\nPriority: High\nAdded by: ChatGPT curated research
+URL:https://www.ipa.org/ipc.html
+END:VEVENT
+BEGIN:VEVENT
 UID:manual-653@arcticblue-event-tracker
 DTSTAMP:20261016T000000Z
 DTSTART;VALUE=DATE:20270315
@@ -84,26 +104,6 @@ SUMMARY:FinAi Banking Summit 2027
 LOCATION:Westin Denver\, Denver\, CO
 DESCRIPTION:Excellent Verma fit: banking executives discussing real AI deployment\, governance\, automation\, payments and measurable outcomes.\nPriority: High\nAdded by: ChatGPT curated research
 URL:https://finai.events/banking/
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-656@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20270405
-DTEND;VALUE=DATE:20270408
-SUMMARY:IPC 2027
-LOCATION:Washington\, DC
-DESCRIPTION:Strong Verma fit: payments executives and regulated-industry leaders discussing real-world implementations\, technology\, compliance and regulation.\nPriority: High\nAdded by: ChatGPT curated research
-URL:https://www.ipa.org/ipc.html
-END:VEVENT
-BEGIN:VEVENT
-UID:manual-654@arcticblue-event-tracker
-DTSTAMP:20261016T000000Z
-DTSTART;VALUE=DATE:20270314
-DTEND;VALUE=DATE:20270318
-SUMMARY:ViVE 2027
-LOCATION:Music City Center\, Nashville\, TN
-DESCRIPTION:Excellent Thor fit: healthcare technology buyers\, 2\,000+ C-suite attendees\, thousands of meetings\, and a non-pay-to-play main-stage application route.\nPriority: High\nAdded by: ChatGPT curated research
-URL:https://hlth.com/events/vive/
 END:VEVENT
 BEGIN:VEVENT
 UID:manual-652@arcticblue-event-tracker
