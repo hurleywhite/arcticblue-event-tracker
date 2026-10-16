@@ -181,6 +181,10 @@
     function commit(next, openIdx, note) {
       var prev = state.lib;
       state.lib = next;
+      // One save at a time: each save writes the whole library, so a second
+      // click landing before the first save finished could be overwritten.
+      host.querySelectorAll('button, input, textarea').forEach(function (el) { el.disabled = true; });
+      msg('Saving…');
       return Promise.resolve(save(sb, person, next, opts.who)).then(function (r) {
         if (r && r.error) {
           state.lib = prev; paint(openIdx);
