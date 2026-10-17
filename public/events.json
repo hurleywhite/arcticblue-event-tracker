@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-16T00:00:00Z",
-  "build_date": "2026-10-16",
+  "generated_at": "2026-10-17T00:00:00Z",
+  "build_date": "2026-10-17",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -1711,6 +1711,7 @@
       "pay_to_play": "Yes",
       "audience_type": "Buyer-rich",
       "past_speakers": "Rob Middleton, Royal London Asset Management",
+      "meeting_formats": "Curated peer discussions; high-level networking",
       "venue": "London, UK",
       "city": "London",
       "country": "UK",
@@ -5546,6 +5547,7 @@
       "pay_to_play": "Yes",
       "pricing": "Main Conference + Workshops Pass: $2,799.00; Main Conference Pass (Vendor): $3,999.00",
       "audience_type": "Mixed",
+      "past_speakers": "Global Head - Strategy, Partnerships & AI Solutions, Google; Director, AI Engineering & Product Management, Procter & Gamble; Senior Vice President of Software Engineering, JPMorganChase; Director of Data Science and GenAI, Marriott International; Senior Engineering Leader, Expert Enterprise Architect, Discover",
       "meeting_formats": "Access to networking activities, discussion groups, receptions, meals, and the Innovation HUB",
       "seed": false,
       "urgent": false,

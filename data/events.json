@@ -302,7 +302,8 @@
    "source": "arcticscout",
    "pricing": "Main Conference + Workshops Pass: $2,799.00; Main Conference Pass (Vendor): $3,999.00",
    "meeting_formats": "Access to networking activities, discussion groups, receptions, meals, and the Innovation HUB",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "Global Head - Strategy, Partnerships & AI Solutions, Google; Director, AI Engineering & Product Management, Procter & Gamble; Senior Vice President of Software Engineering, JPMorganChase; Director of Data Science and GenAI, Marriott International; Senior Engineering Leader, Expert Enterprise Architect, Discover"
   },
   {
    "num": 24,
@@ -7648,7 +7649,8 @@
    "external_id": "replit-222",
    "venue": "London, UK",
    "audience_type": "Buyer-rich",
-   "past_speakers": "Rob Middleton, Royal London Asset Management"
+   "past_speakers": "Rob Middleton, Royal London Asset Management",
+   "meeting_formats": "Curated peer discussions; high-level networking"
   },
   {
    "num": 295,
