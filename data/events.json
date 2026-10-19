@@ -693,7 +693,8 @@
    "audience_type": "Mixed",
    "typical_attendees": "Technology professionals, entrepreneurs, investors, policymakers, students, and public visitors interested in innovation and emerging technologies",
    "attendee_count": "201,000+",
-   "meeting_formats": "Investor matchmaking; attendee networking and meeting features"
+   "meeting_formats": "Investor matchmaking; attendee networking and meeting features",
+   "pricing": "General admission: free during the sponsored free window; listed face value $50 (188 SAR). Priority: $600–$800; Founder: $450; VIP: $3,150"
   },
   {
    "num": 54,
@@ -1304,7 +1305,8 @@
    "venue": "Atlanta Marriott Marquis",
    "meeting_formats": "curated roundtables; attendee app for pre-booking meetings",
    "audience_type": "Buyer-rich",
-   "attendee_count": "1,200+"
+   "attendee_count": "1,200+",
+   "pricing": "Separate end-user and non-end-user registration tiers; exact prices not verified"
   },
   {
    "num": 76,
@@ -3928,7 +3930,8 @@
    "end_date": "2026-05-13",
    "meeting_formats": "Guaranteed 1:1 meetings; boardroom sessions; closed-door discussions",
    "audience_type": "Buyer-rich",
-   "attendee_count": "344"
+   "attendee_count": "344",
+   "past_speakers": "Chief AI and Data Officer, Pascal Belaud; CIO, Dr. Ricki Koinig; Chief AI & Technology Officer, Dr. Ali Alkhafaji"
   },
   {
    "num": 165,
