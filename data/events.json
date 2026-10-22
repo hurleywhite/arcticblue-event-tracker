@@ -2781,7 +2781,8 @@
    "end_date": "2026-06-25",
    "pricing": "$2,499 for all-access pass (skip application); Free for qualified attendees only (directors+ at non-vendor orgs with 5,000+ employees)",
    "meeting_formats": "Executive roundtables, curated panels, structured networking opportunities",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Vice President, Analytics and Insights, Memorial Sloan Kettering Cancer Center; Chief Data Officer, Stride; Senior Managing Director, AI Innovation Lead, IPG Mediabrands; Senior Vice President, Analytics and Data, Synchrony"
   },
   {
    "num": 123,
@@ -5107,7 +5108,8 @@
    "pricing": "$2,500 tuition (includes all meals)",
    "meeting_formats": "No panels; small moderated seminar groups of up to 24 participants per seminar; meals and programming shared across all concurrent seminars",
    "audience_type": "Mixed",
-   "attendee_count": "180+"
+   "attendee_count": "180+",
+   "past_speakers": "CEO, Open to Debate; CEO, Family Online Safety Institute; Executive Fellow, Harvard Business School"
   },
   {
    "num": 204,
@@ -5503,7 +5505,8 @@
    "pricing": "All-Access Pass: $995 (discounted from $2,295); Protectors Pass: complimentary for select qualified roles; Protectors Pass+ includes up to $1,000 in travel reimbursement for agents/advisors",
    "meeting_formats": "Unlimited 1:1 meetings; exhibit hall; curated learning and networking opportunities",
    "audience_type": "Buyer-rich",
-   "attendee_count": "1,500+"
+   "attendee_count": "1,500+",
+   "past_speakers": "160+ industry leaders, founders, and innovators announced"
   },
   {
    "num": 217,
