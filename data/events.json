@@ -6028,7 +6028,8 @@
    "meeting_formats": "Invitation-only exchange format; likely pre-scheduled meetings, but this exact edition's meeting mechanics are not explicitly verified in the available results",
    "audience_type": "Buyer-rich",
    "typical_attendees": "Finance executives, CFOs, and senior finance leaders",
-   "attendee_count": "60+"
+   "attendee_count": "60+",
+   "past_speakers": "Chief Financial Officer - UK and Europe, TransUnion"
   },
   {
    "num": 235,
@@ -6116,7 +6117,8 @@
    "end_date": "2026-06-25",
    "audience_type": "Mixed",
    "pricing": "CHF 600",
-   "meeting_formats": "Networking events, startup fair, workshops, forums, innovation tours, and social gatherings"
+   "meeting_formats": "Networking events, startup fair, workshops, forums, innovation tours, and social gatherings",
+   "past_speakers": "Matthias Kröner, Digital Banking Pioneer; Roger Furrer, Director, ERI Bancaire"
   },
   {
    "num": 238,
