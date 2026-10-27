@@ -3211,7 +3211,8 @@
    "pricing": "Complimentary pass for eligible enterprise technology leaders, data-centre operators, chip makers, policymakers and academics; software or service provider pass €1,199 plus tax; media pass €349 plus tax",
    "past_speakers": "Chief Commercial Officer, ORCA Computing; Founder, Akash Network",
    "meeting_formats": "Attendee event platform for setting up meetings before the event; dedicated face-to-face networking blocks",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "attendee_count": "277"
   },
   {
    "num": 139,
@@ -5774,7 +5775,8 @@
    "end_date": "2026-06-08",
    "past_speakers": "Senior finance leaders; policymakers; business executives",
    "meeting_formats": "Online and in-person hybrid format",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "pricing": "Free digital pass; in-person applications closed"
   },
   {
    "num": 226,
@@ -6771,7 +6773,8 @@
    "past_speakers": "C-Suite Executive, Fortune 1000 AI Firm; Decision-Maker, Enterprise AI Strategy Group; AI Architect, Global Tech Innovator",
    "meeting_formats": "Exclusive intimate event experience; application-only B2B format for curated peer dialogue",
    "audience_type": "Buyer-rich",
-   "attendee_count": "750+"
+   "attendee_count": "750+",
+   "pricing": "Day 1: invitation-only; Day 2: registration required, price not verified"
   },
   {
    "num": 260,
@@ -7173,7 +7176,8 @@
    "city": "New York",
    "country": "USA",
    "external_id": "replit-206",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "meeting_formats": "Networking and meaningful business meetings"
   },
   {
    "num": 276,
