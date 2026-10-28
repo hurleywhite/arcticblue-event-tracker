@@ -6508,7 +6508,11 @@
    "source": "arcticscout",
    "start_date": "2026-09-01",
    "end_date": "2026-09-01",
-   "priority_full": "High"
+   "priority_full": "High",
+   "pricing": "$749 in-person pass; free apply-to-attend pass for qualified enterprise leaders",
+   "meeting_formats": "Curated roundtables; networking sessions; invite-only happy hours and dinners",
+   "audience_type": "Mixed",
+   "attendee_count": "2,000"
   },
   {
    "num": 251,
