@@ -466,19 +466,19 @@ def build():
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ArcticBlue · Event Tracker</title>
-  <meta name="description" content="ArcticBlue's live tracker of in-person AI events, May–December 2026. Today, upcoming, and archived. 82 enterprise + halo events.">
-
-  <link rel="canonical" href="https://arcticblue.ai/labs/event-tracker/">
+  <!-- An internal working tool: anyone with the link can edit, so it stays
+       out of search results. The share tags stay for team link previews. -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="The ArcticBlue team's tracker of in-person AI events to speak at and attend.">
 
   <meta property="og:title" content="ArcticBlue · Event Tracker">
-  <meta property="og:description" content="82 in-person AI events tracked live. Today, upcoming, and archived — sorted by priority and region.">
+  <meta property="og:description" content="The ArcticBlue team's tracker of in-person AI events to speak at and attend.">
   <meta property="og:image" content="https://arcticblue.ai/og-default.png">
-  <meta property="og:url" content="https://arcticblue.ai/labs/event-tracker/">
   <meta property="og:type" content="website">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="ArcticBlue · Event Tracker">
-  <meta name="twitter:description" content="82 in-person AI events tracked live.">
+  <meta name="twitter:description" content="The ArcticBlue team's tracker of in-person AI events to speak at and attend.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
