@@ -410,9 +410,6 @@ def build():
     upcoming_count = len(upcoming)
     archived_count = len(archived)
 
-    # Find the next single event
-    next_up = upcoming[0] if upcoming else None
-
     # Render groups
     today_html = '\n'.join(render_event_card(ev) for ev in today_evs) if today_evs else ''
     upcoming_html = render_upcoming_grouped(upcoming)
@@ -671,41 +668,6 @@ def build():
       color: var(--ab-fg-3); letter-spacing: 0.1em;
       text-transform: uppercase; margin: 0;
     }}
-
-    /* ───────────── today/up-next callout ───────────── */
-    .today-block {{ padding: 48px 0 0; }}
-    .today-card {{
-      border: 1px solid var(--ab-rule);
-      background: var(--ab-bg-2);
-      padding: 28px 32px;
-      border-radius: 4px;
-      position: relative;
-      overflow: hidden;
-    }}
-    .today-card::before {{
-      content: "";
-      position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
-      background: var(--ab-blue);
-    }}
-    .today-card-head {{
-      display: flex; justify-content: space-between; align-items: baseline;
-      margin: 0 0 12px; gap: 12px; flex-wrap: wrap;
-    }}
-    .today-label {{
-      font-family: var(--ab-mono); font-size: 0.74rem;
-      color: var(--ab-blue); letter-spacing: 0.14em; text-transform: uppercase;
-      font-weight: 600;
-    }}
-    .today-date {{
-      font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg-3);
-    }}
-    .today-name {{
-      font-family: var(--ab-sans); font-weight: 800;
-      font-size: 1.6rem; line-height: 1.15; margin: 0 0 8px;
-      color: var(--ab-fg); letter-spacing: -0.015em;
-    }}
-    .today-meta {{ color: var(--ab-fg-2); font-size: 0.95rem; margin: 0 0 4px; }}
-    .today-why {{ color: var(--ab-fg-3); font-size: 0.92rem; margin: 12px 0 0; max-width: 70ch; }}
 
     /* ───────────── filters ───────────── */
     section.events {{ padding: 56px 0 32px; }}
@@ -3765,8 +3727,6 @@ def build():
     @media (max-width: 500px) {{
       .nav {{ padding: 16px 0; }}
       .hero {{ padding: 48px 0 40px; }}
-      .today-card {{ padding: 20px 22px; }}
-      .today-name {{ font-size: 1.4rem; }}
       .event {{ padding: 20px; }}
       h1 {{ font-size: 2.2rem; }}
     }}
@@ -3788,38 +3748,6 @@ def build():
 
   <main class="wrap">
 '''
-
-    # Today / Up-next callout
-    if today_evs:
-        first_today = today_evs[0]
-        today_section = f'''
-    <section class="today-block">
-      <div class="today-card">
-        <div class="today-card-head">
-          <p class="today-label">Happening today</p>
-          <p class="today-date">{e(fmt_date(first_today))}</p>
-        </div>
-        <h2 class="today-name">{e(first_today["name"])}</h2>
-        <p class="today-meta">{e(first_today.get("location",""))} · {e(first_today.get("type",""))}</p>
-        {f'<p class="today-why">{e(first_today.get("why",""))}</p>' if first_today.get('why') else ''}
-      </div>
-    </section>'''
-    elif next_up:
-        days_to_next = (next_up['_start'] - TODAY).days
-        today_section = f'''
-    <section class="today-block">
-      <div class="today-card">
-        <div class="today-card-head">
-          <p class="today-label">No events today · Next up in {days_to_next} day{"s" if days_to_next != 1 else ""}</p>
-          <p class="today-date">{e(fmt_date(next_up))}</p>
-        </div>
-        <h2 class="today-name">{e(next_up["name"])}</h2>
-        <p class="today-meta">{e(next_up.get("location",""))} · {e(next_up.get("type",""))} · Priority: {e(next_up.get("priority","Medium"))}</p>
-        {f'<p class="today-why">{e(next_up.get("why",""))}</p>' if next_up.get('why') else ''}
-      </div>
-    </section>'''
-    else:
-        today_section = ''
 
     # Build filter options dynamically
     regions = sorted({region_from_location(ev.get('location','')) for ev in upcoming})
@@ -18816,12 +18744,17 @@ def build():
     # Public catalog sections (today/upcoming/archive) were retired with the
     # Public view — the Event Tracker is now the sole, fully client-rendered view.
     html = head + foot
-    html = html.replace('</style>', (HERE / 'src/action-center.css').read_text() + '\n' + (HERE / 'src/sessionize.css').read_text() + '\n</style>', 1)
+    # The Action Center's styles and scripts ship only while its switch is on
+    # (SHOW_ACTION_CENTER): hidden, they were ~78KB of dead weight, including
+    # the off-system #142844 glow on its dialog (Hurley 2026-10-30).
+    _ac_css = ((HERE / 'src/action-center.css').read_text() + '\n') if SHOW_ACTION_CENTER else ''
+    html = html.replace('</style>', _ac_css + (HERE / 'src/sessionize.css').read_text() + '\n</style>', 1)
     # Each speaker's starting talk library (config/talks/<person>.json); the
     # copy edited in the tracker lives in storage and wins once it exists.
     talk_seeds = {f.stem: json.loads(f.read_text()) for f in sorted((HERE / 'config' / 'talks').glob('*.json'))}
     talk_seeds_js = 'window.AB_TALK_SEEDS = ' + json.dumps(talk_seeds, ensure_ascii=False).replace('</', '<\\/') + ';\n'
-    booking_scripts = '<script>\n' + (HERE / 'src/booking-core.js').read_text() + '\n' + (HERE / 'src/action-center.js').read_text() + '\n' + (HERE / 'src/sessionize.js').read_text() + '\n' + talk_seeds_js + (HERE / 'src/talks.js').read_text() + '\n</script>\n'
+    _ac_js = ((HERE / 'src/booking-core.js').read_text() + '\n' + (HERE / 'src/action-center.js').read_text() + '\n') if SHOW_ACTION_CENTER else ''
+    booking_scripts = '<script>\n' + _ac_js + (HERE / 'src/sessionize.js').read_text() + '\n' + talk_seeds_js + (HERE / 'src/talks.js').read_text() + '\n</script>\n'
     html = html.replace('<script type="application/json" id="catalog-data">', booking_scripts + '<script type="application/json" id="catalog-data">', 1)
     OUT_SHIP.parent.mkdir(parents=True, exist_ok=True)
     OUT_SHIP.write_text(html, encoding='utf-8')
