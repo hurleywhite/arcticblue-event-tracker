@@ -2912,6 +2912,7 @@ def build():
     /* Right-hand column of a Lineup row: who it's for, and the brief under
        them. Small and quiet — the event name is the headline, not this. */
     .qrow-side {{ align-self: center; align-items: flex-end; gap: 5px; }}
+    .me-brief {{ margin: 10px 0 2px; }}
     .qrow-brief {{
       font-family: var(--ab-mono); font-size: 0.64rem; letter-spacing: 0.03em;
       padding: 3px 8px; border-radius: 999px; cursor: pointer; white-space: nowrap;
@@ -5509,6 +5510,24 @@ def build():
 
     var html = '';
     html += quickBarHtml(rec);
+    // The day-of brief, from the event itself (Hurley 2026-10-30). It used to
+    // open only from Angela's lineup rows, so nobody else could reach one.
+    var _bfKind = rec._table === 'manual_events' ? 'manual' : 'catalog';
+    var _bfIt = (window.abAllItems ? window.abAllItems() : []).filter(function (x) {{
+      return x.kind === _bfKind && String(x.key) === String(rec._key);
+    }})[0];
+    // Same "can it be briefed" test as My Lineup: a private event has no
+    // online footprint to research.
+    var _bfAble = rec.is_private !== true &&
+      !!(String(rec.url || '').trim() || String(rec.about || '').trim() || String(rec.focus_areas || '').trim());
+    var _bfOn = !!(_bfIt && !_bfIt.past && _bfAble &&
+      !(window.abIsSupportUser && window.abIsSupportUser()) &&
+      ((rec.stage_tags || []).indexOf('Booked') !== -1 || (rec.stage_tags || []).indexOf('Attending') !== -1 ||
+       (rec.attendees || []).length));
+    if (_bfOn) {{
+      html += '<div class="me-brief"><button type="button" class="q-btn" data-open-brief>' +
+        (_bfIt.briefing_json ? 'Open the day-of brief' : 'Day-of brief') + '</button></div>';
+    }}
     // Team Discussion thread — right after the quickbar (Status/Interested/
     // Hide: Archive), ahead of the read-only detail fields.
     html += '<div class="event-chat" id="event-chat-panel"></div>';
@@ -6030,6 +6049,10 @@ def build():
     if (window.ABSessionize) window.ABSessionize.wire($body, rec);
     // "Mark reached out": a dated line in the follow-up log, plus the outreach
     // stage once the application is in (stages put outreach after Submitted).
+    var $bf = $body.querySelector('[data-open-brief]');
+    if ($bf) $bf.addEventListener('click', function () {{
+      if (window.abOpenBrief) window.abOpenBrief(rec._table === 'manual_events' ? 'manual' : 'catalog', rec._key);
+    }});
     $body.querySelectorAll('[data-copy-email]').forEach(function ($cp) {{
       $cp.addEventListener('click', function () {{
         var addr = $cp.getAttribute('data-copy-email');
@@ -7278,6 +7301,7 @@ def build():
       var first = String(name || '').trim().toLowerCase().split(/[ @]/)[0];
       return AB_SUPPORT_NAMES.indexOf(first) !== -1;
     }}
+    window.abIsSupportUser = function () {{ return isSupportPerson(getCollabName() || ''); }};
 
     // Drop a trailing year (e.g. "Databricks Data + AI Summit 2026" → "…Summit")
     // — the year is redundant with the event's date. Keeps the name if stripping
@@ -10568,6 +10592,7 @@ def build():
 
     function kindToTable(kind) {{ return kind === 'manual' ? 'manual_events' : 'event_state'; }}
 
+    window.abOpenBrief = function (kind, key) {{ openBriefDrawer(kind, key); }};
     function openBriefDrawer(kind, key) {{
       var it = opsAllItems().filter(function (x) {{ return x.kind === kind && String(x.key) === String(key); }})[0];
       if (!it) return;
@@ -11973,9 +11998,10 @@ def build():
         var statusHtml = it.statusHtml ? '<div class="qrow-marks">' + it.statusHtml + '</div>' : '';
         // The Day-Of brief lives here (no separate tab) — on upcoming rows. A
         // private / invite-only event (no online footprint) can't be briefed,
-        // so no brief button (see `briefable`). Briefs are Angela's tool — only
-        // her view shows the button (everyone else's lineup rows have no brief).
-        var brief = (it._past || !it.briefable || !(window.isAngelaUser && window.isAngelaUser())) ? '' :
+        // so no brief button (see `briefable`). Briefs were Angela's tool and
+        // she has left, so nobody could open one (Hurley 2026-10-30): now
+        // anyone who speaks or attends gets the button, the operator doesn't.
+        var brief = (it._past || !it.briefable || isSupportPerson(getCollabName() || '')) ? '' :
           '<button type="button" class="qrow-brief' + (it.briefReady ? ' is-ready' : '') + '" data-brief-kind="' + it.kind + '" data-brief-key="' + escapeHtml(String(it.key)) + '" title="' +
           (it.briefReady ? 'Brief ready' : 'Build the day-of brief') + '">' +
           (it.briefReady ? '&#10003; Brief' : 'Brief &rarr;') + '</button>';
@@ -12199,6 +12225,9 @@ def build():
       }});
       host.querySelectorAll('[data-brief-kind]').forEach(function (el) {{
         el.addEventListener('click', function (e) {{ e.stopPropagation(); openBriefDrawer(el.getAttribute('data-brief-kind'), el.getAttribute('data-brief-key')); }});
+        // Enter on the button is the button's, not the row's: the row's own
+        // keydown opened the event instead of the brief.
+        el.addEventListener('keydown', function (e) {{ if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }});
       }});
       // Whole-row keyboard open (rows are role="button" now).
       host.querySelectorAll('.queue-row-open').forEach(function (row) {{
