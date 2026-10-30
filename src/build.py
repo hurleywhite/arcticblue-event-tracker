@@ -3504,6 +3504,21 @@ def build():
       width: 6px; height: 6px; border-radius: 50%;
       display: inline-block; flex-shrink: 0;
     }}
+    /* The Calendar sync and Add panels ran 31px past a phone screen. */
+    @media (max-width: 560px) {{
+      .ops-grid > .add-event-card {{ padding: 16px; box-sizing: border-box; max-width: 100%; }}
+      .ops-grid > .add-event-card * {{ min-width: 0; max-width: 100%; box-sizing: border-box; }}
+    }}
+    /* On a phone the grid was 700px wide, so only four days showed and the
+       rest scrolled sideways (Hurley 2026-10-30). It now fits the screen:
+       each event is a bar in its stage colour with the speaker's initial,
+       like a phone calendar's month view, and a tap still opens it. */
+    @media (max-width: 560px) {{
+      .calendar-grid {{ min-width: 0; }}
+      .cal-evt {{ min-height: 14px; padding: 0 2px; margin: 1px 2px; border: 0;
+        border-radius: 4px; background: var(--cal-dot, #a3a3a3) !important; }}
+      .cal-evt-name, .cal-evt-status {{ display: none; }}
+    }}
 
     .ops-card.is-highlight {{
       animation: ops-highlight 1600ms ease-out;
@@ -3733,7 +3748,7 @@ def build():
       .kpi {{ padding: 20px 20px 20px 0; }}
       .filter-bar {{ flex-direction: column; align-items: stretch; }}
       .filter-group {{ min-width: 0; }}
-      .ops-grid {{ grid-template-columns: 1fr; }}
+      .ops-grid {{ grid-template-columns: minmax(0, 1fr); }}   /* minmax: a wide panel can't stretch the track past the screen */
     }}
     /* Touch screens: give the small card controls a tappable target. */
     /* Touch screens: every control gets a finger-sized target (44px, Apple's
@@ -3742,7 +3757,7 @@ def build():
       .ops-details-btn, .ops-chip {{ min-height: 44px; padding-top: 8px; padding-bottom: 8px; }}
       .bf-close, .saved-star, .ops-archive-x, .mt-ico, .modal-close {{ min-width: 44px; min-height: 44px; }}
       .seg-chip, .ops-apply-btn, .q-btn, .sz-btn, .qa-step, .qa-edit, .bf-btn,
-      .view-toggle button, .qrow-brief {{ min-height: 44px; }}
+      .view-toggle button, .qrow-brief, .subnav-btn, .tf-toggle {{ min-height: 44px; min-width: 44px; }}
       .who-init {{ min-width: 36px; height: 36px; }}
       .ops-month-header {{ min-height: 44px; }}
       .q-link, .sz-link {{ display: inline-block; padding: 10px 2px; }}
@@ -16829,9 +16844,11 @@ def build():
           if (calBlock && STAGE_BY_KEY[calBlock]) {{
             bar.style.background = STAGE_BY_KEY[calBlock].bg;
             bar.style.borderLeftColor = STAGE_BY_KEY[calBlock].dot;
+            bar.style.setProperty('--cal-dot', STAGE_BY_KEY[calBlock].dot);
           }} else {{
             bar.style.background = '#f3f4f6';
             bar.style.borderLeftColor = '#d1d5db';
+            bar.style.setProperty('--cal-dot', '#a3a3a3');
           }}
           var sp2 = st.speaker || '';
           var ini = sp2 ? initials(sp2) : '';
