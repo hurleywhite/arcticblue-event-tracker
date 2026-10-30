@@ -1866,6 +1866,12 @@ def build():
     /* A touch screen has no hover, so star and archive were unreachable
        there; they stay visible (Hurley 2026-10-30). */
     @media (hover: none) {{ .ops-hover {{ opacity: 1; pointer-events: auto; }} }}
+    /* iOS zooms the page into any field set below 16px and leaves it zoomed.
+       On phones every text field gets 16px (Hurley 2026-10-30). */
+    @media (max-width: 760px) {{
+      input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="date"],
+      input[type="number"], input:not([type]), textarea, select {{ font-size: 16px !important; }}
+    }}
     .ops-archive-x {{
       display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer; background: transparent; border: 0; color: var(--ab-red);
