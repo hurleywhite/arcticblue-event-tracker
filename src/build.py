@@ -6817,7 +6817,7 @@ def build():
     // A truthy value means that month's cards are hidden via the dropdown / header.
     // Both special groups start collapsed: 'archived' = you archived it,
     // 'past' = the date has gone by. Two different things, two different words.
-    var opsCollapsedMonths = {{ archived: true, past: true }};
+    var opsCollapsedMonths = {{ setaside: true, archived: true, past: true }};
     // Active stat-tile filter ('' | 'saved' | 'urgent' | 'pipeline' | 'booked'
     // | 'attending' | 'buyer' | 'interested' | 'contacts' | 'myinterests') — click a top stat to
     // show only those events. Starts empty (All) for everyone; nothing
@@ -8295,6 +8295,18 @@ def build():
     }}
     window.abCanStillApply = canStillApply;
 
+    // Set aside (Hurley 2026-10-30): events nobody should be working fold into
+    // their own group instead of sitting at full weight in the list. HR and
+    // L&D events fit no one since Joe left; a rejected event is done unless
+    // someone is still going.
+    function setAsideWhy(name, url, stages, attendees) {{
+      stages = stages || [];
+      if ((attendees || []).length || stages.indexOf('Booked') !== -1 || stages.indexOf('Attending') !== -1) return '';
+      if (stages.indexOf('Rejected') !== -1) return 'Rejected';
+      if (window.abIsHrEvent && window.abIsHrEvent(name, url)) return 'HR event';
+      return '';
+    }}
+
     // Two status glyphs so speaking vs attending reads at a glance (Angela):
     //   mic    = the SPEAKING track (Booked / Submitted / Rejected) — "Rejected 🎤 — Thor"
     //   ticket = ATTENDING (we're in the room, not on stage)
@@ -8412,6 +8424,8 @@ def build():
       card.dataset.interestedNames = (st.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       // Who's ATTENDING (the source of truth) — per-account, incl. past + future.
       card.dataset.attendeeNames = ((st.attendees || ev.attendees) || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
+      var _setAside = setAsideWhy(ev.name, ev.url, opsStages, (st.attendees || ev.attendees));
+      if (_setAside) card.dataset.setAside = _setAside;
       card.dataset.briefReady = (st.briefing_json ? '1' : '');   // Day-Of brief pre-generated?
       card.dataset.fitText = abFold([ev.name, ev.about, ev.focus_areas, ev.typical_attendees, ev.location, ev.city, ev.country, ev.type, ev.past_speakers, _aud].join(' '));
       // Name + host kept separate from the blob: the HR gate judges the
@@ -8686,6 +8700,8 @@ def build():
       card.dataset.interested = (mev.interested && mev.interested.length) ? '1' : '';
       card.dataset.interestedNames = (mev.interested || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
       card.dataset.attendeeNames = (mev.attendees || []).map(function (n) {{ return String(n).toLowerCase(); }}).join('|');
+      var _mSetAside = setAsideWhy(mev.name, mev.url, manualStages, mev.attendees);
+      if (_mSetAside) card.dataset.setAside = _mSetAside;
       card.dataset.briefReady = (mev.briefing_json ? '1' : '');   // Day-Of brief pre-generated?
       card.dataset.fitText = abFold([mev.name, mev.about, mev.focus_areas, mev.typical_attendees, mev.location, mev.city, mev.country, mev.type, mev.past_speakers, mev.audience_type].join(' '));
       // Name + host kept separate from the blob: the HR gate judges the
@@ -9650,11 +9666,16 @@ def build():
     // Card placement tier: regular months (0) sort first, then the collapsible
     // "Archived" group (1) — events YOU archived — then "Past events" (2), whose
     // date has simply gone by, at the very bottom. Two separate lists, two words.
+    // "Set aside" (1) sits between the live months and the archive: HR events
+    // and rejections, still one click away (Hurley 2026-10-30).
     function opsCardTier(card) {{
-      if (card.classList.contains('is-archived')) return 1;
-      if (card.dataset.past === '1') return 2;
+      if (card.classList.contains('is-archived')) return 2;
+      if (card.dataset.past === '1') return 3;
+      if (card.dataset.setAside) return 1;
       return 0;
     }}
+    var OPS_TIER_GROUP = {{ 1: ['setaside', 'Set aside: HR events and rejections'], 2: ['archived', 'Archived'], 3: ['past', 'Past events'] }};
+    function opsTierKey(tier, card) {{ return OPS_TIER_GROUP[tier] ? OPS_TIER_GROUP[tier][0] : (card.dataset.month || 'tbd'); }}
 
     // Re-sort every .ops-card chronologically and (re)insert month dividers.
     // Cards keep their DOM nodes — we only move them — so wired handlers and
@@ -9674,19 +9695,18 @@ def build():
         var bs = parseInt(b.dataset.sort || '99999999', 10);
         // Past events read best most-recent-first; everything else stays
         // chronological (soonest first).
-        return at === 2 ? (bs - as) : (as - bs);
+        return at === 3 ? (bs - as) : (as - bs);
       }});
       var frag = document.createDocumentFragment();
       var curKey = null;
       var order = [];
       cards.forEach(function (card) {{
         var tier = opsCardTier(card);
-        // Keys match the labels on purpose. They used to be inverted — tier 1
-        // (what the reader sees as "Archived") was keyed 'hidden', and tier 2
-        // (past events) was keyed 'archive' — so the constant called `archive`
-        // was NOT the archive anyone means.
-        var key = tier === 1 ? 'archived' : (tier === 2 ? 'past' : (card.dataset.month || 'tbd'));
-        var label = tier === 1 ? 'Archived' : (tier === 2 ? 'Past events' : (card.dataset.monthLabel || 'Date TBD'));
+        // Keys match the labels on purpose (OPS_TIER_GROUP): they were once
+        // inverted, so the constant called `archive` was not the archive
+        // anyone meant.
+        var key = opsTierKey(tier, card);
+        var label = OPS_TIER_GROUP[tier] ? OPS_TIER_GROUP[tier][1] : (card.dataset.monthLabel || 'Date TBD');
         if (key !== curKey) {{
           curKey = key;
           order.push({{ key: key, label: label }});
@@ -10054,7 +10074,7 @@ def build():
         // is folded — we only hide it from view. Hidden cards live in the
         // "hidden" group regardless of their date.
         var _tier = opsCardTier(card);
-        var mkey = _tier === 1 ? 'archived' : (_tier === 2 ? 'past' : (card.dataset.month || 'tbd'));
+        var mkey = opsTierKey(_tier, card);
         if (_tier === 0) activeTotal++;   // live universe (not hidden / past)
         if (on) {{ monthMatched[mkey] = (monthMatched[mkey] || 0) + 1; shown++; if (_tier === 0) activeShown++; }}
         // Did the card pass the real filters? (independent of month/archive
