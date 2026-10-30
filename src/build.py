@@ -6016,7 +6016,8 @@ def build():
       var _szHtml = window.ABSessionize ? window.ABSessionize.blockHtml(rec) : '';
       if (_szHtml) {{
         v += _szHtml;
-      }} else if (_apUrl && window.abCanApply && window.abCanApply()) {{
+      }} else if (_apUrl && window.abCanApply && window.abCanApply() &&
+                 (!window.abCanStillApply || window.abCanStillApply(rec, rec.stage_tags, rec.deadline))) {{
         v += '<div class="me-apply"><a class="modal-visit modal-apply" href="' + esc(_apUrl) +
              '" target="_blank" rel="noopener">Apply to speak \u2197</a></div>';
       }}

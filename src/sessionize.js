@@ -60,21 +60,45 @@
   function isApplied(rec) { return (rec.stage_tags || []).indexOf('Submitted') !== -1; }
 
   // ── 1. The block in the event pop-up ────────────────────────────────────
+  // Four numbered steps in the order they happen (Hurley 2026-10-30): draft,
+  // approve, submit on Sessionize, record it. The Sessionize link used to sit
+  // first, above the draft, and every step looked equally urgent; now only
+  // the current step carries the solid button.
+  function step(n, label, state, body) {
+    return '<div class="sz-step is-' + state + '">' +
+      '<span class="sz-step-n" aria-hidden="true">' + (state === 'done' ? '✓' : n) + '</span>' +
+      '<div class="sz-step-b"><div class="sz-step-h">' + label +
+        (state === 'done' ? '<span class="sz-sr"> (done)</span>' : '') + '</div>' + body + '</div></div>';
+  }
   function blockHtml(rec) {
     var url = link(rec);
     if (!url) return '';
     var who = String(rec.speaker || '').trim();
     var on = (/^\d{4}-\d{2}-\d{2}/.exec(String(rec.submitted_at || '')) || [''])[0];
-    var track = isApplied(rec)
-      ? '<span class="sz-done">✓ Applied' + (on ? ' ' + esc(nice(on)) : '') + (who ? ' · ' + esc(who) : '') + '</span>' +
+    var applied = isApplied(rec);
+    var d = rec.sz_draft, ready = !!(d && d.status === 'ready');
+    var approved = rec.decision === 'approved';
+    var drafting = canDraft();
+    // Which step is current. Someone who doesn't draft goes straight to 3.
+    var now = applied ? 5 : (!drafting ? 3 : (!ready ? 1 : (!approved ? 2 : 3)));
+    function st(n) { return n < now ? 'done' : (n === now ? 'now' : 'later'); }
+    var track = applied
+      ? '<span class="sz-done">Applied' + (on ? ' ' + esc(nice(on)) : '') + (who ? ' · ' + esc(who) : '') + '</span>' +
         '<button type="button" class="sz-link" data-sz-open>Change</button>'
-      : '<button type="button" class="sz-btn" data-sz-open>I’ve submitted — record it</button>';
-    return '<div class="me-apply sz-box" data-sz-url="' + esc(url) + '" data-sz-key="' + esc(rec._table + ':' + rec._key) + '">' +
+      : '<button type="button" class="sz-btn' + (now === 3 ? '' : '') + '" data-sz-open>I have submitted, record it</button>';
+    var html = '<div class="me-apply sz-box" data-sz-url="' + esc(url) + '" data-sz-key="' + esc(rec._table + ':' + rec._key) + '">' +
+      '<div class="sz-box-h">Apply on Sessionize</div>';
+    if (drafting) {
+      html += step(1, 'Draft the application', st(1), draftHtml(rec, now === 1));
+      html += step(2, 'Approve it', st(2), approveHtml(rec, now === 2));
+    }
+    html += step(drafting ? 3 : 1, 'Submit it on Sessionize', applied ? 'done' : (now === 3 ? 'now' : 'later'),
       '<div class="sz-row">' +
-        '<a class="modal-visit modal-apply" href="' + esc(url) + '" target="_blank" rel="noopener">Apply on Sessionize ↗</a>' +
+        '<a class="' + (now === 3 ? 'sz-btn sz-primary' : 'sz-link') + '" href="' + esc(url) + '" target="_blank" rel="noopener">Open Sessionize ↗</a>' +
         '<span class="sz-cfp" aria-live="polite">Checking the call for speakers…</span>' +
       '</div>' +
-      draftHtml(rec) +
+      (now === 3 && drafting ? '<p class="sz-hint">Paste the fields from the draft, press Submit there, then record it below.</p>' : ''));
+    html += step(drafting ? 4 : 2, 'Record it here', applied ? 'done' : (now === 3 ? 'now' : 'later'),
       '<div class="sz-row sz-track">' + track + '</div>' +
       '<form class="sz-form" hidden>' +
         '<label>Speaker<input name="speaker" value="' + esc(who || 'Thor') + '" autocomplete="off"></label>' +
@@ -82,8 +106,8 @@
         '<label>Applied on<input type="date" name="date" value="' + esc(on || today()) + '"></label>' +
         '<div class="sz-actions"><button type="submit" class="sz-btn sz-primary">Record application</button>' +
         '<button type="button" class="sz-link" data-sz-cancel>Cancel</button></div>' +
-      '</form>' +
-    '</div>';
+      '</form>');
+    return html + '</div>';
   }
 
   // ── 4. The drafted application ──────────────────────────────────────────
@@ -107,7 +131,7 @@
     return out;
   }
 
-  function draftHtml(rec) {
+  function draftHtml(rec, current) {
     var d = rec.sz_draft;
     var key = rec._table + ':' + rec._key;
     if (pending[key]) {
@@ -115,24 +139,18 @@
     }
     if (!d || d.status !== 'ready') {
       if (isApplied(rec) || !canDraft()) return '';
-      return '<div class="sz-draft"><button type="button" class="sz-btn" data-sz-redraft>Draft the application</button>' +
-        '<span class="sz-draft-msg sz-muted">Picks the best talk from the talk library and tailors it to this call.</span></div>';
+      return '<div class="sz-draft"><div class="sz-row"><button type="button" class="sz-btn' + (current ? ' sz-primary' : '') + '" data-sz-redraft>Draft the application</button>' +
+        '<span class="sz-draft-msg sz-muted">Picks the best talk from the talk library and tailors it to this call.</span></div></div>';
     }
     var when = nice(String(d.generated_at || '').slice(0, 10));
     var checks = d.checks || [];
     var fields = draftFields(d);
     var html = '<div class="sz-draft">' +
-      '<div class="sz-row"><span class="sz-done">✓ Draft ready</span>' +
+      '<div class="sz-row"><span class="sz-done">Draft ready</span>' +
         '<span class="sz-muted">' + esc(d.talk_title || 'Talk') + (d.fit ? ' · ' + esc(d.fit) + ' fit' : '') + (when ? ' · drafted ' + esc(when) : '') + '</span>' +
         '<button type="button" class="sz-link" data-sz-show>Show draft</button>' +
         (canDraft() && !isApplied(rec) ? '<button type="button" class="sz-link" data-sz-redraft>Redraft</button>' : '') +
       '</div>' +
-      // Approve, then submit (Hurley 2026-10-16): approval is the Apply
-      // decision moving on to 'approved', the same field the queue reads.
-      (isApplied(rec) ? '' : (rec.decision === 'approved'
-        ? '<div class="sz-row"><span class="sz-done">✓ Approved: ready to submit</span><span class="sz-muted">Open “Apply on Sessionize”, paste the fields, press Submit there, then record it below.</span></div>'
-        : (canDraft() ? '<div class="sz-row"><button type="button" class="sz-btn sz-primary" data-sz-approve>Approve this application</button>' +
-            '<span class="sz-muted">Read it first: Show draft.</span></div>' : ''))) +
       (checks.length ? '<ul class="sz-checks">' + checks.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' : '') +
       '<div class="sz-panel" hidden>' +
         (d.why_this_talk ? '<p class="sz-why">' + esc(d.why_this_talk) + '</p>' : '') +
@@ -156,6 +174,18 @@
       '</div>' +
     '</div>';
     return html;
+  }
+
+  // Step 2. Approval is the Apply decision moving on to 'approved', the same
+  // field the queue reads (Hurley 2026-10-16).
+  function approveHtml(rec, current) {
+    var d = rec.sz_draft;
+    if (isApplied(rec) || rec.decision === 'approved') {
+      return rec.decision === 'approved' ? '<div class="sz-row"><span class="sz-done">Approved</span></div>' : '';
+    }
+    if (!d || d.status !== 'ready') return '<p class="sz-hint">Once the draft is ready.</p>';
+    return '<div class="sz-row"><button type="button" class="sz-btn' + (current ? ' sz-primary' : '') + '" data-sz-approve>Approve this application</button>' +
+      '<span class="sz-muted">Read it first: Show draft.</span></div>';
   }
 
   // Ask the server for a draft. Resolves to the server's answer:
@@ -439,7 +469,7 @@
       Promise.resolve(deps.write(it.kind === 'manual' ? 'manual_events' : 'event_state', it.key, patch)).then(function (resp) {
         if (resp && resp.error) { go.disabled = false; msg.textContent = 'Save failed: ' + resp.error.message; return; }
         panel.innerHTML = '<p class="sz-email-h">✓ ' + esc(it.name) + ': ' + esc(ok.label) +
-          (ok.stage ? ' — marked ' + esc(ok.stage) : ' — noted, stage unchanged') + '.</p>';
+          (ok.stage ? '. Marked ' + esc(ok.stage) : '. Noted, stage unchanged') + '.</p>';
         if (deps.done) deps.done(it);
       });
     });
