@@ -36,7 +36,7 @@
 .sz-draft > .sz-row { flex-wrap: wrap; }
 .sz-draft .sz-muted { font-size: 12px; }
 .sz-err { color: #c0392b; font-size: 12px; margin-left: 8px; }
-.sz-checks { margin: 0; padding: 6px 10px 6px 26px; border-left: 3px solid #f2b134; background: rgba(242,177,52,0.10); font-size: 12px; border-radius: 3px; }
+.sz-checks { margin: 0; padding: 6px 10px 6px 26px; border: 1px solid #fde68a; background: #fffbeb; font-size: 12px; border-radius: 6px; }
 .sz-checks li { margin: 2px 0; }
 .sz-panel { border: 1px solid var(--line, #dde3ea); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
 .sz-why { margin: 0; font-size: 12px; font-style: italic; color: var(--muted, #5b6b7b); }
@@ -47,7 +47,7 @@
 .sz-copy:hover { border-color: currentColor; }
 .sz-fv { font-size: 13px; line-height: 1.45; white-space: normal; }
 .sz-terms ul, .sz-unknown ul { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; }
-.sz-terms { border-left: 3px solid #ff6b5e; padding-left: 8px; }
+.sz-terms { border: 1px solid #fecaca; background: #fef2f2; border-radius: 6px; padding: 8px 10px; }
 .sz-terms li { margin: 3px 0; }
 
 /* Application queue: Apply / Skip */
@@ -78,7 +78,7 @@
 .tl-v p { margin: 0 0 6px; }
 .tl-small { font-size: 12px; color: var(--muted, #5b6b7b); }
 .tl-take { padding-left: 18px; }
-.tl-note { margin: 0 0 6px; padding: 6px 9px; font-size: 12.5px; border-left: 3px solid #3fa1dd; background: rgba(63,161,221,0.08); border-radius: 3px; }
+.tl-note { margin: 0 0 6px; padding: 6px 9px; font-size: 12.5px; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 6px; }
 .tl-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
 .tl-remove { margin-left: auto; color: #c0392b; }
 .tl-form { display: flex; flex-direction: column; gap: 8px; }

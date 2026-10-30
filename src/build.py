@@ -1117,8 +1117,8 @@ def build():
     .modal-quickbar .qa[data-qa="go"].on {{ background: #1a8c54; border-color: #1a8c54; }}
     .peek-clash {{
       font-size: 0.82rem; font-weight: 500; color: #9a3412;
-      background: none; border: 0; border-left: 2px solid #f59e0b; border-radius: 0;
-      padding: 1px 0 1px 9px; margin-bottom: 11px;
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px;
+      padding: 4px 9px; margin-bottom: 11px;
     }}
     /* ── Follow-up log ──────────────────────────────────────────────
        A timeline, not a spreadsheet row: state up top, entries down a rule,
@@ -1388,9 +1388,9 @@ def build():
     .ops-clash {{
       display: flex; align-items: flex-start; gap: 6px;
       font-family: var(--ab-sans); font-size: 0.76rem; font-weight: 500;
-      color: #9a3412; background: none; border: 0;
-      border-left: 2px solid #f59e0b; border-radius: 0;
-      padding: 1px 0 1px 8px; margin-top: 7px; cursor: default;
+      color: #9a3412; background: #fffbeb; border: 1px solid #fde68a;
+      border-radius: 6px;
+      padding: 3px 8px; margin-top: 7px; cursor: default;
     }}
     /* ── Hover peek: conversation + notes without opening the card ────── */
     .card-peek {{
@@ -3040,7 +3040,7 @@ def build():
     .q-btn.sug-skip {{ color: var(--ab-fg-3); }}
     .q-btn.sug-skip:hover {{ border-color: #d64545; color: #d64545; }}
     /* "Batch your trips" — a cluster of nearby-in-time events under an anchor. */
-    .trip-cluster {{ position: relative; border-left: 3px solid #1fa0dc; padding-left: 12px; margin: 0 0 20px; }}
+    .trip-cluster {{ position: relative; border: 1px solid var(--ab-rule); border-radius: 8px; padding: 10px 12px; margin: 0 0 20px; }}
     /* ✕ to hide a whole trip cluster / radar group from Plan Ahead (hover-reveal). */
     .plan-hide-x {{
       position: absolute; top: 2px; right: 0;
