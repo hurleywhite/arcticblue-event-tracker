@@ -78,7 +78,12 @@ assert.ok(withDraft.includes('value="Fail or Scale &lt;b&gt;"'));               
 assert.ok(withDraft.includes('data-sz-key="event_state:9"'));
 assert.ok(withDraft.includes('Approve this application') && !withDraft.includes('ready to submit'));    // draft: approve first
 const approved = Z.blockHtml(Object.assign({ sz_draft: D, decision: 'approved' }, base));
-assert.ok(approved.includes('Approved: ready to submit') && !approved.includes('Approve this application'));
+assert.ok(approved.includes('>Approved<') && approved.includes('Paste the fields from the draft') && !approved.includes('Approve this application'));
+// The four steps run in the order they happen, and only one is current at a time (2026-10-30).
+const order = ['Draft the application', 'Approve it', 'Submit it on Sessionize', 'Record it here'].map(t => withDraft.indexOf('sz-step-h">' + t));
+assert.ok(order.every((n, i) => n > 0 && (i === 0 || n > order[i - 1])));
+assert.equal((withDraft.match(/sz-step is-now/g) || []).length, 1);                                      // draft ready: only "Approve" is current
+assert.ok(/sz-step is-now"><span class="sz-step-n" aria-hidden="true">2/.test(withDraft));
 assert.ok(!Z.blockHtml(Object.assign({ sz_draft: D }, base, { stage_tags: ['Submitted'] })).includes('Approve this application'));  // already in
 assert.ok(Z.blockHtml(base).includes('Draft the application'));                                        // no draft yet
 assert.ok(!Z.blockHtml(Object.assign({}, base, { stage_tags: ['Submitted'] })).includes('Draft the application'));  // applied: no new draft

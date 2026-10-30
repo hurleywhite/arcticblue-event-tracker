@@ -78,7 +78,9 @@
     var applied = isApplied(rec);
     var d = rec.sz_draft, ready = !!(d && d.status === 'ready');
     var approved = rec.decision === 'approved';
-    var drafting = canDraft();
+    // Once applied without a draft, steps 1 and 2 never happened: hide them
+    // rather than tick them off.
+    var drafting = canDraft() && (!applied || ready);
     // Which step is current. Someone who doesn't draft goes straight to 3.
     var now = applied ? 5 : (!drafting ? 3 : (!ready ? 1 : (!approved ? 2 : 3)));
     function st(n) { return n < now ? 'done' : (n === now ? 'now' : 'later'); }
