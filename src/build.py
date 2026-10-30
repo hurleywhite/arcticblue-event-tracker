@@ -2322,7 +2322,13 @@ def build():
       color: var(--ab-fg-3); background: var(--ab-bg); border-radius: 999px; padding: 0 6px; min-width: 18px; text-align: center;
     }}
     .seg-chip.is-on .seg-num {{ color: var(--ab-fg); background: var(--ab-bg); }}
-    @media (max-width: 560px) {{ .ops-seg {{ width: 100%; }} .seg-chip {{ flex: 1; justify-content: center; }} }}
+    /* On a phone the five chips are ~520px wide on one line, which pushed the
+       whole page into a sideways scroll and clipped the event pop-up. They
+       wrap onto a second line instead (Hurley 2026-10-30). */
+    @media (max-width: 560px) {{
+      .ops-seg {{ width: 100%; flex-wrap: wrap; }}
+      .seg-chip {{ flex: 1 1 auto; justify-content: center; padding: 7px 10px; }}
+    }}
 
     /* Status filter chip row */
     .status-filters {{
