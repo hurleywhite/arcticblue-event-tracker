@@ -6084,7 +6084,7 @@ def build():
         if (!briefable) return '';
         return strip((has('Booked') ? 'Booked to speak.' : 'You are going.') + ' Read the day-of brief before you go.',
           '<button type="button" class="q-btn primary" data-open-brief>' +
-            (it.briefing_json ? 'Open the day-of brief' : 'Day-of brief') + '</button>');
+            (it.briefing_json ? 'Open the day-of brief' : 'Build the day-of brief') + '</button>');
       }}
       if (!(window.abCanApply && window.abCanApply()) || has('Rejected')) return '';
       var rt = _reachTarget(rec);
@@ -9269,7 +9269,15 @@ def build():
       var manual  = $opsGrid.querySelectorAll('.ops-card[data-kind="manual"]:not([data-past="1"])').length;
       var $count = document.getElementById('ops-count');
       if (!$count) return;
-      $count.textContent = regular + ' tracked · ' + manual + ' manual';
+      // Polish (Hurley 2026-10-30): "46 tracked · 161 manual" sat beside Add
+      // and never matched the "158 events" above the list, because it counted
+      // archived and duplicate cards and split them by where they came from.
+      // The list header is the one count now; this keeps the numbers only as
+      // a tooltip on that header for whoever wants the split.
+      $count.textContent = '';
+      $count.setAttribute('hidden', '');
+      var $sh = document.getElementById('ops-shown');
+      if ($sh) $sh.title = regular + ' from the catalog, ' + manual + ' added by the team (archived included)';
     }}
 
     // ── Priority + Track + Speakers filter rows ────────────────────
