@@ -3720,6 +3720,10 @@ def build():
       .kpi {{ padding: 20px 20px 20px 0; }}
       .filter-bar {{ flex-direction: column; align-items: stretch; }}
       .filter-group {{ min-width: 0; }}
+    }}
+    /* One column only on phones: at 800px a tablet in portrait (768px) also
+       fell to a single column with room for two (Hurley 2026-10-30). */
+    @media (max-width: 700px) {{
       .ops-grid {{ grid-template-columns: minmax(0, 1fr); }}   /* minmax: a wide panel can't stretch the track past the screen */
     }}
     /* Touch screens: give the small card controls a tappable target. */
