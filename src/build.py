@@ -16570,7 +16570,13 @@ def build():
           iconAnchor: [size / 2, size / 2],
           popupAnchor: [0, -size / 2]
         }});
-        var marker = L.marker(g.ll, {{ icon: icon }}).addTo(_opsMapLayer);
+        // A name for screen readers and keyboard users (Hurley 2026-10-30):
+        // the pins were 97 unnamed buttons.
+        var _pinPlace = String((g.evs[0] && (g.evs[0].city || g.evs[0].location)) || '').split(',')[0].trim();
+        var _pinName = (n === 1 ? String(g.evs[0].name || 'Event') : n + ' events') + (_pinPlace ? ' in ' + _pinPlace : '');
+        var marker = L.marker(g.ll, {{ icon: icon, title: _pinName, keyboard: true }}).addTo(_opsMapLayer);
+        var _pinEl = marker.getElement && marker.getElement();
+        if (_pinEl) {{ _pinEl.setAttribute('aria-label', _pinName); _pinEl.setAttribute('role', 'button'); }}
 
         // Click a pin → slide this place's events into the right sidebar.
         marker.on('click', function () {{ openMapSidebar(g); }});
