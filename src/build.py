@@ -573,9 +573,9 @@ def build():
     .who-switcher {{ position: relative; display: inline-block; vertical-align: middle; }}
     .who-init {{
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+      min-width: 24px; height: 24px; padding: 0 5px; border-radius: 999px;
       background: var(--ab-blue); color: #fff; border: 0; cursor: pointer;
-      font-family: var(--ab-sans); font-size: 0.6rem; font-weight: 700;
+      font-family: var(--ab-sans); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0; text-transform: none; line-height: 1;
       transition: opacity 120ms ease;
     }}
@@ -597,16 +597,16 @@ def build():
     .who-menu-item:hover {{ background: var(--ab-bg-3); }}
     .who-menu-item svg {{ width: 15px; height: 15px; flex: 0 0 auto; color: var(--ab-fg-3); }}
     .who-switch-label {{
-      font-family: var(--ab-mono); font-size: 0.56rem; letter-spacing: 0.07em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.07em;
       text-transform: uppercase; color: var(--ab-fg-3);
       padding: 6px 9px 3px; margin-top: 2px; border-top: 1px solid var(--ab-rule);
     }}
     .who-switch-row {{ display: flex; flex-wrap: wrap; gap: 6px; padding: 0 5px 2px; }}
-    .who-dropdown .who-init {{ min-width: 24px; height: 24px; font-size: 0.62rem; }}
+    .who-dropdown .who-init {{ min-width: 24px; height: 24px; font-size: 0.6875rem; }}
     .who-other {{
       width: 100%; margin-top: 3px; padding: 7px 9px 3px; border: 0; background: none;
       border-top: 1px solid var(--ab-rule); cursor: pointer; text-align: left;
-      font-family: var(--ab-mono); font-size: 0.62rem; color: var(--ab-fg-3);
+      font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3);
       text-decoration: underline; text-transform: none; letter-spacing: normal;
     }}
     /* App title — centered in the nav bar, same line as the logo + last-updated. */
@@ -621,7 +621,9 @@ def build():
     }}
     @media (max-width: 760px) {{
       .app-title {{ font-size: 1.05rem; }}
-      .nav-meta {{ font-size: 0.6rem; }}
+      .nav-meta {{ font-size: 0.6875rem; }}
+      /* On a phone the date wrapped into the title; the avatar is what's needed. */
+      #ab-today, .who-sep {{ display: none; }}
       .brand-text {{ display: none; }}
     }}
 
@@ -726,7 +728,7 @@ def build():
     }}
     .filter-group {{ display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }}
     .filter-group label {{
-      font-family: var(--ab-mono); font-size: 0.68rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-fg-3); letter-spacing: 0.1em; text-transform: uppercase;
     }}
     .filter-group select, .filter-group input {{
@@ -785,7 +787,7 @@ def build():
       color: var(--ab-fg-3); letter-spacing: 0.02em; margin: 0;
     }}
     .badge {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.12em; text-transform: uppercase;
       padding: 3px 9px; border-radius: 2px; font-weight: 600;
     }}
@@ -799,7 +801,7 @@ def build():
     /* Attending signals row on cards: ticket price + meeting mechanisms. */
     .attend-signals {{ display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 8px; }}
     .attend-sig {{
-      font-family: var(--ab-mono); font-size: 0.66rem; letter-spacing: 0.06em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.06em;
       padding: 3px 9px; border-radius: 2px; font-weight: 600;
       background: var(--ab-bg-3); color: var(--ab-fg-2); border: 1px solid var(--ab-rule);
     }}
@@ -896,11 +898,11 @@ def build():
       display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
     }}
     .event-type {{
-      font-family: var(--ab-mono); font-size: 0.68rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-fg-3); letter-spacing: 0.1em; text-transform: uppercase;
     }}
     .event-more {{
-      font-family: var(--ab-mono); font-size: 0.66rem; letter-spacing: 0.08em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.08em;
       color: var(--ab-mute); text-transform: uppercase;
       opacity: 0; transition: opacity 0.15s, color 0.15s;
     }}
@@ -1021,7 +1023,7 @@ def build():
     /* Field labels in Details (NOTES, ATTENDEES, ARCTICBLUE SPEAKER, …) — bold
        and a step darker so each section is findable when scanning (Angela). */
     .modal-field .k {{
-      font-family: var(--ab-mono); font-size: 0.64rem; letter-spacing: 0.1em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: var(--ab-fg-2); font-weight: 700;
     }}
     .modal-field .v {{ font-size: 0.92rem; color: var(--ab-fg); line-height: 1.55; white-space: pre-wrap; }}
@@ -1271,13 +1273,13 @@ def build():
     .fu-inherited .fu-note {{ font-style: italic; color: var(--ab-fg-3); }}
     .fu-when {{ font-family: var(--ab-mono); font-size: 0.76rem; color: var(--ab-fg); font-weight: 700; }}
     .fu-kind {{
-      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0.07em; text-transform: uppercase; color: var(--ab-fg-3);
     }}
     .fu-by {{ font-size: 0.76rem; color: var(--ab-fg-3); }}
     .fu-note {{ flex: 1 1 100%; font-size: 0.87rem; color: var(--ab-fg-2); line-height: 1.45; }}
     .fu-edited {{
-      flex: 1 1 100%; font-family: var(--ab-mono); font-size: 0.62rem;
+      flex: 1 1 100%; font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-fg-3); font-style: italic;
     }}
     /* Edit / delete stay out of the way until you're on the row. */
@@ -1333,7 +1335,7 @@ def build():
     .fu-log li .ab-form textarea {{ min-height: 62px; }}
     .fu-when-row {{ display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }}
     .fu-when-lab {{
-      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0.07em; text-transform: uppercase; color: var(--ab-fg-3);
     }}
     .ab-input-date {{ width: auto; padding: 6px 10px; font-size: 0.82rem; }}
@@ -1352,7 +1354,7 @@ def build():
     }}
     .ab-btn-outline:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); background: var(--ab-bg-2); }}
     .ab-form-hint {{
-      margin-left: auto; font-family: var(--ab-mono); font-size: 0.66rem;
+      margin-left: auto; font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-fg-3);
     }}
     .ab-btn-danger {{ border-color: var(--ab-red); background: var(--ab-red); color: #fff; }}
@@ -1400,12 +1402,12 @@ def build():
     .card-peek.on {{ display: block; }}
     .peek-sec + .peek-sec {{ margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--ab-rule); }}
     .peek-h {{
-      display: block; font-family: var(--ab-mono); font-size: 0.58rem; font-weight: 700;
+      display: block; font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0.09em; text-transform: uppercase; color: var(--ab-fg-3); margin-bottom: 6px;
     }}
     .peek-msg + .peek-msg {{ margin-top: 7px; }}
     .peek-who {{ font-size: 0.82rem; font-weight: 650; color: var(--ab-fg); }}
-    .peek-when {{ font-family: var(--ab-mono); font-size: 0.62rem; color: var(--ab-fg-3); margin-left: 6px; }}
+    .peek-when {{ font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); margin-left: 6px; }}
     .peek-body {{
       font-size: 0.86rem; color: var(--ab-fg-2); line-height: 1.42; margin-top: 1px;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -1419,7 +1421,7 @@ def build():
     }}
     .peek-cta {{
       margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--ab-rule);
-      font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.05em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.05em;
       text-transform: uppercase; color: var(--ab-fg-3);
     }}
     /* Touch has no hover — never show it there. */
@@ -1455,7 +1457,7 @@ def build():
     .qa-sa-wrap.is-open > .qa {{ border-color: var(--ab-blue); }}
     .sa-pick-team {{ margin-top: 3px; padding-top: 7px; border-top: 1px solid var(--ab-rule); }}
     .sa-menu-h {{
-      font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.08em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.08em;
       text-transform: uppercase; color: var(--ab-fg-3); padding: 1px 5px 4px;
     }}
     .sa-pick {{
@@ -1467,7 +1469,7 @@ def build():
     .sa-pick.on {{ color: var(--ab-blue); font-weight: 650; }}
     .qa-row-label {{
       display: inline-flex; align-items: center; font-family: var(--ab-mono);
-      font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+      font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase;
       color: var(--ab-fg-3); margin-right: 2px;
     }}
     .modal-quickbar .qa[data-qa="interested"].on {{ background: var(--ab-blue); border-color: var(--ab-blue); }}
@@ -1486,14 +1488,14 @@ def build():
       background: var(--ab-bg-2); border: 1px solid var(--ab-rule);
     }}
     .me-edithead {{
-      font-family: var(--ab-mono); font-size: 0.68rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3);
       margin-bottom: 12px;
     }}
     .me-grid {{ display: grid; gap: 11px; }}
     .me-row {{ display: grid; grid-template-columns: 130px 1fr; gap: 10px; align-items: center; }}
     .me-key {{
-      font-family: var(--ab-mono); font-size: 0.68rem; letter-spacing: 0.06em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.06em;
       text-transform: uppercase; color: var(--ab-fg-3); padding-top: 2px; align-self: start;
     }}
     .me-row input, .me-row select, .me-row textarea {{
@@ -1632,7 +1634,7 @@ def build():
     }}
     .tab-badge {{
       display: inline-block;
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.06em; text-transform: uppercase;
       color: var(--ab-fg-3); background: var(--ab-bg-3);
       padding: 2px 6px; border-radius: 999px;
@@ -1784,7 +1786,7 @@ def build():
     .ops-month-header:hover {{ color: var(--ab-fg); }}
     .ops-month-header:first-child {{ margin-top: 0; }}
     .ops-month-header .mh-caret {{
-      display: inline-block; font-size: 0.6rem; line-height: 1;
+      display: inline-block; font-size: 0.6875rem; line-height: 1;
       transition: transform 0.15s; color: var(--ab-fg-3);
     }}
     .ops-month-header.collapsed .mh-caret {{ transform: rotate(-90deg); }}
@@ -1806,7 +1808,7 @@ def build():
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }}
     .ops-months-btn:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg); }}
-    .ops-months-btn .mb-caret {{ font-size: 0.55rem; color: var(--ab-fg-3); }}
+    .ops-months-btn .mb-caret {{ font-size: 0.6875rem; color: var(--ab-fg-3); }}
     .ops-months-menu {{
       position: absolute; top: calc(100% + 6px); right: 0; z-index: 40;
       min-width: 220px; max-height: 360px; overflow-y: auto;
@@ -1821,7 +1823,7 @@ def build():
       border-bottom: 1px solid var(--ab-rule); margin-bottom: 6px;
     }}
     .ops-months-actions button {{
-      flex: 1; font-family: var(--ab-mono); font-size: 0.6rem;
+      flex: 1; font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.05em; text-transform: uppercase;
       color: var(--ab-fg-2); background: var(--ab-bg-3);
       border: 1px solid var(--ab-rule); border-radius: 5px;
@@ -1837,7 +1839,7 @@ def build():
     .ops-months-list input {{ accent-color: var(--ab-blue); cursor: pointer; }}
     .ops-months-list .mc-count {{
       margin-left: auto; font-family: var(--ab-mono);
-      font-size: 0.66rem; color: var(--ab-fg-3);
+      font-size: 0.6875rem; color: var(--ab-fg-3);
     }}
     .ops-card {{
       position: relative;
@@ -1880,7 +1882,7 @@ def build():
     .ops-archive-x svg {{ width: 18px; height: 18px; }}
     .ops-archive-x:hover {{ color: var(--ab-red); background: var(--ab-bg-3); }}
     /* Tiny per-card chat indicator ("💬 N"), always visible when there are messages. */
-    .chat-count {{ font-family: var(--ab-mono); font-size: 0.58rem; color: var(--ab-fg-3); letter-spacing: 0.02em; align-self: center; white-space: nowrap; }}
+    .chat-count {{ font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); letter-spacing: 0.02em; align-self: center; white-space: nowrap; }}
     /* Modal "Discussion" thread. */
     /* Sits right after the quickbar, which already supplies the divider line
        (border-bottom) — no second border here, or you get a doubled-up gap. */
@@ -1892,7 +1894,7 @@ def build():
     .chat-msg {{ position: relative; background: var(--ab-bg-2); border: 1px solid var(--ab-rule); border-radius: 8px; padding: 8px 10px; }}
     .chat-meta {{ display: flex; gap: 8px; align-items: baseline; margin-bottom: 3px; }}
     .chat-who {{ font-weight: 700; font-size: 0.8rem; color: var(--ab-fg); }}
-    .chat-when {{ font-family: var(--ab-mono); font-size: 0.6rem; color: var(--ab-fg-3); }}
+    .chat-when {{ font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); }}
     /* Slack-style hover toolbar: add-to-notes · 👍 · 👎 · delete (own only).
        Floats top-right of the message, revealed on hover / keyboard focus. */
     .chat-actions {{
@@ -1923,12 +1925,12 @@ def build():
       background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); border-radius: 10px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.18); padding: 5px; display: flex; flex-direction: column;
     }}
-    .chat-fwd-head {{ font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); padding: 4px 8px 5px; }}
+    .chat-fwd-head {{ font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); padding: 4px 8px 5px; }}
     .chat-fwd-item, .chat-more-item {{ text-align: left; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.86rem; color: var(--ab-fg); padding: 7px 9px; border-radius: 6px; }}
     .chat-fwd-item:hover {{ background: var(--ab-bg-3); color: var(--ab-blue); }}
     .chat-more-del {{ color: var(--ab-red); font-weight: 600; }}
     .chat-more-del:hover {{ background: rgba(185,28,28,0.1); }}
-    .chat-more-tag {{ font-size: 0.66rem; color: var(--ab-fg-3); font-weight: 400; }}
+    .chat-more-tag {{ font-size: 0.6875rem; color: var(--ab-fg-3); font-weight: 400; }}
     .chat-body {{ margin: 0; font-size: 0.9rem; color: var(--ab-fg-2); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }}
     .chat-mention {{ color: var(--ab-blue); font-weight: 600; }}   /* @teammate — pings them via "In the last week" */
     /* 👍/👎 tallies under a message. */
@@ -1939,7 +1941,7 @@ def build():
       background: var(--ab-bg-3); border: 1px solid var(--ab-rule); border-radius: 999px; padding: 2px 9px;
     }}
     /* Who reacted, shown next to the emoji. */
-    .chat-react-who {{ font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 600; }}
+    .chat-react-who {{ font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600; }}
     .chat-react.is-mine {{ border-color: var(--ab-blue); color: var(--ab-blue); background: rgba(31,160,220,0.10); }}
     .chat-form {{ display: flex; gap: 8px; }}
     .chat-input {{ flex: 1; padding: 9px 12px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; font: inherit; font-size: 0.9rem; }}
@@ -2081,7 +2083,7 @@ def build():
     .tp-row:hover .tp-ev {{ color: var(--ab-blue); text-decoration: underline; }}
     .tp-ev {{ font-size: 0.86rem; }}
     .tp-stage {{
-      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3);
       padding: 1px 6px; border-radius: 999px; background: var(--ab-bg-2);
     }}
@@ -2092,16 +2094,16 @@ def build():
     /* "3 booked · 12 in flight" beside the name — the answer to "who has
        actually landed something" without reading every row. */
     .tp-tally {{
-      margin-left: 8px; font-family: var(--ab-mono); font-size: 0.66rem;
+      margin-left: 8px; font-family: var(--ab-mono); font-size: 0.6875rem;
       font-weight: 600; color: var(--ab-fg-3); letter-spacing: 0.02em;
     }}
     .tp-tally b {{ color: #15803d; font-weight: 700; }}
     .tp-when {{
       margin-left: auto; white-space: nowrap;
-      font-family: var(--ab-mono); font-size: 0.68rem; color: var(--ab-fg-3);
+      font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3);
     }}
     .ops-stage-who {{
-      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0.04em; color: var(--ab-fg-3); white-space: nowrap;
     }}
     .ops-card .event-date {{
@@ -2137,7 +2139,7 @@ def build():
     .queue-row-open {{ cursor: pointer; }}
     .queue-row-open:hover {{ background: var(--ab-bg-3); }}
     .ops-details-btn {{
-      font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.07em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.07em;
       text-transform: uppercase; color: var(--ab-fg-3);
       background: var(--ab-bg-3); border: 1px solid var(--ab-rule);
       border-radius: 999px; padding: 2px 10px; margin-left: 6px; cursor: pointer;
@@ -2150,7 +2152,7 @@ def build():
     .ops-roster {{ display: flex; flex-direction: column; gap: 6px; margin: 8px 0 8px; }}
     .ops-roster-row {{ display: flex; align-items: center; gap: 7px; font-size: 0.86rem; line-height: 1.3; }}
     .ops-roster-label {{
-      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
       flex-shrink: 0; color: var(--ab-fg-3);
     }}
@@ -2158,20 +2160,20 @@ def build():
     .ops-avatar {{
       width: 20px; height: 20px; border-radius: 50%;
       display: inline-flex; align-items: center; justify-content: center;
-      font-family: var(--ab-sans); font-size: 0.62rem; font-weight: 700;
+      font-family: var(--ab-sans); font-size: 0.6875rem; font-weight: 700;
       box-sizing: border-box; border: 2px solid var(--ab-bg); flex-shrink: 0;
     }}
     .ops-avatar + .ops-avatar {{ margin-left: -6px; }}   /* overlapping stack */
     .ops-avatar.ops-avatar-more {{
       background: var(--ab-bg-3); color: var(--ab-fg-3);
-      font-family: var(--ab-mono); font-size: 0.56rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
     }}
     .ops-roster-who {{ color: var(--ab-fg); font-weight: 650; }}
     .ops-roster-who.muted {{ color: var(--ab-fg-3); font-weight: 400; font-style: italic; }}
     .ops-tags--meta {{ margin-top: 4px; }}
     .ops-tags {{ display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }}
     .ops-tag {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.06em; padding: 3px 8px;
       border-radius: 3px; background: var(--ab-bg-3);
       color: var(--ab-fg-2); line-height: 1.4;
@@ -2182,7 +2184,7 @@ def build():
     /* Pipeline-stage pills (primary) get bg/fg inline from stageStyle();
        the legacy single-status pill is demoted to a small muted detail. */
     .ops-tag.stage  {{ font-weight: 600; letter-spacing: 0.04em; }}
-    .ops-tag.legacy {{ font-size: 0.58rem; opacity: 0.72; }}
+    .ops-tag.legacy {{ font-size: 0.6875rem; opacity: 0.72; }}
     .ops-tag .dot {{ width: 6px; height: 6px; border-radius: 50%; display: inline-block; }}
     .saved-star {{
       font: inherit; background: transparent; border: 0;
@@ -2199,7 +2201,7 @@ def build():
     .ops-chips {{ display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }}
     /* Human should-attend = prominent; AI auto-pick = faint (so 256 don't drown the hand-picked few). */
     .sa-badge {{
-      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;
       padding: 3px 8px; border-radius: 3px; background: #1d4ed8; color: #fff;
     }}
@@ -2215,7 +2217,7 @@ def build():
     .ops-contact-ico svg {{ width: 15px; height: 15px; }}
     /* Archived = a static (rectangular) status label; archiving is done in the pop-up. */
     .ops-archived-tag {{
-      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 700;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
       padding: 3px 8px; border-radius: 3px;
       border: 1px solid var(--ab-rule); background: var(--ab-bg-2); color: var(--ab-fg-3);
@@ -2224,7 +2226,7 @@ def build():
     #region-filters {{ margin-top: -4px; }}
     .ops-chip {{
       font: inherit; cursor: pointer;
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.08em; text-transform: uppercase;
       padding: 3px 8px; border-radius: 999px;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg);
@@ -2274,7 +2276,7 @@ def build():
        <label> inside a <label> is invalid HTML and breaks clicking on Safari. */
     .ops-form label, .ops-form .ops-fieldset {{ display: flex; flex-direction: column; gap: 4px; }}
     .ops-form label > .key, .ops-form .ops-fieldset > .key {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-fg-3); letter-spacing: 0.08em;
       text-transform: uppercase;
     }}
@@ -2293,19 +2295,19 @@ def build():
     }}
     .ops-form textarea {{ min-height: 70px; resize: vertical; font-family: var(--ab-sans); }}
     .ops-form .field-saved {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-green); letter-spacing: 0.08em;
       text-transform: uppercase; padding-left: 6px;
       opacity: 0; transition: opacity 200ms ease;
     }}
     .ops-form .field-saved.show {{ opacity: 1; }}
     .ops-form .field-error {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-red); letter-spacing: 0.08em;
       text-transform: uppercase; padding-left: 6px;
     }}
     .ops-meta {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-fg-3); letter-spacing: 0.06em;
       margin-top: 8px;
     }}
@@ -2352,7 +2354,7 @@ def build():
       text-transform: uppercase; margin-right: 4px;
     }}
     .status-group-label {{
-      font-family: var(--ab-mono); font-size: 0.62rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.1em; text-transform: uppercase;
       padding: 2px 6px 2px 0;
       display: inline-flex; align-items: center;
@@ -2377,7 +2379,7 @@ def build():
     .status-chip:hover {{ opacity: 0.8; }}
     .status-chip.is-on {{ opacity: 1; box-shadow: 0 0 0 2px var(--ab-fg); transform: translateY(-1px); }}
     .status-filters .clear-btn {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.06em; padding: 5px 10px;
       border: 1px solid var(--ab-rule-strong); border-radius: 6px;
       background: var(--ab-bg); color: var(--ab-fg-3);
@@ -2410,7 +2412,7 @@ def build():
     .stage-chip:hover {{ opacity: 0.85; }}
     .stage-chip.is-on {{ opacity: 1; box-shadow: 0 0 0 2px var(--ab-fg); transform: translateY(-1px); }}
     .stage-filters .clear-btn {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.06em; padding: 5px 10px;
       border: 1px solid var(--ab-rule-strong); border-radius: 6px;
       background: var(--ab-bg); color: var(--ab-fg-3);
@@ -2419,7 +2421,7 @@ def build():
     .stage-filters .clear-btn:hover {{ color: var(--ab-fg); }}
     .legacy-status-wrap {{ margin-bottom: 16px; }}
     .legacy-status-wrap > summary {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.08em; text-transform: uppercase;
       color: var(--ab-fg-3); cursor: pointer; padding: 4px 2px;
     }}
@@ -2448,7 +2450,7 @@ def build():
     }}
     .extra-filter-group {{ display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }}
     .extra-filter-label {{
-      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 700;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase;
       color: var(--ab-fg-2); min-width: 84px;
     }}
@@ -2464,7 +2466,7 @@ def build():
     }}
     .filter-dd-btn:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg); }}
     .filter-dd-btn.has-active {{ background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }}
-    .filter-dd-btn .dd-caret {{ font-size: 0.55rem; color: var(--ab-fg-3); }}
+    .filter-dd-btn .dd-caret {{ font-size: 0.6875rem; color: var(--ab-fg-3); }}
     .filter-dd-menu {{
       /* Above Leaflet's map panes/controls (z-index up to ~1000) so the filter
          menus aren't cut off over the Map view; still below modals (1200+). */
@@ -2484,7 +2486,7 @@ def build():
       flex-basis: 100%; margin-top: 4px; display: flex; align-items: center;
       justify-content: space-between; gap: 8px; background: none; cursor: pointer;
       border: 0; border-top: 1px solid var(--ab-rule); padding: 8px 2px 2px;
-      font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.1em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: var(--ab-fg-3);
     }}
     .month-past-toggle:hover {{ color: var(--ab-fg); }}
@@ -2516,7 +2518,7 @@ def build():
     .extra-chip.should-team.is-on    {{ background: #7c3aed; color: #fff; border-color: #7c3aed; box-shadow: 0 0 0 2px #7c3aed; }}
     .extra-chip.should-ai.is-on      {{ background: #64748b; color: #fff; border-color: #64748b; box-shadow: 0 0 0 2px #64748b; }}
     .extra-clear {{
-      font-family: var(--ab-mono); font-size: 0.62rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.06em; padding: 4px 8px;
       border: 1px solid var(--ab-rule-strong); border-radius: 6px;
       background: var(--ab-bg); color: var(--ab-fg-3);
@@ -2601,7 +2603,7 @@ def build():
     }}
     .ops-filter-toggle:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
     .ops-filter-toggle .ft-active {{ color: var(--ab-blue); }}
-    .ops-filter-toggle .ft-caret {{ font-size: 0.6rem; color: var(--ab-fg-3); }}
+    .ops-filter-toggle .ft-caret {{ font-size: 0.6875rem; color: var(--ab-fg-3); }}
     .ops-filters.collapsed > :not(#ops-search):not(.ops-filter-toggle) {{ display: none; }}
     /* Each filter fills its column so the bar reads as a tidy 5-up grid */
     .ops-filters > .filter-dd, .ops-filters > .ops-months {{ display: block; }}
@@ -2662,7 +2664,7 @@ def build():
     /* Small count pill inside a view-toggle tab (My lineup / Queue / Planner). */
     .vt-count {{
       display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 6px;
-      font-family: var(--ab-mono); font-size: 0.68rem; line-height: 18px;
+      font-family: var(--ab-mono); font-size: 0.6875rem; line-height: 18px;
       text-align: center; border-radius: 9px; vertical-align: middle;
       background: var(--ab-fg-3); color: #fff;
     }}
@@ -2689,14 +2691,14 @@ def build():
     /* Go decision badge (cards + modal + queue rows). */
     .decision-badge {{
       display: inline-flex; align-items: center; gap: 3px;
-      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 600;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600;
       letter-spacing: 0.06em; text-transform: uppercase;
       padding: 2px 7px; border-radius: 3px; white-space: nowrap;
     }}
     .decision-badge.go    {{ background: rgba(31,160,90,0.14); color: #1a8c54; }}
     .recent-badge {{
       display: inline-flex; align-items: center;
-      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 600;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600;
       letter-spacing: 0.05em; text-transform: uppercase;
       padding: 2px 7px; border-radius: 3px; white-space: nowrap;
       background: #fef3c7; color: #92600a; border: 1px solid #fde68a;
@@ -2714,7 +2716,7 @@ def build():
     .dayof-section {{ margin: 0 0 26px; }}
     .dayof-sec-head {{ display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }}
     .dayof-sec-title {{ font-family: var(--ab-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg); font-weight: 700; }}
-    .dayof-sec-count {{ font-family: var(--ab-mono); font-size: 0.66rem; background: var(--ab-bg-3); border-radius: 10px; padding: 1px 8px; color: var(--ab-fg-3); }}
+    .dayof-sec-count {{ font-family: var(--ab-mono); font-size: 0.6875rem; background: var(--ab-bg-3); border-radius: 10px; padding: 1px 8px; color: var(--ab-fg-3); }}
     .dayof-card {{ display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap;
       border: 1px solid var(--ab-rule); border-radius: 8px; padding: 14px 16px; margin: 0 0 10px; background: var(--ab-bg); }}
     .dayof-card.is-today {{ border-color: #f59e0b; box-shadow: 0 0 0 1px #f59e0b33; background: linear-gradient(0deg, #fffaf0, #fff); }}
@@ -2725,7 +2727,7 @@ def build():
     .dayof-who-row {{ display: flex; flex-wrap: wrap; gap: 8px; }}
     .dayof-who {{ font-size: 0.82rem; color: var(--ab-fg-2); display: inline-flex; align-items: center; gap: 5px; }}
     .dayof-actions {{ display: flex; align-items: center; gap: 10px; }}
-    .dayof-ready {{ font-family: var(--ab-mono); font-size: 0.64rem; color: #15803d; }}
+    .dayof-ready {{ font-family: var(--ab-mono); font-size: 0.6875rem; color: #15803d; }}
     .dayof-empty {{ border: 1px dashed var(--ab-rule); border-radius: 8px; padding: 22px; text-align: center; color: var(--ab-fg-3); font-size: 0.88rem; line-height: 1.6; }}
     /* Load-failure / degraded / filtered-empty states — a blank grid is never OK. */
     .ops-load-error {{
@@ -2743,7 +2745,7 @@ def build():
       padding: 28px; text-align: center; color: var(--ab-fg-2);
       font-size: 0.92rem; line-height: 1.9;
     }}
-    .mode-badge {{ font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; padding: 1px 7px; border-radius: 3px; }}
+    .mode-badge {{ font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; padding: 1px 7px; border-radius: 3px; }}
     .mode-room {{ background: #dbeafe; color: #1e40af; }}
     .mode-stage {{ background: #f3e8ff; color: #7e22ce; }}
     /* ── Brief drawer ───────────────────────────────────────────── */
@@ -2756,7 +2758,7 @@ def build():
       border-bottom: 1px solid var(--ab-rule); position: sticky; top: 0; background: #fff; }}
     .briefing-top-title {{ font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ab-fg-3); }}
     .briefing-top-actions {{ display: flex; gap: 6px; }}
-    .bf-btn {{ font-family: var(--ab-mono); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 5px 9px;
+    .bf-btn {{ font-family: var(--ab-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 5px 9px;
       border: 1px solid var(--ab-rule); border-radius: 4px; background: var(--ab-bg-3); color: var(--ab-fg-2); cursor: pointer; }}
     .bf-btn:hover {{ border-color: #1fa0dc; color: #1271a8; }}
     .bf-close {{ font-size: 1rem; padding: 3px 9px; }}
@@ -2767,7 +2769,7 @@ def build():
     .bf-stamp {{ font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-2); margin: 4px 0 6px; }}
     .bf-sec {{ border-top: 1px solid var(--ab-rule); padding: 14px 0 4px; }}
     .bf-sec h3 {{ font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ab-fg); margin: 0 0 8px; }}
-    .bf-conf {{ font-size: 0.58rem; background: var(--ab-bg-3); color: var(--ab-fg-3); border-radius: 8px; padding: 1px 7px; margin-left: 6px; }}
+    .bf-conf {{ font-size: 0.6875rem; background: var(--ab-bg-3); color: var(--ab-fg-3); border-radius: 8px; padding: 1px 7px; margin-left: 6px; }}
     .bf-sec p {{ font-size: 0.9rem; line-height: 1.55; margin: 0 0 8px; color: var(--ab-fg); }}
     .bf-muted {{ color: var(--ab-fg-3) !important; font-size: 0.82rem !important; }}
     /* .bf-sec p used to out-rank .bf-label, so labels rendered at 14.4px. */
@@ -2787,7 +2789,7 @@ def build():
     .bf-list, .bf-news {{ margin: 4px 0 10px; padding-left: 18px; }}
     .bf-list li, .bf-news li {{ font-size: 0.88rem; line-height: 1.5; margin: 0 0 6px; color: var(--ab-fg); }}
     .bf-news a {{ color: var(--ab-blue); }}
-    .bf-date {{ font-family: var(--ab-mono); font-size: 0.66rem; color: var(--ab-fg-3); }}
+    .bf-date {{ font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); }}
     .bf-speaker {{ margin: 0 0 12px; }}
     .bf-hook {{ font-style: italic; color: #1271a8 !important; font-size: 0.84rem !important; }}
     .bf-unconf li {{ color: #92600a; }}
@@ -2797,12 +2799,12 @@ def build():
     .bf-error {{ color: #b91c1c; font-size: 0.88rem; padding: 24px 0; line-height: 1.5; }}
     /* Deep outreach targets */
     .tg-bar {{ display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }}
-    .tg-count {{ margin-left: auto; font-family: var(--ab-mono); font-size: 0.66rem; color: var(--ab-fg-3); }}
+    .tg-count {{ margin-left: auto; font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); }}
     .tg-note {{ font-size: 0.82rem; color: var(--ab-fg-2); background: var(--ab-bg-3); border-radius: 6px; padding: 8px 10px; margin: 0 0 14px; line-height: 1.45; }}
     .tg-card {{ border: 1px solid var(--ab-rule); border-radius: 10px; padding: 12px 14px; margin: 0 0 12px; }}
     .tg-head {{ display: flex; align-items: center; gap: 8px; }}
     .tg-head strong {{ font-size: 0.98rem; color: var(--ab-fg); }}
-    .tg-conf {{ font-family: var(--ab-mono); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; }}
+    .tg-conf {{ font-family: var(--ab-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; }}
     .tg-conf.ok {{ background: #dcfce7; color: #166534; }}
     .tg-conf.est {{ background: var(--ab-bg-3); color: var(--ab-fg-3); }}
     .tg-role {{ font-size: 0.86rem; font-weight: 600; color: var(--ab-fg); margin: 2px 0 0; }}
@@ -2815,10 +2817,10 @@ def build():
     .tg-warm {{ font-size: 0.78rem; color: #166534; background: #dcfce7; border-radius: 5px; padding: 4px 8px; margin: 8px 0 0; display: inline-block; }}
     .tg-draft {{ margin: 10px 0 0; }}
     .tg-draft-h {{ display: flex; align-items: center; justify-content: space-between; }}
-    .tg-copy {{ font-family: var(--ab-mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border: 1px solid var(--ab-rule); border-radius: 5px; background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
+    .tg-copy {{ font-family: var(--ab-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border: 1px solid var(--ab-rule); border-radius: 5px; background: var(--ab-bg); color: var(--ab-fg-2); cursor: pointer; }}
     .tg-copy:hover {{ border-color: #1fa0dc; color: #1271a8; }}
     .tg-pre {{ white-space: pre-wrap; font-family: var(--ab-sans); font-size: 0.84rem; line-height: 1.5; color: var(--ab-fg); background: var(--ab-bg-3); border-radius: 6px; padding: 10px 12px; margin: 4px 0 0; }}
-    .tg-foot {{ font-family: var(--ab-mono); font-size: 0.62rem; color: var(--ab-fg-3); margin: 14px 0 0; }}
+    .tg-foot {{ font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); margin: 14px 0 0; }}
     @media (max-width: 560px) {{ .briefing-card {{ max-width: 100%; }} }}
     .queue-intro, .planner-intro {{
       font-size: 0.9rem; color: var(--ab-fg-2); margin: 0 0 18px; max-width: 70ch; line-height: 1.5;
@@ -2874,12 +2876,12 @@ def build():
     /* Groups a person chip with their role pill so name+role read as one unit. */
     .q-role-chip {{ display: inline-flex; align-items: center; gap: 4px; }}
     .q-int-chip {{
-      font-family: var(--ab-mono); font-size: 0.66rem; font-weight: 600;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600;
       padding: 2px 7px; border-radius: 999px;
       background: rgba(31,160,220,0.12); color: #1271a8;
     }}
     .q-stage-pill {{
-      font-family: var(--ab-mono); font-size: 0.64rem; padding: 2px 7px;
+      font-family: var(--ab-mono); font-size: 0.6875rem; padding: 2px 7px;
       border-radius: 999px; border: 1px solid var(--ab-rule); color: var(--ab-fg-2);
     }}
     /* x N chase count riding inside the "Followed up" pill. */
@@ -2887,7 +2889,7 @@ def build():
     /* Month divider inside the "To apply" list — the queue is chronological,
        so these are the only thing telling you where one month ends. */
     .q-month {{
-      font-family: var(--ab-mono); font-size: 0.6rem; letter-spacing: 0.08em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.08em;
       text-transform: uppercase; color: var(--ab-fg-3);
       padding: 12px 2px 4px; border-bottom: 1px solid var(--ab-rule); margin-bottom: 4px;
     }}
@@ -2895,11 +2897,11 @@ def build():
     /* Per-person discs on the card corner mark. */
     .ops-who-dot {{
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 15px; height: 15px; padding: 0 3px; margin-left: 2px;
+      min-width: 18px; height: 18px; padding: 0 4px; margin-left: 2px;
       border-radius: 999px; color: #fff;
-      font-family: var(--ab-sans); font-size: 0.52rem; font-weight: 700; line-height: 1;
+      font-family: var(--ab-sans); font-size: 0.6875rem; font-weight: 700; line-height: 1;
     }}
-    .ops-who-more {{ margin-left: 3px; font-family: var(--ab-mono); font-size: 0.56rem; color: var(--ab-fg-3); }}
+    .ops-who-more {{ margin-left: 3px; font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); }}
     .q-deadline {{ font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-3); }}
     .q-deadline.soon {{ color: #d64545; font-weight: 600; }}
     .queue-actions {{ display: flex; flex-direction: column; gap: 6px; align-items: stretch; }}
@@ -2955,7 +2957,7 @@ def build():
     .me-next:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 2px; }}
     .me-next.is-quiet .me-next-say {{ font-weight: 500; color: var(--ab-fg-2); }}
     .qrow-brief {{
-      font-family: var(--ab-mono); font-size: 0.64rem; letter-spacing: 0.03em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.03em;
       padding: 3px 8px; border-radius: 999px; cursor: pointer; white-space: nowrap;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-3);
       transition: border-color 120ms, color 120ms;
@@ -2971,7 +2973,7 @@ def build():
     }}
     .qrow-who .wn-avatar--sm:first-child {{ margin-left: 0; }}
     .qrow-who-more {{
-      margin-left: 4px; font-family: var(--ab-mono); font-size: 0.68rem; color: var(--ab-fg-3);
+      margin-left: 4px; font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3);
     }}
     /* Little chat-bubble badge on a comment card's avatar — signals "chat". */
     .wn-avatar-wrap {{ position: relative; flex: 0 0 auto; display: inline-flex; }}
@@ -2980,7 +2982,7 @@ def build():
     .wn-comment-main {{ min-width: 0; flex: 1 1 auto; }}
     .wn-comment-head {{ font-size: 0.9rem; color: var(--ab-fg-2); }}
     .wn-comment-head strong {{ color: var(--ab-fg); font-weight: 650; }}
-    .wn-time {{ font-family: var(--ab-mono); font-size: 0.66rem; color: var(--ab-fg-3); margin-left: 8px; }}
+    .wn-time {{ font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); margin-left: 8px; }}
     .wn-comment-quote {{ margin-top: 4px; font-size: 0.95rem; color: var(--ab-fg); font-weight: 500; line-height: 1.4; }}
     .wn-comment .wn-check {{ flex: 0 0 auto; align-self: center; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); border-radius: 8px; cursor: pointer; color: var(--ab-fg-3); }}
     .wn-comment .wn-check:hover {{ color: #15803d; border-color: #86efac; }}
@@ -3017,7 +3019,7 @@ def build():
     .wn-group.collapsed .qsec-caret {{ transform: rotate(-90deg); display: inline-block; }}
     .wn-group.collapsed .wn-group-body {{ display: none; }}
     .wn-group-body {{ padding: 4px 10px 6px; }}
-    .sug-why {{ margin: 2px 0 0; font-family: var(--ab-mono); font-size: 0.64rem; color: var(--ab-fg-3); letter-spacing: 0.03em; }}
+    .sug-why {{ margin: 2px 0 0; font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); letter-spacing: 0.03em; }}
     /* "Mark applied" + the × dismiss sit side by side, not stacked. */
     .q-btn-row {{ display: flex; gap: 6px; align-items: stretch; }}
     .q-btn-row .q-btn.primary {{ flex: 1; }}
@@ -3052,7 +3054,7 @@ def build():
     .trip-anchor-name:hover {{ color: #1271a8; text-decoration: underline; }}
     .trip-anchor-role {{ font-size: 0.8rem; font-weight: 600; color: var(--ab-fg-3); }}
     .trip-anchor-meta {{ display: block; font-family: var(--ab-mono); font-size: 0.72rem; color: var(--ab-fg-3); margin-top: 2px; }}
-    .trip-prox {{ font-family: var(--ab-mono); font-size: 0.66rem; color: #1271a8; margin: 3px 0 0; }}
+    .trip-prox {{ font-family: var(--ab-mono); font-size: 0.6875rem; color: #1271a8; margin: 3px 0 0; }}
     /* Solo trip (nothing tracked to batch) — a quiet note while we auto-scan. */
     .trip-nonear-note {{ font-size: 0.8rem; color: var(--ab-fg-3); font-style: italic; }}
     /* Proactive "found for you near <city>" inline results (auto area search). */
@@ -3100,7 +3102,7 @@ def build():
       display: flex; align-items: baseline; gap: 9px;
     }}
     .profile-section-sub {{ font-size: 0.83rem; color: var(--ab-fg-3); margin: 0 0 6px; }}
-    .profile-section-opt {{ font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-mute); }}
+    .profile-section-opt {{ font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-mute); }}
     /* One speaking-material slot (Headshot / Slides / Bio & one-pagers / …). */
     .profile-material {{
       border: 1px solid var(--ab-rule); border-radius: 9px; background: var(--ab-bg-2);
@@ -3111,7 +3113,7 @@ def build():
     .profile-material .profile-file {{ background: var(--ab-bg); }}
     .profile-field {{ margin: 17px 0 0; }}
     .profile-field label {{
-      display: block; font-family: var(--ab-mono); font-size: 0.68rem; font-weight: 600;
+      display: block; font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600;
       letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 5px;
     }}
     .profile-field label .hint {{ text-transform: none; letter-spacing: 0; color: var(--ab-mute); font-weight: 500; }}
@@ -3124,7 +3126,7 @@ def build():
     .profile-field textarea:focus {{ outline: none; border-color: var(--ab-blue); background: var(--ab-bg); box-shadow: 0 0 0 3px rgba(39,115,194,0.1); }}
     /* About-you: saved bio (hover-pencil) + list editors (add/edit/delete). */
     .pf-field {{ margin: 18px 0 0; }}
-    .pf-fieldhead {{ font-family: var(--ab-mono); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 6px; }}
+    .pf-fieldhead {{ font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ab-fg-3); margin: 0 0 6px; }}
     .pf-fieldhead .hint {{ text-transform: none; letter-spacing: 0; color: var(--ab-mute); font-weight: 500; }}
     .pf-input {{ width: 100%; box-sizing: border-box; font-family: var(--ab-sans); font-size: 0.9rem; line-height: 1.5; color: var(--ab-fg); padding: 8px 11px; border: 1px solid var(--ab-rule-strong); border-radius: 8px; background: var(--ab-bg); }}
     .pf-input:focus {{ outline: none; border-color: var(--ab-blue); box-shadow: 0 0 0 3px rgba(39,115,194,0.1); }}
@@ -3217,11 +3219,11 @@ def build():
     .profile-tm-linkedin:hover {{ text-decoration: underline; }}
     .profile-tm-role {{ font-size: 0.76rem; color: var(--ab-fg-3); margin-left: auto; text-align: right; }}
     .profile-tm-field {{ margin: 8px 0 0; }}
-    .profile-tm-field .k {{ font-family: var(--ab-mono); font-size: 0.63rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-fg-3); }}
+    .profile-tm-field .k {{ font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-fg-3); }}
     .profile-tm-field .v {{ font-size: 0.86rem; color: var(--ab-fg-2); line-height: 1.5; white-space: pre-wrap; margin: 2px 0 0; }}
     .profile-tm-files {{ margin: 3px 0 0; display: flex; flex-direction: column; gap: 8px; }}
     .tm-mat-group {{ display: flex; flex-direction: column; gap: 5px; }}
-    .tm-mat-label {{ font-family: var(--ab-mono); font-size: 0.58rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-mute); }}
+    .tm-mat-label {{ font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ab-mute); }}
     .profile-tm-empty {{ font-size: 0.82rem; color: var(--ab-mute); font-style: italic; }}
     .profile-setup-note {{
       border: 1px solid #f0d9a8; background: #fdf6e8; border-radius: 8px;
@@ -3338,14 +3340,14 @@ def build():
     .map-sb-ev .meta {{ display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }}
     .map-sb-ev .dt {{ font-family: var(--ab-mono); font-size: 0.74rem; color: var(--ab-fg-3); white-space: nowrap; }}
     .msb-badge {{
-      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 700;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700;
       padding: 2px 7px; border-radius: 3px; white-space: nowrap; letter-spacing: 0.02em;
     }}
     .map-popup .map-ev {{ margin: 0 0 6px; font-size: 0.85rem; line-height: 1.35; }}
     .map-popup .map-ev a {{ color: var(--ab-blue, #1d4ed8); cursor: pointer; text-decoration: underline; }}
     .map-popup .map-ev .d {{ color: #666; font-family: var(--ab-mono); font-size: 0.72rem; }}
     .map-popup .map-city {{
-      margin: 0 0 8px; font-family: var(--ab-mono); font-size: 0.68rem;
+      margin: 0 0 8px; font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.1em; text-transform: uppercase; color: #666;
     }}
     /* Cluster-style pins: one consistent brand blue everywhere (region data
@@ -3411,7 +3413,7 @@ def build():
       background: var(--ab-bg-2);
     }}
     .calendar-day-head {{
-      padding: 8px; font-family: var(--ab-mono); font-size: 0.66rem;
+      padding: 8px; font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-fg-3); letter-spacing: 0.08em;
       text-transform: uppercase; text-align: center; min-width: 0; overflow: hidden;
     }}
@@ -3458,7 +3460,7 @@ def build():
       background: var(--ab-bg);
     }}
     .cal-legend-label {{
-      font-family: var(--ab-mono); font-size: 0.66rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       color: var(--ab-fg-3); letter-spacing: 0.08em;
       text-transform: uppercase; margin-right: 4px;
     }}
@@ -3473,7 +3475,7 @@ def build():
     /* Stage swatches in the legend render as the SAME pill shown on events,
        so the legend reads exactly like what's on the calendar. */
     .cal-legend-pill {{
-      font-family: var(--ab-mono); font-size: 0.62rem; font-weight: 600;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600;
       padding: 2px 7px; border-radius: 3px; letter-spacing: 0.02em;
     }}
     .cal-legend-sep {{
@@ -3482,12 +3484,12 @@ def build():
     .cal-evt-name {{ flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ab-fg); font-weight: 500; }}
     .cal-chip-initial {{
       display: inline-block; background: var(--ab-fg); color: var(--ab-bg);
-      font-family: var(--ab-mono); font-size: 0.6rem; font-weight: 600;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600;
       border-radius: 50%; width: 16px; height: 16px;
       line-height: 16px; text-align: center; flex-shrink: 0;
     }}
     .cal-evt-status {{
-      font-family: var(--ab-mono); font-size: 0.58rem; font-weight: 600;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 600;
       padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
       letter-spacing: 0.02em;
     }}
@@ -3583,7 +3585,7 @@ def build():
       background: var(--ab-bg-2);
     }}
     .ops-toolbar-label {{
-      font-family: var(--ab-mono); font-size: 0.62rem;
+      font-family: var(--ab-mono); font-size: 0.6875rem;
       letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--ab-fg-3); margin-right: 2px; user-select: none;
     }}
@@ -3617,7 +3619,7 @@ def build():
        convention. Sits at the left of the results header (count stays right). */
     .ops-dupe-review {{
       margin-right: auto; cursor: pointer;
-      font-family: var(--ab-mono); font-size: 0.62rem; letter-spacing: 0.05em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.05em;
       text-transform: uppercase; padding: 4px 13px; border-radius: 999px;
       text-decoration: underline; text-underline-offset: 2px;
       border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); color: var(--ab-fg-2);
@@ -3629,14 +3631,14 @@ def build():
     body.review-dupes .ops-card.is-dupe {{ outline: 2px dashed var(--ab-red); outline-offset: -2px; }}
     body.review-dupes .ops-card.is-dupe::before {{
       content: 'DUPLICATE'; position: absolute; top: 0; right: 0; z-index: 3;
-      font-family: var(--ab-mono); font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em;
       padding: 3px 8px; border-radius: 0 9px 0 6px; background: var(--ab-red); color: #fff;
     }}
     /* Loose pass-3 match: flagged for a human to judge, never auto-hidden. */
     body.review-dupes .ops-card[data-dup-maybe="1"] {{ outline: 2px dashed #b45309; outline-offset: -2px; }}
     body.review-dupes .ops-card[data-dup-maybe="1"]::before {{
       content: 'POSSIBLE'; position: absolute; top: 0; right: 0; z-index: 3;
-      font-family: var(--ab-mono); font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em;
       padding: 3px 8px; border-radius: 0 9px 0 6px; background: #b45309; color: #fff;
     }}
     /* Overdue review nudge (3 days) */
@@ -3647,7 +3649,7 @@ def build():
     body.review-dupes .ops-card[data-dup-keeper="1"] {{ outline: 2px solid var(--ab-fg-3); outline-offset: -2px; }}
     body.review-dupes .ops-card[data-dup-keeper="1"]::before {{
       content: 'KEEPING'; position: absolute; top: 0; right: 0; z-index: 3;
-      font-family: var(--ab-mono); font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em;
+      font-family: var(--ab-mono); font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em;
       padding: 3px 8px; border-radius: 0 9px 0 6px; background: var(--ab-fg-3); color: #fff;
     }}
 
@@ -3665,7 +3667,7 @@ def build():
     .dc-nav {{ width: 28px; height: 28px; border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); border-radius: 6px; cursor: pointer; font-size: 1.05rem; line-height: 1; color: var(--ab-fg-2); }}
     .dc-nav:hover {{ border-color: var(--ab-fg-3); color: var(--ab-fg); }}
     .dc-grid {{ display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }}
-    .dc-dow {{ text-align: center; font-family: var(--ab-mono); font-size: 0.58rem; color: var(--ab-fg-3); padding: 2px 0; }}
+    .dc-dow {{ text-align: center; font-family: var(--ab-mono); font-size: 0.6875rem; color: var(--ab-fg-3); padding: 2px 0; }}
     .dc-day {{ border: 0; background: none; cursor: pointer; padding: 6px 0; border-radius: 6px; font-size: 0.8rem; color: var(--ab-fg); }}
     .dc-day:hover {{ background: var(--ab-bg-3); }}
     .dc-empty {{ visibility: hidden; }}
@@ -3675,7 +3677,7 @@ def build():
     .dc-end {{ border-radius: 0 6px 6px 0; }}
     .dc-single {{ border-radius: 6px; }}
     .dc-foot {{ display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }}
-    .dc-hint {{ font-size: 0.6rem; font-style: italic; color: var(--ab-fg-3); }}
+    .dc-hint {{ font-size: 0.6875rem; font-style: italic; color: var(--ab-fg-3); }}
     .dc-clear, .dc-done {{ border: 1px solid var(--ab-rule-strong); background: var(--ab-bg); border-radius: 6px; padding: 4px 10px; font-size: 0.7rem; cursor: pointer; color: var(--ab-fg-2); }}
     .dc-done {{ background: var(--ab-fg); color: var(--ab-bg); border-color: var(--ab-fg); }}
     .add-event-card {{
@@ -3757,7 +3759,7 @@ def build():
         <img src="/arcticblue-logo.png" alt="ArcticBlue" width="32" height="29">
       </a>
       <h1 class="app-title">ArcticBlue Event Tracker</h1>
-      <div class="nav-meta"><span id="ab-today">{last_updated.upper()}</span> <span class="who">· <span class="who-switcher" id="who-switcher"></span></span></div>
+      <div class="nav-meta"><span id="ab-today">{last_updated.upper()}</span> <span class="who"><span class="who-sep">· </span><span class="who-switcher" id="who-switcher"></span></span></div>
     </div>
   </nav>
 
