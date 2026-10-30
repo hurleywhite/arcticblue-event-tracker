@@ -6515,12 +6515,26 @@ window.AB_TALK_SEEDS = {"thor": {"_README": "Thor's talk library: the standard t
             (who ? '' : '<button type="button" class="q-btn primary" data-next-find>Find someone to contact</button>')) +
           (who ? '<button type="button" class="q-link" data-reach-out="Reached out">Mark reached out</button>' : ''));
       }
-      // Not applied yet. A Sessionize call has its own steps further down.
+      // Not applied yet. "Apply for me" (Hurley 2026-10-30) hands the event to
+      // the apply agent (the event-apply skill in Claude): it fills in the
+      // organiser's form, or drafts the pitch email when there is no form, and
+      // waits for a yes in chat before anything is sent. It reuses the
+      // existing decision field: 'apply' is what the old queue's Apply wrote.
+      var queued = rec.decision === 'apply' || rec.decision === 'approved';
+      var tick = '<span class="q-reached">&#10003;</span> ';
+      var queuedSay = tick + 'Queued for Claude. It fills in the application and waits for your OK before anything is sent.';
+      var cancel = '<button type="button" class="q-link" data-apply-me="0">Cancel</button>';
+      function forMe(label, primary) {
+        return '<button type="button" class="' + (primary ? 'q-btn primary' : 'q-link') + '" data-apply-me="1">' + label + '</button>';
+      }
+      // A Sessionize call has its own steps further down.
       if (_szHtml) {
         var d = rec.sz_draft, step = !d || d.status !== 'ready' ? 'Draft the application first.'
           : (rec.decision === 'approved' ? 'Approved. Submit it on Sessionize, then record it.' : 'Read the draft, then approve it.');
+        if (queued) return strip(queuedSay, '<button type="button" class="q-link" data-next-go=".sz-box">See the application</button>' + cancel);
         return strip('Apply on Sessionize. ' + step,
-          '<button type="button" class="q-btn primary" data-next-go=".sz-box">Go to the application</button>');
+          forMe('Apply for me', true) +
+          '<button type="button" class="q-link" data-next-go=".sz-box">Do it myself</button>');
       }
       var apUrl = rec.apply_url || speakingRouteUrl(rec.speaking_route);
       if (apUrl && (!window.abCanStillApply || window.abCanStillApply(rec, tags, rec.deadline))) {
@@ -6529,15 +6543,21 @@ window.AB_TALK_SEEDS = {"thor": {"_README": "Thor's talk library: the standard t
         var dlTxt = String(rec.deadline || '').trim();
         var dlReal = dlTxt.length <= 32 && /\d{4}-\d{2}-\d{2}|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}\b/i.test(dlTxt);
         var dl = (dlReal && window.opsDeadlineUsable && window.opsDeadlineUsable(rec.deadline, rec)) ? ', apply by ' + esc(dlTxt) : '';
+        var self = '<a class="q-link" href="' + esc(apUrl) + '" target="_blank" rel="noopener">Apply myself ↗</a>';
+        if (queued) return strip(queuedSay, self + cancel);
         return strip('The call for speakers is open' + dl + '.',
-          '<a class="q-btn primary" href="' + esc(apUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>' +
+          forMe('Apply for me', true) + self +
           '<button type="button" class="q-link" data-next-qa="submitted">I have applied, record it</button>');
       }
       if (rt) {
+        if (queued && rt.email) {
+          return strip(tick + 'Queued for Claude. It drafts the email to ' + esc(who) + ' in Gmail for you to read and send.', cancel);
+        }
         return strip('Email ' + esc(who) + ' to ask about a speaking slot.',
           (mail(first ? 'Email ' + first : 'Email them') ||
             (rt.linkedin ? '<a class="q-btn primary" href="' + esc(rt.linkedin) + '" target="_blank" rel="noopener">Open LinkedIn ↗</a>'
                          : '<button type="button" class="q-btn primary" data-next-find>Find their email</button>')) +
+          (rt.email ? forMe('Draft the email for me', false) : '') +
           '<button type="button" class="q-link" data-reach-out="Reached out">Mark reached out</button>');
       }
       return strip('No organiser contact yet.',
@@ -6574,6 +6594,22 @@ window.AB_TALK_SEEDS = {"thor": {"_README": "Thor's talk library: the standard t
         if (window.abOpenBrief) window.abOpenBrief(rec._table === 'manual_events' ? 'manual' : 'catalog', rec._key);
       });
       root.querySelectorAll('[data-reach-out]').forEach(function ($r) { $r.addEventListener('click', function () { _reachOut($r); }); });
+      var $me = root.querySelector('[data-apply-me]');
+      if ($me) $me.addEventListener('click', function () {
+        var on = $me.getAttribute('data-apply-me') === '1';
+        rec.decision = on ? 'apply' : '';
+        if (window.opsWrite) window.opsWrite(rec._table, rec._key, { decision: rec.decision });
+        // A Sessionize call gets its server draft straight away, as the old
+        // queue's Apply did, so the agent has the tailored talk to paste.
+        var sz = window.ABSessionize;
+        if (on && sz && sz.link(rec) && !(rec.sz_draft && rec.sz_draft.status === 'ready') && !sz.isDrafting(rec._table, rec._key)) {
+          sz.requestDraft(rec._table, rec._key).then(function (r) {
+            if (r && r.ok && r.draft) { rec.sz_draft = r.draft; if (window.opsRefresh) window.opsRefresh(); }
+          });
+        }
+        if (overlay._refreshNext) overlay._refreshNext();
+        var n2 = $body.querySelector('.me-next'); if (n2) n2.focus({ preventScroll: true });
+      });
     }
     // A stage click repaints the stages without re-rendering the pop-up, so
     // the strip refreshes itself in place to match.
