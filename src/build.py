@@ -863,7 +863,7 @@ def build():
     .ops-apply-btn {{
       display: flex; align-items: center; justify-content: center;
       box-sizing: border-box; text-align: center;
-      font-family: var(--ab-mono); font-size: 0.7rem;
+      font-family: var(--ab-mono); font-size: 0.75rem;
       letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
       padding: 7px 16px; border-radius: 999px;
       background: var(--ab-blue, #1d4ed8); color: #fff !important; text-decoration: underline; text-underline-offset: 2px;
@@ -3603,7 +3603,7 @@ def build():
       padding-bottom: 6px;   /* lift off the hairline, in line with the tab text */
     }}
     .ops-navcount {{
-      font-family: var(--ab-mono); font-size: 0.72rem;
+      font-family: var(--ab-mono); font-size: 0.75rem;
       color: var(--ab-fg-3); letter-spacing: 0.04em; white-space: nowrap;
     }}
     /* Results header — the tracked/manual count sits above the grid. */
