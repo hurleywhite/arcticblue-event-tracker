@@ -2928,6 +2928,9 @@ def build():
        them. Small and quiet — the event name is the headline, not this. */
     .qrow-side {{ align-self: center; align-items: flex-end; gap: 5px; }}
     /* Next step strip under the stages (Hurley 2026-10-30). */
+    [data-spend].is-armed {{ background: #fffbeb !important; border-color: #b45309 !important; color: #92400e !important; }}
+    .bf-empty {{ padding: 24px 0; }}
+    .bf-empty p {{ margin: 0 0 8px; font-size: 0.92rem; }}
     .sr-only {{ position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }}
     .me-next {{
       display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
@@ -5896,7 +5899,7 @@ def build():
       // part of HOW we get on stage, and on most events it was one line under
       // its own heading (Hurley 2026-07-30).
       var _contactsHtml = pocHtml + _altContactsHtml(rec) +
-        '<button type="button" class="q-btn poc-more" data-poc-more="1">' +
+        '<button type="button" class="q-btn poc-more" data-poc-more="1" data-spend>' +
           (String(rec.poc_name || '').trim() ? '&#128269; Find more people' : '&#128269; Find someone to contact') +
         '</button>';
       var _spkSec = (window.abCanApply && window.abCanApply())
@@ -6571,7 +6574,7 @@ def build():
     if ($side) {{
       // "Enrich" — research missing details on demand (editable records only).
       var enrichBtn = (rec._table && rec._key != null)
-        ? '<button type="button" class="qa-edit qa-enrich" id="modal-enrich-btn" title="Search the web to fill in missing details for this event"><span class="qa-edit-ic" aria-hidden="true">✦</span> Enrich</button>'
+        ? '<button type="button" class="qa-edit qa-enrich" id="modal-enrich-btn" data-spend title="Search the web to fill in missing details for this event (uses research credits)"><span class="qa-edit-ic" aria-hidden="true">✦</span> Enrich</button>'
         : '';
       // Interested + Archive as ICONS, same star and struck-eye the card face
       // uses, so the two surfaces speak the same language (Hurley 2026-07-30).
@@ -7419,6 +7422,20 @@ def build():
       var first = String(name || '').trim().toLowerCase().split(/[ @]/)[0];
       return AB_SUPPORT_NAMES.indexOf(first) !== -1;
     }}
+    // Buttons marked data-spend run paid research (Perplexity, Exa, Apollo)
+    // and credits are limited (Hurley 2026-10-30). The first click only
+    // arms the button and says so; a second click within 5 seconds runs it.
+    // Capture phase, so this runs before the button's own handler.
+    document.addEventListener('click', function (e) {{
+      var b = e.target && e.target.closest ? e.target.closest('[data-spend]') : null;
+      if (!b || b.disabled) return;
+      if (b.dataset.armed === '1') {{ delete b.dataset.armed; b.classList.remove('is-armed'); clearTimeout(b._armT); if (b._label != null) b.innerHTML = b._label; return; }}
+      e.preventDefault(); e.stopImmediatePropagation();
+      b._label = b.innerHTML;
+      b.dataset.armed = '1'; b.classList.add('is-armed');
+      b.textContent = 'Uses credits. Click again';
+      b._armT = setTimeout(function () {{ delete b.dataset.armed; b.classList.remove('is-armed'); b.innerHTML = b._label; }}, 5000);
+    }}, true);
     window.abIsSupportUser = function () {{ return isSupportPerson(getCollabName() || ''); }};
 
     // Drop a trailing year (e.g. "Databricks Data + AI Summit 2026" → "…Summit")
@@ -10760,8 +10777,8 @@ def build():
         ov.innerHTML = '<div class="briefing-card" role="dialog" aria-modal="true" aria-labelledby="bf-dlg-title">' +
           '<div class="briefing-top"><span class="briefing-top-title" id="bf-dlg-title">Day-Of brief</span>' +
           '<div class="briefing-top-actions">' +
-            '<button type="button" class="bf-btn bf-targets" title="Find senior, budget-owning people to reach out to before this event (deeper research pass)">&#127919; Targets</button>' +
-            '<button type="button" class="bf-btn bf-regen" title="Force a fresh research pass">&#8635; Regenerate</button>' +
+            '<button type="button" class="bf-btn bf-targets" data-spend title="Find senior, budget-owning people to reach out to before this event (deeper research pass, uses research credits)">Targets</button>' +
+            '<button type="button" class="bf-btn bf-regen" data-spend title="Run the research again (uses research credits)">Regenerate</button>' +
             '<button type="button" class="bf-btn bf-copy">Copy</button>' +
             '<button type="button" class="bf-btn bf-close" aria-label="Close">&times;</button>' +
           '</div></div><div class="briefing-body" id="briefing-body"></div></div>';
@@ -10787,7 +10804,15 @@ def build():
       document.body.style.overflow = 'hidden';  // lock the page behind the drawer
       ov.querySelector('.bf-close').focus();     // move focus into the drawer
       if (it.briefing_json) renderBrief(it.briefing_json, it, true);
-      else loadBrief(it, false);
+      else {{
+        // No brief yet. Building one is a paid research run, so it waits
+        // for a click instead of starting the moment the drawer opens.
+        var $bb = document.getElementById('briefing-body');
+        $bb.innerHTML = '<div class="bf-empty"><p>No day-of brief for ' + escapeHtml(it.name || 'this event') + ' yet.</p>' +
+          '<p class="bf-muted">Building one researches the room, the speakers and the news. It uses research credits and can take a minute or two.</p>' +
+          '<button type="button" class="q-btn primary" data-spend data-bf-build>Build the brief</button></div>';
+        $bb.querySelector('[data-bf-build]').addEventListener('click', function () {{ loadBrief(it, false); }});
+      }}
     }}
 
     function loadBrief(it, regenerate) {{
@@ -10825,7 +10850,7 @@ def build():
       function esc(s) {{ return escapeHtml(s == null ? '' : String(s)); }}
       var html = '<div class="tg-wrap"><div class="tg-bar">' +
         '<button type="button" class="bf-btn tg-back">&larr; Brief</button>' +
-        '<button type="button" class="bf-btn tg-regen" title="Re-run the research (uses credits)">&#8635; Regenerate targets</button>' +
+        '<button type="button" class="bf-btn tg-regen" data-spend title="Re-run the research (uses research credits)">Regenerate targets</button>' +
         '<span class="tg-count">' + people.length + ' ' + (people.length === 1 ? 'person' : 'people') + '</span></div>';
       if (people.length) html += '<p class="tg-verify">&#9888; Starting points &mdash; confirm each person &amp; their news before you reach out.</p>';
       if (t.note) html += '<p class="tg-note">' + esc(t.note) + '</p>';
