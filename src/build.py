@@ -2918,7 +2918,18 @@ def build():
     /* Right-hand column of a Lineup row: who it's for, and the brief under
        them. Small and quiet — the event name is the headline, not this. */
     .qrow-side {{ align-self: center; align-items: flex-end; gap: 5px; }}
-    .me-brief {{ margin: 10px 0 2px; }}
+    /* Next step strip under the stages (Hurley 2026-10-30). */
+    .me-next {{
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+      margin: 12px 0 4px; padding: 12px 14px; border-radius: 8px;
+      background: var(--ab-bg-2); border: 1px solid var(--ab-rule);
+    }}
+    .me-next-say {{ margin: 0; flex: 1 1 240px; font-size: 0.92rem; font-weight: 600; color: var(--ab-fg); line-height: 1.4; }}
+    .me-next-act {{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }}
+    .me-next .q-btn.primary {{ text-decoration: none; padding: 7px 14px; font-size: 0.84rem; }}
+    .me-next .q-link {{ font-size: 0.84rem; }}
+    .me-next.is-quiet {{ background: transparent; }}
+    .me-next.is-quiet .me-next-say {{ font-weight: 500; color: var(--ab-fg-2); }}
     .qrow-brief {{
       font-family: var(--ab-mono); font-size: 0.64rem; letter-spacing: 0.03em;
       padding: 3px 8px; border-radius: 999px; cursor: pointer; white-space: nowrap;
@@ -5516,24 +5527,7 @@ def build():
 
     var html = '';
     html += quickBarHtml(rec);
-    // The day-of brief, from the event itself (Hurley 2026-10-30). It used to
-    // open only from Angela's lineup rows, so nobody else could reach one.
-    var _bfKind = rec._table === 'manual_events' ? 'manual' : 'catalog';
-    var _bfIt = (window.abAllItems ? window.abAllItems() : []).filter(function (x) {{
-      return x.kind === _bfKind && String(x.key) === String(rec._key);
-    }})[0];
-    // Same "can it be briefed" test as My Lineup: a private event has no
-    // online footprint to research.
-    var _bfAble = rec.is_private !== true &&
-      !!(String(rec.url || '').trim() || String(rec.about || '').trim() || String(rec.focus_areas || '').trim());
-    var _bfOn = !!(_bfIt && !_bfIt.past && _bfAble &&
-      !(window.abIsSupportUser && window.abIsSupportUser()) &&
-      ((rec.stage_tags || []).indexOf('Booked') !== -1 || (rec.stage_tags || []).indexOf('Attending') !== -1 ||
-       (rec.attendees || []).length));
-    if (_bfOn) {{
-      html += '<div class="me-brief"><button type="button" class="q-btn" data-open-brief>' +
-        (_bfIt.briefing_json ? 'Open the day-of brief' : 'Day-of brief') + '</button></div>';
-    }}
+    html += '<!--ab-next-step-->';
     // Team Discussion thread — right after the quickbar (Status/Interested/
     // Hide: Archive), ahead of the read-only detail fields.
     html += '<div class="event-chat" id="event-chat-panel"></div>';
@@ -5584,9 +5578,13 @@ def build():
     function _reachTarget(rec) {{
       var EM = /[^\\s@<>()"',;:]+@[^\\s@<>()"',;:]+\\.[a-z]{{2,}}/i;
       var NM = /[A-Z][a-z'’-]+(?:\\s+[A-Z][a-z'’-]+)+/;
+      // Two capitalised words are not always a person: "General Enquiry",
+      // "Event Team", "Press Office" are inboxes, not people to address.
+      var NOT_A_PERSON = /\\b(general|enquir|inquir|info|team|office|support|service|sales|marketing|events?|conference|summit|programme|program|press|media|sponsor|partnership|registration|contact|hello|admin|speakers?|speaking|opportunit|submission|partners?|relations|desk|committee|organi[sz]er|content|producer)\\b/i;
       function pick(text) {{
         var t = String(text || ''), e = t.match(EM), n = _ctp(t) ? t.match(NM) : null;
-        return {{ email: e ? e[0] : '', name: n ? n[0] : '' }};
+        var nm = n && !NOT_A_PERSON.test(n[0]) ? n[0] : '';
+        return {{ email: e ? e[0] : '', name: nm }};
       }}
       var name = _ct(rec.poc_name), email = '';
       var pe = String(rec.poc_email || '').match(EM);
@@ -5604,6 +5602,8 @@ def build():
           }}
         }} else if (raw) {{ var ac = pick(raw); name = ac.name; email = ac.email; }}
       }}
+      // The saved point of contact is sometimes an inbox label too.
+      if (name && NOT_A_PERSON.test(name)) name = '';
       var li = String(rec.poc_linkedin || '').trim();
       return (name || email || li) ? {{ name: name, email: email, linkedin: li }} : null;
     }}
@@ -6020,25 +6020,6 @@ def build():
         v += '<div class="me-apply"><a class="modal-visit modal-apply" href="' + esc(_apUrl) +
              '" target="_blank" rel="noopener">Apply to speak \u2197</a></div>';
       }}
-      // Who to reach out to, and whether anyone has (Hurley 2026-10-16): one
-      // line right under the apply step, so the whole application is one flow
-      // in the event itself. Status is the tracker's own follow-up rule.
-      if (window.abCanApply && window.abCanApply()) {{
-        var _rt = _reachTarget(rec), _rw = [];
-        if (_rt && _rt.name) _rw.push(esc(_rt.name));
-        if (_rt && _rt.email) _rw.push('<a href="mailto:' + esc(_rt.email) + '">' + esc(_rt.email) + '</a>' +
-          '<button type="button" class="q-link" data-copy-email="' + esc(_rt.email) + '">Copy</button>');
-        if (_rt && _rt.linkedin && !_rt.email) _rw.push('<a href="' + esc(_rt.linkedin) + '" target="_blank" rel="noopener">LinkedIn ↗</a>');
-        var _fs = window.abFollowUpState ? window.abFollowUpState(rec) : {{ state: 'none', label: 'Not contacted yet' }};
-        var _rs = _fs.state === 'none'
-          ? (_rw.length ? '<button type="button" class="q-link" data-reach-out="Reached out">Mark reached out</button>' : '')
-          : (_fs.state === 'due'
-              ? '<span class="me-reach-due">' + esc(_fs.label) + '</span><button type="button" class="q-link" data-reach-out="Followed up">Mark followed up</button>'
-              : '<span class="q-reached">&#10003; ' + esc(_fs.label) + '</span>');
-        v += '<div class="me-reach">' + (window.AB_CONTACT_ICON || '') +
-          '<span class="me-reach-who">' + (_rw.length ? 'Reach out to ' + _rw.join(' &middot; ') : 'No contact yet. Use &ldquo;Find someone to contact&rdquo; above.') + '</span>' +
-          _rs + '</div>';
-      }}
       v += _sibSec;
     }}
 
@@ -6050,7 +6031,120 @@ def build():
     var editForm = editFormHtml(rec);
     if (editForm) html += '<div class="modal-editform" hidden>' + editForm + '</div>';
 
+    // ── Next step (Hurley 2026-10-30) ─────────────────────────────────
+    // One sentence and one button at the top of the pop-up, worked out from
+    // where the event stands, so Thor never has to scroll to find what to do:
+    // brief / follow up / apply / email the organiser / find a contact. It
+    // replaces the reach-out line that sat at the very bottom.
+    var _nextStep = (function () {{
+      var kind = rec._table === 'manual_events' ? 'manual' : 'catalog';
+      var it = (window.abAllItems ? window.abAllItems() : []).filter(function (x) {{
+        return x.kind === kind && String(x.key) === String(rec._key);
+      }})[0];
+      if (!it || it.past) return '';
+      var tags = rec.stage_tags || [];
+      function has(t) {{ return tags.indexOf(t) !== -1; }}
+      var me = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '').trim().split(/\s+/)[0].toLowerCase();
+      var iGo = !!(me && (rec.attendees || []).some(function (a) {{ return String(a).toLowerCase() === me; }}));
+      function strip(say, acts, quiet) {{
+        return '<div class="me-next' + (quiet ? ' is-quiet' : '') + '" role="group" aria-label="Next step">' +
+          '<p class="me-next-say">' + say + '</p>' + (acts ? '<div class="me-next-act">' + acts + '</div>' : '') + '</div>';
+      }}
+      // Booked or going: the brief is the next thing to read.
+      var briefable = rec.is_private !== true &&
+        !!(String(rec.url || '').trim() || String(rec.about || '').trim() || String(rec.focus_areas || '').trim());
+      if ((has('Booked') || iGo || (has('Attending') && (rec.attendees || []).length)) &&
+          !(window.abIsSupportUser && window.abIsSupportUser())) {{
+        if (!briefable) return '';
+        return strip((has('Booked') ? 'Booked to speak.' : 'You are going.') + ' Read the day-of brief before you go.',
+          '<button type="button" class="q-btn primary" data-open-brief>' +
+            (it.briefing_json ? 'Open the day-of brief' : 'Day-of brief') + '</button>');
+      }}
+      if (!(window.abCanApply && window.abCanApply()) || has('Rejected')) return '';
+      var rt = _reachTarget(rec);
+      var who = rt ? (rt.name || rt.email || 'the organiser') : '';
+      var first = rt && rt.name ? rt.name.split(/\s+/)[0] : '';
+      function mail(label) {{
+        return rt && rt.email ? '<a class="q-btn primary" href="mailto:' + esc(rt.email) + '">' + esc(label) + '</a>' : '';
+      }}
+      var fs = window.abFollowUpState ? window.abFollowUpState(rec) : {{ state: 'none' }};
+      var nice = function (iso) {{
+        try {{ return new Date(String(iso).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-US', {{ month: 'short', day: 'numeric' }}); }}
+        catch (e) {{ return ''; }}
+      }};
+      var applied = has('Submitted') || has('Initial outreach') || has('Followed up') || has('Meeting held');
+      // In flight: the follow-up rule decides.
+      if (fs.state === 'closed') return '';
+      if (fs.state === 'due') {{
+        return strip('Follow up with ' + esc(who || 'the organiser') + '. Last contact ' + esc(nice(fs.since)) +
+            ', ' + fs.days + ' days ago.',
+          (mail(first ? 'Email ' + first : 'Email them') || (who ? '' : '<button type="button" class="q-btn primary" data-next-find>Find someone to contact</button>')) +
+          '<button type="button" class="q-link" data-reach-out="Followed up">Mark followed up</button>');
+      }}
+      if (fs.state === 'ok' || fs.state === 'hold') {{
+        var says = fs.state === 'ok'
+          ? 'Last contact ' + esc(nice(fs.since)) + '. A follow-up comes due later.'
+          : esc(String(fs.label || 'Waiting on them').replace(/\s*\u2014\s*/g, ': ')) + '.';
+        return strip('<span class="q-reached">&#10003;</span> ' + says, '', true);
+      }}
+      if (applied) {{
+        return strip('Applied. Tell ' + esc(who || 'the organiser') + ' the application is in.',
+          (mail(first ? 'Email ' + first : 'Email them') ||
+            (who ? '' : '<button type="button" class="q-btn primary" data-next-find>Find someone to contact</button>')) +
+          (who ? '<button type="button" class="q-link" data-reach-out="Reached out">Mark reached out</button>' : ''));
+      }}
+      // Not applied yet. A Sessionize call has its own steps further down.
+      if (_szHtml) {{
+        var d = rec.sz_draft, step = !d || d.status !== 'ready' ? 'Draft the application first.'
+          : (rec.decision === 'approved' ? 'Approved. Submit it on Sessionize, then record it.' : 'Read the draft, then approve it.');
+        return strip('Apply on Sessionize. ' + step,
+          '<button type="button" class="q-btn primary" data-next-go=".sz-box">Go to the application</button>');
+      }}
+      var apUrl = rec.apply_url || speakingRouteUrl(rec.speaking_route);
+      if (apUrl && (!window.abCanStillApply || window.abCanStillApply(rec, tags, rec.deadline))) {{
+        // Only a real date reads as "apply by": the field also holds notes
+        // like "2026 agenda now available; no deadline published".
+        var dlTxt = String(rec.deadline || '').trim();
+        var dlReal = dlTxt.length <= 32 && /\\d{{4}}-\\d{{2}}-\\d{{2}}|\\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.?\\s+\\d{{1,2}}\\b/i.test(dlTxt);
+        var dl = (dlReal && window.opsDeadlineUsable && window.opsDeadlineUsable(rec.deadline, rec)) ? ', apply by ' + esc(dlTxt) : '';
+        return strip('The call for speakers is open' + dl + '.',
+          '<a class="q-btn primary" href="' + esc(apUrl) + '" target="_blank" rel="noopener">Apply to speak \u2197</a>' +
+          '<button type="button" class="q-link" data-next-qa="submitted">I have applied, record it</button>');
+      }}
+      if (rt) {{
+        return strip('Email ' + esc(who) + ' to ask about a speaking slot.',
+          (mail(first ? 'Email ' + first : 'Email them') ||
+            (rt.linkedin ? '<a class="q-btn primary" href="' + esc(rt.linkedin) + '" target="_blank" rel="noopener">Open LinkedIn \u2197</a>'
+                         : '<button type="button" class="q-btn primary" data-next-find>Find their email</button>')) +
+          '<button type="button" class="q-link" data-reach-out="Reached out">Mark reached out</button>');
+      }}
+      return strip('No organiser contact yet.',
+        '<button type="button" class="q-btn primary" data-next-find>Find someone to contact</button>');
+    }})();
+    html = html.replace('<!--ab-next-step-->', _nextStep);
+
     $body.innerHTML = html;
+    // The strip's buttons drive the controls that already exist further down,
+    // so there is one implementation of each action.
+    var $nf = $body.querySelector('[data-next-find]');
+    if ($nf) $nf.addEventListener('click', function () {{
+      var b = $body.querySelector('[data-poc-more]');
+      if (b) {{ b.scrollIntoView({{ block: 'center' }}); b.click(); }}
+    }});
+    var $nq = $body.querySelector('[data-next-qa]');
+    if ($nq) $nq.addEventListener('click', function () {{
+      var b = $body.querySelector('.modal-quickbar [data-qa="' + $nq.getAttribute('data-next-qa') + '"]');
+      if (b) {{ b.click(); setTimeout(function () {{ openEventModal(rec); }}, 0); }}
+    }});
+    var $ng = $body.querySelector('[data-next-go]');
+    if ($ng) $ng.addEventListener('click', function () {{
+      var t = $body.querySelector($ng.getAttribute('data-next-go'));
+      if (t) {{
+        t.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+        var f = t.querySelector('button, a[href]');
+        if (f) setTimeout(function () {{ f.focus({{ preventScroll: true }}); }}, 350);
+      }}
+    }});
     wireQuickBar(rec);
     if (window.ABSessionize) window.ABSessionize.wire($body, rec);
     // "Mark reached out": a dated line in the follow-up log, plus the outreach
