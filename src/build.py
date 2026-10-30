@@ -1734,6 +1734,8 @@ def build():
 
     /* Month dividers inside the For-Angela ops grid. Mirrors the public
        .month-header but is clickable to collapse/expand that month's cards. */
+    .ops-month-h {{ display: contents; }}
+    #ops-grid:focus {{ outline: none; }}
     .ops-month-header {{
       grid-column: 1 / -1;
       display: flex; align-items: center; gap: 12px;
@@ -2911,6 +2913,14 @@ def build():
     :where(button, a[href], input, select, textarea, summary, [tabindex]):focus-visible {{
       outline: 2px solid var(--ab-blue); outline-offset: 2px;
     }}
+    .skip-link {{ position: absolute; left: 12px; top: -48px; z-index: 100; padding: 10px 14px; border-radius: 6px;
+      background: var(--ab-fg); color: #fff; font-weight: 600; text-decoration: none; }}
+    .skip-link:focus {{ top: 12px; }}
+    /* Respect the system's reduce-motion setting: no pulses, slides or fades. */
+    @media (prefers-reduced-motion: reduce) {{
+      *, *::before, *::after {{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important; scroll-behavior: auto !important; }}
+    }}
     .sr-only {{ position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }}
     .me-next {{
       display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
@@ -3733,6 +3743,7 @@ def build():
   </style>
 </head>
 <body class="hide-urgent">
+  <a class="skip-link" href="#ops-grid">Skip to the events</a>
 
   <nav class="nav">
     <div class="nav-inner">
@@ -3948,7 +3959,7 @@ def build():
           <button type="button" class="ops-dupe-review" id="ops-dupe-review" title="Show the auto-detected duplicate events so you can delete them (open one, then Details → Edit → Delete this event)" hidden></button>
           <span class="ops-shown" id="ops-shown"></span>
         </div>
-        <div class="ops-grid" id="ops-grid"></div>
+        <div class="ops-grid" id="ops-grid" tabindex="-1"></div>
         <div class="ops-calendar" id="ops-calendar"></div>
         <div class="ops-map" id="ops-map">
           <p class="ops-meta" id="ops-map-note" style="margin:0 0 8px;"></p>
@@ -9730,7 +9741,12 @@ def build():
         '<span class="mh-count" data-mh-count></span>' +
         '<span class="mh-line" aria-hidden="true"></span>';
       h.addEventListener('click', function () {{ toggleOpsMonth(key); }});
-      return h;
+      // Wrapped in an h2 so screen readers can jump month to month
+      // (Hurley 2026-10-30); display: contents keeps the grid as it was.
+      var h2 = document.createElement('h2');
+      h2.className = 'ops-month-h';
+      h2.appendChild(h);
+      return h2;
     }}
 
     // Card placement tier: regular months (0) sort first, then the collapsible
@@ -9752,7 +9768,7 @@ def build():
     // open <details> survive. Also (re)builds the Months dropdown list.
     function regroupOpsByMonth() {{
       if (!$opsGrid) return;
-      Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-month-header'))
+      Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-month-h, .ops-month-header'))
         .forEach(function (h) {{ if (h.parentNode) h.parentNode.removeChild(h); }});
       var cards = Array.prototype.slice.call($opsGrid.querySelectorAll('.ops-card'));
       if (!cards.length) {{ buildMonthsFilter(); return; }}
