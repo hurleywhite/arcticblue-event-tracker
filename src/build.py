@@ -5551,6 +5551,37 @@ def build():
     // returns what human-readable text is left, if any.
     var _ct  = window.opsContactText   || function (v) {{ return String(v == null ? '' : v).trim(); }};
     var _ctp = window.opsContactPerson || _ct;
+    // Who to write to, from every place a contact can live (Hurley 2026-10-30):
+    // the point of contact first, then a name or address in "Contact info",
+    // then the first of the "Others we found". The reach-out line used to read
+    // only poc_name and poc_email, so it said "No contact yet" right under a
+    // named contact.
+    function _reachTarget(rec) {{
+      var EM = /[^\\s@<>()"',;:]+@[^\\s@<>()"',;:]+\\.[a-z]{{2,}}/i;
+      var NM = /[A-Z][a-z'’-]+(?:\\s+[A-Z][a-z'’-]+)+/;
+      function pick(text) {{
+        var t = String(text || ''), e = t.match(EM), n = _ctp(t) ? t.match(NM) : null;
+        return {{ email: e ? e[0] : '', name: n ? n[0] : '' }};
+      }}
+      var name = _ct(rec.poc_name), email = '';
+      var pe = String(rec.poc_email || '').match(EM);
+      if (pe) email = pe[0];
+      if (!name && !email) {{ var ci = pick(rec.contact_info); name = ci.name; email = ci.email; }}
+      if (!name && !email) {{
+        var raw = String(rec.additional_contacts || '').trim(), list = null;
+        if (raw.charAt(0) === '[') {{ try {{ list = JSON.parse(raw); }} catch (e) {{ list = null; }} }}
+        if (Array.isArray(list)) {{
+          for (var i = 0; i < list.length && !name && !email; i++) {{
+            var c = list[i] || {{}};
+            name = String(c.name || '').trim();
+            var ce = String(c.email || '').match(EM);
+            email = ce ? ce[0] : '';
+          }}
+        }} else if (raw) {{ var ac = pick(raw); name = ac.name; email = ac.email; }}
+      }}
+      var li = String(rec.poc_linkedin || '').trim();
+      return (name || email || li) ? {{ name: name, email: email, linkedin: li }} : null;
+    }}
     var contactBits = [];
     if (_ct(rec.poc_name))  contactBits.push(esc(rec.poc_name));
     if (rec.poc_email && String(rec.poc_email).indexOf('@') !== -1) {{
@@ -5968,9 +5999,11 @@ def build():
       // line right under the apply step, so the whole application is one flow
       // in the event itself. Status is the tracker's own follow-up rule.
       if (window.abCanApply && window.abCanApply()) {{
-        var _rw = [];
-        if (_ct(rec.poc_name)) _rw.push(esc(rec.poc_name));
-        if (rec.poc_email && String(rec.poc_email).indexOf('@') !== -1) _rw.push('<a href="mailto:' + esc(rec.poc_email) + '">' + esc(rec.poc_email) + '</a>');
+        var _rt = _reachTarget(rec), _rw = [];
+        if (_rt && _rt.name) _rw.push(esc(_rt.name));
+        if (_rt && _rt.email) _rw.push('<a href="mailto:' + esc(_rt.email) + '">' + esc(_rt.email) + '</a>' +
+          '<button type="button" class="q-link" data-copy-email="' + esc(_rt.email) + '">Copy</button>');
+        if (_rt && _rt.linkedin && !_rt.email) _rw.push('<a href="' + esc(_rt.linkedin) + '" target="_blank" rel="noopener">LinkedIn ↗</a>');
         var _fs = window.abFollowUpState ? window.abFollowUpState(rec) : {{ state: 'none', label: 'Not contacted yet' }};
         var _rs = _fs.state === 'none'
           ? (_rw.length ? '<button type="button" class="q-link" data-reach-out="Reached out">Mark reached out</button>' : '')
@@ -5978,7 +6011,7 @@ def build():
               ? '<span class="me-reach-due">' + esc(_fs.label) + '</span><button type="button" class="q-link" data-reach-out="Followed up">Mark followed up</button>'
               : '<span class="q-reached">&#10003; ' + esc(_fs.label) + '</span>');
         v += '<div class="me-reach">' + (window.AB_CONTACT_ICON || '') +
-          '<span class="me-reach-who">' + (_rw.length ? 'Reach out to ' + _rw.join(' &middot; ') : 'No contact yet &mdash; &ldquo;Find someone to contact&rdquo; above') + '</span>' +
+          '<span class="me-reach-who">' + (_rw.length ? 'Reach out to ' + _rw.join(' &middot; ') : 'No contact yet. Use &ldquo;Find someone to contact&rdquo; above.') + '</span>' +
           _rs + '</div>';
       }}
       v += _sibSec;
@@ -5997,11 +6030,19 @@ def build():
     if (window.ABSessionize) window.ABSessionize.wire($body, rec);
     // "Mark reached out": a dated line in the follow-up log, plus the outreach
     // stage once the application is in (stages put outreach after Submitted).
-    var $reach = $body.querySelector('[data-reach-out]');
-    if ($reach) $reach.addEventListener('click', function () {{
+    $body.querySelectorAll('[data-copy-email]').forEach(function ($cp) {{
+      $cp.addEventListener('click', function () {{
+        var addr = $cp.getAttribute('data-copy-email');
+        var done = function () {{ $cp.textContent = 'Copied'; setTimeout(function () {{ $cp.textContent = 'Copy'; }}, 1500); }};
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(addr).then(done, function () {{}});
+      }});
+    }});
+    $body.querySelectorAll('[data-reach-out]').forEach(function ($reach) {{ $reach.addEventListener('click', function () {{
       var _d = new Date(), _on = _d.getFullYear() + '-' + ('0' + (_d.getMonth() + 1)).slice(-2) + '-' + ('0' + _d.getDate()).slice(-2);
+      var _to = (_reachTarget(rec) || {{}});
+      _to = _to.name || _to.email || '';
       var list = (rec.follow_ups || []).concat([{{ by: (window.opsCurrentUser && window.opsCurrentUser()) || 'Team', on: _on,
-        note: $reach.getAttribute('data-reach-out') + (rec.poc_name ? ' to ' + rec.poc_name : '') }}]);
+        note: $reach.getAttribute('data-reach-out') + (_to ? ' to ' + _to : '') }}]);
       var patch = {{ follow_ups: list }};
       var tags = rec.stage_tags || [];
       if (tags.indexOf('Submitted') !== -1 && tags.indexOf('Initial outreach') === -1 && window.abApplyStageToggle) {{
@@ -6010,7 +6051,7 @@ def build():
       rec.follow_ups = list;
       if (window.opsWrite) window.opsWrite(rec._table, rec._key, patch);
       openEventModal(rec);
-    }});
+    }}); }});
     // Clicking a sibling opens THAT event's card.
     $body.querySelectorAll('[data-sib-kind]').forEach(function (b3) {{
       b3.addEventListener('click', function () {{
