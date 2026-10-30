@@ -2059,7 +2059,11 @@ def build():
     .qa-fu-btn:disabled {{ opacity: 0.4; cursor: not-allowed; }}
     .qa-fu-btn:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 1px; }}
     /* Touch has no hover — keep it visible there. */
-    @media (hover: none) {{ .qa-fu-ctl {{ opacity: 1; pointer-events: auto; }} }}
+    /* Inline beside the pill there, not floating over the next row of stages. */
+    @media (hover: none) {{
+      .qa-fu-ctl {{ opacity: 1; pointer-events: auto; position: static; transform: none; padding: 0 0 0 4px; flex-direction: row; gap: 4px; }}
+      .qa-fu-btn {{ width: 36px; height: 36px; }}
+    }}
     /* (Draft-outreach styles removed 2026-08-05 with the feature.) */
     .qa-step.qa-static {{ cursor: default; }}
     .qa-step.qa-static:hover {{ border-color: var(--ab-rule-strong); color: var(--ab-fg-2); }}
@@ -3735,9 +3739,16 @@ def build():
       .ops-grid {{ grid-template-columns: 1fr; }}
     }}
     /* Touch screens: give the small card controls a tappable target. */
+    /* Touch screens: every control gets a finger-sized target (44px, Apple's
+       minimum). It used to cover four controls; the rest were 20-32px. */
     @media (pointer: coarse) {{
-      .ops-details-btn, .ops-chip {{ min-height: 40px; padding-top: 8px; padding-bottom: 8px; }}
-      .bf-close, .saved-star {{ min-width: 40px; min-height: 40px; }}
+      .ops-details-btn, .ops-chip {{ min-height: 44px; padding-top: 8px; padding-bottom: 8px; }}
+      .bf-close, .saved-star, .ops-archive-x, .mt-ico, .modal-close {{ min-width: 44px; min-height: 44px; }}
+      .seg-chip, .ops-apply-btn, .q-btn, .sz-btn, .qa-step, .qa-edit, .bf-btn,
+      .view-toggle button, .qrow-brief {{ min-height: 44px; }}
+      .who-init {{ min-width: 36px; height: 36px; }}
+      .ops-month-header {{ min-height: 44px; }}
+      .q-link, .sz-link {{ display: inline-block; padding: 10px 2px; }}
     }}
     @media (max-width: 500px) {{
       .nav {{ padding: 16px 0; }}
