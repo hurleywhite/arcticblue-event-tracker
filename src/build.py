@@ -616,7 +616,7 @@ def build():
          Not the rounded Nunito, which read as too casual. */
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       font-weight: 700; font-size: 1.5rem; letter-spacing: -0.01em;
-      line-height: 1.1; color: #1fa0dc; margin: 0; white-space: nowrap;
+      line-height: 1.1; color: #187cab; margin: 0; white-space: nowrap;   /* #1fa0dc read 2.95:1 on white; this shade of it passes 4.5:1 */
       text-align: center;
     }}
     @media (max-width: 760px) {{
@@ -1091,11 +1091,11 @@ def build():
       display: inline-flex; align-items: center; gap: 7px; min-height: 36px;
       font-family: var(--ab-sans); font-size: 0.85rem; font-weight: 600;
       padding: 0 16px; border-radius: 9px; cursor: pointer; white-space: nowrap;
-      border: 1px solid #1fa0dc; background: #1fa0dc; color: #fff;
-      box-shadow: 0 1px 2px rgba(31,160,220,0.28);
+      border: 1px solid #2773c2; background: #2773c2; color: #fff;   /* white on #1fa0dc was 2.95:1 */
+      box-shadow: 0 1px 2px rgba(39,115,194,0.28);
       transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, transform 0.06s ease;
     }}
-    .qa-edit:hover {{ background: #1488bf; border-color: #1488bf; }}
+    .qa-edit:hover {{ background: #1f5fa3; border-color: #1f5fa3; }}
     .qa-edit:active {{ transform: translateY(1px); }}
     .qa-edit.on {{ background: #0f7298; border-color: #0f7298; box-shadow: none; }}
     .qa-edit-ic {{ font-size: 0.95em; line-height: 1; }}
@@ -2666,7 +2666,7 @@ def build():
       text-align: center; border-radius: 9px; vertical-align: middle;
       background: var(--ab-fg-3); color: #fff;
     }}
-    .view-toggle button.active .vt-count {{ background: #1fa0dc; }}
+    .view-toggle button.active .vt-count {{ background: #2773c2; }}
     .vt-count.alert {{ background: #d64545; }}
     /* Secondary view switcher under the merged "Events" tab. List / Calendar
        / Map are three shapes of the same event set, so they read as a
@@ -2720,7 +2720,7 @@ def build():
     .dayof-card.is-today {{ border-color: #f59e0b; box-shadow: 0 0 0 1px #f59e0b33; background: linear-gradient(0deg, #fffaf0, #fff); }}
     .dayof-card-main {{ min-width: 0; flex: 1 1 280px; }}
     .dayof-name {{ font-family: var(--ab-sans); font-weight: 650; font-size: 1rem; color: var(--ab-fg); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }}
-    .dayof-name:hover {{ color: #1fa0dc; text-decoration: underline; }}
+    .dayof-name:hover {{ color: #187cab; text-decoration: underline; }}
     .dayof-meta {{ font-size: 0.8rem; color: var(--ab-fg-3); margin: 3px 0 8px; }}
     .dayof-who-row {{ display: flex; flex-wrap: wrap; gap: 8px; }}
     .dayof-who {{ font-size: 0.82rem; color: var(--ab-fg-2); display: inline-flex; align-items: center; gap: 5px; }}
@@ -2855,13 +2855,13 @@ def build():
     .queue-row-open {{ cursor: pointer; }}
     .queue-row-open:hover {{ border-color: #1fa0dc; }}
     .queue-row-open:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 2px; }}
-    .queue-row-open:hover .queue-name {{ color: #1fa0dc; }}
+    .queue-row-open:hover .queue-name {{ color: #187cab; }}
     .queue-main {{ min-width: 0; }}
     .queue-name {{
       font-family: var(--ab-sans); font-weight: 650; font-size: 0.98rem; color: var(--ab-fg);
       background: none; border: 0; padding: 0; text-align: left; display: inline-block; cursor: pointer;
     }}
-    .queue-name:hover {{ color: #1fa0dc; text-decoration: underline; }}
+    .queue-name:hover {{ color: #187cab; text-decoration: underline; }}
     .queue-meta {{ font-size: 0.8rem; color: var(--ab-fg-3); margin: 3px 0 0; }}
     /* "Reach out" asks — a warm to-do tint so they read as an action assigned
        to you, sitting at the top of My Lineup. */
@@ -2910,8 +2910,8 @@ def build():
       transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
     }}
     .q-btn:hover {{ border-color: #1fa0dc; color: #1271a8; }}
-    .q-btn.primary {{ background: #1fa0dc; border-color: #1fa0dc; color: #fff; }}
-    .q-btn.primary:hover {{ background: #1488bf; }}
+    .q-btn.primary {{ background: #2773c2; border-color: #2773c2; color: #fff; }}
+    .q-btn.primary:hover {{ background: #1f5fa3; border-color: #1f5fa3; color: #fff; }}
     .q-btn.danger:hover {{ border-color: #d64545; color: #d64545; }}
     /* "In the last week" rows + suggestion "why" line (My Events). */
     .wn-check {{ padding: 4px 10px; font-size: 0.85rem; }}
@@ -3282,7 +3282,7 @@ def build():
       background: none; border: 0; padding: 0; cursor: pointer; text-align: left;
       font-family: var(--ab-sans); font-weight: 600; font-size: 0.9rem; color: var(--ab-fg);
     }}
-    .gap-name:hover {{ color: #1fa0dc; text-decoration: underline; }}
+    .gap-name:hover {{ color: #187cab; text-decoration: underline; }}
     .gap-meta {{ font-size: 0.78rem; color: var(--ab-fg-3); margin-top: 2px; }}
     .gap-none {{ padding: 10px 14px; font-size: 0.85rem; color: var(--ab-fg-3); }}
     .gap-more {{ padding: 8px 14px 0; font-size: 0.78rem; color: var(--ab-fg-3); }}
@@ -7267,7 +7267,7 @@ def build():
     // have. Their initials (JC / S) still tell them apart.
     var AB_PERSON_COLORS = {{
       angela: '#db2777',   // pink — hers is the one that has to be findable
-      thor:   '#1fa0dc',   // brand blue, unchanged
+      thor:   '#187cab',   // brand blue, the shade of it that white initials can be read on
       carlos: '#ea580c',
       hurley: '#7c3aed',
       jerome: '#059669',
