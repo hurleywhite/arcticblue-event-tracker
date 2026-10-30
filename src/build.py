@@ -825,7 +825,7 @@ def build():
     .st-no   {{ background: #991b1b; }}   /* deeper red, in step with the rejected mic */
     /* Interest is a MAYBE — hollow ring, not a filled dot, so it reads lighter
        than Booked/Attending sitting beside it (matches the hollow star mark). */
-    .st-int  {{ background: transparent; box-shadow: inset 0 0 0 2px #7c3aed; }}
+    .st-int  {{ background: transparent; box-shadow: inset 0 0 0 2px #2773c2; }}
     .st-sep  {{ color: var(--ab-fg-3); font-weight: 400; }}
     .st-sub-date {{ color: var(--ab-fg-3); font-weight: 500; }}
     /* Whisper-quiet data-freshness cue from updated_at. Deliberately faint —
@@ -1101,10 +1101,11 @@ def build():
     .qa-edit:active {{ transform: translateY(1px); }}
     .qa-edit.on {{ background: #0f7298; border-color: #0f7298; box-shadow: none; }}
     .qa-edit-ic {{ font-size: 0.95em; line-height: 1; }}
-    /* Enrich — soft purple "research" accent (AI = purple across the app);
+    /* Enrich — soft blue accent (it used to be purple, which belongs to the
+       Meeting held stage alone);
        a clear secondary to the solid-blue Edit primary. */
-    .qa-enrich {{ background: #f7f3ff; color: #7c3aed; border-color: #ddd6fe; box-shadow: none; }}
-    .qa-enrich:hover {{ background: #7c3aed; color: #fff; border-color: #7c3aed; }}
+    .qa-enrich {{ background: #eff6ff; color: #1f5fa3; border-color: #bfdbfe; box-shadow: none; }}
+    .qa-enrich:hover {{ background: #2773c2; color: #fff; border-color: #2773c2; }}
     .qa-enrich[aria-busy] {{ opacity: 0.65; cursor: default; }}
     .modal-enrich-note {{
       font-family: var(--ab-sans); font-size: 0.85rem; padding: 8px 12px;
@@ -1573,7 +1574,6 @@ def build():
     /* "Private event" toggle in the edit form. */
     .me-toggle {{ display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: var(--ab-sans); font-size: 0.85rem; color: var(--ab-fg-2); }}
     .me-toggle input {{ width: 15px; height: 15px; accent-color: var(--ab-blue); flex: 0 0 auto; }}
-    .badge-private {{ background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }}
     /* Read-only "interested" chips in the detail view. */
     .int-chip {{
       display: inline-block; margin: 0 6px 4px 0; padding: 3px 10px; border-radius: 999px;
@@ -2519,7 +2519,7 @@ def build():
     /* Pipeline / Region / Should-attend chips keep their palette when selected. */
     .extra-chip.stage-chip-dd.is-on  {{ background: var(--sc-bg); color: var(--sc-fg); border-color: var(--sc-bg); box-shadow: 0 0 0 2px var(--sc-fg); }}
     .extra-chip.region-chip-dd.is-on {{ background: var(--rc-col); color: #fff; border-color: var(--rc-col); box-shadow: 0 0 0 2px var(--rc-col); }}
-    .extra-chip.should-team.is-on    {{ background: #7c3aed; color: #fff; border-color: #7c3aed; box-shadow: 0 0 0 2px #7c3aed; }}
+    .extra-chip.should-team.is-on    {{ background: #2773c2; color: #fff; border-color: #2773c2; box-shadow: 0 0 0 2px #2773c2; }}
     .extra-chip.should-ai.is-on      {{ background: #64748b; color: #fff; border-color: #64748b; box-shadow: 0 0 0 2px #64748b; }}
     .extra-clear {{
       font-family: var(--ab-mono); font-size: 0.6875rem;
@@ -2751,7 +2751,7 @@ def build():
     }}
     .mode-badge {{ font-family: var(--ab-mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; padding: 1px 7px; border-radius: 3px; }}
     .mode-room {{ background: #dbeafe; color: #1e40af; }}
-    .mode-stage {{ background: #f3e8ff; color: #7e22ce; }}
+    .mode-stage {{ background: #2773c2; color: #fff; }}
     /* ── Brief drawer ───────────────────────────────────────────── */
     .briefing-overlay {{ position: fixed; inset: 0; z-index: 70; background: rgba(10,10,10,0.42); display: none; justify-content: flex-end; }}
     .briefing-overlay.show {{ display: flex; }}
@@ -3534,8 +3534,6 @@ def build():
     .ab-btn--emerald:hover  {{ background: #d1fae5; }}
     .ab-btn--blue     {{ background: #eff6ff; color: #1d4ed8; }}
     .ab-btn--blue:hover     {{ background: #dbeafe; }}
-    .ab-btn--purple   {{ background: #faf5ff; color: #7e22ce; }}
-    .ab-btn--purple:hover   {{ background: #f3e8ff; }}
     .ab-btn--amber    {{ background: #fffbeb; color: #b45309; }}
     .ab-btn--amber:hover    {{ background: #fef3c7; }}
     .ab-btn--indigo   {{ background: #eef2ff; color: #4338ca; }}
@@ -3548,12 +3546,6 @@ def build():
     .ab-btn.ab-btn--primary:hover {{ background: #065f46; }}
     .ab-btn.ab-btn--ghost {{ background: var(--ab-bg); border: 1px solid var(--ab-rule-strong); }}
     .ab-btn.ab-btn--ghost:hover {{ background: var(--ab-bg-3); }}
-    /* Ask AI — a gentle gradient accent so it reads as the smart assistant. */
-    .ab-btn.ab-btn--ask {{
-      background: linear-gradient(90deg, #eef2ff, #faf5ff); color: #6d28d9;
-      border: 1px solid #ddd6fe; font-weight: 600;
-    }}
-    .ab-btn.ab-btn--ask:hover {{ background: linear-gradient(90deg, #e0e7ff, #f3e8ff); }}
     /* "+ Add" dropdown — the three add paths (manual / find new / paste email)
        folded behind one primary button. */
     .ops-add-wrap {{ position: relative; display: inline-block; }}
@@ -7282,7 +7274,7 @@ def build():
       angela: '#db2777',   // pink — hers is the one that has to be findable
       thor:   '#187cab',   // brand blue, the shade of it that white initials can be read on
       carlos: '#ea580c',
-      hurley: '#7c3aed',
+      hurley: '#525252',   // neutral: the operator, not a speaker, and violet means Meeting held
       jerome: '#059669',
       joe:    '#0891b2',
       verma:  '#4f46e5',
@@ -16653,7 +16645,7 @@ def build():
     var REGION_COLORS = {{
       'US & Canada':   '#2773c2',
       'Latin America': '#0ea5e9',
-      'Europe':        '#7c3aed',
+      'Europe':        '#c2410c',   /* was violet, which read as the Meeting held stage */
       'Africa':        '#db2777',
       'MENA':          '#ca8a04',
       'Asia-Pacific':  '#059669',
