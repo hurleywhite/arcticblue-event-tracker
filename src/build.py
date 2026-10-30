@@ -6856,7 +6856,7 @@ def build():
   document.addEventListener('keydown', function (ev) {{
     if (ev.key !== 'Enter' && ev.key !== ' ') return;
     var t = ev.target;
-    // Keyboard-open the pop-up when a whole card (role=button) is focused.
+    // Keyboard-open the pop-up when a whole card is focused.
     if (t && t.classList && t.classList.contains('ops-card') && t._modalRec) {{
       ev.preventDefault(); openEventModal(t._modalRec); return;
     }}
@@ -7836,7 +7836,9 @@ def build():
       var lbl = angela ? 'Flag Should Attend' : 'I\\'m interested';
       var ttl = angela ? 'Star = Should Attend \\u2014 flags this event for the team'
                        : 'Star: I\\'m interested (adds you to the interested list)';
-      return '<button class="saved-star ops-hover' + (on ? ' is-on' : '') + '" data-star type="button"' +
+      // Out of the Tab order (Hurley 2026-10-30): the pop-up header has the
+      // same star, and five stops per card made the list a long walk.
+      return '<button class="saved-star ops-hover' + (on ? ' is-on' : '') + '" data-star type="button" tabindex="-1"' +
         ' aria-label="' + lbl + '" title="' + ttl + '">' +
         (on ? '\\u2605' : '\\u2606') + '</button>';
     }}
@@ -8518,8 +8520,12 @@ def build():
     function buildOpsCard(ev, st, email) {{
       var card = document.createElement('article');
       card.className = 'ops-card';
-      card.setAttribute('role', 'button');
+      // Not role=button: a button can't hold the links and buttons a card
+      // has, and screen readers announced it with no name (Hurley
+      // 2026-10-30). It stays one Tab stop; Enter opens the pop-up, and its
+      // name says so.
       card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', (ev.name || 'Event') + '. Press Enter for details.');
       card.dataset.eventNum = ev.num;
       card.dataset.kind = 'regular';
       card.dataset.region = canonicalRegion(ev);
@@ -8650,7 +8656,7 @@ def build():
             '<button class="ops-chip urgent' + (st.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (st.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (_catArchivedMe
               ? '<span class="ops-archived-tag" title="Archived for the team — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — hides this event for the whole team" aria-label="Archive event for everyone">' + OPS_HIDE_ICON + '</button>') +
+              : '<button class="ops-archive-x ops-hover" data-archive type="button" tabindex="-1" title="Archive — hides this event for the whole team" aria-label="Archive event for everyone">' + OPS_HIDE_ICON + '</button>') +
             decBadge + saBadge + contactBadge +
             '<span class="chat-count" data-chatkey="c' + escapeHtml(String(ev.num)) + '" style="display:none;" title="Discussion messages"></span>' +
             window.abStageIcon(st, ev) +
@@ -8805,8 +8811,8 @@ def build():
     function buildManualCard(mev, email) {{
       var card = document.createElement('article');
       card.className = 'ops-card';
-      card.setAttribute('role', 'button');
-      card.setAttribute('tabindex', '0');
+      card.setAttribute('tabindex', '0');   // see buildOpsCard: a named card, not a button
+      card.setAttribute('aria-label', (mev.name || 'Event') + '. Press Enter for details.');
       card.dataset.manualId = mev.id;
       card.dataset.kind = 'manual';
       card.dataset.region = canonicalRegion(mev);
@@ -8914,7 +8920,7 @@ def build():
             '<button class="ops-chip urgent' + (mev.urgent ? ' is-on' : '') + '" data-field="urgent" data-on="' + (mev.urgent ? '1' : '0') + '" type="button">Urgent</button>' +
             (_isArchivedForMe(true, mev.id, mev.hidden === true)
               ? '<span class="ops-archived-tag" title="Archived for the team — open the event to bring it back">Archived</span>'
-              : '<button class="ops-archive-x ops-hover" data-archive type="button" title="Archive — hides this event for the whole team" aria-label="Archive event for everyone">' + OPS_HIDE_ICON + '</button>') +
+              : '<button class="ops-archive-x ops-hover" data-archive type="button" tabindex="-1" title="Archive — hides this event for the whole team" aria-label="Archive event for everyone">' + OPS_HIDE_ICON + '</button>') +
             mDecBadge + mSaBadge + mRecentBadge + mContactBadge +
             '<span class="chat-count" data-chatkey="m' + escapeHtml(String(mev.id)) + '" style="display:none;" title="Discussion messages"></span>' +
             window.abStageIcon(mev, mev) +
