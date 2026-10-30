@@ -2755,15 +2755,24 @@ def build():
     .bf-head h2 {{ font-size: 1.35rem; margin: 0 0 4px; display: inline; }}
     .bf-head .mode-badge {{ margin-left: 8px; vertical-align: 3px; }}
     .bf-sub {{ font-size: 0.85rem; color: var(--ab-fg-2); margin: 6px 0 2px; }}
-    .bf-stamp {{ font-family: var(--ab-mono); font-size: 0.62rem; color: var(--ab-fg-3); margin: 0 0 6px; }}
+    .bf-stamp {{ font-family: var(--ab-mono); font-size: 0.7rem; color: var(--ab-fg-2); margin: 4px 0 6px; }}
     .bf-sec {{ border-top: 1px solid var(--ab-rule); padding: 14px 0 4px; }}
     .bf-sec h3 {{ font-family: var(--ab-mono); font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ab-fg); margin: 0 0 8px; }}
     .bf-conf {{ font-size: 0.58rem; background: var(--ab-bg-3); color: var(--ab-fg-3); border-radius: 8px; padding: 1px 7px; margin-left: 6px; }}
     .bf-sec p {{ font-size: 0.9rem; line-height: 1.55; margin: 0 0 8px; color: var(--ab-fg); }}
     .bf-muted {{ color: var(--ab-fg-3) !important; font-size: 0.82rem !important; }}
-    .bf-label {{ font-family: var(--ab-mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ab-fg-3); margin: 10px 0 4px !important; }}
-    .bf-win {{ font-weight: 650; color: #b45309 !important; }}
-    .bf-move {{ color: #15803d !important; }}
+    /* .bf-sec p used to out-rank .bf-label, so labels rendered at 14.4px. */
+    .bf-sec .bf-label {{ font-family: var(--ab-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ab-fg-2); margin: 12px 0 4px; }}
+    .bf-win, .bf-move {{ color: var(--ab-fg); }}
+    .bf-sec a {{ color: var(--ab-blue); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }}
+    .bf-first {{ border-top: 0; background: var(--ab-bg-2); border: 1px solid var(--ab-rule); border-radius: 8px; padding: 14px 16px 10px; margin: 14px 0 6px; }}
+    .bf-people {{ display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 2px 0 6px; }}
+    .bf-person {{ font-size: 0.88rem; font-weight: 600; }}
+    .bf-where {{ font-size: 0.82rem; color: var(--ab-fg-2); }}
+    .bf-actions {{ margin: 10px 0 4px; }}
+    .bf-bg {{ margin-top: 10px; border-top: 1px solid var(--ab-rule); }}
+    .bf-bg > summary {{ cursor: pointer; padding: 12px 0; font-family: var(--ab-mono); font-size: 0.75rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ab-fg); }}
+    .bf-stamp.is-old {{ color: #92400e; }}
     .bf-chips {{ display: flex; flex-wrap: wrap; gap: 6px; }}
     .bf-chip {{ font-size: 0.76rem; background: var(--ab-bg-3); border-radius: 4px; padding: 2px 8px; color: var(--ab-fg-2); }}
     .bf-list, .bf-news {{ margin: 4px 0 10px; padding-left: 18px; }}
@@ -10775,12 +10784,17 @@ def build():
 
     function loadBrief(it, regenerate) {{
       var body = document.getElementById('briefing-body');
-      body.innerHTML = '<div class="bf-loading"><span class="bf-spin"></span> Researching the room, the speakers, and the latest news&hellip; this takes a few seconds.</div>';
+      body.innerHTML = '<div class="bf-loading"><span class="bf-spin"></span> Researching the room, the speakers and the latest news&hellip; this can take a minute or two.</div>';
       fetch('/api/briefing', {{
         method: 'POST', headers: {{ 'Content-Type': 'application/json' }},
         body: JSON.stringify({{ kind: kindToTable(it.kind), key: it.key, regenerate: !!regenerate }})
       }}).then(function (r) {{ return r.json(); }}).then(function (resp) {{
-        if (resp && resp.brief) {{ it.briefing_json = resp.brief; renderBrief(resp.brief, it, !!resp.cached); if (currentView === 'dayof') renderDayOf(); }}
+        if (resp && resp.brief) {{
+          it.briefing_json = resp.brief;
+          it.briefing_generated_at = resp.generated_at || (resp.cached ? it.briefing_generated_at : new Date().toISOString());
+          renderBrief(resp.brief, it, !!resp.cached);
+          if (currentView === 'dayof') renderDayOf();
+        }}
         else body.innerHTML = '<div class="bf-error">Could not generate the brief: ' + escapeHtml((resp && resp.error) || 'unknown error') + '</div>';
       }}).catch(function (e) {{ body.innerHTML = '<div class="bf-error">Briefing service unavailable (it runs on the deployed site). ' + escapeHtml(String(e)) + '</div>'; }});
     }}
@@ -10921,12 +10935,55 @@ def build():
       try {{ navigator.clipboard.writeText(L.join('\\n')); if (typeof flashOk === 'function') flashOk('Brief copied'); }} catch (e) {{}}
     }}
 
+    // Contacts the tracker already holds for this event, so the brief can
+    // link them instead of naming them in prose (Hurley 2026-10-30).
+    function _briefContacts(it) {{
+      var EM = /[^\\s@<>()"',;:]+@[^\\s@<>()"',;:]+\\.[a-z]{{2,}}/ig;
+      var NM = /[A-Z][a-z'’-]+(?:\\s+[A-Z][a-z'’-]+)+/;
+      var out = [], seen = {{}};
+      function add(name, email) {{
+        email = String(email || '').trim();
+        if (!email || seen[email.toLowerCase()]) return;
+        seen[email.toLowerCase()] = 1;
+        out.push({{ name: String(name || '').trim(), email: email }});
+      }}
+      var pe = String(it.poc_email || '').match(EM);
+      if (pe) add(it.poc_name, pe[0]);
+      String(it.contact_info || '').split(/\\n|;/).forEach(function (line) {{
+        var ems = line.match(EM) || [], nm = line.match(NM);
+        ems.forEach(function (e) {{ add(nm ? nm[0] : '', e); }});
+      }});
+      return out.slice(0, 4);
+    }}
+    // "Researched Aug 11, 11 weeks ago": a brief is a snapshot, and an old
+    // one looked exactly as current as last night's.
+    function _briefAge(iso) {{
+      if (!iso) return '';
+      var d = new Date(iso);
+      if (isNaN(d)) return '';
+      var days = Math.floor((Date.now() - d.getTime()) / 86400000);
+      var ago = days < 1 ? 'today' : days === 1 ? 'yesterday' : days < 14 ? days + ' days ago' : Math.round(days / 7) + ' weeks ago';
+      var on = d.toLocaleDateString('en-US', {{ month: 'short', day: 'numeric' }});
+      return '<p class="bf-stamp' + (days > 7 ? ' is-old' : '') + '">Researched ' + on + ', ' + ago +
+        (days > 7 ? '. Details may have changed.' : '') + '</p>';
+    }}
+
     function renderBrief(b, it, cached) {{
       b = b || {{}};
+      void cached;
       function esc(s) {{ return escapeHtml(s == null ? '' : String(s)); }}
       function list(arr, fn) {{ return (arr || []).map(fn).join(''); }}
-      function sec(title, inner) {{ return inner ? '<section class="bf-sec"><h3>' + title + '</h3>' + inner + '</section>' : ''; }}
+      function sec(title, inner, cls) {{ return inner ? '<section class="bf-sec' + (cls ? ' ' + cls : '') + '"><h3>' + title + '</h3>' + inner + '</section>' : ''; }}
       function newsLi(n) {{ return '<li>' + (n.url ? '<a href="' + esc(n.url) + '" target="_blank" rel="noopener">' + esc(n.headline) + '</a>' : esc(n.headline)) + (n.date ? ' <span class="bf-date">' + esc(n.date) + '</span>' : '') + (n.relevance ? '<br><span class="bf-muted">' + esc(n.relevance) + '</span>' : '') + '</li>'; }}
+      function personLi(x) {{
+        if (!x || typeof x === 'string') return '<li>' + esc(x) + '</li>';
+        var head = esc(x.name || x.org || x.role || '');
+        var sub = [x.name ? x.org : null, x.role].filter(Boolean).join(', ');
+        return '<li><strong>' + head + '</strong>' + (sub ? ', ' + esc(sub) : '') +
+          (x.confidence ? ' <span class="bf-conf">' + esc(x.confidence) + '</span>' : '') +
+          (x.why ? '<br><span class="bf-muted">' + esc(x.why) + '</span>' : '') +
+          (x.where ? '<br><span class="bf-where">Where: ' + esc(x.where) + '</span>' : '') + '</li>';
+      }}
       var g = b.at_a_glance || {{}}, t = b.targets || {{}}, wir = b.who_in_room || {{}}, lw = b.logistics_win || {{}};
       var act = g.activity || (g.mode === 'stage' ? 'Speaking' : 'Attending');
       var actClass = act === 'Speaking' ? 'mode-stage' : 'mode-room';
@@ -10934,44 +10991,64 @@ def build():
         '<span class="mode-badge ' + actClass + '">' + esc(act) + '</span>' +
         '<p class="bf-sub">' + esc(g.dates || it.date_str || '') + (g.venue ? ' · ' + esc(g.venue) : (it.location ? ' · ' + esc(it.location) : '')) +
         (g.covered_by ? ' · covered by <strong>' + esc(g.covered_by) + '</strong>' : '') + '</p>' +
-        (cached ? '<p class="bf-stamp">cached &middot; hit Regenerate for a fresh pass</p>' : '') + '</div>';
-      html += sec('Why we are here', b.why_were_here ? '<p>' + esc(b.why_were_here) + '</p>' : '');
-      html += sec('Who is in the room <span class="bf-conf">' + esc(wir.confidence || 'estimated') + '</span>',
-        (wir.titles && wir.titles.length ? '<p class="bf-chips">' + list(wir.titles, function (x) {{ return '<span class="bf-chip">' + esc(x) + '</span>'; }}) + '</p>' : '') +
-        (wir.industries && wir.industries.length ? '<p class="bf-muted">' + esc((wir.industries || []).join(' · ')) + '</p>' : '') +
-        (wir.named && wir.named.length ? '<ul class="bf-list">' + list(wir.named, function (n) {{ return '<li><strong>' + esc(n.name) + '</strong>' + (n.title ? ' &mdash; ' + esc(n.title) : '') + (n.org ? ', ' + esc(n.org) : '') + '</li>'; }}) + '</ul>' : ''));
-      var tgt = '';
-      if (t.people_to_find && t.people_to_find.length) tgt += '<p class="bf-label">People to find</p><ul class="bf-list">' + list(t.people_to_find, function (x) {{
-        if (!x || typeof x === 'string') return '<li>' + esc(x) + '</li>';
-        var head = esc(x.name || x.org || x.role || '');
-        var sub = [x.name ? x.org : null, x.role].filter(Boolean).join(' · ');
-        return '<li><strong>' + head + '</strong>' + (sub ? ' &mdash; ' + esc(sub) : '') +
-          (x.confidence ? ' <span class="bf-conf">' + esc(x.confidence) + '</span>' : '') +
-          (x.why ? '<br><span class="bf-muted">' + esc(x.why) + '</span>' : '') +
-          (x.where ? '<br><span class="bf-where">&#128205; ' + esc(x.where) + '</span>' : '') + '</li>';
-      }}) + '</ul>';
-      // 'Win target' (outcome_target) removed — a generic "have N good
-      // conversations" line is a no-brainer, not signal.
-      if (t.speaking_route_open) tgt += '<p class="bf-label">Speaking route</p><p>' + esc(t.speaking_route_open) + '</p>';
-      if (t.facilitator_leads && t.facilitator_leads.length) tgt += '<p class="bf-label">Facilitator / partner leads</p><ul class="bf-list">' + list(t.facilitator_leads, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>';
-      html += sec('&#127919; Targets', tgt || '<p class="bf-muted">No specific targets surfaced yet.</p>');
-      if (b.speaker_spotlight && b.speaker_spotlight.length) {{
-        html += sec('Speaker spotlight', list(b.speaker_spotlight, function (s) {{
-          return '<div class="bf-speaker"><strong>' + esc(s.name) + '</strong>' + (s.who ? ' &mdash; ' + esc(s.who) : '') +
-            (s.news && s.news.length ? '<ul class="bf-news">' + list(s.news, newsLi) + '</ul>' : '') +
-            (s.hook ? '<p class="bf-hook">&#8627; ' + esc(s.hook) + '</p>' : '') + '</div>';
-        }}));
+        _briefAge(it.briefing_generated_at) + '</div>';
+
+      // 1. Before you walk in: the move, the names, one angle (Hurley
+      //    2026-10-30). Five minutes out, this is all Thor needs.
+      var bw = '';
+      if (lw.move) bw += '<p class="bf-move"><strong>First move:</strong> ' + esc(lw.move) + '</p>';
+      var onFile = _briefContacts(it);
+      if (onFile.length) {{
+        bw += '<p class="bf-label">Contacts on file</p><div class="bf-people">' + onFile.map(function (c) {{
+          return '<a class="bf-person" href="mailto:' + esc(c.email) + '">' + esc(c.name || c.email) + '</a>';
+        }}).join('') + '</div>';
       }}
-      if (b.topic_news && b.topic_news.length) html += sec('Fresh news on your topic', '<ul class="bf-news">' + list(b.topic_news, newsLi) + '</ul>');
-      if (b.angles && b.angles.length) html += sec('Angles', '<ul class="bf-list">' + list(b.angles, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>');
+      var ptf = t.people_to_find || [];
+      if (ptf.length) bw += '<p class="bf-label">People to find</p><ul class="bf-list">' + list(ptf.slice(0, 3), personLi) + '</ul>';
+      if (b.angles && b.angles.length) bw += '<p class="bf-label">One angle</p><p>' + esc(b.angles[0]) + '</p>';
+      if (lw.win) bw += '<p class="bf-win"><strong>Win:</strong> ' + esc(lw.win) + '</p>';
+      bw += '<div class="bf-actions"><button type="button" class="q-btn" data-bf-log>Log what happened</button></div>';
+      html += sec('Before you walk in', bw, 'bf-first');
+
+      // 2. Logistics.
       var lwh = '';
       var lwLabel = {{ time: 'When', room: 'Where', link: 'Agenda' }};
       ['time', 'room', 'link'].forEach(function (k) {{ if (lw[k]) lwh += '<p><strong>' + lwLabel[k] + ':</strong> ' + (k === 'link' ? '<a href="' + esc(lw[k]) + '" target="_blank" rel="noopener">' + esc(lw[k]) + '</a>' : esc(lw[k])) + '</p>'; }});
-      if (lw.move) lwh += '<p class="bf-move">&#9654; <strong>First move:</strong> ' + esc(lw.move) + '</p>';
-      if (lw.win) lwh += '<p class="bf-win">&#127937; <strong>Win:</strong> ' + esc(lw.win) + '</p>';
-      html += sec('Logistics &amp; win', lwh);
-      if (b.unconfirmed && b.unconfirmed.length) html += sec('&#9888; Unconfirmed &mdash; verify on the ground', '<ul class="bf-list bf-unconf">' + list(b.unconfirmed, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>');
-      document.getElementById('briefing-body').innerHTML = html;
+      html += sec('Logistics', lwh);
+
+      // 3. Everything else, folded.
+      var bg = '';
+      bg += sec('Why we are here', b.why_were_here ? '<p>' + esc(b.why_were_here) + '</p>' : '');
+      bg += sec('Who is in the room <span class="bf-conf">' + esc(wir.confidence || 'estimated') + '</span>',
+        (wir.titles && wir.titles.length ? '<p class="bf-chips">' + list(wir.titles, function (x) {{ return '<span class="bf-chip">' + esc(x) + '</span>'; }}) + '</p>' : '') +
+        (wir.industries && wir.industries.length ? '<p class="bf-muted">' + esc((wir.industries || []).join(' · ')) + '</p>' : '') +
+        (wir.named && wir.named.length ? '<ul class="bf-list">' + list(wir.named, function (n) {{ return '<li><strong>' + esc(n.name) + '</strong>' + (n.title ? ', ' + esc(n.title) : '') + (n.org ? ', ' + esc(n.org) : '') + '</li>'; }}) + '</ul>' : ''));
+      var tgt = '';
+      if (ptf.length > 3) tgt += '<p class="bf-label">More people to find</p><ul class="bf-list">' + list(ptf.slice(3), personLi) + '</ul>';
+      // 'Win target' (outcome_target) removed: a generic "have N good
+      // conversations" line is a no-brainer, not signal.
+      if (t.speaking_route_open) tgt += '<p class="bf-label">Speaking route</p><p>' + esc(t.speaking_route_open) + '</p>';
+      if (t.facilitator_leads && t.facilitator_leads.length) tgt += '<p class="bf-label">Facilitator and partner leads</p><ul class="bf-list">' + list(t.facilitator_leads, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>';
+      bg += sec('Targets', tgt);
+      if (b.speaker_spotlight && b.speaker_spotlight.length) {{
+        bg += sec('Speaker spotlight', list(b.speaker_spotlight, function (s) {{
+          return '<div class="bf-speaker"><strong>' + esc(s.name) + '</strong>' + (s.who ? ', ' + esc(s.who) : '') +
+            (s.news && s.news.length ? '<ul class="bf-news">' + list(s.news, newsLi) + '</ul>' : '') +
+            (s.hook ? '<p class="bf-hook">' + esc(s.hook) + '</p>' : '') + '</div>';
+        }}));
+      }}
+      if (b.topic_news && b.topic_news.length) bg += sec('Fresh news on your topic', '<ul class="bf-news">' + list(b.topic_news, newsLi) + '</ul>');
+      if (b.angles && b.angles.length > 1) bg += sec('More angles', '<ul class="bf-list">' + list(b.angles.slice(1), function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>');
+      if (b.unconfirmed && b.unconfirmed.length) bg += sec('Unconfirmed: verify on the ground', '<ul class="bf-list bf-unconf">' + list(b.unconfirmed, function (x) {{ return '<li>' + esc(x) + '</li>'; }}) + '</ul>');
+      if (bg) html += '<details class="bf-bg"><summary>Background</summary>' + bg + '</details>';
+      var $bb = document.getElementById('briefing-body');
+      $bb.innerHTML = html;
+      var $log = $bb.querySelector('[data-bf-log]');
+      if ($log) $log.addEventListener('click', function () {{
+        var ov = document.getElementById('briefing-overlay');
+        if (ov) {{ ov.classList.remove('show'); document.body.style.overflow = ''; }}
+        opsOpenRef(it.kind, it.key);
+      }});
     }}
 
     // ── Queue: every flagged "apply for me" event, grouped by progress ──
