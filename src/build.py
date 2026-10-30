@@ -2946,6 +2946,9 @@ def build():
     [data-spend].is-armed {{ background: #fffbeb !important; border-color: #b45309 !important; color: #92400e !important; }}
     .bf-empty {{ padding: 24px 0; }}
     .bf-empty p {{ margin: 0 0 8px; font-size: 0.92rem; }}
+    :where(button, a[href], input, select, textarea, summary, [tabindex]):focus-visible {{
+      outline: 2px solid var(--ab-blue); outline-offset: 2px;
+    }}
     .sr-only {{ position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }}
     .me-next {{
       display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
@@ -3565,7 +3568,9 @@ def build():
       cursor: pointer; text-align: left; font-family: var(--ab-sans);
       transition: background-color 120ms ease;
     }}
-    .ops-add-item:hover, .ops-add-item:focus-visible {{ background: var(--ab-bg-3); outline: none; }}
+    .ops-add-item:hover {{ background: var(--ab-bg-3); }}
+    /* The focused item used to differ from the rest only by a #f4f4f5 tint. */
+    .ops-add-item:focus-visible {{ background: var(--ab-bg-3); outline: 2px solid var(--ab-blue); outline-offset: -2px; }}
     .ops-add-item__icon {{ width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; color: #047857; }}
     .ops-add-item__txt {{ display: flex; flex-direction: column; gap: 2px; min-width: 0; }}
     .ops-add-item__t {{ font-size: 0.875rem; font-weight: 600; color: var(--ab-fg); line-height: 1.2; }}
