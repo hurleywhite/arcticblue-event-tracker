@@ -8184,6 +8184,22 @@ def build():
     }}
     window.opsDeadlineUsable = deadlineUsable;
 
+    // Can this event still be applied to? (Hurley 2026-10-30) The card's
+    // Apply button showed whenever a link existed: on closed calls, on events
+    // already submitted, booked or rejected, on pay-to-play slots and on HR
+    // events nobody covers. It now shows only when applying is a real next step.
+    function canStillApply(o, stages, deadline) {{
+      stages = stages || [];
+      if (['Submitted', 'Booked', 'Rejected'].some(function (x) {{ return stages.indexOf(x) !== -1; }})) return false;
+      var dl = String(deadline || '').trim();
+      if (dl && !_isJunkVal(dl) && isDeadlinePast(dl)) return false;
+      if (/\b(cfp|call)\b[^.;]*\bclosed\b|\bclosed\b/i.test(dl)) return false;
+      if (String(o.pay_to_play || '').trim().toLowerCase() === 'yes') return false;
+      if (window.abIsHrEvent && window.abIsHrEvent(o.name, o.url)) return false;
+      return true;
+    }}
+    window.abCanStillApply = canStillApply;
+
     // Two status glyphs so speaking vs attending reads at a glance (Angela):
     //   mic    = the SPEAKING track (Booked / Submitted / Rejected) — "Rejected 🎤 — Thor"
     //   ticket = ATTENDING (we're in the room, not on stage)
@@ -8373,7 +8389,9 @@ def build():
 
       // One-click apply (the booking shortcut) — for whoever runs applications.
       var applyUrl = (st && st.apply_url) || speakingRouteUrl(ev.speaking_route);
-      var applyBtn = (applyUrl && window.abCanApply && window.abCanApply())
+      var _cDl = (st.deadline === '__cleared__') ? '' : ((st.deadline != null && String(st.deadline).trim()) ? st.deadline : ev.deadline);
+      var applyBtn = (applyUrl && window.abCanApply && window.abCanApply() &&
+                      canStillApply({{ name: ev.name, url: ev.url, pay_to_play: st.pay_to_play || ev.pay_to_play }}, opsStages, _cDl))
         ? '<a class="ops-apply-btn" href="' + escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
 
@@ -8636,7 +8654,8 @@ def build():
       // per-person rosters) lives in the Details pop-up.
       var tagsHtml = '';   // status now lives in the corner mark
       var mApplyUrl = mev.apply_url || speakingRouteUrl(mev.speaking_route);
-      var mApplyBtn = (mApplyUrl && window.abCanApply && window.abCanApply())
+      var mApplyBtn = (mApplyUrl && window.abCanApply && window.abCanApply() &&
+                       canStillApply(mev, manualStages, mev.deadline))
         ? '<a class="ops-apply-btn" href="' + escapeHtml(mApplyUrl) + '" target="_blank" rel="noopener">Apply to speak ↗</a>'
         : '';
       // Angela's working row: raw CFP date + contact cue + Apply, side by side.
