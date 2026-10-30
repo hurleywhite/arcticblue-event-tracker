@@ -1863,6 +1863,9 @@ def build():
     /* Hover-only card controls (star + archive/hide): hidden until you hover/focus the card. */
     .ops-hover {{ opacity: 0; pointer-events: none; transition: opacity 120ms ease; }}
     .ops-card:hover .ops-hover, .ops-card:focus-within .ops-hover {{ opacity: 1; pointer-events: auto; }}
+    /* A touch screen has no hover, so star and archive were unreachable
+       there; they stay visible (Hurley 2026-10-30). */
+    @media (hover: none) {{ .ops-hover {{ opacity: 1; pointer-events: auto; }} }}
     .ops-archive-x {{
       display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer; background: transparent; border: 0; color: var(--ab-red);
