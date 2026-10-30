@@ -8287,7 +8287,7 @@ def build():
       if (['Submitted', 'Booked', 'Rejected'].some(function (x) {{ return stages.indexOf(x) !== -1; }})) return false;
       var dl = String(deadline || '').trim();
       if (dl && !_isJunkVal(dl) && isDeadlinePast(dl)) return false;
-      if (/\b(cfp|call)\b[^.;]*\bclosed\b|\bclosed\b/i.test(dl)) return false;
+      if (/\\b(cfp|call)\\b[^.;]*\\bclosed\\b|\\bclosed\\b/i.test(dl)) return false;
       if (String(o.pay_to_play || '').trim().toLowerCase() === 'yes') return false;
       if (window.abIsHrEvent && window.abIsHrEvent(o.name, o.url)) return false;
       return true;
