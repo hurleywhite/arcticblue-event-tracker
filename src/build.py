@@ -2942,6 +2942,8 @@ def build():
     .me-next .q-btn.primary {{ text-decoration: none; padding: 7px 14px; font-size: 0.84rem; }}
     .me-next .q-link {{ font-size: 0.84rem; }}
     .me-next.is-quiet {{ background: transparent; }}
+    .me-next:focus {{ outline: none; }}
+    .me-next:focus-visible {{ outline: 2px solid var(--ab-blue); outline-offset: 2px; }}
     .me-next.is-quiet .me-next-say {{ font-weight: 500; color: var(--ab-fg-2); }}
     .qrow-brief {{
       font-family: var(--ab-mono); font-size: 0.64rem; letter-spacing: 0.03em;
@@ -4744,6 +4746,7 @@ def build():
             .filter(function (f) {{ return !String((f || {{}}).note || '').trim(); }}).length;
           _minus.disabled = !_undoable;
         }}
+        if (overlay._refreshNext) overlay._refreshNext();
         return;
       }}
       // A stage toggle DOES change the row's shape — an outcome retires and
@@ -4778,15 +4781,22 @@ def build():
     function _repaintStageSurfaces(rec) {{
       var _bar = $body.querySelector('.modal-quickbar');
       if (_bar) {{
+        // Keep focus on the stage that was clicked (Hurley 2026-10-30): the
+        // repaint replaced the button and focus fell back to the page.
+        var _act = document.activeElement;
+        var _qa = _act && _bar.contains(_act) ? _act.getAttribute('data-qa') : null;
         var _tmp = document.createElement('div');
         _tmp.innerHTML = quickBarHtml(rec);
         var _fresh = _tmp.firstElementChild;
         if (_fresh) {{
           _bar.parentNode.replaceChild(_fresh, _bar);
           wireQuickBar(rec);
+          var _again = _qa && _fresh.querySelector('[data-qa="' + _qa + '"]');
+          if (_again) _again.focus({{ preventScroll: true }});
         }}
       }}
       _syncEditFormStages(rec);
+      if (overlay._refreshNext) overlay._refreshNext();
     }}
     // The ONE rule for turning a stage on or off, so the two surfaces cannot
     // disagree about what a click MEANS. The edit-area buttons used to skip the
@@ -5465,8 +5475,28 @@ def build():
   // document click, and that listener was re-added on every render.
   var _sibCloser = null;
 
+  // A selector that finds "the same control" after the pop-up re-renders:
+  // its first data-* attribute, or its id.
+  function _focusKey(el) {{
+    if (!el || !el.attributes) return null;
+    for (var i = 0; i < el.attributes.length; i++) {{
+      var a = el.attributes[i];
+      if (a.name.indexOf('data-') === 0 && a.name !== 'data-armed') {{
+        return '[' + a.name + (a.value ? '="' + (window.CSS && CSS.escape ? CSS.escape(a.value) : a.value) + '"' : '') + ']';
+      }}
+    }}
+    return el.id ? '#' + el.id : null;
+  }}
   function openEventModal(rec) {{
     if (!rec) return;
+    // Re-rendering the event that is already open (after Mark reached out,
+    // a stage click, Approve...) keeps your place and your focus; it used
+    // to jump to the top and drop focus on the page (Hurley 2026-10-30).
+    var _wasOpen = !overlay.hasAttribute('hidden');
+    var _sameRec = _wasOpen && overlay._recKey === (rec._table + ':' + rec._key);
+    var _fKey = _sameRec && overlay.contains(document.activeElement) ? _focusKey(document.activeElement) : null;
+    var _scrollWas = _sameRec ? overlay.querySelector('.modal-scroll').scrollTop : 0;
+    overlay._recKey = rec._table + ':' + rec._key;
     // Blue border when it's yours, exactly as the card face reads — this
     // replaces the "<Name> is interested" sentence that used to sit in the
     // quickbar saying the same thing in words (Hurley 2026-07-31).
@@ -6055,7 +6085,7 @@ def build():
     // where the event stands, so Thor never has to scroll to find what to do:
     // brief / follow up / apply / email the organiser / find a contact. It
     // replaces the reach-out line that sat at the very bottom.
-    var _nextStep = (function () {{
+    function _nextStepHtml() {{
       var kind = rec._table === 'manual_events' ? 'manual' : 'catalog';
       var it = (window.abAllItems ? window.abAllItems() : []).filter(function (x) {{
         return x.kind === kind && String(x.key) === String(rec._key);
@@ -6066,7 +6096,7 @@ def build():
       var me = ((window.opsCurrentUser ? window.opsCurrentUser() : '') || '').trim().split(/\s+/)[0].toLowerCase();
       var iGo = !!(me && (rec.attendees || []).some(function (a) {{ return String(a).toLowerCase() === me; }}));
       function strip(say, acts, quiet) {{
-        return '<div class="me-next' + (quiet ? ' is-quiet' : '') + '" role="group" aria-label="Next step">' +
+        return '<div class="me-next' + (quiet ? ' is-quiet' : '') + '" role="group" aria-label="Next step" tabindex="-1">' +
           '<p class="me-next-say">' + say + '</p>' + (acts ? '<div class="me-next-act">' + acts + '</div>' : '') + '</div>';
       }}
       // Booked or going: the brief is the next thing to read.
@@ -6139,39 +6169,55 @@ def build():
       }}
       return strip('No organiser contact yet.',
         '<button type="button" class="q-btn primary" data-next-find>Find someone to contact</button>');
-    }})();
-    html = html.replace('<!--ab-next-step-->', _nextStep);
+    }}
+    html = html.replace('<!--ab-next-step-->', _nextStepHtml());
 
     $body.innerHTML = html;
     // The strip's buttons drive the controls that already exist further down,
     // so there is one implementation of each action.
-    var $nf = $body.querySelector('[data-next-find]');
-    if ($nf) $nf.addEventListener('click', function () {{
-      var b = $body.querySelector('[data-poc-more]');
-      if (b) {{ b.scrollIntoView({{ block: 'center' }}); b.click(); }}
-    }});
-    var $nq = $body.querySelector('[data-next-qa]');
-    if ($nq) $nq.addEventListener('click', function () {{
-      var b = $body.querySelector('.modal-quickbar [data-qa="' + $nq.getAttribute('data-next-qa') + '"]');
-      if (b) {{ b.click(); setTimeout(function () {{ openEventModal(rec); }}, 0); }}
-    }});
-    var $ng = $body.querySelector('[data-next-go]');
-    if ($ng) $ng.addEventListener('click', function () {{
-      var t = $body.querySelector($ng.getAttribute('data-next-go'));
-      if (t) {{
-        t.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-        var f = t.querySelector('button, a[href]');
-        if (f) setTimeout(function () {{ f.focus({{ preventScroll: true }}); }}, 350);
-      }}
-    }});
+    function _wireNext(root) {{
+      if (!root) return;
+      var $nf = root.querySelector('[data-next-find]');
+      if ($nf) $nf.addEventListener('click', function () {{
+        var b = $body.querySelector('[data-poc-more]');
+        if (b) {{ b.scrollIntoView({{ block: 'center' }}); b.click(); }}
+      }});
+      var $nq = root.querySelector('[data-next-qa]');
+      if ($nq) $nq.addEventListener('click', function () {{
+        var b = $body.querySelector('.modal-quickbar [data-qa="' + $nq.getAttribute('data-next-qa') + '"]');
+        if (b) {{ b.click(); setTimeout(function () {{ openEventModal(rec); }}, 0); }}
+      }});
+      var $ng = root.querySelector('[data-next-go]');
+      if ($ng) $ng.addEventListener('click', function () {{
+        var t = $body.querySelector($ng.getAttribute('data-next-go'));
+        if (t) {{
+          t.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+          var f = t.querySelector('button, a[href]');
+          if (f) setTimeout(function () {{ f.focus({{ preventScroll: true }}); }}, 350);
+        }}
+      }});
+      var $bf = root.querySelector('[data-open-brief]');
+      if ($bf) $bf.addEventListener('click', function () {{
+        if (window.abOpenBrief) window.abOpenBrief(rec._table === 'manual_events' ? 'manual' : 'catalog', rec._key);
+      }});
+      root.querySelectorAll('[data-reach-out]').forEach(function ($r) {{ $r.addEventListener('click', function () {{ _reachOut($r); }}); }});
+    }}
+    // A stage click repaints the stages without re-rendering the pop-up, so
+    // the strip refreshes itself in place to match.
+    overlay._refreshNext = function () {{
+      var old = $body.querySelector('.me-next');
+      var tmp = document.createElement('div');
+      tmp.innerHTML = _nextStepHtml();
+      var fresh = tmp.firstElementChild;
+      if (old && fresh) old.parentNode.replaceChild(fresh, old);
+      else if (old) old.remove();
+      else if (fresh) {{ var qb = $body.querySelector('.modal-quickbar'); if (qb) qb.insertAdjacentElement('afterend', fresh); }}
+      if (fresh) _wireNext(fresh);
+    }};
     wireQuickBar(rec);
     if (window.ABSessionize) window.ABSessionize.wire($body, rec);
     // "Mark reached out": a dated line in the follow-up log, plus the outreach
     // stage once the application is in (stages put outreach after Submitted).
-    var $bf = $body.querySelector('[data-open-brief]');
-    if ($bf) $bf.addEventListener('click', function () {{
-      if (window.abOpenBrief) window.abOpenBrief(rec._table === 'manual_events' ? 'manual' : 'catalog', rec._key);
-    }});
     $body.querySelectorAll('[data-copy-email]').forEach(function ($cp) {{
       $cp.addEventListener('click', function () {{
         var addr = $cp.getAttribute('data-copy-email');
@@ -6179,7 +6225,8 @@ def build():
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(addr).then(done, function () {{}});
       }});
     }});
-    $body.querySelectorAll('[data-reach-out]').forEach(function ($reach) {{ $reach.addEventListener('click', function () {{
+    _wireNext($body.querySelector('.me-next'));
+    function _reachOut($reach) {{
       var _d = new Date(), _on = _d.getFullYear() + '-' + ('0' + (_d.getMonth() + 1)).slice(-2) + '-' + ('0' + _d.getDate()).slice(-2);
       var _to = (_reachTarget(rec) || {{}});
       _to = _to.name || _to.email || '';
@@ -6193,7 +6240,7 @@ def build():
       rec.follow_ups = list;
       if (window.opsWrite) window.opsWrite(rec._table, rec._key, patch);
       openEventModal(rec);
-    }}); }});
+    }}
     // Clicking a sibling opens THAT event's card.
     $body.querySelectorAll('[data-sib-kind]').forEach(function (b3) {{
       b3.addEventListener('click', function () {{
@@ -6648,11 +6695,18 @@ def build():
     // organiser" (Hurley 2026-07-30) — the footer is now only the no-URL note.
     $actions.innerHTML = actHtml;
 
-    lastFocus = document.activeElement;
+    if (!_wasOpen) lastFocus = document.activeElement;
     overlay.removeAttribute('hidden');
     document.body.style.overflow = 'hidden';
-    overlay.querySelector('.modal-scroll').scrollTop = 0;
-    closeBtn.focus();
+    overlay.querySelector('.modal-scroll').scrollTop = _scrollWas;
+    if (_sameRec) {{
+      // If the control is gone (the step moved on), land on the strip itself
+      // so the new next step is what is read out.
+      var _back = (_fKey && $body.querySelector(_fKey)) || $body.querySelector('.me-next') || closeBtn;
+      _back.focus({{ preventScroll: true }});
+    }} else {{
+      closeBtn.focus();
+    }}
   }}
   function closeModal() {{
     overlay.setAttribute('hidden', '');
@@ -6721,7 +6775,21 @@ def build():
   overlay.addEventListener('click', function (ev) {{ if (ev.target === overlay) closeModal(); }});
   document.addEventListener('keydown', function (ev) {{
     if (overlay.hasAttribute('hidden')) return;
-    if (ev.key === 'Escape') closeModal();
+    // The day-of brief drawer sits on top: its own Esc closes it, not this.
+    var _bfOv = document.getElementById('briefing-overlay');
+    if (_bfOv && _bfOv.classList.contains('show')) return;
+    if (ev.key === 'Escape') {{
+      // An editor inside the pop-up already handled this Esc.
+      if (ev.defaultPrevented) return;
+      // Esc in a text field leaves the field instead of closing the pop-up
+      // and throwing away what was typed; a second Esc closes.
+      var _a = document.activeElement;
+      if (_a && overlay.contains(_a) && _a.matches && _a.matches('input, textarea, select, [contenteditable="true"]')) {{
+        _a.blur();
+        return;
+      }}
+      closeModal();
+    }}
     else if (window.trapTab) window.trapTab(overlay.querySelector('.modal-card'), ev);
   }});
 

@@ -250,12 +250,26 @@
 
     // Repaint whichever block is on screen NOW: an earlier repaint may have
     // replaced `box`, and the pop-up may have moved on to another event.
+    // Focus stays in the block: on the same control if it survived the
+    // repaint, otherwise on the current step's button (Hurley 2026-10-30).
     function redraw() {
       var cur = body.querySelector('.sz-box');
       if (!cur || cur.getAttribute('data-sz-key') !== rec._table + ':' + rec._key) return;
+      var act = document.activeElement, had = !!(act && cur.contains(act)), key = null;
+      if (had) for (var i = 0; i < act.attributes.length; i++) {
+        if (act.attributes[i].name.indexOf('data-sz-') === 0) { key = '[' + act.attributes[i].name + ']'; break; }
+      }
       var tmp = document.createElement('div');
       tmp.innerHTML = blockHtml(rec);
-      if (tmp.firstChild && cur.parentNode) { cur.parentNode.replaceChild(tmp.firstChild, cur); wire(body, rec); }
+      if (tmp.firstChild && cur.parentNode) {
+        var nb = tmp.firstChild;
+        cur.parentNode.replaceChild(nb, cur);
+        wire(body, rec);
+        if (had) {
+          var f = (key && nb.querySelector(key)) || nb.querySelector('.sz-step.is-now .sz-btn, .sz-step.is-now a');
+          if (f) f.focus({ preventScroll: true });
+        }
+      }
     }
 
     fetch('/api/sessionize?cfp=' + encodeURIComponent(url))
