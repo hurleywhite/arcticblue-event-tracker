@@ -5,6 +5,7 @@ colors:
   arcticblue-action: "#2773c2"
   arcticblue-glacier: "#1fa0dc"
   arcticblue-glacier-deep: "#1271a8"
+  arcticblue-glacier-text: "#187cab"
   ink: "#0a0a0a"
   ink-soft: "#404040"
   ink-muted: "#737373"
@@ -127,7 +128,8 @@ A near-monochrome ink-and-paper palette with one working blue and a set of statu
 
 ### Primary
 - **ArcticBlue Action** (#2773c2): the working blue. Primary actions (Apply to speak), links, focus. Passes 4.5:1 on white, so it is the blue for any text.
-- **Glacier** (#1fa0dc): the logo's lighter cyan. Brand accent only: the app title at display size, large marks, decorative strokes. Fails 4.5:1 on white (2.9:1), so it never carries body text, small labels, or hover text.
+- **Glacier** (#1fa0dc): the logo's lighter cyan. Brand accent only: large marks, borders, decorative strokes, the loading spinner. Fails 4.5:1 on white (2.9:1), so it never carries text and never sits behind white text.
+- **Glacier Text** (#187cab): the same blue darkened to 4.66:1. The app title, Thor's avatar and blue hover text use it.
 - **Glacier Deep** (#1271a8): the darker shade already used for hover text on secondary buttons; a safe text color in the Glacier family.
 
 ### Secondary
@@ -145,8 +147,8 @@ A near-monochrome ink-and-paper palette with one working blue and a set of statu
 Submitted sky, Initial outreach indigo, Followed up amber, Meeting held violet, Booked green, Rejected red, Attending teal. Each stage has a dot, a tint background and a dark foreground.
 
 ### Named Rules
-**The One Blue Rule.** Text and interactive states use ArcticBlue Action (#2773c2) or Glacier Deep (#1271a8). Glacier (#1fa0dc) is for large brand marks only.
-**The Status-Only Color Rule.** Stage colors mean pipeline status and nothing else. Purple outside the "Meeting held" stage (AI features, people, regions) competes with it and should not be added.
+**The One Blue Rule.** Text and interactive states use ArcticBlue Action (#2773c2), Glacier Text (#187cab) or Glacier Deep (#1271a8). Solid buttons with white text use ArcticBlue Action. Glacier (#1fa0dc) is for marks and strokes only.
+**The Status-Only Color Rule.** Stage colors mean pipeline status and nothing else. Purple belongs to the "Meeting held" stage alone; Enrich, people, regions and badges use blue, orange or grey (cleaned up 2026-10-30).
 
 ## Typography
 
@@ -158,7 +160,7 @@ Submitted sky, Initial outreach indigo, Followed up amber, Meeting held violet, 
 **Character:** A neutral grotesk for reading, a rounder Nunito for things you press, and a ledger-like mono for dates and field names.
 
 ### Hierarchy
-- **App title** (700, 1.5rem, Glacier): the centered nav title only.
+- **App title** (700, 1.5rem, Glacier Text): the centered nav title only.
 - **Headline** (800, 1.3rem): the event name in the pop-up.
 - **Title** (700, 1.05rem): the event name on a card.
 - **Body** (400, 1rem, line-height 1.55): descriptions, notes, pop-up fields.
@@ -166,7 +168,7 @@ Submitted sky, Initial outreach indigo, Followed up amber, Meeting held violet, 
 - **Label** (Fragment Mono 700, 0.64 to 0.7rem, uppercase, 0.08em tracking): field names, dates, counts, chips.
 
 ### Named Rules
-**The 11px Floor Rule.** No rendered text below 11px. Mono labels sit at 0.7rem (11.2px) or above; several (dates, avatars, counts, carets) currently render at 9 to 10.5px and are known violations.
+**The 11px Floor Rule.** No rendered text below 11px (0.6875rem); text people read rather than glance at (Apply to speak, counts) is 12px. Since 2026-10-30 the page meets it. The one exception is the initials drawn inside the mic, star and ticket marks: icon art with spoken labels.
 
 ## Layout
 
@@ -188,7 +190,7 @@ Shape encodes behavior. Static labels are squared (3px). Clickable controls are 
 ### Buttons
 - **Apply to speak (primary):** full-width pill on the card foot, ArcticBlue Action fill, white Fragment Mono uppercase label, underlined (7px 16px).
 - **Add (create):** green (#047857) solid button, top right.
-- **Pop-up actions (Enrich, Edit):** soft tinted buttons in the pop-up header (9px radius). Enrich currently uses a purple tint, which conflicts with the Status-Only Color Rule.
+- **Pop-up actions (Enrich, Edit):** soft tinted buttons in the pop-up header (9px radius). Enrich uses a pale blue tint.
 - **Secondary (q-btn):** white with a Rule Strong border; hover shifts border to blue and text to Glacier Deep.
 
 ### Chips
@@ -197,7 +199,7 @@ Shape encodes behavior. Static labels are squared (3px). Clickable controls are 
 - **Static labels (stage, priority, Archived):** squared 3px tags; stage tags use the stage tint and foreground.
 
 ### Cards / Containers
-- **Event card:** white, 1px Rule border, 10px radius, 22px padding. Name (link to the event's site, with an arrow), meta line (mono date + place), a top-right cluster (star, stage icons naming people, contact icon, chat count), and an optional Apply button foot.
+- **Event card:** white, 1px Rule border, 10px radius, 22px padding. Name (link to the event's site, with an arrow), meta line (mono date + place), a top-right cluster (star, stage icons naming people, contact icon, chat count), and an Apply button foot only while applying is still possible (open call, not yet applied, not pay-to-play, not an HR event). One Tab stop; Enter opens the pop-up.
 
 ### Inputs / Fields
 - **Search:** white, 1px Rule Strong, 6px radius, Nunito Sans 600 0.9rem.
@@ -207,7 +209,7 @@ Shape encodes behavior. Static labels are squared (3px). Clickable controls are 
 - **Top bar:** logo left, centered Helvetica title, date and the "Viewing as" avatar right. Below: underlined text tabs (only "Events" visible today; Action Center and Queue are hidden by switches), a count, and the green Add button.
 
 ### Event pop-up (signature component)
-The working surface. Header with name and actions; stage toggles; overview, who attends, speaking and submission (contacts, follow-up log); the Sessionize block (draft, approve, apply, record) and the reach-out line under the apply step.
+The working surface. Header with name and actions; stage toggles; then the **next-step strip** (one sentence, one solid button: open the day-of brief, follow up, apply, email the organiser, or find a contact); overview, who attends, speaking and submission (contacts, follow-up log); the Sessionize block as four numbered steps (draft, approve, submit, record) with only the current step solid.
 
 ## Do's and Don'ts
 
