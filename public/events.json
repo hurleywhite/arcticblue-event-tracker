@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-29T00:00:00Z",
-  "build_date": "2026-10-29",
+  "generated_at": "2026-10-30T00:00:00Z",
+  "build_date": "2026-10-30",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -4174,6 +4174,7 @@
       "typical_attendees": "CEO, CIO, CDO, CAIO, VP AI at enterprise companies",
       "speaking_route": "Sponsorship/Invite only",
       "pay_to_play": "Yes",
+      "pricing": "Price not published; application required",
       "audience_type": "Buyer-rich",
       "past_speakers": "Sean McCall, Leaders In AI Summit; Bruce Monaco, Leaders In AI Summit post author; Robert Jaggers III, Leaders In AI Summit post author",
       "meeting_formats": "invite-only executive think tank dinners; private, hands-on Agentic AI workshops",
@@ -8263,6 +8264,7 @@
       "pay_to_play": "No",
       "pricing": "Paid; specific public prices not verified from the provided results",
       "audience_type": "Mixed",
+      "past_speakers": "Founder and CEO, NVIDIA; CEO, Salesforce; CEO, ServiceNow; CEO, Uber",
       "meeting_formats": "attendee app for pre-booking meetings; curated sessions, labs, certifications, and meetups",
       "seed": false,
       "urgent": false,
