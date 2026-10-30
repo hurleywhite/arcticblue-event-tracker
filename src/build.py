@@ -5219,8 +5219,8 @@ def build():
     if (window.abCanApply && window.abCanApply()) h += sec('Speaking & submission', sSpeak);
 
     // Attending & team — who from ArcticBlue is going / interested / assigned.
-    var sTeam = ef('Attending \\u2014 surfaces a Day-Of brief', '<div class="me-ints">' + attChips + '</div>') +
-                ef('Interested (joins Angela\\'s apply queue)', '<div class="me-ints">' + intChips + '</div>') +
+    var sTeam = ef('Attending (gets a day-of brief)', '<div class="me-ints">' + attChips + '</div>') +
+                ef('Interested', '<div class="me-ints">' + intChips + '</div>') +
                 ef('Priority', '<select class="me-input" data-edit="' + (isCat ? 'priority_override' : 'priority') + '">' + pris.map(function (v) {{ return opt(v, curPri); }}).join('') + '</select>');
     // "Ask a teammate to reach out" — Angela assigns whoever has the personal
     // connection to the event; it surfaces at the top of that person's My
@@ -7822,7 +7822,7 @@ def build():
       var on = angela ? (shouldAttendKind(saVerdict) === 'human') : meInInterested(list);
       var lbl = angela ? 'Flag Should Attend' : 'I\\'m interested';
       var ttl = angela ? 'Star = Should Attend \\u2014 flags this event for the team'
-                       : 'Star = I\\'m interested (adds you to the interested list + Angela\\'s queue)';
+                       : 'Star: I\\'m interested (adds you to the interested list)';
       return '<button class="saved-star ops-hover' + (on ? ' is-on' : '') + '" data-star type="button"' +
         ' aria-label="' + lbl + '" title="' + ttl + '">' +
         (on ? '\\u2605' : '\\u2606') + '</button>';
@@ -13043,7 +13043,7 @@ def build():
       var intro = '<p class="queue-intro myev-intro"><strong>Plan Ahead:</strong> ' +
         (support ? 'Events around where the team&#39;s already headed, plus others worth a look. '
                  : (personalized ? 'Events around the trips you&#39;re already taking, plus more like the ones you flag. ' : 'Events worth a look. ')) +
-        'Flag the ones to go to (Angela registers you) and skip the rest.' +
+        'Flag the ones to go to and skip the rest.' +
         // Skipping teaches this page what you don't want (organizer, topic,
         // lesser-known city). Say so plainly, and always offer the undo — a
         // learned pattern you can't clear would quietly shrink your own fits.
@@ -13359,7 +13359,7 @@ def build():
          hint: 'formal bio doc, speaking topics, or overview on yourself',
          also: ['speaking_topics'] }},
       {{ k: 'email_template', label: 'Email Template',
-         hint: 'what you’d like Angela to send to the event organizer if needed',
+         hint: 'what to send the event organiser if needed',
          supportHint: 'What to send to the event organizers' }},
       {{ k: 'other', label: 'Other materials',
          hint: 'press, testimonials, video links, or anything else',
@@ -13637,7 +13637,7 @@ def build():
             '<div class="tl-host" data-tl-person="' + escapeHtml(meKey) + '"></div>';
         }}
         html += '<div class="profile-section-head">Speaking materials</div>' +
-          '<p class="profile-section-sub">Help Angela organize your speaking materials.</p>';
+          '<p class="profile-section-sub">Your speaking materials, ready to send to organisers.</p>';
         PROFILE_MATERIALS.forEach(function (m) {{ html += _materialSlotHtml(meKey, m); }});
         // ── Written profile — bio (saved field + hover-edit) and notes/topics
         // (add/edit/delete lists). Each saves immediately; filled by _pfRenderAbout.
