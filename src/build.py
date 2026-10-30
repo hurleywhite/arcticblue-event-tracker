@@ -2928,6 +2928,7 @@ def build():
        them. Small and quiet — the event name is the headline, not this. */
     .qrow-side {{ align-self: center; align-items: flex-end; gap: 5px; }}
     /* Next step strip under the stages (Hurley 2026-10-30). */
+    .sr-only {{ position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }}
     .me-next {{
       display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
       margin: 12px 0 4px; padding: 12px 14px; border-radius: 8px;
@@ -3878,6 +3879,11 @@ def build():
       <!-- The collaborative tracker — open to everyone, no login. -->
       <div id="angela-ops" hidden>
         <div id="ops-status" class="alert" hidden></div>
+        <!-- Screen readers hear every save and error (Hurley 2026-10-30): the
+             visible alert above is toggled with [hidden], which most readers
+             skip, so the same text is mirrored into these two live regions. -->
+        <div id="ops-live" class="sr-only" role="status" aria-live="polite"></div>
+        <div id="ops-live-err" class="sr-only" role="alert" aria-live="assertive"></div>
         <div class="ops-controls-row">
         <div class="view-toggle" role="tablist" aria-label="View">
           <button type="button" role="tab" data-view="action" {ACTION_TAB_ATTRS}>Action Center</button>
@@ -6930,6 +6936,8 @@ def build():
       $opsStatus.removeAttribute('hidden');
       $opsStatus.textContent = msg;
       $opsStatus.className = 'alert' + (kind ? ' ' + kind : '');
+      var $live = document.getElementById(kind === 'error' ? 'ops-live-err' : 'ops-live');
+      if ($live) {{ $live.textContent = ''; setTimeout(function () {{ $live.textContent = msg; }}, 30); }}
       // Auto-dismiss confirmations; keep errors up until the next action.
       if (kind !== 'error') {{
         window._opsStatusT = setTimeout(function () {{ $opsStatus.setAttribute('hidden', ''); }}, 4000);
