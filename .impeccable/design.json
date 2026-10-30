@@ -1,0 +1,412 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-29T20:01:11+00:00",
+  "title": "Design System: ArcticBlue Event Tracker",
+  "extensions": {
+    "colorMeta": {
+      "arcticblue-action": {
+        "role": "primary",
+        "displayName": "ArcticBlue Action",
+        "canonical": "#2773c2",
+        "tonalRamp": [
+          "#172636",
+          "#153f6a",
+          "#1e5895",
+          "#2671bf",
+          "#408bd9",
+          "#80b2e5",
+          "#bfd8f2",
+          "#edf2f7"
+        ]
+      },
+      "arcticblue-glacier": {
+        "role": "primary",
+        "displayName": "Glacier",
+        "canonical": "#1fa0dc",
+        "tonalRamp": [
+          "#152d38",
+          "#105170",
+          "#16729c",
+          "#1c92c9",
+          "#36ace3",
+          "#79c8ec",
+          "#bce3f6",
+          "#ecf4f8"
+        ]
+      },
+      "arcticblue-glacier-deep": {
+        "role": "primary",
+        "displayName": "Glacier Deep",
+        "canonical": "#1271a8",
+        "tonalRamp": [
+          "#142b39",
+          "#0c4d73",
+          "#116ca1",
+          "#168bcf",
+          "#30a5e9",
+          "#75c3f0",
+          "#bae1f8",
+          "#ecf4f8"
+        ]
+      },
+      "add-green": {
+        "role": "secondary",
+        "displayName": "Add Green",
+        "canonical": "#047857",
+        "tonalRamp": [
+          "#113c30",
+          "#047b59",
+          "#06ad7d",
+          "#07dea1",
+          "#21f8bb",
+          "#6bfad1",
+          "#b5fde8",
+          "#ebf9f5"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0a0a0a",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#8c8c8c",
+          "#b2b2b2",
+          "#d9d9d9",
+          "#f2f2f2"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "#404040",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#8c8c8c",
+          "#b2b2b2",
+          "#d9d9d9",
+          "#f2f2f2"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#737373",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#8c8c8c",
+          "#b2b2b2",
+          "#d9d9d9",
+          "#f2f2f2"
+        ]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Ink Faint",
+        "canonical": "#a3a3a3",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#8c8c8c",
+          "#b2b2b2",
+          "#d9d9d9",
+          "#f2f2f2"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#8c8c8c",
+          "#b2b2b2",
+          "#d9d9d9",
+          "#f2f2f2"
+        ]
+      },
+      "paper-2": {
+        "role": "neutral",
+        "displayName": "Paper 2",
+        "canonical": "#fafafa",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#8c8c8c",
+          "#b2b2b2",
+          "#d9d9d9",
+          "#f2f2f2"
+        ]
+      },
+      "paper-3": {
+        "role": "neutral",
+        "displayName": "Paper 3",
+        "canonical": "#f4f4f5",
+        "tonalRamp": [
+          "#252527",
+          "#3d3d43",
+          "#55555d",
+          "#6d6d78",
+          "#878792",
+          "#afafb6",
+          "#d7d7db",
+          "#f2f2f3"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "#e7e7e8",
+        "tonalRamp": [
+          "#262627",
+          "#3e3e41",
+          "#57575b",
+          "#707075",
+          "#8a8a8f",
+          "#b1b1b4",
+          "#d8d8da",
+          "#f2f2f2"
+        ]
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Rule Strong",
+        "canonical": "#d4d4d6",
+        "tonalRamp": [
+          "#262627",
+          "#3e3e41",
+          "#57575b",
+          "#707075",
+          "#8a8a8f",
+          "#b1b1b4",
+          "#d8d8da",
+          "#f2f2f2"
+        ]
+      },
+      "success-green": {
+        "role": "status",
+        "displayName": "Success Green",
+        "canonical": "#15803d",
+        "tonalRamp": [
+          "#163722",
+          "#126e34",
+          "#199949",
+          "#20c55e",
+          "#3adf77",
+          "#7ce9a5",
+          "#bdf4d2",
+          "#edf8f1"
+        ]
+      },
+      "caution-amber": {
+        "role": "status",
+        "displayName": "Caution Amber",
+        "canonical": "#ca8a04",
+        "tonalRamp": [
+          "#3c2e10",
+          "#7d5502",
+          "#af7803",
+          "#e19a04",
+          "#fbb31e",
+          "#fccc69",
+          "#fee6b4",
+          "#faf5eb"
+        ]
+      },
+      "fail-red": {
+        "role": "status",
+        "displayName": "Fail Red",
+        "canonical": "#b91c1c",
+        "tonalRamp": [
+          "#371515",
+          "#6f1111",
+          "#9b1717",
+          "#c71e1e",
+          "#e13838",
+          "#eb7a7a",
+          "#f5bdbd",
+          "#f8eded"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "app-title": {
+        "displayName": "App title",
+        "purpose": "The centered nav title only; Helvetica Bold to match the logo."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Event name in the pop-up."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Event name on a card."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions, notes, pop-up fields."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Search, segment chips and other things you press."
+      },
+      "label-mono": {
+        "displayName": "Label",
+        "purpose": "Dates, counts, field names; uppercase Fragment Mono, never below 11px."
+      }
+    },
+    "shadows": [
+      {
+        "name": "dialog",
+        "value": "0 24px 60px rgba(10,10,10,0.28)",
+        "purpose": "The event pop-up over the dimmed page."
+      },
+      {
+        "name": "segment-on",
+        "value": "0 1px 3px rgba(0,0,0,0.12)",
+        "purpose": "The selected segment chip."
+      }
+    ],
+    "motion": [],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "560px"
+      },
+      {
+        "name": "tablet",
+        "value": "760px"
+      },
+      {
+        "name": "max",
+        "value": "1240px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Apply to speak",
+      "kind": "button",
+      "refersTo": "button-apply",
+      "description": "The card's primary action: open the organiser's speaker application.",
+      "html": "<a class=\"ds-btn-apply\" href=\"#\">Apply to speak \u2197</a>",
+      "css": ".ds-btn-apply{display:inline-flex;justify-content:center;background:#2773c2;color:#fff;font:700 0.7rem/1.55 'Fragment Mono',ui-monospace,monospace;letter-spacing:0.08em;text-transform:uppercase;text-decoration:underline;padding:7px 16px;border-radius:999px;transition:background .15s}.ds-btn-apply:hover{background:#1f5f9f}.ds-btn-apply:focus-visible{outline:2px solid #2773c2;outline-offset:2px}"
+    },
+    {
+      "name": "Add",
+      "kind": "button",
+      "refersTo": "button-add",
+      "description": "Create a new event.",
+      "html": "<button class=\"ds-btn-add\">+ Add</button>",
+      "css": ".ds-btn-add{background:#047857;color:#fff;border:0;border-radius:6px;padding:8px 14px;font:600 0.9rem 'Nunito Sans',system-ui,sans-serif;cursor:pointer}.ds-btn-add:hover{background:#065f46}.ds-btn-add:focus-visible{outline:2px solid #047857;outline-offset:2px}"
+    },
+    {
+      "name": "Segment chips",
+      "kind": "chip",
+      "refersTo": "chip-segment-on",
+      "description": "All / Pending / Booked / Attending, with My Interests to the left.",
+      "html": "<div class=\"ds-seg\"><button class=\"ds-seg-chip\">My Interests</button><button class=\"ds-seg-chip is-on\">All</button><button class=\"ds-seg-chip\">Pending</button></div>",
+      "css": ".ds-seg{display:inline-flex;gap:2px;background:#f4f4f5;border-radius:9px;padding:3px}.ds-seg-chip{border:0;background:transparent;color:#404040;font:600 0.84rem 'Nunito Sans',system-ui,sans-serif;padding:7px 13px;border-radius:7px;cursor:pointer}.ds-seg-chip:hover{color:#0a0a0a}.ds-seg-chip.is-on{background:#0a0a0a;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}"
+    },
+    {
+      "name": "Action chip",
+      "kind": "chip",
+      "refersTo": "chip-action",
+      "description": "A small clickable control on a card (underlined pill).",
+      "html": "<button class=\"ds-chip-action\">Urgent</button>",
+      "css": ".ds-chip-action{background:#fff;color:#737373;border:1px solid #d4d4d6;border-radius:999px;padding:3px 8px;font:400 0.7rem 'Fragment Mono',ui-monospace,monospace;letter-spacing:0.08em;text-transform:uppercase;text-decoration:underline;cursor:pointer}.ds-chip-action:hover{border-color:#2773c2;color:#1271a8}"
+    },
+    {
+      "name": "Static label",
+      "kind": "chip",
+      "refersTo": "label-static",
+      "description": "A non-clickable status label (squared).",
+      "html": "<span class=\"ds-label\">Submitted</span>",
+      "css": ".ds-label{display:inline-block;background:#bae6fd;color:#075985;border-radius:3px;padding:2px 7px;font:700 0.7rem 'Fragment Mono',ui-monospace,monospace;letter-spacing:0.06em;text-transform:uppercase}"
+    },
+    {
+      "name": "Event card",
+      "kind": "card",
+      "refersTo": "card-event",
+      "description": "One event in the list.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card-name\">CDO Vision Toronto \u2197</h3><p class=\"ds-card-meta\"><span class=\"ds-mono\">OCTOBER 30</span> \u00b7 Toronto, Canada</p></article>",
+      "css": ".ds-card{background:#fff;border:1px solid #e7e7e8;border-radius:10px;padding:22px;max-width:420px;font-family:'Hanken Grotesk',system-ui,sans-serif;color:#0a0a0a;transition:border-color .15s}.ds-card:hover{border-color:#d4d4d6}.ds-card-name{font-size:1.05rem;font-weight:700;margin:0 0 6px;text-decoration:underline;text-underline-offset:3px}.ds-card-meta{margin:0;color:#404040;font-size:0.85rem}.ds-mono{font-family:'Fragment Mono',ui-monospace,monospace;font-size:0.72rem;letter-spacing:0.08em}"
+    },
+    {
+      "name": "Search",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Search events.",
+      "html": "<input class=\"ds-search\" placeholder=\"Search events\">",
+      "css": ".ds-search{background:#fff;border:1px solid #d4d4d6;border-radius:6px;padding:9px 13px;font:600 0.9rem 'Nunito Sans',system-ui,sans-serif;color:#0a0a0a;width:260px}.ds-search:focus-visible{outline:2px solid #2773c2;outline-offset:1px;border-color:#2773c2}"
+    },
+    {
+      "name": "Nav tabs",
+      "kind": "nav",
+      "refersTo": "",
+      "description": "Underlined text tabs under the top bar.",
+      "html": "<nav class=\"ds-tabs\"><a class=\"is-on\">Events</a><a>Queue</a></nav>",
+      "css": ".ds-tabs{display:flex;gap:20px;font:500 1.2rem 'Hanken Grotesk',system-ui,sans-serif}.ds-tabs a{color:#737373;padding:6px 1px;cursor:pointer}.ds-tabs a.is-on{color:#0a0a0a;text-decoration:underline;text-underline-offset:6px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Field Ledger",
+    "overview": "A working ledger for a small team in the field. Pages are white and quiet; ink-black type carries the content; small uppercase mono labels carry dates, counts and field names the way a ledger's column heads do. Color is rationed: ArcticBlue blue means \"act here\", and the pipeline stage colors mean \"where this stands\". Nothing is decorative for its own sake.",
+    "keyCharacteristics": [
+      "White paper, ink type, hairline rules (1px #e7e7e8) instead of shadows at rest.",
+      "Three type voices: Hanken Grotesk for reading, Nunito Sans for controls, Fragment Mono uppercase for labels and metadata; Helvetica Bold only for the app title (matches the logo).",
+      "One action blue; stage colors only for pipeline status.",
+      "Shape encodes behavior: squared labels are static, underlined pills are clickable."
+    ],
+    "rules": [
+      {
+        "name": "The One Blue Rule",
+        "body": "Text and interactive states use ArcticBlue Action (#2773c2) or Glacier Deep (#1271a8). Glacier (#1fa0dc) is for large brand marks only.",
+        "section": "colors"
+      },
+      {
+        "name": "The Status-Only Color Rule",
+        "body": "Stage colors mean pipeline status and nothing else. Purple outside the \"Meeting held\" stage (AI features, people, regions) competes with it and should not be added.",
+        "section": "colors"
+      },
+      {
+        "name": "The 11px Floor Rule",
+        "body": "No rendered text below 11px. Mono labels sit at 0.7rem (11.2px) or above; several (dates, avatars, counts, carets) currently render at 9 to 10.5px and are known violations.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Page Rule",
+        "body": "Cards and panels carry a 1px rule, not a shadow. Colored glows (for example the hidden Action Center dialog's #142844 glow) are off-system.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use ArcticBlue Action (#2773c2) for any blue text or action, and Glacier (#1fa0dc) only for the large app title and brand marks.",
+      "Do keep labels squared and clickable controls as underlined pills.",
+      "Do show \"contact on file\" style facts as a bare icon with a tooltip, not a badge.",
+      "Do keep text at 11px or larger and body copy at 4.5:1 contrast or better."
+    ],
+    "donts": [
+      "Don't add new purple accents; purple belongs to the \"Meeting held\" stage.",
+      "Don't put shadows or colored glows on cards or panels at rest.",
+      "Don't use em dashes in UI copy.",
+      "Don't replace Nunito Sans, Hanken Grotesk or Fragment Mono, or the Helvetica app title."
+    ]
+  }
+}
