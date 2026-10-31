@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-30T00:00:00Z",
-  "build_date": "2026-10-30",
+  "generated_at": "2026-10-31T00:00:00Z",
+  "build_date": "2026-10-31",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -1233,6 +1233,7 @@
       "speaking_route": "Partner/speaker applications: qatar.worldsummit.ai (commercial partners and speaker enquiries)",
       "contact_info": "qatar.worldsummit.ai",
       "attendee_count": "15,000+",
+      "pricing": "\u20ac799\u2013\u20ac2,299",
       "audience_type": "Buyer-rich",
       "venue": "Doha Exhibition & Convention Center (DECC) \u2013 Halls 4 and 5",
       "city": "Doha",
