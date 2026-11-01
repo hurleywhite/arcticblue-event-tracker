@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-31T00:00:00Z",
-  "build_date": "2026-10-31",
+  "generated_at": "2026-11-01T00:00:00Z",
+  "build_date": "2026-11-01",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -3723,6 +3723,7 @@
       "typical_attendees": "CTOs, CFOs, CDOs, Directors of Applied AI, Group Heads of Data & Analytics, ML Engineers from UK/European banks, insurers, FinTechs; JP Morgan, HSBC, Lloyds, Morgan Stanley, Capital One, Barclays, Deutsche Bank, Bank of England regular attendees",
       "speaking_route": "Suggest a Speaker: london-ai-finance.re-work.co (contact via organizer form)",
       "contact_info": "london-ai-finance.re-work.co",
+      "attendee_count": "Approximately 425",
       "audience_type": "Mixed",
       "past_speakers": "Caroline Cartellieri, Saffron Building Society; Ryan Courtier, Citi; Parag Kumar, JPMorganChase; Ramy Erfan, Citi; Rajasree Ramakrishnan, Lloyds Banking Group",
       "meeting_formats": "Networking sessions with industry experts",
