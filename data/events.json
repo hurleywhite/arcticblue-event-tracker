@@ -42,7 +42,8 @@
    "pricing": "Full conference pass: $2,095 early bird (Jan 13–Mar 31), $2,295 regular (Apr 1–May 31), $2,495 on-site (Jun 1–4); public sector rate: $1,295; group pricing available for 5+, 10+, 30+, and 100+",
    "meeting_formats": "attendee app for networking; 1:1 meetings not verified; curated roundtables not verified",
    "audience_type": "Buyer-rich",
-   "past_speakers": "Sridhar Ramaswamy, CEO, Snowflake; Daniela Amodei, President, Anthropic; Benoit Dageville, Co-Founder, Snowflake; Christian Kleinerman, EVP of Product, Snowflake; Caitlin Halferty, Thomson Reuters; Patrick Duroseau, Under Armour; Jung Suh, Samsung"
+   "past_speakers": "Sridhar Ramaswamy, CEO, Snowflake; Daniela Amodei, President, Anthropic; Benoit Dageville, Co-Founder, Snowflake; Christian Kleinerman, EVP of Product, Snowflake; Caitlin Halferty, Thomson Reuters; Patrick Duroseau, Under Armour; Jung Suh, Samsung",
+   "deadline": "January 15, 2026"
   },
   {
    "num": 17,
@@ -3426,7 +3427,8 @@
    "end_date": "2026-09-03",
    "audience_type": "Mixed",
    "meeting_formats": "attendee app for pre-booking meetings; curated networking areas",
-   "pricing": "Free general pass; Priority pass US$600; Founder pass US$450; VIP pass US$3,150; student pass free"
+   "pricing": "Free general pass; Priority pass US$600; Founder pass US$450; VIP pass US$3,150; student pass free",
+   "past_speakers": "Chief Data and Artificial Intelligence Officer, US Department of Air Force and Space Force; Global Head Nvidia AI Technology Centre, Nvidia; Retired Footballer, Investor and Influencer, Patrice Evra"
   },
   {
    "num": 146,
