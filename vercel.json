@@ -11,7 +11,8 @@
     "api/opportunities.py": {"maxDuration": 60},
     "api/postmortems.py": {"maxDuration": 60},
     "api/sessionize.py": {"maxDuration": 120, "includeFiles": "config/**"},
-    "api/briefing.py": {"maxDuration": 300, "includeFiles": "config/personas.json"}
+    "api/briefing.py": {"maxDuration": 300, "includeFiles": "config/personas.json"},
+    "api/operator.py": {"maxDuration": 300, "includeFiles": "{api/**,config/**}"}
   },
   "crons": [
     {"path": "/api/briefing?cron=1", "schedule": "0 6 * * *"}
@@ -33,7 +34,9 @@
     {"source": "/calendar/", "destination": "/events?view=calendar", "permanent": false}
   ],
   "rewrites": [
-    {"source": "/opportunities", "destination": "/opportunities-unified.html"},
+    {"source": "/week", "destination": "/week.html"},
+    {"source": "/week/", "destination": "/week.html"},
+    {"source": "/opportunities","destination": "/opportunities-unified.html"},
     {"source": "/opportunities/", "destination": "/opportunities-unified.html"},
     {"source": "/events", "destination": "/index.html"},
     {"source": "/events/", "destination": "/index.html"},
