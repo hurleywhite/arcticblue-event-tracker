@@ -44,6 +44,11 @@ PROFILES = {
         'broad_kw': ['chief ai officer', 'caio', 'cio', 'cto', 'cdo', 'c suite', 'executive', 'executives',
                      'enterprise ai', 'ai strategy', 'ai leadership', 'ai leaders', 'transformation',
                      'agentic', 'generative ai', 'board', 'senior leaders', 'decision makers'],
+        # The sectors that make an event this speaker's, judged on the event's
+        # name and focus areas only (a CIO summit listing "banking" among ten
+        # sectors in its blurb is still open to anyone).
+        'territory': ['healthcare', 'healthtech', 'health tech', 'digital health', 'medtech', 'med tech',
+                      'life sciences', 'pharma', 'pharmaceutical', 'biotech', 'health system'],
         'english_only': True,
         'no_clinical': True,
     },
@@ -53,6 +58,9 @@ PROFILES = {
                'regulated', 'compliance'],
         'broad_kw': ['chief ai officer', 'cio', 'cto', 'cdo', 'executive', 'enterprise ai', 'ai strategy',
                      'transformation', 'agentic', 'generative ai'],
+        'territory': ['insurance', 'insurtech', 'reinsurance', 'financial services', 'bank', 'banks',
+                      'banking', 'capital markets', 'payments', 'fintech', 'wealth management',
+                      'asset management'],
         'english_only': True,
         'no_clinical': False,
     },
@@ -498,8 +506,9 @@ def fit_of(rec, person):
         return 'engaged'
     # Broad fill never takes another speaker's territory: an insurance or
     # banking event is Verma's even when its blurb says "executives".
+    focus = words_blob(rec.get('name'), rec.get('focus_areas'))
     others = [p for k, p in PROFILES.items() if k != person]
-    if any(has_kw(blob, p.get('kw') or []) for p in others):
+    if any(has_kw(focus, p.get('territory') or []) for p in others):
         return ''
     if has_kw(blob, prof.get('broad_kw') or []) and fold(rec.get('audience_type')) != 'mixed':
         return 'broad'

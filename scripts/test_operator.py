@@ -100,7 +100,8 @@ class CoreSelection(unittest.TestCase):
     def test_broad_fill_leaves_other_territories_alone(self):
         cat = [ev(1, 'Banking Executives AI Summit', 100, about='Bank executives and fintech leaders on enterprise AI',
                   apply_url='https://x.example/1'),
-               ev(2, 'CIO Leadership Summit', 100, about='Enterprise AI for executives', apply_url='https://x.example/2')]
+               ev(2, 'CIO Leadership Summit', 100, about='Enterprise AI for executives across banking, retail and energy',
+                  apply_url='https://x.example/2')]
         sel = core.select_week(self.recs(cat), TODAY, {}, 'thor')
         self.assertEqual([r['name'] for r, _ in sel['items']], ['CIO Leadership Summit'])
         sel = core.select_week(self.recs(cat), TODAY, {}, 'verma')
