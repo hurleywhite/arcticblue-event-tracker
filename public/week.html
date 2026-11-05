@@ -311,10 +311,9 @@ textarea { resize: vertical; min-height: 84px; }
   // ── At a glance ───────────────────────────────────────────────────────
   function receiptLine(r) {
     if (!r) return 'No record yet';
-    var bits = [];
-    if (r.on) bits.push(short(r.on));
-    bits.push(esc(r.note || r.channel || 'Recorded'));
-    return bits.join(': ');
+    var note = String(r.note || r.channel || 'Recorded');
+    if (note.length > 160) note = note.slice(0, 157).replace(/\s+\S*$/, '') + '...';
+    return (r.on ? short(r.on) + ': ' : '') + esc(note);
   }
   function renderGlance() {
     $('glance').hidden = false;
@@ -343,10 +342,27 @@ textarea { resize: vertical; min-height: 84px; }
     $('approveAll').textContent = 'Approve all ' + ready.length + ' ready';
     var n = $('batchNotice');
     if (!W.planned) {
+      var pv = W.preview || { items: [], eligible: 0, left_out: {} };
+      var lanes = {};
+      pv.items.forEach(function (i) { lanes[i.lane] = (lanes[i.lane] || 0) + 1; });
+      var laneSay = Object.keys(lanes).map(function (l) { return lanes[l] + ' ' + LANE[l]; }).join(', ');
       n.innerHTML = '<div class="notice"><b>This week has not been prepared yet.</b> It runs every Monday at 5am. ' +
-        'You can run it now: it picks the events, finds missing organisers and drafts everything, a few at a time.' +
-        '<div class="acts"><button class="btn primary" type="button" id="prepNow">Prepare this week</button></div></div>';
+        (pv.items.length ? 'Right now it would pick ' + plural(pv.items.length, 'event') + ' (' + esc(laneSay) + ')' +
+          (pv.eligible > pv.items.length ? ', the first ' + pv.items.length + ' of ' + pv.eligible + ' that qualify' : '') + '. '
+          : 'Right now no event qualifies. ') +
+        'Preparing finds missing organisers and drafts everything, a few at a time.' +
+        '<div class="acts"><button class="btn primary" type="button" id="prepNow">Prepare this week</button>' +
+        (pv.items.length ? '<button class="link" type="button" id="pvToggle" aria-expanded="false">See who would be picked</button>' : '') +
+        '</div><ol class="mini" id="pvList" hidden>' + pv.items.map(function (i) {
+          return '<li><span class="when">' + esc(short(i.start)) + '</span><span class="what"><span class="nm">' + esc(i.name) +
+            '</span><br><span class="meta">' + esc(LANE[i.lane] || i.lane) + (i.place ? ', ' + esc(i.place) : '') +
+            ((i.flags || []).length ? ', ' + esc(i.flags.join(', ')) : '') + '</span></span></li>';
+        }).join('') + '</ol>' + leftOutHtml(pv.left_out) + '</div>';
       $('prepNow').onclick = prepareWeek;
+      if ($('pvToggle')) $('pvToggle').onclick = function () {
+        var l = $('pvList'); l.hidden = !l.hidden; this.setAttribute('aria-expanded', l.hidden ? 'false' : 'true');
+        this.textContent = l.hidden ? 'See who would be picked' : 'Hide the list';
+      };
     } else {
       var waiting = items.filter(function (i) { return i.status === 'planned' || i.status === 'error'; }).length;
       n.innerHTML = waiting ? '<div class="notice">' + plural(waiting, 'event is', 'events are') + ' still being prepared. ' +
@@ -360,6 +376,12 @@ textarea { resize: vertical; min-height: 84px; }
     items.forEach(function (it) { wireItem(it); });
   }
 
+  function leftOutHtml(lo) {
+    var keys = Object.keys(lo || {}).filter(function (k) { return k !== 'past or no date' && k !== 'archived'; });
+    if (!keys.length) return '';
+    keys.sort(function (a, b) { return lo[b] - lo[a]; });
+    return '<p class="sub" style="margin:10px 0 0">Left out: ' + keys.map(function (k) { return esc(k) + ' ' + lo[k]; }).join(', ') + '.</p>';
+  }
   function itemMeta(it) {
     var bits = [];
     if (it.place) bits.push(esc(it.place));
@@ -474,7 +496,7 @@ textarea { resize: vertical; min-height: 84px; }
       h += '<p class="sub">No organiser contact was found. Search LinkedIn for the person who runs the speaker programme, then add them here and the note is drafted for you.</p>' +
         '<div class="acts"><a class="btn" href="' + esc(it.linkedin_search) + '" target="_blank" rel="noopener">Search LinkedIn</a>' +
         '<button class="link quiet" type="button" data-skipopen>Skip</button></div>' +
-        '<form class="inline-form" data-contact>' +
+        '<form class="inline-form" data-contact novalidate>' +
           '<input type="text" name="name" placeholder="Their name" autocomplete="off" aria-label="Their name">' +
           '<input type="url" name="linkedin" placeholder="linkedin.com/in/..." autocomplete="off" aria-label="LinkedIn profile link">' +
           '<input type="email" name="email" placeholder="Email, if published" autocomplete="off" aria-label="Email">' +
@@ -625,8 +647,14 @@ textarea { resize: vertical; min-height: 84px; }
       '<div class="acts">' +
       (c.linkedin ? '<button class="btn primary" type="button" data-li2>Copy, open LinkedIn</button>' : '') +
       (c.email ? '<a class="btn' + (c.linkedin ? '' : ' primary') + '" target="_blank" rel="noopener" data-gm2 href="#">Open in Gmail</a>' : '') +
-      (!c.linkedin && !c.email ? '<span class="meta">No contact on file. Add one in the tracker.</span>' : '') +
-      '<button class="btn" type="button" data-do="' + action + '">Mark sent</button></div>';
+      '<button class="btn" type="button" data-do="' + action + '">Mark sent</button></div>' +
+      (!c.linkedin && !c.email ? '<p class="sub" style="margin-top:8px">No organiser contact on file. ' +
+        '<a href="' + esc(o.linkedin_search) + '" target="_blank" rel="noopener">Search LinkedIn</a>, then add them:</p>' +
+        '<form class="inline-form" data-contact2 novalidate>' +
+          '<input type="text" name="name" placeholder="Their name" autocomplete="off" aria-label="Their name">' +
+          '<input type="url" name="linkedin" placeholder="linkedin.com/in/..." autocomplete="off" aria-label="LinkedIn profile link">' +
+          '<input type="email" name="email" placeholder="Email, if published" autocomplete="off" aria-label="Email">' +
+          '<div><button class="btn" type="submit">Save contact</button></div><div class="err-line" data-err hidden></div></form>' : '');
   }
   function wireSend(li, o, action) {
     var ta = li.querySelector('[data-text]'), c = o.contact || {};
@@ -634,6 +662,17 @@ textarea { resize: vertical; min-height: 84px; }
     if (li2) li2.onclick = function () { copy(ta.value).then(function () { toast('Copied. Send it, then press Mark sent'); }); window.open(c.linkedin, '_blank', 'noopener'); };
     var gm = li.querySelector('[data-gm2]');
     if (gm) { var set = function () { gm.href = gmail(c.email, (action === 'loss_sent' ? 'Thank you: ' : 'Re: speaking at ') + o.name, ta.value); }; set(); ta.addEventListener('input', set); }
+    var cf = li.querySelector('[data-contact2]');
+    if (cf) cf.onsubmit = function (e) {
+      e.preventDefault();
+      var fd = new FormData(cf), err = cf.querySelector('[data-err]'), btn = cf.querySelector('button');
+      err.hidden = true;
+      if (!fd.get('linkedin') && !fd.get('email')) { err.textContent = 'Add their LinkedIn profile link or an email.'; err.hidden = false; return; }
+      btn.disabled = true;
+      call({ action: 'contact', save_only: true, table: o.table, key: o.key, name: fd.get('name'), linkedin: fd.get('linkedin'), email: fd.get('email') })
+        .then(function () { toast('Contact saved'); return load(true); })
+        .catch(function (e2) { btn.disabled = false; err.textContent = e2.message; err.hidden = false; });
+    };
     li.querySelector('[data-do]').onclick = function (e) {
       var b = e.currentTarget; b.disabled = true;
       call({ action: action, table: o.table, key: o.key, channel: c.linkedin ? 'linkedin' : 'email', text: ta.value, to: c.name || c.email || '' })
@@ -668,7 +707,8 @@ textarea { resize: vertical; min-height: 84px; }
       return '<li data-i="' + i + '"><div class="line">' + stage(x.stage) + '<span class="nm">' + esc(x.name) + '</span>' +
         '<span class="meta">' + esc(sayDay(x.start)) + (x.place ? ', ' + esc(x.place) : '') + '</span></div>' +
         '<div class="receipt">' + plural(x.waiting_days, 'day') + ' waiting, ' + esc(due) + '. Record: ' + receiptLine(r) +
-        (r && r.text ? ' <button class="link" type="button" data-showtext>Show what was sent</button><div class="ro" hidden data-sentText>' + esc(r.text) + '</div>' : '') +
+        (r && (r.text || String(r.note || '').length > 160) ? ' <button class="link" type="button" data-showtext>' + (r.text ? 'Show what was sent' : 'Show all') +
+          '</button><div class="ro" hidden data-sentText>' + esc(r.text || r.note) + '</div>' : '') +
         (x.unassigned ? '. No speaker set' : '') + '</div>' +
         '<div class="acts"><span class="meta">They replied:</span>' +
         '<button class="btn" type="button" data-out="meeting">Meeting</button>' +

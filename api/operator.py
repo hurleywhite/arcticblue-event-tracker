@@ -453,7 +453,7 @@ def _basics(rec):
     return {'table': rec['_table'], 'key': rec['_key'], 'name': rec.get('name') or '',
             'dates': rec.get('date_str') or rec.get('start_date') or '', 'start': rec.get('start_date') or '',
             'place': rec.get('city') or rec.get('location') or '', 'url': rec.get('url') or '',
-            'unassigned': bool(rec.get('_unassigned'))}
+            'unassigned': bool(rec.get('_unassigned')), 'linkedin_search': core.linkedin_search_url(rec)}
 
 
 def _item_view(rec, t):
@@ -519,6 +519,12 @@ def week_view(person='thor'):
            'items': [i for i in items if i['status'] != 'skipped'],
            'skipped': [i for i in items if i['status'] == 'skipped'],
            'skip_reasons': {k: v[0] for k, v in core.SKIP_REASONS.items()}}
+    if not batch:
+        # Before the week is prepared: who would be picked, without writing anything.
+        sel = core.select_week(recs, t, CFG, person, sz.sessionize_link)
+        out['preview'] = {'eligible': sel['eligible'], 'left_out': sel['left_out'],
+                          'items': [dict(_basics(r), lane=i['lane'], fit=i['fit'], flags=i['flags'], major=i['major'])
+                                    for r, i in sel['items']]}
     for kind in ('attending', 'out', 'follow_ups', 'losses', 'needs_record'):
         out[kind] = [_live_view(i, kind, person) for i in live[kind]]
     out['counts'] = {
@@ -670,15 +676,19 @@ def act(body):
         if not (li or email):
             raise ValueError('Add a LinkedIn profile or an email.')
         role = core.clip(str(body.get('role') or ''), 160)
+        in_batch = not body.get('save_only')
 
         def m(row, booking, op):
-            op.update({'lane': 'linkedin' if li else 'email', 'status': 'planned'})
-            op.pop('message', None)
+            if in_batch:
+                op.update({'lane': 'linkedin' if li else 'email', 'status': 'planned'})
+                op.pop('message', None)
             return {'poc_name': name, 'poc_linkedin': li, 'poc_email': email,
                     'poc_note': core.clip('%sAdded on /week by %s.' % ((role + '. ') if role else '', by), 480),
                     'poc_lookup_at': _now()}
         _change(table, key, m)
-        return _redraft(table, key)
+        # A contact for something already sent (a follow-up) is just saved; one
+        # for this week's batch gets its note drafted straight away.
+        return _redraft(table, key) if in_batch else {'ok': True}
     if action == 'redraft':
         return _redraft(table, key)
     if action == 'record':

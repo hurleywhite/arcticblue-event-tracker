@@ -472,8 +472,9 @@ def last_touch(rec):
     return max(days) if days else None
 
 
-_HOLD = re.compile(r"on hold|come back to us|get back to us|will (be in touch|reach out|let us know)|"
-                   r"do ?n.?t (chase|follow up)|no need to follow|waiting (on|for) them", re.I)
+_HOLD = re.compile(r"on hold|come back to us|get back to us|will (be in touch|reach out|let us know|contact you)|"
+                   r"do ?n.?t (chase|follow up|submit more than once)|no need to follow|waiting (on|for) them|"
+                   r"unable to respond|rolled? over to (the )?next year", re.I)
 _SHUT = re.compile(r'sponsorship only|declin|not accepting|no opening|passed on us', re.I)
 
 
@@ -613,7 +614,10 @@ def live_lists(records, today, cfg=None, person='thor'):
             continue
         every = follow_interval(rec, today, cfg)
         due = lt + dt.timedelta(days=every)
-        hold = bool(_HOLD.search(str(rec.get('notes') or ''))) or bool(_SHUT.search(str(rec.get('workflow_status') or '')))
+        # Their own words, in the notes or in anything logged (an auto-reply
+        # saying they will be in touch), mean wait rather than chase.
+        said = ' '.join([str(rec.get('notes') or '')] + [r['note'] for r in receipts(rec)])
+        hold = bool(_HOLD.search(said)) or bool(_SHUT.search(str(rec.get('workflow_status') or '')))
         item = {'rec': rec, 'stage': live[-1], 'last_touch': lt.isoformat(), 'waiting_days': (today - lt).days,
                 'follow_up_on': due.isoformat(), 'hold': hold}
         out.append(item)

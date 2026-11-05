@@ -378,6 +378,40 @@ class Api(unittest.TestCase):
         with self.assertRaises(ValueError):
             opx.act({'action': 'contact', 'table': 'event_state', 'key': 1, 'linkedin': 'https://example.com/jane'})
 
+    def test_preview_before_planning_writes_nothing(self):
+        db = FakeDB([ev(1, 'Healthcare Form Event', 120, apply_url='https://form.example/speak'),
+                     ev(2, 'Retail Expo', 120, about='Retail marketers', audience_type='Mixed')])
+        self.use(db)
+        w = opx.week_view('thor')
+        self.assertFalse(w['planned'])
+        self.assertEqual([i['name'] for i in w['preview']['items']], ['Healthcare Form Event'])
+        self.assertEqual(w['preview']['left_out'], {'not a fit': 1})
+        self.assertEqual(db.writes, [])
+
+    def test_auto_reply_puts_follow_up_on_hold(self):
+        db = FakeDB([ev(1, 'Healthcare Forbes-like', 100, speaker='Thor')],
+                    states=[{'event_num': 1, 'status_tags': ['Submitted'], 'follow_ups': [
+                        {'on': D(-40), 'note': 'We are unable to respond to each one; a member of the team will contact you directly.'}]}])
+        self.use(db)
+        w = opx.week_view('thor')
+        self.assertEqual(w['follow_ups'], [])
+        self.assertTrue(w['out'][0]['hold'])
+
+    def test_contact_save_only_for_follow_ups(self):
+        db = FakeDB([ev(1, 'Healthcare Quiet', 100, speaker='Thor')],
+                    states=[{'event_num': 1, 'status_tags': ['Submitted'], 'submitted_at': D(-30)}])
+        self.use(db)
+        self.assertIsNone(opx.week_view('thor')['follow_ups'][0]['contact'])
+        r = opx.act({'action': 'contact', 'table': 'event_state', 'key': 1, 'name': 'Sam Lee',
+                     'linkedin': 'linkedin.com/in/samlee', 'save_only': True})
+        self.assertEqual(r, {'ok': True})
+        row = db.t['event_state']['1']
+        self.assertEqual(row['poc_linkedin'], 'https://linkedin.com/in/samlee')
+        self.assertNotIn('lane', row['booking'].get('operator', {}))
+        f = opx.week_view('thor')['follow_ups'][0]
+        self.assertEqual(f['channel'], 'linkedin')
+        self.assertTrue(f['text'].startswith('Hi Sam,'))
+
     def test_writes_keep_other_booking_keys(self):
         db = FakeDB([ev(1, 'Healthcare Form Event', 120, apply_url='https://form.example/speak')],
                     states=[{'event_num': 1, 'booking': {'sessionize_call': {'status': 'open'}, 'other': 1}}])
