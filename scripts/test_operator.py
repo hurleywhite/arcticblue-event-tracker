@@ -78,7 +78,7 @@ class CoreSelection(unittest.TestCase):
             self.assertIn(why, lo, why)
 
     def test_cap_urgent_first_then_date_order(self):
-        cat = [ev(i, 'Healthcare Summit %d' % i, 30 + i * 5, apply_url='https://x.example/%d' % i) for i in range(1, 41)]
+        cat = [ev(i, 'Healthcare Summit %d' % i, 60 + i * 5, apply_url='https://x.example/%d' % i) for i in range(1, 41)]
         cat.append(ev(99, 'Healthcare Late Call', 330, apply_url='https://x.example/late', deadline=D(10)))
         sel = core.select_week(self.recs(cat), TODAY, {'weekly_target': 30}, 'thor')
         names = [r['name'] for r, _ in sel['items']]
@@ -96,6 +96,22 @@ class CoreSelection(unittest.TestCase):
         sel = core.select_week(self.recs(cat), TODAY, {'weekly_target': 2}, 'thor')
         broad = [i for r, i in sel['items'] if r['name'] == 'Chief AI Officer Summit'][0]
         self.assertIn('Broader fit', broad['flags'])
+
+    def test_broad_fill_leaves_other_territories_alone(self):
+        cat = [ev(1, 'Banking Executives AI Summit', 100, about='Bank executives and fintech leaders on enterprise AI',
+                  apply_url='https://x.example/1'),
+               ev(2, 'CIO Leadership Summit', 100, about='Enterprise AI for executives', apply_url='https://x.example/2')]
+        sel = core.select_week(self.recs(cat), TODAY, {}, 'thor')
+        self.assertEqual([r['name'] for r, _ in sel['items']], ['CIO Leadership Summit'])
+        sel = core.select_week(self.recs(cat), TODAY, {}, 'verma')
+        self.assertIn('Banking Executives AI Summit', [r['name'] for r, _ in sel['items']])
+
+    def test_late_application_needs_a_known_open_call(self):
+        cat = [ev(1, 'Healthcare Late Form', 25, apply_url='https://x.example/1'),
+               ev(2, 'Healthcare Late Open Call', 25, apply_url='https://x.example/2', deadline=D(10))]
+        sel = core.select_week(self.recs(cat), TODAY, {}, 'thor')
+        self.assertEqual([r['name'] for r, _ in sel['items']], ['Healthcare Late Open Call'])
+        self.assertEqual(sel['left_out'], {'too soon to apply': 1})
 
     def test_in_flight_and_skips(self):
         cat = [ev(1, 'Healthcare A', 100, apply_url='https://x.example/1'),

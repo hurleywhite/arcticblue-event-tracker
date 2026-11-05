@@ -43,13 +43,16 @@ An event is in this week's batch when all of these hold:
 
 1. It fits Thor: his healthcare-buyer profile, or he is already engaged with it
    (interested, speaker, asked to reach out). If those leave the batch short,
-   executive enterprise-AI events fill the rest, marked "Broader fit".
+   executive enterprise-AI events fill the rest, marked "Broader fit". Broad
+   fill never takes another speaker's territory (banking or insurance events
+   stay Verma's even when the blurb says "executives").
 2. It is not HR or L&D, not a clinician event, not in Africa, not a
    non-English event, not archived, and not assigned to another speaker.
 3. It is not pay-to-play. `pay_to_play = Yes` with no free route is skipped.
    Both / Mix / Partial stays in, marked "Mixed: check the free route".
-4. Timing: an open call that has not closed, for an event up to 12 months out.
-   Without an open call (organiser outreach) the event must be at least 60 days
+4. Timing: an event up to 12 months out. A known open call (a Sessionize call,
+   or a form with a deadline still ahead) can be as close as 14 days. Anything
+   else, a form with no deadline or organiser outreach, must be at least 60 days
    away, so there is time to get a slot.
 5. Nothing has been sent for it yet. Events already in flight go to Follow-ups.
 

@@ -496,6 +496,11 @@ def fit_of(rec, person):
         return 'profile'
     if engaged(rec, person):
         return 'engaged'
+    # Broad fill never takes another speaker's territory: an insurance or
+    # banking event is Verma's even when its blurb says "executives".
+    others = [p for k, p in PROFILES.items() if k != person]
+    if any(has_kw(blob, p.get('kw') or []) for p in others):
+        return ''
     if has_kw(blob, prof.get('broad_kw') or []) and fold(rec.get('audience_type')) != 'mixed':
         return 'broad'
     return ''
@@ -540,11 +545,14 @@ def screen(rec, today, cfg, person, link_fn=None):
         return 'not a fit', None
     lane = lane_for(rec, today, link_fn)
     state, closes = call_state(rec, today)
-    if lane in ('sessionize', 'form'):
+    # Thor: apply 6 to 12 months out. A short lead is only worth it when the
+    # call is known to be open; otherwise give the organiser two months.
+    known_open = state == 'open' and (closes is not None or lane == 'sessionize')
+    if lane in ('sessionize', 'form') and known_open:
         if days < cfg['apply_min_days']:
             return 'too soon to apply', None
     elif days < cfg['outreach_min_days']:
-        return 'too soon for outreach', None
+        return 'too soon to apply' if lane in ('sessionize', 'form') else 'too soon for outreach', None
     urgent = bool(closes and 0 <= (closes - today).days <= cfg['urgent_close_days'])
     flags = []
     if pay == 'mixed':
