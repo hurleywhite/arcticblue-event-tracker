@@ -44,9 +44,9 @@ PROFILES = {
         'broad_kw': ['chief ai officer', 'caio', 'cio', 'cto', 'cdo', 'c suite', 'executive', 'executives',
                      'enterprise ai', 'ai strategy', 'ai leadership', 'ai leaders', 'transformation',
                      'agentic', 'generative ai', 'board', 'senior leaders', 'decision makers'],
-        # The sectors that make an event this speaker's, judged on the event's
-        # name and focus areas only (a CIO summit listing "banking" among ten
-        # sectors in its blurb is still open to anyone).
+        # The sectors that make an event this speaker's: named in the event's
+        # title, or in most of its topics. A CIO summit that lists banking
+        # among five industries is still open to anyone (see in_territory).
         'territory': ['healthcare', 'healthtech', 'health tech', 'digital health', 'medtech', 'med tech',
                       'life sciences', 'pharma', 'pharmaceutical', 'biotech', 'health system'],
         'english_only': True,
@@ -60,7 +60,7 @@ PROFILES = {
                      'transformation', 'agentic', 'generative ai'],
         'territory': ['insurance', 'insurtech', 'reinsurance', 'financial services', 'bank', 'banks',
                       'banking', 'capital markets', 'payments', 'fintech', 'wealth management',
-                      'asset management'],
+                      'asset management', 'finance', 'insurer', 'insurers'],
         'english_only': True,
         'no_clinical': False,
     },
@@ -497,6 +497,24 @@ def follow_interval(rec, today, cfg):
 
 
 # ── The weekly selection ───────────────────────────────────────────────────
+def _topics(value):
+    parts = value if isinstance(value, list) else re.split(r'[;\n]+', str(value or ''))
+    return [str(p) for p in parts if str(p).strip()]
+
+
+def in_territory(rec, prof):
+    """An event belongs to a speaker's sector when its name says so, or when at
+    least two topics, and at least half of them, do."""
+    terms = prof.get('territory') or []
+    if not terms:
+        return False
+    if has_kw(words_blob(rec.get('name')), terms):
+        return True
+    topics = _topics(rec.get('focus_areas'))
+    hits = sum(1 for t in topics if has_kw(words_blob(t), terms))
+    return hits >= 2 and hits * 2 >= len(topics)
+
+
 def fit_of(rec, person):
     prof = PROFILES.get(person) or {}
     blob = words_blob(rec.get('_blob'))
@@ -506,9 +524,8 @@ def fit_of(rec, person):
         return 'engaged'
     # Broad fill never takes another speaker's territory: an insurance or
     # banking event is Verma's even when its blurb says "executives".
-    focus = words_blob(rec.get('name'), rec.get('focus_areas'))
     others = [p for k, p in PROFILES.items() if k != person]
-    if any(has_kw(focus, p.get('territory') or []) for p in others):
+    if any(in_territory(rec, p) for p in others):
         return ''
     if has_kw(blob, prof.get('broad_kw') or []) and fold(rec.get('audience_type')) != 'mixed':
         return 'broad'

@@ -106,6 +106,12 @@ class CoreSelection(unittest.TestCase):
         self.assertEqual([r['name'] for r, _ in sel['items']], ['CIO Leadership Summit'])
         sel = core.select_week(self.recs(cat), TODAY, {}, 'verma')
         self.assertIn('Banking Executives AI Summit', [r['name'] for r, _ in sel['items']])
+        verma = core.PROFILES['verma']
+        self.assertTrue(core.in_territory({'name': 'ITC Vegas', 'focus_areas':
+            'AI in insurance; Insurtech and digital transformation; Data and AI for financial services'}, verma))
+        self.assertFalse(core.in_territory({'name': 'Leaders in AI Summit Chicago', 'focus_areas':
+            'Enterprise AI strategy (financial services, manufacturing, healthcare); Agentic AI deployment; '
+            'AI governance'}, verma))
 
     def test_late_application_needs_a_known_open_call(self):
         cat = [ev(1, 'Healthcare Late Form', 25, apply_url='https://x.example/1'),

@@ -44,10 +44,10 @@ An event is in this week's batch when all of these hold:
 1. It fits Thor: his healthcare-buyer profile, or he is already engaged with it
    (interested, speaker, asked to reach out). If those leave the batch short,
    executive enterprise-AI events fill the rest, marked "Broader fit". Broad
-   fill never takes another speaker's territory: an event whose name or focus
-   areas say banking, insurance or fintech stays Verma's even when the blurb
-   says "executives". A CIO summit that lists banking among many sectors is
-   still open.
+   fill never takes another speaker's territory: an event whose name, or most
+   of whose topics, say banking, insurance, finance or fintech stays Verma's
+   even when the blurb says "executives". A CIO summit that lists banking
+   among many sectors is still open.
 2. It is not HR or L&D, not a clinician event, not in Africa, not a
    non-English event, not archived, and not assigned to another speaker.
 3. It is not pay-to-play. `pay_to_play = Yes` with no free route is skipped.
