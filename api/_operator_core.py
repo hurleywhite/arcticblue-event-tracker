@@ -497,20 +497,34 @@ def follow_interval(rec, today, cfg):
 
 
 # ── The weekly selection ───────────────────────────────────────────────────
-def _topics(value):
-    parts = value if isinstance(value, list) else re.split(r'[;\n]+', str(value or ''))
+def _segments(value):
+    """Topic or audience lists: semicolon or line separated, else comma separated."""
+    if isinstance(value, list):
+        parts = value
+    else:
+        text = str(value or '')
+        parts = re.split(r'[;\n]+', text) if re.search(r'[;\n]', text) else text.split(',')
     return [str(p) for p in parts if str(p).strip()]
 
 
 def in_territory(rec, prof):
-    """An event belongs to a speaker's sector when its name says so, or when at
-    least two topics, and at least half of them, do."""
+    """An event belongs to a speaker's sector when its name says so, when its
+    lead topic or lead audience is that sector in a few words ("Payments",
+    "Banks", "Insurance executives"), or when at least two topics, and at least
+    half of them, are. A long lead like "Enterprise AI for financial services,
+    manufacturing and healthcare" is a multi-sector event and stays open."""
     terms = prof.get('territory') or []
     if not terms:
         return False
     if has_kw(words_blob(rec.get('name')), terms):
         return True
-    topics = _topics(rec.get('focus_areas'))
+    for field in ('focus_areas', 'typical_attendees'):
+        segs = _segments(rec.get(field))
+        if segs:
+            lead = words_blob(segs[0])
+            if len(lead.split()) <= 4 and has_kw(lead, terms):
+                return True
+    topics = _segments(rec.get('focus_areas'))
     hits = sum(1 for t in topics if has_kw(words_blob(t), terms))
     return hits >= 2 and hits * 2 >= len(topics)
 

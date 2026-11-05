@@ -109,6 +109,21 @@ class CoreSelection(unittest.TestCase):
         verma = core.PROFILES['verma']
         self.assertTrue(core.in_territory({'name': 'ITC Vegas', 'focus_areas':
             'AI in insurance; Insurtech and digital transformation; Data and AI for financial services'}, verma))
+        # Real rows that leaked into Thor's broad fill before this rule.
+        self.assertTrue(core.in_territory({'name': 'FDX Global Summit 2027',
+            'focus_areas': 'Agentic AI; open finance; payments; data sharing; security',
+            'typical_attendees': 'Banks, fintechs, digital banking platforms, payments/data leaders'}, verma))
+        self.assertTrue(core.in_territory({'name': 'IPC 2027',
+            'focus_areas': 'Payments; financial services; AI; compliance; regulation; implementation'}, verma))
+        self.assertTrue(core.in_territory({'name': 'ANZIIF International Summit', 'focus_areas': '',
+            'typical_attendees': 'Insurance, risk management, and financial services executives'}, verma))
+        self.assertTrue(core.in_territory({'name': 'GFTN Forum, Japan',
+            'focus_areas': 'Fintech, financial innovation, global financial landscape, keynote sessions'}, verma))
+        self.assertTrue(core.in_territory({'name': 'ViVE 2027',
+            'focus_areas': 'Digital health; healthcare IT; AI deployment'}, core.PROFILES['thor']))
+        self.assertFalse(core.in_territory({'name': 'International AI Summit Dublin', 'focus_areas':
+            'Applied AI in healthcare, life sciences, financial services, manufacturing; AI infrastructure'},
+            core.PROFILES['thor']))
         self.assertFalse(core.in_territory({'name': 'Leaders in AI Summit Chicago', 'focus_areas':
             'Enterprise AI strategy (financial services, manufacturing, healthcare); Agentic AI deployment; '
             'AI governance'}, verma))
