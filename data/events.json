@@ -2605,7 +2605,8 @@
    "end_date": "2026-05-01",
    "audience_type": "Buyer-rich",
    "meeting_formats": "attendee app for pre-booking meetings",
-   "attendee_count": "5,000+"
+   "attendee_count": "5,000+",
+   "past_speakers": "VP Analyst, Gartner; VP Analyst, Gartner"
   },
   {
    "num": 117,
@@ -3154,7 +3155,8 @@
    "pricing": "~$2,000+ (super-early-bird discounts up to 30%); DGPO members save 15% with code DGPO15",
    "past_speakers": "Kat Parker, Conference Manager, Dataversity; Tony Shaw, Program Chair, Dataversity; Lauri Young, Esri",
    "meeting_formats": "Expert-led education with networking opportunities; no guaranteed/hosted 1:1 meetings or curated roundtables explicitly listed",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "attendee_count": "Hundreds"
   },
   {
    "num": 137,
