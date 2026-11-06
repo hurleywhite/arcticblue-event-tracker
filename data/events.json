@@ -3637,7 +3637,8 @@
    "end_date": "2026-06-24",
    "audience_type": "Mixed",
    "pricing": "Full Price: £2,295",
-   "attendee_count": "250+"
+   "attendee_count": "250+",
+   "meeting_formats": "Networking opportunities"
   },
   {
    "num": 154,
@@ -3727,7 +3728,9 @@
    "end_date": "2026-04-15",
    "pricing": "£899–£2,899; alternative listing shows passes from £799 to £2,799",
    "audience_type": "Buyer-rich",
-   "attendee_count": "65+ speakers; attendance not verified"
+   "attendee_count": "65+ speakers; attendance not verified",
+   "past_speakers": "Senior representative, BBC; Senior representative, Citi; Senior representative, UNICEF; Senior representative, Mastercard; Senior representative, BP; Senior representative, WPP; Senior representative, Schneider Electric; Senior representative, HSBC",
+   "meeting_formats": "Closed-door peer networking; evening drinks reception"
   },
   {
    "num": 157,
