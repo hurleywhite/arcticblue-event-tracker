@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-06T00:00:00Z",
-  "build_date": "2026-11-06",
+  "generated_at": "2026-11-07T00:00:00Z",
+  "build_date": "2026-11-07",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -5181,7 +5181,11 @@
       "typical_attendees": "UX researchers, product designers, UX managers, and digital product leaders",
       "speaking_route": "Booked \u2014 self submitted by Joe.",
       "contact_info": "uxpa.org",
+      "attendee_count": "800+",
       "pay_to_play": "No",
+      "audience_type": "Buyer-rich",
+      "past_speakers": "Jean Fox, Harris; Beth Loring; Linda Borghesani; Andrew Schall",
+      "meeting_formats": "Networking and collaboration opportunities",
       "seed": false,
       "urgent": false,
       "venue": "Las Vegas, NV",
