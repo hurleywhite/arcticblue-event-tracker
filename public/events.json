@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-07T00:00:00Z",
-  "build_date": "2026-11-07",
+  "generated_at": "2026-11-08T00:00:00Z",
+  "build_date": "2026-11-08",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -1003,6 +1003,7 @@
       "attendee_count": "250+",
       "pricing": "Individual Pass: $595; Teams of 3 or more: $495",
       "audience_type": "Buyer-rich",
+      "past_speakers": "Senior AI Research Manager, Salesforce; Director, Data Science, Gannett/USA TODAY Network",
       "meeting_formats": "Networking opportunities",
       "seed": false,
       "venue": "Hilton Austin",
@@ -8382,6 +8383,7 @@
       "attendee_count": "17,000+",
       "pay_to_play": "Yes",
       "audience_type": "Buyer-rich",
+      "meeting_formats": "Attendee access across five co-located technology events with networking and connection opportunities",
       "seed": false,
       "urgent": false,
       "venue": "ExCeL London, London, UK",

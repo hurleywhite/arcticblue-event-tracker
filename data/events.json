@@ -4445,7 +4445,8 @@
    "source": "arcticscout",
    "start_date": "2026-03-04",
    "end_date": "2026-03-05",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "meeting_formats": "Attendee access across five co-located technology events with networking and connection opportunities"
   },
   {
    "num": 182,
@@ -7867,7 +7868,8 @@
    "audience_type": "Buyer-rich",
    "attendee_count": "250+",
    "pricing": "Individual Pass: $595; Teams of 3 or more: $495",
-   "meeting_formats": "Networking opportunities"
+   "meeting_formats": "Networking opportunities",
+   "past_speakers": "Senior AI Research Manager, Salesforce; Director, Data Science, Gannett/USA TODAY Network"
   },
   {
    "num": 301,
