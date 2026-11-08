@@ -1,0 +1,54 @@
+name: Event operator
+
+# Every Monday morning: pick Thor's speaking batch for the week, find missing
+# organiser contacts, draft every application and message, then post the summary
+# to Slack. Thor works the batch at /week. Nothing is sent or submitted here.
+# See EVENT-OPERATOR.md. Runnable by hand from the Actions tab.
+
+on:
+  schedule:
+    # 09:30 UTC Monday = 04:30 EST / 05:30 EDT, ready before the week starts.
+    - cron: "30 9 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  operator:
+    runs-on: ubuntu-latest
+    env:
+      EVENTS_INGEST_SECRET: ${{ secrets.EVENTS_INGEST_SECRET }}
+      BASE: https://arcticblue-event-tracker-deploy.vercel.app
+    steps:
+      - name: Plan the week
+        run: |
+          if [ -z "$EVENTS_INGEST_SECRET" ]; then
+            echo "EVENTS_INGEST_SECRET not set - skipping."
+            exit 0
+          fi
+          curl -sS -X POST "$BASE/api/operator" -H "X-API-Key: $EVENTS_INGEST_SECRET" \
+            -H "Content-Type: application/json" -d '{"action": "plan"}' | head -c 4000
+          echo
+
+      # Drafting takes a model call per event, so it runs three at a time, well
+      # inside the function's time limit, until nothing is left (or 15 rounds).
+      - name: Prepare drafts and contacts
+        run: |
+          if [ -z "$EVENTS_INGEST_SECRET" ]; then exit 0; fi
+          for i in $(seq 1 15); do
+            out=$(curl -sS -m 290 -X POST "$BASE/api/operator" -H "X-API-Key: $EVENTS_INGEST_SECRET" \
+              -H "Content-Type: application/json" -d '{"action": "prepare", "limit": 3}')
+            echo "$out" | head -c 2000; echo
+            left=$(echo "$out" | python3 -c 'import json,sys
+          try: print(json.load(sys.stdin).get("remaining", 0))
+          except Exception: print(0)')
+            if [ "$left" = "0" ]; then break; fi
+          done
+
+      - name: Post the Monday summary
+        run: |
+          if [ -z "$EVENTS_INGEST_SECRET" ]; then exit 0; fi
+          curl -sS -X POST "$BASE/api/operator" -H "X-API-Key: $EVENTS_INGEST_SECRET" \
+            -H "Content-Type: application/json" -d '{"action": "digest"}' | head -c 2000
+          echo

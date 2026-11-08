@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Speaking this week</title>
+<link rel="icon" href="/arcticblue-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Nunito+Sans:wght@600;700;800;900&family=Fragment+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --action: #2773c2; --action-dark: #1d5a9a; --glacier-text: #187cab;
+  --ink: #0a0a0a; --ink-soft: #404040; --ink-muted: #6b6b6b; --ink-faint: #a3a3a3;
+  --paper: #ffffff; --paper-2: #fafafa; --paper-3: #f4f4f5;
+  --rule: #e7e7e8; --rule-strong: #d4d4d6;
+  --ok: #15803d; --warn: #92400e; --warn-bg: #fef3c7; --fail: #b91c1c; --fail-bg: #fef2f2;
+  --read: 'Hanken Grotesk', Inter, system-ui, sans-serif;
+  --ctl: 'Nunito Sans', 'Hanken Grotesk', system-ui, sans-serif;
+  --mono: 'Fragment Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.55 var(--read); }
+a { color: var(--action); }
+:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; border-radius: 4px; }
+.skip { position: absolute; left: -999px; } .skip:focus { left: 16px; top: 8px; background: var(--paper); padding: 6px 10px; z-index: 5; }
+.wrap { max-width: 800px; margin: 0 auto; padding: 0 16px 80px; }
+
+/* Header and the batch progress line: the one place this page spends colour */
+header.top { position: sticky; top: 0; z-index: 3; background: var(--paper); border-bottom: 1px solid var(--rule); }
+.top-in { max-width: 800px; margin: 0 auto; padding: 14px 16px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+.brand img { width: 26px; height: 26px; }
+.brand b { font: 700 1.15rem/1.2 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spacing: -0.01em; }
+.top-meta { font: 600 .9rem/1.3 var(--ctl); color: var(--ink-soft); flex: 1 1 auto; }
+.top-acts { display: flex; gap: 8px; align-items: center; }
+.as { font: 600 .85rem var(--ctl); color: var(--ink-muted); }
+.as select { font: 700 .85rem var(--ctl); color: var(--ink); border: 1px solid var(--rule-strong); border-radius: 6px; padding: 4px 6px; background: var(--paper); min-height: 32px; }
+.progress { height: 3px; background: var(--paper-3); }
+.progress i { display: block; height: 3px; width: 0; background: var(--action); transition: width .4s ease; }
+@media (prefers-reduced-motion: reduce) { .progress i { transition: none; } }
+
+/* Buttons: solid blue acts, outlined does, text links are quiet */
+.btn { font: 700 .9rem/1 var(--ctl); border-radius: 999px; padding: 10px 16px; min-height: 40px; border: 1px solid var(--rule-strong);
+       background: var(--paper); color: var(--ink); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--ink-muted); }
+.btn.primary { background: var(--action); border-color: var(--action); color: #fff; }
+.btn.primary:hover { background: var(--action-dark); border-color: var(--action-dark); }
+.btn.done { background: var(--paper); border-color: var(--ok); color: var(--ok); }
+.btn:disabled { opacity: .55; cursor: default; }
+.link { font: 700 .88rem var(--ctl); color: var(--action); background: none; border: 0; padding: 8px 4px; min-height: 40px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.link.quiet { color: var(--ink-muted); }
+
+/* Sections */
+section { margin-top: 30px; }
+h2 { font: 800 1.08rem/1.3 var(--ctl); margin: 0 0 4px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+h2 .n { font: 600 .9rem var(--ctl); color: var(--ink-muted); }
+.sub { color: var(--ink-soft); font-size: .92rem; margin: 0 0 10px; max-width: 64ch; }
+.empty { color: var(--ink-muted); font-size: .95rem; padding: 10px 0; }
+
+/* At a glance: two short lists side by side */
+.glance { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; margin-top: 22px; }
+@media (max-width: 700px) { .glance { grid-template-columns: 1fr; } }
+.glance section { margin-top: 8px; }
+.mini { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.mini li { border-bottom: 1px solid var(--rule); padding: 9px 0; display: grid; grid-template-columns: 62px 1fr; gap: 4px 10px; }
+.mini .when { font: 400 .78rem/1.5 var(--mono); color: var(--ink-soft); padding-top: 2px; }
+.mini .what { min-width: 0; }
+.mini .nm { font-weight: 700; line-height: 1.3; }
+.mini .meta { font-size: .85rem; color: var(--ink-soft); }
+.more { margin-top: 4px; }
+
+/* Stage marks: the tracker's own colours, status only */
+.stage { display: inline-block; font: 700 .72rem/1 var(--ctl); border-radius: 3px; padding: 4px 6px; vertical-align: 1px; }
+.s-Submitted { background: #bae6fd; color: #075985; } .s-Initial-outreach { background: #e0e7ff; color: #3730a3; }
+.s-Followed-up { background: #fde68a; color: #92400e; } .s-Meeting-held { background: #ddd6fe; color: #5b21b6; }
+.s-Booked { background: #bbf7d0; color: #14532d; } .s-Rejected { background: #fecaca; color: #991b1b; }
+.s-Attending { background: #ccfbf1; color: #115e59; }
+
+/* The run sheet */
+.batch-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 6px; }
+.batch-head h2 { margin: 0; }
+.batch-head .grow { flex: 1; }
+.notice { background: var(--paper-2); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; color: var(--ink-soft); font-size: .95rem; }
+.notice b { color: var(--ink); }
+.run { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+.item { border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 70px 1fr; }
+.item .date { font: 400 .8rem/1.4 var(--mono); color: var(--ink-soft); padding: 16px 0 0; }
+.item .date b { display: block; font: 400 1.15rem/1.1 var(--mono); color: var(--ink); }
+.item .body { padding: 12px 0 14px; min-width: 0; }
+.row1 { display: flex; gap: 10px; align-items: flex-start; }
+.toggle { flex: 1; text-align: left; background: none; border: 0; padding: 4px 0; cursor: pointer; color: inherit; font: inherit; min-width: 0; }
+.toggle .nm { font-weight: 700; font-size: 1.04rem; line-height: 1.3; }
+.toggle .meta { display: block; font-size: .87rem; color: var(--ink-soft); margin-top: 2px; }
+.lane { flex: none; font: 700 .75rem/1 var(--ctl); color: var(--ink-soft); border: 1px solid var(--rule-strong); border-radius: 3px; padding: 5px 7px; margin-top: 4px; white-space: nowrap; }
+.flag { color: var(--warn); font-weight: 600; }
+.major { color: var(--ink); font-weight: 700; }
+.state { font: 700 .82rem var(--ctl); margin-top: 6px; }
+.state.ok { color: var(--ok); } .state.err { color: var(--fail); } .state.wait { color: var(--ink-muted); }
+.item.is-sent .toggle .nm, .item.is-skipped .toggle .nm { color: var(--ink-muted); }
+.acts { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin-top: 10px; }
+.detail { margin-top: 12px; border-left: 2px solid var(--rule-strong); padding-left: 14px; }
+.detail[hidden] { display: none; }
+.field { margin: 10px 0 14px; }
+.field label, .field .lbl { display: flex; justify-content: space-between; gap: 8px; font: 700 .82rem var(--ctl); color: var(--ink-soft); margin-bottom: 4px; }
+.count { font: 400 .78rem var(--mono); color: var(--ink-muted); }
+.count.over { color: var(--fail); }
+textarea, input[type=text], input[type=url], input[type=email], input[type=date] {
+  width: 100%; font: 400 16px/1.5 var(--read); color: var(--ink); border: 1px solid var(--rule-strong); border-radius: 6px; padding: 9px 11px; background: var(--paper); }
+textarea { resize: vertical; min-height: 84px; }
+.ro { white-space: pre-wrap; font-size: .95rem; background: var(--paper-2); border: 1px solid var(--rule); border-radius: 6px; padding: 9px 11px; }
+.checks { list-style: none; padding: 0; margin: 8px 0; }
+.checks li { font-size: .88rem; color: var(--warn); background: var(--warn-bg); border-radius: 6px; padding: 7px 10px; margin-bottom: 6px; }
+.terms li { color: var(--ink-soft); background: var(--paper-3); }
+.who { font-size: .92rem; color: var(--ink-soft); }
+.who b { color: var(--ink); }
+.skipmenu { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.inline-form { display: grid; gap: 8px; margin-top: 10px; max-width: 460px; }
+.err-line { color: var(--fail); font-size: .88rem; margin-top: 6px; }
+
+/* Other lists: one row each, action at the end */
+.list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.list > li { border-bottom: 1px solid var(--rule); padding: 12px 0; }
+.list .line { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.list .nm { font-weight: 700; }
+.list .meta { font-size: .87rem; color: var(--ink-soft); }
+.receipt { font-size: .86rem; color: var(--ink-soft); margin-top: 4px; }
+.receipt q { color: var(--ink); quotes: none; }
+
+#live { position: absolute; left: -9999px; }
+.toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--ink); color: #fff; font: 700 .9rem var(--ctl);
+         padding: 10px 16px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 9; max-width: calc(100% - 32px); }
+.toast.on { opacity: 1; }
+.toast.bad { background: var(--fail); }
+
+@media (max-width: 560px) {
+  .item { grid-template-columns: 1fr; }
+  .item .date { padding: 14px 0 0; }
+  .item .date b { display: inline; font-size: .95rem; margin-right: 6px; }
+  .item .body { padding-top: 4px; }
+  .btn { min-height: 44px; } .link { min-height: 44px; }
+  .top-meta { flex-basis: 100%; order: 3; font-size: .85rem; }
+  .top-in { padding: 10px 16px 8px; }
+  .as span { display: none; }
+  .top-acts { margin-left: auto; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#batch">Skip to this week's batch</a>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="/events" title="Back to the event tracker"><img src="/arcticblue-logo.png" alt=""><b>Speaking this week</b></a>
+    <div class="top-meta" id="topMeta">Loading the week</div>
+    <div class="top-acts">
+      <label class="as"><span>Recording as</span>
+        <select id="by" aria-label="Recording as"><option>Thor</option><option>Hurley</option><option>Verma</option></select>
+      </label>
+    </div>
+  </div>
+  <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+</header>
+
+<main class="wrap" id="main">
+  <div class="glance" id="glance" hidden>
+    <section aria-labelledby="hAtt">
+      <h2 id="hAtt">You're attending <span class="n" id="nAtt"></span></h2>
+      <ul class="mini" id="attending"></ul>
+    </section>
+    <section aria-labelledby="hOut">
+      <h2 id="hOut">Out now <span class="n" id="nOut"></span></h2>
+      <ul class="mini" id="outMini"></ul>
+    </section>
+  </div>
+
+  <section id="batch" aria-labelledby="hBatch">
+    <div class="batch-head">
+      <h2 id="hBatch">Ready this week <span class="n" id="nBatch"></span></h2>
+      <span class="grow"></span>
+      <button class="btn primary" id="approveAll" type="button" hidden>Approve all ready</button>
+    </div>
+    <p class="sub" id="batchSub">In date order. Forms and emails you approve go to Claude to fill in, and it waits for your yes before anything is sent. LinkedIn notes you send yourself.</p>
+    <div id="batchNotice"></div>
+    <ol class="run" id="run"></ol>
+  </section>
+
+  <section id="secFollow" aria-labelledby="hFollow" hidden>
+    <h2 id="hFollow">Follow-ups due <span class="n" id="nFollow"></span></h2>
+    <p class="sub">Quiet for two weeks, or one week when the event is close. Send it, then mark it.</p>
+    <ul class="list" id="follow"></ul>
+  </section>
+
+  <section id="secLoss" aria-labelledby="hLoss" hidden>
+    <h2 id="hLoss">Thank-you notes <span class="n" id="nLoss"></span></h2>
+    <p class="sub">They said no in the last six weeks. A short thanks keeps the door open for late slots and next year.</p>
+    <ul class="list" id="losses"></ul>
+  </section>
+
+  <section id="secOut" aria-labelledby="hOutAll">
+    <h2 id="hOutAll">Everything out now <span class="n" id="nOutAll"></span></h2>
+    <p class="sub">Every application and note in flight, with the record behind it. When they reply, record what they said.</p>
+    <ul class="list" id="out"></ul>
+  </section>
+
+  <section id="secNeeds" aria-labelledby="hNeeds" hidden>
+    <h2 id="hNeeds">Needs a record <span class="n" id="nNeeds"></span></h2>
+    <p class="sub">These are marked as sent but there is no date or note behind them, which is why the old counts were off. Confirm when it happened, or clear the stage.</p>
+    <ul class="list" id="needs"></ul>
+  </section>
+
+  <section id="secSkipped" aria-labelledby="hSkipped" hidden>
+    <h2 id="hSkipped">Skipped this week <span class="n" id="nSkipped"></span></h2>
+    <ul class="list" id="skipped"></ul>
+  </section>
+</main>
+<div id="live" aria-live="polite"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+  var API = '/api/operator';
+  var params = new URLSearchParams(location.search);
+  var PERSON = (params.get('person') || 'thor').toLowerCase();
+  var LANE = { sessionize: 'Sessionize', form: 'Form', linkedin: 'LinkedIn', email: 'Email', find: 'Needs a contact' };
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var W = null, open = {}, busy = false;
+  var $ = function (id) { return document.getElementById(id); };
+
+  // Who is pressing the buttons: stored in this browser only.
+  var $by = $('by');
+  try { var saved = localStorage.getItem('ab-week-by'); if (saved) $by.value = saved; } catch (e) {}
+  $by.addEventListener('change', function () { try { localStorage.setItem('ab-week-by', $by.value); } catch (e) {} });
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function day(iso) {
+    // A timestamp (when something was sent) is shown in this browser's own day;
+    // a plain date (an event date) is taken as written.
+    if (/T\d{2}:/.test(iso || '')) { var t = new Date(iso); return isNaN(t) ? null : new Date(t.getFullYear(), t.getMonth(), t.getDate()); }
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  }
+  function short(iso) { var d = day(iso); return d ? MONTHS[d.getMonth()] + ' ' + d.getDate() : ''; }
+  function sayDay(iso) { var d = day(iso); return d ? DAYS[d.getDay()] + ' ' + MONTHS[d.getMonth()] + ' ' + d.getDate() : ''; }
+  function stageCls(s) { return 's-' + String(s || '').replace(/\s+/g, '-'); }
+  function stage(s) { return s ? '<span class="stage ' + stageCls(s) + '">' + esc(s) + '</span>' : ''; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+
+  var tTimer;
+  function toast(msg, bad) {
+    var t = $('toast'); t.textContent = msg; t.className = 'toast on' + (bad ? ' bad' : '');
+    $('live').textContent = msg;
+    clearTimeout(tTimer); tTimer = setTimeout(function () { t.className = 'toast'; }, bad ? 5000 : 2200);
+  }
+
+  function call(body) {
+    body.person = PERSON; body.by = $by.value;
+    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) {
+        if (!r.ok || j.ok === false) throw new Error(j.error || j.msg || ('Request failed (' + r.status + ')'));
+        return j;
+      }); });
+  }
+
+  function copy(text) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+    var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    return Promise.resolve();
+  }
+  function gmail(to, subject, body) {
+    return 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(to || '') +
+      '&su=' + encodeURIComponent(subject || '') + '&body=' + encodeURIComponent(body || '');
+  }
+
+  // ── Load ──────────────────────────────────────────────────────────────
+  function load(quiet) {
+    if (!quiet) $('topMeta').textContent = 'Loading the week';
+    return fetch(API + '?person=' + encodeURIComponent(PERSON), { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j.error) throw new Error(j.msg || j.error);
+        W = j; render();
+      })
+      .catch(function (e) {
+        $('topMeta').textContent = 'The week could not load: ' + e.message + '. Reload to try again.';
+      });
+  }
+
+  function render() {
+    var c = W.counts, items = W.items;
+    var monday = day(W.today); if (monday) { monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7)); }
+    var done = items.filter(function (i) { return i.status === 'sent'; }).length;
+    var who = PERSON.charAt(0).toUpperCase() + PERSON.slice(1);
+    $('topMeta').textContent = who + ', week of ' + (monday ? MONTHS[monday.getMonth()] + ' ' + monday.getDate() : W.week) +
+      (items.length ? '. ' + done + ' of ' + items.length + ' sent' : '');
+    $('bar').style.width = items.length ? Math.round(100 * done / items.length) + '%' : '0';
+    document.title = (items.length ? done + '/' + items.length + ' ' : '') + 'Speaking this week';
+    renderGlance(); renderBatch(); renderFollow(); renderLosses(); renderOut(); renderNeeds(); renderSkipped();
+  }
+
+  // ── At a glance ───────────────────────────────────────────────────────
+  function receiptLine(r) {
+    if (!r) return 'No record yet';
+    var note = String(r.note || r.channel || 'Recorded');
+    if (note.length > 160) note = note.slice(0, 157).replace(/\s+\S*$/, '') + '...';
+    return (r.on ? short(r.on) + ': ' : '') + esc(note);
+  }
+  function renderGlance() {
+    $('glance').hidden = false;
+    var att = W.attending, out = W.out;
+    $('nAtt').textContent = att.length || '';
+    $('attending').innerHTML = att.length ? att.slice(0, 5).map(function (a) {
+      return '<li><span class="when">' + esc(short(a.start)) + '</span><span class="what"><span class="nm">' + esc(a.name) +
+        '</span><br><span class="meta">' + esc(a.place) + (a.place ? ', ' : '') + esc(a.role.toLowerCase()) + '</span></span></li>';
+    }).join('') + (att.length > 5 ? '<li><span></span><span class="meta">and ' + (att.length - 5) + ' more</span></li>' : '')
+      : '<li><span></span><span class="empty">Nothing booked yet.</span></li>';
+    $('nOut').textContent = out.length || '';
+    var soon = out.slice(0, 5);
+    $('outMini').innerHTML = out.length ? soon.map(function (o) {
+      return '<li><span class="when">' + esc(short(o.start)) + '</span><span class="what"><span class="nm">' + esc(o.name) +
+        '</span><br><span class="meta">' + stage(o.stage) + ' ' + plural(o.waiting_days, 'day') + ' waiting</span></span></li>';
+    }).join('') + (out.length > 5 ? '<li><span></span><a class="meta" href="#secOut">See all ' + out.length + '</a></li>' : '')
+      : '<li><span></span><span class="empty">Nothing out right now.</span></li>';
+  }
+
+  // ── The batch ─────────────────────────────────────────────────────────
+  function renderBatch() {
+    var items = W.items;
+    var ready = items.filter(function (i) { return i.status === 'ready'; });
+    $('nBatch').textContent = items.length ? plural(items.length, 'event') : '';
+    $('approveAll').hidden = !ready.length;
+    $('approveAll').textContent = 'Approve all ' + ready.length + ' ready';
+    var n = $('batchNotice');
+    if (!W.planned) {
+      var pv = W.preview || { items: [], eligible: 0, left_out: {} };
+      var lanes = {};
+      pv.items.forEach(function (i) { lanes[i.lane] = (lanes[i.lane] || 0) + 1; });
+      var laneSay = Object.keys(lanes).map(function (l) { return lanes[l] + ' ' + LANE[l]; }).join(', ');
+      n.innerHTML = '<div class="notice"><b>This week has not been prepared yet.</b> It runs every Monday at 5am. ' +
+        (pv.items.length ? 'Right now it would pick ' + plural(pv.items.length, 'event') + ' (' + esc(laneSay) + ')' +
+          (pv.eligible > pv.items.length ? ', the first ' + pv.items.length + ' of ' + pv.eligible + ' that qualify' : '') + '. '
+          : 'Right now no event qualifies. ') +
+        'Preparing finds missing organisers and drafts everything, a few at a time.' +
+        '<div class="acts"><button class="btn primary" type="button" id="prepNow">Prepare this week</button>' +
+        (pv.items.length ? '<button class="link" type="button" id="pvToggle" aria-expanded="false">See who would be picked</button>' : '') +
+        '</div><ol class="mini" id="pvList" hidden>' + pv.items.map(function (i) {
+          return '<li><span class="when">' + esc(short(i.start)) + '</span><span class="what"><span class="nm">' + esc(i.name) +
+            '</span><br><span class="meta">' + esc(LANE[i.lane] || i.lane) + (i.place ? ', ' + esc(i.place) : '') +
+            ((i.flags || []).length ? ', ' + esc(i.flags.join(', ')) : '') + '</span></span></li>';
+        }).join('') + '</ol>' + leftOutHtml(pv.left_out) + '</div>';
+      $('prepNow').onclick = prepareWeek;
+      if ($('pvToggle')) $('pvToggle').onclick = function () {
+        var l = $('pvList'); l.hidden = !l.hidden; this.setAttribute('aria-expanded', l.hidden ? 'false' : 'true');
+        this.textContent = l.hidden ? 'See who would be picked' : 'Hide the list';
+      };
+    } else {
+      var waiting = items.filter(function (i) { return i.status === 'planned' || i.status === 'error'; }).length;
+      n.innerHTML = waiting ? '<div class="notice">' + plural(waiting, 'event is', 'events are') + ' still being prepared. ' +
+        '<button class="link" type="button" id="prepMore">Prepare them now</button></div>' : '';
+      if (waiting) $('prepMore').onclick = prepareWeek;
+      if (items.length < W.target && items.length) {
+        n.innerHTML += '<p class="sub">Only ' + items.length + ' of ' + W.target + ' this week: no other event fits Thor, has a way in, and is far enough out.</p>';
+      }
+    }
+    $('run').innerHTML = items.map(itemHtml).join('');
+    items.forEach(function (it) { wireItem(it); });
+  }
+
+  function leftOutHtml(lo) {
+    var keys = Object.keys(lo || {}).filter(function (k) { return k !== 'past or no date' && k !== 'archived'; });
+    if (!keys.length) return '';
+    keys.sort(function (a, b) { return lo[b] - lo[a]; });
+    return '<p class="sub" style="margin:10px 0 0">Left out: ' + keys.map(function (k) { return esc(k) + ' ' + lo[k]; }).join(', ') + '.</p>';
+  }
+  function itemMeta(it) {
+    var bits = [];
+    if (it.place) bits.push(esc(it.place));
+    if (it.major) bits.push('<span class="major">Major event</span>');
+    (it.flags || []).forEach(function (f) { bits.push('<span class="flag">' + esc(f) + '</span>'); });
+    if (it.carried) bits.push('From last week');
+    if (it.unassigned) bits.push('No speaker set');
+    return bits.join(', ');
+  }
+  function stateLine(it) {
+    if (it.status === 'sent' && it.sent) {
+      return '<div class="state ok">Sent ' + esc(short(it.sent.at)) + (it.sent.channel ? ' on ' + esc(LANE[it.sent.channel] || it.sent.channel) : '') +
+        (it.sent.to ? ' to ' + esc(it.sent.to) : '') + '</div>';
+    }
+    if (it.status === 'planned') return '<div class="state wait">Being prepared</div>';
+    if (it.status === 'error') return '<div class="state err">The draft failed: ' + esc(it.error) + '</div>';
+    if (it.queued_for_claude) return '<div class="state ok">Approved. Queued for Claude to fill in, it waits for your yes</div>';
+    if (it.status === 'approved') return '<div class="state ok">Approved</div>';
+    return '';
+  }
+  function itemKey(it) { return it.table + ':' + it.key; }
+  function itemHtml(it) {
+    var k = itemKey(it), d = day(it.start);
+    var cls = 'item' + (it.status === 'sent' ? ' is-sent' : '');
+    return '<li class="' + cls + '" data-k="' + esc(k) + '">' +
+      '<div class="date">' + (d ? '<b>' + d.getDate() + '</b>' + esc(MONTHS[d.getMonth()] + ', ' + DAYS[d.getDay()]) : '') + '</div>' +
+      '<div class="body">' +
+        '<div class="row1"><button class="toggle" type="button" aria-expanded="' + (open[k] ? 'true' : 'false') + '" aria-controls="d-' + esc(k) + '">' +
+          '<span class="nm">' + esc(it.name) + '</span><span class="meta">' + itemMeta(it) + '</span></button>' +
+          '<span class="lane">' + esc(LANE[it.lane] || it.lane) + '</span></div>' +
+        stateLine(it) +
+        '<div class="detail" id="d-' + esc(k) + '"' + (open[k] ? '' : ' hidden') + '>' + detailHtml(it) + '</div>' +
+      '</div></li>';
+  }
+
+  function checksHtml(list, cls) {
+    return list && list.length ? '<ul class="checks' + (cls ? ' ' + cls : '') + '">' + list.map(function (c) {
+      return '<li>' + esc(typeof c === 'string' ? c : (c.text + (c.why_it_matters ? '. ' + c.why_it_matters : ''))) + '</li>';
+    }).join('') + '</ul>' : '';
+  }
+  function contactHtml(it) {
+    var c = it.contact;
+    if (!c) return '';
+    var bits = ['<b>' + esc(c.name || 'Organiser') + '</b>'];
+    if (c.note) bits.push(esc(c.note));
+    if (c.linkedin) bits.push('<a href="' + esc(c.linkedin) + '" target="_blank" rel="noopener">LinkedIn profile</a>');
+    if (c.email) bits.push(esc(c.email));
+    return '<p class="who">' + bits.join('. ') + '</p>';
+  }
+  function skipHtml() {
+    return '<div class="skipmenu" hidden data-skipmenu>' + Object.keys(W.skip_reasons).map(function (r) {
+      return '<button class="btn" type="button" data-skip="' + esc(r) + '">' + esc(W.skip_reasons[r]) + '</button>';
+    }).join('') + '</div>';
+  }
+  function field(label, part, name, value, rows, max) {
+    var id = 'f' + Math.random().toString(36).slice(2, 9);
+    return '<div class="field"><label for="' + id + '"><span>' + esc(label) + '</span>' +
+      (max ? '<span class="count" data-count="' + max + '">' + String(value || '').length + '/' + max + '</span>' : '') + '</label>' +
+      (rows ? '<textarea id="' + id + '" rows="' + rows + '" data-part="' + part + '" data-field="' + name + '">' + esc(value) + '</textarea>'
+            : '<input type="text" id="' + id + '" data-part="' + part + '" data-field="' + name + '" value="' + esc(value) + '">') + '</div>';
+  }
+
+  function detailHtml(it) {
+    var h = '', sent = it.status === 'sent';
+    if (it.status === 'planned' || it.status === 'error') {
+      return '<p class="sub">Nothing to send yet.</p><div class="acts"><button class="btn" type="button" data-redraft>Draft it now</button>' +
+        '<button class="link quiet" type="button" data-skipopen>Skip</button></div>' + skipHtml();
+    }
+    if (it.lane === 'linkedin' || it.lane === 'email') {
+      var m = it.message || {};
+      h += contactHtml(it);
+      if (m.talk_title) h += '<p class="who">Talk: <b>' + esc(m.talk_title) + '</b>' + (m.why_this_talk ? '. ' + esc(m.why_this_talk) : '') + '</p>';
+      h += checksHtml(m.checks);
+      if (it.lane === 'linkedin') {
+        h += field('Connection note', 'message', 'linkedin_note', m.linkedin_note, 3, W.linkedin_note_max);
+        h += field('Message once they accept', 'message', 'linkedin_message', m.linkedin_message, 5);
+        if (!sent) h += '<div class="acts"><button class="btn primary" type="button" data-li>Copy note, open LinkedIn</button>' +
+          '<button class="btn" type="button" data-sent="linkedin">Mark sent</button>' +
+          '<button class="link" type="button" data-copy="linkedin_message">Copy the follow-on message</button>' +
+          '<button class="link quiet" type="button" data-skipopen>Skip</button></div>';
+      } else {
+        h += field('Subject', 'message', 'email_subject', m.email_subject, 0);
+        h += field('Email', 'message', 'email_body', m.email_body, 7);
+        if (!sent) h += '<div class="acts"><a class="btn primary" target="_blank" rel="noopener" data-gmail href="#">Open in Gmail</a>' +
+          '<button class="btn" type="button" data-sent="email">Mark sent</button>' +
+          '<button class="link quiet" type="button" data-skipopen>Skip</button></div>';
+      }
+    } else if (it.lane === 'sessionize' || it.lane === 'form') {
+      var d = it.draft || {};
+      var where = it.lane === 'sessionize' ? it.sessionize : it.apply_link;
+      if (d.talk_title) h += '<p class="who">Talk: <b>' + esc(d.talk_title) + '</b>' + (d.why_this_talk ? '. ' + esc(d.why_this_talk) : '') + '</p>';
+      h += checksHtml(d.checks);
+      h += checksHtml(d.terms, 'terms');
+      if (d.title || d.abstract) {
+        h += field('Session title', 'draft', 'title', d.title, 0);
+        h += field('Short abstract', 'draft', 'short_abstract', d.short_abstract, 3);
+        h += field('Abstract', 'draft', 'abstract', d.abstract, 7, 1000);
+        (d.answers || []).forEach(function (a) {
+          h += '<div class="field"><span class="lbl">' + esc(a.question) + '</span><div class="ro">' + esc(a.answer) + '</div></div>';
+        });
+        if (d.unknowns && d.unknowns.length) h += '<p class="sub">Check on the form: ' + esc(d.unknowns.join(' ')) + '</p>';
+      } else {
+        h += '<p class="sub">No draft saved for this event yet.</p>';
+      }
+      if (!sent) h += '<div class="acts">' +
+        (it.queued_for_claude ? '' : '<button class="btn primary" type="button" data-claude>Apply for me</button>') +
+        (where ? '<a class="btn" href="' + esc(where) + '" target="_blank" rel="noopener">Open the ' + (it.lane === 'sessionize' ? 'call' : 'form') + '</a>' : '') +
+        (d.abstract ? '<button class="link" type="button" data-copyapp>Copy the application</button>' : '') +
+        '<button class="btn" type="button" data-sent="' + it.lane + '" data-submitted>Mark submitted</button>' +
+        '<button class="link quiet" type="button" data-skipopen>Skip</button></div>';
+    } else {
+      h += '<p class="sub">No organiser contact was found. Search LinkedIn for the person who runs the speaker programme, then add them here and the note is drafted for you.</p>' +
+        '<div class="acts"><a class="btn" href="' + esc(it.linkedin_search) + '" target="_blank" rel="noopener">Search LinkedIn</a>' +
+        '<button class="link quiet" type="button" data-skipopen>Skip</button></div>' +
+        '<form class="inline-form" data-contact novalidate>' +
+          '<input type="text" name="name" placeholder="Their name" autocomplete="off" aria-label="Their name">' +
+          '<input type="url" name="linkedin" placeholder="linkedin.com/in/..." autocomplete="off" aria-label="LinkedIn profile link">' +
+          '<input type="email" name="email" placeholder="Email, if published" autocomplete="off" aria-label="Email">' +
+          '<div><button class="btn primary" type="submit">Add and draft the note</button></div>' +
+          '<div class="err-line" data-err hidden></div></form>';
+    }
+    if (!sent) h += skipHtml();
+    if (it.url) h += '<p class="who"><a href="' + esc(it.url) + '" target="_blank" rel="noopener">Event website</a></p>';
+    return h;
+  }
+
+  function findItem(k) { return W.items.filter(function (i) { return itemKey(i) === k; })[0]; }
+  function rerenderItem(it) {
+    var li = document.querySelector('.item[data-k="' + CSS.escape(itemKey(it)) + '"]');
+    if (!li) return render();
+    li.outerHTML = itemHtml(it);
+    wireItem(it);
+  }
+
+  function wireItem(it) {
+    var k = itemKey(it);
+    var li = document.querySelector('.item[data-k="' + CSS.escape(k) + '"]');
+    if (!li) return;
+    var tg = li.querySelector('.toggle'), dt = li.querySelector('.detail');
+    tg.onclick = function () {
+      open[k] = !open[k]; dt.hidden = !open[k]; tg.setAttribute('aria-expanded', open[k] ? 'true' : 'false');
+    };
+    var val = function (name) { var el = li.querySelector('[data-field="' + name + '"]'); return el ? el.value : ''; };
+    li.querySelectorAll('[data-field]').forEach(function (el) {
+      var cnt = el.closest('.field').querySelector('[data-count]');
+      el.addEventListener('input', function () {
+        if (cnt) { var max = +cnt.getAttribute('data-count'); cnt.textContent = el.value.length + '/' + max; cnt.classList.toggle('over', el.value.length > max); }
+      });
+      el.addEventListener('change', function () {
+        var part = el.getAttribute('data-part'), f = el.getAttribute('data-field');
+        var store = it[part === 'draft' ? 'draft' : 'message'] = it[part === 'draft' ? 'draft' : 'message'] || {};
+        store[f] = el.value;
+        call({ action: 'edit', table: it.table, key: it.key, part: part, field: f, value: el.value })
+          .then(function () { toast('Saved'); }).catch(function (e) { toast(e.message, true); });
+      });
+    });
+    var $li = li.querySelector('[data-li]');
+    if ($li) $li.onclick = function () {
+      var note = val('linkedin_note');
+      if (note.length > W.linkedin_note_max) { toast('The note is over ' + W.linkedin_note_max + ' characters. LinkedIn will cut it.', true); return; }
+      copy(note).then(function () { toast('Note copied. Paste it in the invite, then press Mark sent'); });
+      if (it.contact && it.contact.linkedin) window.open(it.contact.linkedin, '_blank', 'noopener');
+    };
+    var $cp = li.querySelector('[data-copy]');
+    if ($cp) $cp.onclick = function () { copy(val($cp.getAttribute('data-copy'))).then(function () { toast('Copied'); }); };
+    var $gm = li.querySelector('[data-gmail]');
+    if ($gm) {
+      var setHref = function () { $gm.href = gmail(it.contact && it.contact.email, val('email_subject'), val('email_body')); };
+      setHref(); li.addEventListener('input', setHref);
+    }
+    var $ca = li.querySelector('[data-copyapp]');
+    if ($ca) $ca.onclick = function () {
+      var d = it.draft || {};
+      var parts = ['Title: ' + val('title'), 'Short abstract: ' + val('short_abstract'), 'Abstract: ' + val('abstract')];
+      if (d.takeaways && d.takeaways.length) parts.push('Takeaways:\n- ' + d.takeaways.join('\n- '));
+      (d.answers || []).forEach(function (a) { parts.push(a.question + '\n' + a.answer); });
+      copy(parts.join('\n\n')).then(function () { toast('Application copied'); });
+    };
+    var $cl = li.querySelector('[data-claude]');
+    if ($cl) $cl.onclick = function () {
+      $cl.disabled = true;
+      call({ action: 'approve', items: [{ table: it.table, key: it.key }] }).then(function () {
+        it.status = 'approved'; it.queued_for_claude = true; rerenderItem(it); toast('Queued for Claude');
+      }).catch(function (e) { $cl.disabled = false; toast(e.message, true); });
+    };
+    li.querySelectorAll('[data-sent]').forEach(function (b) {
+      b.onclick = function () {
+        var ch = b.getAttribute('data-sent'), sub = b.hasAttribute('data-submitted');
+        var text = ch === 'linkedin' ? val('linkedin_note') : (ch === 'email' ? (val('email_subject') + '\n\n' + val('email_body')) : '');
+        var to = it.contact ? (it.contact.name || it.contact.email || '') : '';
+        b.disabled = true;
+        call({ action: sub ? 'submitted' : 'sent', table: it.table, key: it.key, channel: ch, text: text, to: to }).then(function () {
+          it.status = 'sent'; it.sent = { channel: ch, to: sub ? '' : to, at: W.today };
+          open[k] = false; render(); toast(sub ? 'Recorded as submitted' : 'Recorded as sent');
+          load(true);
+        }).catch(function (e) { b.disabled = false; toast(e.message, true); });
+      };
+    });
+    var $so = li.querySelectorAll('[data-skipopen]');
+    var menu = li.querySelector('[data-skipmenu]');
+    $so.forEach(function (b) { b.onclick = function () { if (menu) { menu.hidden = !menu.hidden; } }; });
+    li.querySelectorAll('[data-skip]').forEach(function (b) {
+      b.onclick = function () {
+        b.disabled = true;
+        call({ action: 'skip', table: it.table, key: it.key, reason: b.getAttribute('data-skip') }).then(function () {
+          toast('Skipped: ' + W.skip_reasons[b.getAttribute('data-skip')]); return load(true);
+        }).catch(function (e) { b.disabled = false; toast(e.message, true); });
+      };
+    });
+    var $rd = li.querySelector('[data-redraft]');
+    if ($rd) $rd.onclick = function () {
+      $rd.disabled = true; $rd.textContent = 'Drafting, about 30 seconds';
+      call({ action: 'redraft', table: it.table, key: it.key }).then(function (r) {
+        if (r.item) { Object.assign(it, r.item); open[k] = true; rerenderItem(it); }
+        toast('Draft ready');
+      }).catch(function (e) { $rd.disabled = false; $rd.textContent = 'Draft it now'; toast(e.message, true); });
+    };
+    var form = li.querySelector('[data-contact]');
+    if (form) form.onsubmit = function (e) {
+      e.preventDefault();
+      var fd = new FormData(form), err = form.querySelector('[data-err]'), btn = form.querySelector('button');
+      err.hidden = true;
+      if (!fd.get('linkedin') && !fd.get('email')) { err.textContent = 'Add their LinkedIn profile link or an email.'; err.hidden = false; return; }
+      btn.disabled = true; btn.textContent = 'Drafting the note, about 30 seconds';
+      call({ action: 'contact', table: it.table, key: it.key, name: fd.get('name'), linkedin: fd.get('linkedin'), email: fd.get('email') })
+        .then(function (r) { if (r.item) { Object.assign(it, r.item); open[k] = true; rerenderItem(it); } toast('Contact added and note drafted'); })
+        .catch(function (e2) { btn.disabled = false; btn.textContent = 'Add and draft the note'; err.textContent = e2.message; err.hidden = false; });
+    };
+  }
+
+  $('approveAll').onclick = function () {
+    var ready = W.items.filter(function (i) { return i.status === 'ready'; });
+    if (!ready.length) return;
+    var b = $('approveAll'); b.disabled = true; b.textContent = 'Approving ' + ready.length;
+    call({ action: 'approve', items: ready.map(function (i) { return { table: i.table, key: i.key }; }) })
+      .then(function (r) { toast(plural(r.approved, 'event') + ' approved'); b.disabled = false; return load(true); })
+      .catch(function (e) { b.disabled = false; toast(e.message, true); render(); });
+  };
+
+  function prepareWeek() {
+    if (busy) return; busy = true;
+    var n = $('batchNotice');
+    var say = function (t) { n.innerHTML = '<div class="notice">' + esc(t) + '</div>'; };
+    say('Picking this week\'s events');
+    call({ action: 'plan' }).then(function (p) {
+      var total = p.planned_now + p.already;
+      var step = function (doneSoFar) {
+        say('Preparing drafts and contacts: ' + doneSoFar + ' done. This takes a few minutes; you can leave it open.');
+        return call({ action: 'prepare', limit: 2 }).then(function (r) {
+          var d = doneSoFar + r.prepared.length;
+          return r.remaining > 0 && r.prepared.length ? step(d) : d;
+        });
+      };
+      return step(0).then(function () { busy = false; toast('This week is ready'); return load(); });
+    }).catch(function (e) { busy = false; say('Preparing stopped: ' + e.message); });
+  }
+
+  // ── Follow-ups, thank-yous, everything out, needs a record ─────────────
+  function sendBox(o, action, label) {
+    var c = o.contact || {};
+    var id = 't' + Math.random().toString(36).slice(2, 9);
+    return '<div class="field"><label for="' + id + '"><span>' + esc(label) + '</span></label><textarea id="' + id + '" rows="3" data-text>' + esc(o.text) + '</textarea></div>' +
+      '<div class="acts">' +
+      (c.linkedin ? '<button class="btn primary" type="button" data-li2>Copy, open LinkedIn</button>' : '') +
+      (c.email ? '<a class="btn' + (c.linkedin ? '' : ' primary') + '" target="_blank" rel="noopener" data-gm2 href="#">Open in Gmail</a>' : '') +
+      '<button class="btn" type="button" data-do="' + action + '">Mark sent</button></div>' +
+      (!c.linkedin && !c.email ? '<p class="sub" style="margin-top:8px">No organiser contact on file. ' +
+        '<a href="' + esc(o.linkedin_search) + '" target="_blank" rel="noopener">Search LinkedIn</a>, then add them:</p>' +
+        '<form class="inline-form" data-contact2 novalidate>' +
+          '<input type="text" name="name" placeholder="Their name" autocomplete="off" aria-label="Their name">' +
+          '<input type="url" name="linkedin" placeholder="linkedin.com/in/..." autocomplete="off" aria-label="LinkedIn profile link">' +
+          '<input type="email" name="email" placeholder="Email, if published" autocomplete="off" aria-label="Email">' +
+          '<div><button class="btn" type="submit">Save contact</button></div><div class="err-line" data-err hidden></div></form>' : '');
+  }
+  function wireSend(li, o, action) {
+    var ta = li.querySelector('[data-text]'), c = o.contact || {};
+    var li2 = li.querySelector('[data-li2]');
+    if (li2) li2.onclick = function () { copy(ta.value).then(function () { toast('Copied. Send it, then press Mark sent'); }); window.open(c.linkedin, '_blank', 'noopener'); };
+    var gm = li.querySelector('[data-gm2]');
+    if (gm) { var set = function () { gm.href = gmail(c.email, (action === 'loss_sent' ? 'Thank you: ' : 'Re: speaking at ') + o.name, ta.value); }; set(); ta.addEventListener('input', set); }
+    var cf = li.querySelector('[data-contact2]');
+    if (cf) cf.onsubmit = function (e) {
+      e.preventDefault();
+      var fd = new FormData(cf), err = cf.querySelector('[data-err]'), btn = cf.querySelector('button');
+      err.hidden = true;
+      if (!fd.get('linkedin') && !fd.get('email')) { err.textContent = 'Add their LinkedIn profile link or an email.'; err.hidden = false; return; }
+      btn.disabled = true;
+      call({ action: 'contact', save_only: true, table: o.table, key: o.key, name: fd.get('name'), linkedin: fd.get('linkedin'), email: fd.get('email') })
+        .then(function () { toast('Contact saved'); return load(true); })
+        .catch(function (e2) { btn.disabled = false; err.textContent = e2.message; err.hidden = false; });
+    };
+    li.querySelector('[data-do]').onclick = function (e) {
+      var b = e.currentTarget; b.disabled = true;
+      call({ action: action, table: o.table, key: o.key, channel: c.linkedin ? 'linkedin' : 'email', text: ta.value, to: c.name || c.email || '' })
+        .then(function () { toast('Recorded'); return load(true); })
+        .catch(function (e2) { b.disabled = false; toast(e2.message, true); });
+    };
+  }
+  function renderFollow() {
+    var f = W.follow_ups;
+    $('secFollow').hidden = !f.length; $('nFollow').textContent = f.length || '';
+    $('follow').innerHTML = f.map(function (o, i) {
+      return '<li data-i="' + i + '"><div class="line"><span class="nm">' + esc(o.name) + '</span><span class="meta">' + esc(sayDay(o.start)) +
+        ', ' + stage(o.stage) + ', last touch ' + esc(short(o.last_touch)) + '</span></div>' + sendBox(o, 'followup_sent', 'Follow-up') + '</li>';
+    }).join('');
+    f.forEach(function (o, i) { wireSend($('follow').querySelector('[data-i="' + i + '"]'), o, 'followup_sent'); });
+  }
+  function renderLosses() {
+    var l = W.losses;
+    $('secLoss').hidden = !l.length; $('nLoss').textContent = l.length || '';
+    $('losses').innerHTML = l.map(function (o, i) {
+      return '<li data-i="' + i + '"><div class="line"><span class="nm">' + esc(o.name) + '</span><span class="meta">said no on ' +
+        esc(short(o.rejected_on)) + '</span></div>' + sendBox(o, 'loss_sent', 'Thank-you note') + '</li>';
+    }).join('');
+    l.forEach(function (o, i) { wireSend($('losses').querySelector('[data-i="' + i + '"]'), o, 'loss_sent'); });
+  }
+  function renderOut() {
+    var o = W.out;
+    $('nOutAll').textContent = o.length || '';
+    $('out').innerHTML = o.length ? o.map(function (x, i) {
+      var r = x.receipt;
+      var due = x.hold ? 'on hold, per the notes' : 'next nudge ' + short(x.follow_up_on);
+      return '<li data-i="' + i + '"><div class="line">' + stage(x.stage) + '<span class="nm">' + esc(x.name) + '</span>' +
+        '<span class="meta">' + esc(sayDay(x.start)) + (x.place ? ', ' + esc(x.place) : '') + '</span></div>' +
+        '<div class="receipt">' + plural(x.waiting_days, 'day') + ' waiting, ' + esc(due) + '. Record: ' + receiptLine(r) +
+        (r && (r.text || String(r.note || '').length > 160) ? ' <button class="link" type="button" data-showtext>' + (r.text ? 'Show what was sent' : 'Show all') +
+          '</button><div class="ro" hidden data-sentText>' + esc(r.text || r.note) + '</div>' : '') +
+        (x.unassigned ? '. No speaker set' : '') + '</div>' +
+        '<div class="acts"><span class="meta">They replied:</span>' +
+        '<button class="btn" type="button" data-out="meeting">Meeting</button>' +
+        '<button class="btn" type="button" data-out="booked">Booked</button>' +
+        '<button class="btn" type="button" data-out="rejected">Said no</button>' +
+        '<button class="link" type="button" data-out="replied">Something else</button></div></li>';
+    }).join('') : '<li class="empty">Nothing in flight.</li>';
+    o.forEach(function (x, i) {
+      var li = $('out').querySelector('[data-i="' + i + '"]');
+      var st = li.querySelector('[data-showtext]');
+      if (st) st.onclick = function () { var t = li.querySelector('[data-sentText]'); t.hidden = !t.hidden; };
+      li.querySelectorAll('[data-out]').forEach(function (b) {
+        b.onclick = function () {
+          var oc = b.getAttribute('data-out'), note = '';
+          if (oc === 'replied') { note = window.prompt('What did they say? (saved on the event)') || ''; if (!note) return; }
+          b.disabled = true;
+          call({ action: 'outcome', table: x.table, key: x.key, outcome: oc, note: note })
+            .then(function () { toast('Recorded'); return load(true); })
+            .catch(function (e) { b.disabled = false; toast(e.message, true); });
+        };
+      });
+    });
+  }
+  function renderNeeds() {
+    var n = W.needs_record;
+    $('secNeeds').hidden = !n.length; $('nNeeds').textContent = n.length || '';
+    $('needs').innerHTML = n.map(function (x, i) {
+      var id = 'nd' + i;
+      return '<li data-i="' + i + '"><div class="line">' + stage(x.stage) + '<span class="nm">' + esc(x.name) + '</span><span class="meta">' +
+        esc(sayDay(x.start)) + (x.unassigned ? ', no speaker set' : '') + '</span></div>' +
+        '<div class="acts"><label class="meta" for="' + id + '">It happened on</label><input type="date" id="' + id + '" max="' + esc(W.today) + '" style="max-width:180px">' +
+        '<button class="btn" type="button" data-confirm>Confirm</button><button class="link quiet" type="button" data-clear>It never went out, clear it</button></div></li>';
+    }).join('');
+    n.forEach(function (x, i) {
+      var li = $('needs').querySelector('[data-i="' + i + '"]');
+      li.querySelector('[data-confirm]').onclick = function (e) {
+        var d = li.querySelector('input[type=date]').value;
+        if (!d) { toast('Pick the date it happened first', true); return; }
+        e.currentTarget.disabled = true;
+        call({ action: 'record', op: 'confirm', table: x.table, key: x.key, date: d, claim: x.unassigned })
+          .then(function () { toast('Recorded'); return load(true); }).catch(function (e2) { toast(e2.message, true); });
+      };
+      li.querySelector('[data-clear]').onclick = function (e) {
+        e.currentTarget.disabled = true;
+        call({ action: 'record', op: 'clear', table: x.table, key: x.key })
+          .then(function () { toast('Stage cleared'); return load(true); }).catch(function (e2) { toast(e2.message, true); });
+      };
+    });
+  }
+  function renderSkipped() {
+    var s = W.skipped;
+    $('secSkipped').hidden = !s.length; $('nSkipped').textContent = s.length || '';
+    $('skipped').innerHTML = s.map(function (x, i) {
+      var why = x.skip ? (W.skip_reasons[x.skip.reason] || x.skip.reason) : '';
+      return '<li data-i="' + i + '"><div class="line"><span class="nm">' + esc(x.name) + '</span><span class="meta">' + esc(why) +
+        '</span><button class="link" type="button" data-undo>Undo</button></div></li>';
+    }).join('');
+    s.forEach(function (x, i) {
+      $('skipped').querySelector('[data-i="' + i + '"] [data-undo]').onclick = function (e) {
+        e.currentTarget.disabled = true;
+        call({ action: 'unskip', table: x.table, key: x.key }).then(function () { toast('Back in the batch'); return load(true); })
+          .catch(function (e2) { toast(e2.message, true); });
+      };
+    });
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
