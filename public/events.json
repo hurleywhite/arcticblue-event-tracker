@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-12T00:00:00Z",
-  "build_date": "2026-11-12",
+  "generated_at": "2026-11-13T00:00:00Z",
+  "build_date": "2026-11-13",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -1688,6 +1688,7 @@
       "contact_info": "aidataanalytics.network",
       "deadline": "No call-for-speakers deadline published",
       "attendee_count": "300+",
+      "pricing": "From \u20ac1,799 + VAT",
       "audience_type": "Buyer-rich",
       "past_speakers": "Head of Global Data & AI, Siemens Healthineers; Global Head Advanced Analytics, AI & Data Science, Sanofi",
       "meeting_formats": "Vendor Specific Interactive Roundtable Discussions; networking and drinks reception",
@@ -2266,6 +2267,7 @@
       "pricing": "Super Early Bird: $1,399; Standard Pass: $1,799",
       "audience_type": "Mixed",
       "past_speakers": "Chief AI Technologist, LLM Suite (CDAO), JPMorganChase; Biswa Sengupta, JPMorganChase",
+      "meeting_formats": "Networking drinks and exhibitor hall",
       "venue": "W Hoboken",
       "city": "Hoboken",
       "country": "USA",
