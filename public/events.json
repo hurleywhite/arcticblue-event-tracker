@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-15T00:00:00Z",
-  "build_date": "2026-11-15",
+  "generated_at": "2026-11-16T00:00:00Z",
+  "build_date": "2026-11-16",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -1039,6 +1039,7 @@
       "status": "upcoming",
       "typical_attendees": "Technical builders, developers, engineering leaders, and senior AI decision-makers",
       "contact_info": "albert@pmmalliance.com",
+      "deadline": "December 6, 2026 for discounted passes",
       "pricing": "Individual Pass: $795 regular, $595 discounted; Teams of 3 or more: $595 regular, $495 discounted (per person)",
       "audience_type": "Buyer-rich",
       "past_speakers": "Engineering Manager, Platform Foundations & AI Infrastructure, Netflix; Applied AI, Partner Solutions Architect, OpenAI; Head of Product, Agentic AI, Amazon Nova, Amazon; Principal Scientist, Adobe; Co Founder & CEO, Builder.io; CTO & Founder, Cequence; Developer Advocate, Mistral AI; VP, Product Marketing, RingCentral",
@@ -4156,6 +4157,7 @@
       "pay_to_play": "No",
       "pricing": "Paid all-access pass: $2,499; complimentary passes available for qualified non-vendor senior enterprise attendees",
       "audience_type": "Buyer-rich",
+      "past_speakers": "Chief Health Data Officer, University of California Office of the President; Head of Global Data & Analytics, Barnes Aerospace; VP, Chief Data and Analytics Officer, Principal Financial Group; SVP, Chief of Data & AI, Symetra; President, Data Center Group, Marvell Technology; SVP & General Manager, Compute & Enterprise AI, AMD; EVP, Edge AI Business Unit, Arm; Vice President of Engineering, PepsiCo",
       "meeting_formats": "Executive roundtables; networking reception; exhibit hall; panels; presentations",
       "seed": false,
       "urgent": false,

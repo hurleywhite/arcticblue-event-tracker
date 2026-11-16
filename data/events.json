@@ -2884,7 +2884,8 @@
    "end_date": "2026-08-19",
    "pricing": "Paid all-access pass: $2,499; complimentary passes available for qualified non-vendor senior enterprise attendees",
    "meeting_formats": "Executive roundtables; networking reception; exhibit hall; panels; presentations",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "past_speakers": "Chief Health Data Officer, University of California Office of the President; Head of Global Data & Analytics, Barnes Aerospace; VP, Chief Data and Analytics Officer, Principal Financial Group; SVP, Chief of Data & AI, Symetra; President, Data Center Group, Marvell Technology; SVP & General Manager, Compute & Enterprise AI, AMD; EVP, Edge AI Business Unit, Arm; Vice President of Engineering, PepsiCo"
   },
   {
    "num": 126,
@@ -7962,7 +7963,8 @@
    "pricing": "Individual Pass: $795 regular, $595 discounted; Teams of 3 or more: $595 regular, $495 discounted (per person)",
    "past_speakers": "Engineering Manager, Platform Foundations & AI Infrastructure, Netflix; Applied AI, Partner Solutions Architect, OpenAI; Head of Product, Agentic AI, Amazon Nova, Amazon; Principal Scientist, Adobe; Co Founder & CEO, Builder.io; CTO & Founder, Cequence; Developer Advocate, Mistral AI; VP, Product Marketing, RingCentral",
    "meeting_formats": "Networking events; workshops; roundtables; peer conversations; attendee app or pre-booking meetings not verified",
-   "audience_type": "Buyer-rich"
+   "audience_type": "Buyer-rich",
+   "deadline": "December 6, 2026 for discounted passes"
   },
   {
    "num": 304,
