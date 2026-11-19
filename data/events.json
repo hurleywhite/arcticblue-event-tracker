@@ -7363,7 +7363,8 @@
    "pricing": "Standard price €3,725 + VAT; Public-sector price €2,925 + VAT",
    "audience_type": "Buyer-rich",
    "past_speakers": "Distinguished VP Analyst, Gartner; VP Analyst, Gartner",
-   "attendee_count": "1,700+"
+   "attendee_count": "1,700+",
+   "meeting_formats": "One-on-one guidance with a Gartner analyst"
   },
   {
    "num": 283,
@@ -7579,7 +7580,8 @@
    "pricing": "Early bird $375; standard $475; onsite $925; academic $149; Linux Foundation/AAIF members 20% off",
    "meeting_formats": "attendee app for pre-booking meetings",
    "audience_type": "Buyer-rich",
-   "deadline": "CFP closed June 7, 2026"
+   "deadline": "CFP closed June 7, 2026",
+   "attendee_count": "3,500–5,000"
   },
   {
    "num": 290,
@@ -8109,7 +8111,8 @@
    "venue": "Convene 360 Madison Avenue",
    "pricing": "Pricing details to be announced",
    "audience_type": "Buyer-rich",
-   "attendee_count": "500+"
+   "attendee_count": "500+",
+   "meeting_formats": "Networking events; community network"
   }
  ]
 }
