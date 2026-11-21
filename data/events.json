@@ -5153,7 +5153,9 @@
    "external_id": "7d7085d1-518d-4073-8162-5b707f412929",
    "source": "arcticscout",
    "start_date": "2026-02-27",
-   "end_date": "2026-02-27"
+   "end_date": "2026-02-27",
+   "meeting_formats": "Networking and community-building sessions",
+   "audience_type": "Mixed"
   },
   {
    "num": 205,

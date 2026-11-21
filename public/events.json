@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-20T00:00:00Z",
-  "build_date": "2026-11-20",
+  "generated_at": "2026-11-21T00:00:00Z",
+  "build_date": "2026-11-21",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -8466,6 +8466,8 @@
       "speaking_route": "Booked via personal EMC3 contacts.",
       "contact_info": "Ewan Jamieson + Daniel Curtis",
       "pay_to_play": "No",
+      "audience_type": "Mixed",
+      "meeting_formats": "Networking and community-building sessions",
       "seed": false,
       "urgent": false,
       "venue": "New York City, NY",
