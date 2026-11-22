@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-21T00:00:00Z",
-  "build_date": "2026-11-21",
+  "generated_at": "2026-11-22T00:00:00Z",
+  "build_date": "2026-11-22",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -252,6 +252,7 @@
       "typical_attendees": "CEOs, CIOs, CTOs, Chief AI Officers, enterprise AI leaders from Silicon Valley and West Coast Fortune 500; 200\u2013400 attendee audience",
       "speaking_route": "Apply to Speak on Stage: leadersinaisummit.com (speaker application form)",
       "contact_info": "leadersinaisummit.com",
+      "pricing": "End-users may receive paid or complimentary passes; vendors pay for their pass",
       "audience_type": "Mixed",
       "past_speakers": "Rick Grandy, Principal Solutions Architect & SA Manager; Prabhakar Bolleddu, SVP - Business Analytics; Dipak Prasad, Executive Director, Hybrid Cloud; Awah Teh, Chief Data Architect; Leila Emami, VP, Data Architecture and Engineering; Jon Mabe, VP, AI & Engineering; Shelby Tallent, Head of AI Governance; Sonia Gupta, Chief Medical Officer; Ed Soo Hoo, Worldwide CTO Global Accounts",
       "meeting_formats": "Executive roundtable discussions; strategic networking opportunities",
@@ -3978,8 +3979,10 @@
       "typical_attendees": "Senior technology and business leaders from enterprises across sectors \u2014 C-level executives, heads of AI/analytics/IT, innovation and digital transformation decision-makers",
       "speaking_route": "Submitted speaker interest via registration form at the event website.",
       "contact_info": "enterpriseai-me.com",
+      "attendee_count": "Approximately 200 delegates",
       "pay_to_play": "No",
       "audience_type": "Mixed",
+      "past_speakers": "AI & Data Science Leader, Qiddiya (PIF)",
       "seed": false,
       "urgent": false,
       "venue": "Hyatt Regency Riyadh Olaya, Riyadh, Saudi Arabia",

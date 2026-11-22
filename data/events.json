@@ -4668,7 +4668,9 @@
    "source": "arcticscout",
    "start_date": "2026-08-30",
    "end_date": "2026-08-30",
-   "audience_type": "Mixed"
+   "audience_type": "Mixed",
+   "past_speakers": "AI & Data Science Leader, Qiddiya (PIF)",
+   "attendee_count": "Approximately 200 delegates"
   },
   {
    "num": 189,
@@ -7010,7 +7012,8 @@
    "venue": "Downtown San Jose",
    "past_speakers": "Rick Grandy, Principal Solutions Architect & SA Manager; Prabhakar Bolleddu, SVP - Business Analytics; Dipak Prasad, Executive Director, Hybrid Cloud; Awah Teh, Chief Data Architect; Leila Emami, VP, Data Architecture and Engineering; Jon Mabe, VP, AI & Engineering; Shelby Tallent, Head of AI Governance; Sonia Gupta, Chief Medical Officer; Ed Soo Hoo, Worldwide CTO Global Accounts",
    "audience_type": "Mixed",
-   "meeting_formats": "Executive roundtable discussions; strategic networking opportunities"
+   "meeting_formats": "Executive roundtable discussions; strategic networking opportunities",
+   "pricing": "End-users may receive paid or complimentary passes; vendors pay for their pass"
   },
   {
    "num": 268,
