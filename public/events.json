@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-23T00:00:00Z",
-  "build_date": "2026-11-23",
+  "generated_at": "2026-11-24T00:00:00Z",
+  "build_date": "2026-11-24",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -4831,6 +4831,7 @@
       "pay_to_play": "No",
       "pricing": "Free visitor pass available with at least three confirmed onsite matchmaking meetings; all-access conference pass available at a 50% discount via partner code (exact base price not verified)",
       "audience_type": "Mixed",
+      "past_speakers": "Director-General, European Commission; CEO, SAP; President, NVIDIA EMEA",
       "meeting_formats": "attendee app for pre-booking meetings; guaranteed/hosted 1:1 meetings",
       "venue": "Messe Berlin Exhibition Center, South Entrance"
     },
