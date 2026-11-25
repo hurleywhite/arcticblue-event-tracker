@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-24T00:00:00Z",
-  "build_date": "2026-11-24",
+  "generated_at": "2026-11-25T00:00:00Z",
+  "build_date": "2026-11-25",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
-    "today": 0,
-    "upcoming": 31,
+    "today": 1,
+    "upcoming": 30,
     "archived": 238,
     "total": 269
   },
@@ -25,7 +25,7 @@
       "priority_full": "High",
       "why": "Omani enterprise AI expo for Gulf CXOs \u2014 potential supplementary MENA touchpoint though lower priority than Abu Dhabi AI Everything; consider only if already in region.",
       "url": "https://aienterpriseexpo.com/",
-      "status": "upcoming",
+      "status": "today",
       "about": "The Middle East's platform for enterprise-grade AI, aligned with Oman Vision 2040. Brings together CXOs and technology leaders from 16+ sectors across the Gulf and MENA to accelerate enterprise AI adoption. Themes: Oman's Vision 2040 AI roadmap, data as an asset, on-premise AI for data residency, AI governance, hybrid and multi-cloud scalability, customer-centric AI, and agentic AI.",
       "focus_areas": "Enterprise AI adoption in Oman and Gulf; Digital transformation with AI; AI strategy for public and private sector; MENA AI ecosystem development; Sector-specific AI use cases",
       "typical_attendees": "CXOs, enterprise technology leaders from 16+ sectors across Oman and Gulf region",
@@ -1254,6 +1254,7 @@
       "focus_areas": "Strategic I&D; Employee Experience & Inclusive Cultures; I&D & Legal Compliance; AI Impacts & Opportunities for Inclusion; Broadening the Workforce Funnel",
       "typical_attendees": "HR leaders, I&D specialists, HR professionals, and senior leaders responsible for workforce strategy",
       "speaking_route": "Speaker form: \nhttps://shrm.formstack.com/forms/blueprint26_interest_form?_gl=1*f34bq4*_ga*MjE0MTE2ODIwNi4xNzc5ODg1ODU0*_ga_N68056QWYJ*czE3Nzk4ODU4NTMkbzEkZzEkdDE3Nzk4ODU4OTgkajE1JGwwJGgw\n\n",
+      "deadline": "July 31, 2026, 5:00pm ET",
       "audience_type": "Buyer-rich",
       "past_speakers": "Employment lawyers and inclusion/diversity experts (specific names not published)",
       "meeting_formats": "Hands-on small group working sessions with experts",
