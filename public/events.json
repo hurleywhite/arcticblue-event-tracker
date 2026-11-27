@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-26T00:00:00Z",
-  "build_date": "2026-11-26",
+  "generated_at": "2026-11-27T00:00:00Z",
+  "build_date": "2026-11-27",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -7016,6 +7016,7 @@
       "contact_info": "dbta.com/datasummit/",
       "deadline": "Call for speakers open for 12th annual Data Summit (May 6\u20137, 2026)[7]",
       "attendee_count": "5,000+",
+      "pricing": "Registration pricing published, but exact amounts not verified",
       "audience_type": "Mixed",
       "past_speakers": "CIO, Enterprise Data Corp; CDO, AI Innovations Inc; CDAO, Global Analytics Group",
       "meeting_formats": "hosted 1:1 meetings, curated roundtables, attendee app for pre-booking meetings",
