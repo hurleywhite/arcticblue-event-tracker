@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-27T00:00:00Z",
-  "build_date": "2026-11-27",
+  "generated_at": "2026-11-28T00:00:00Z",
+  "build_date": "2026-11-28",
   "source": "arcticblue-event-tracker",
   "canonical_url": "https://arcticblue-event-tracker-deploy.vercel.app/events.json",
   "counts": {
@@ -7258,6 +7258,7 @@
       "attendee_count": "Fewer than 20 end-user spots remained near the event date",
       "pay_to_play": "Both",
       "audience_type": "Buyer-rich",
+      "past_speakers": "Head of AI Technologies \u2013 CAI, Vanguard; Chief Information Officer, United States Air Force",
       "meeting_formats": "Curated roundtables",
       "seed": false,
       "urgent": true,
